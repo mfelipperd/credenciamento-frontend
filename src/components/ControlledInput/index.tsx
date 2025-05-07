@@ -16,36 +16,60 @@ interface ControlledInputProps<T extends FieldValues> extends InputProps {
   control: Control<T>;
   name: FieldPath<T>;
   label?: string;
+  /**
+   * Função que recebe o valor digitado e retorna a versão mascarada.
+   * Exemplo: (val) => applyPhoneMask(val)
+   */
+  mask?: (value: string) => string;
 }
 
 export function ControlledInput<T extends FieldValues>({
   control,
   name,
   label,
+  mask,
   ...inputProps
 }: ControlledInputProps<T>) {
   return (
     <Controller
       control={control}
       name={name}
-      render={({ field, fieldState }) => (
-        <div className="mb-4">
-          {label && (
-            <label
-              htmlFor={String(name)}
-              className="block mb-1 text-sm font-medium text-neutral-400"
-            >
-              {label}
-            </label>
-          )}
-          <Input {...inputProps} {...field} id={String(name)} />
-          {fieldState.error && (
-            <p className="text-sm text-red-600 mt-1">
-              {fieldState.error.message}
-            </p>
-          )}
-        </div>
-      )}
+      render={({ field, fieldState }) => {
+        // Valor a ser exibido: aplica máscara se fornecida
+        const displayValue = mask
+          ? mask(String(field.value ?? ""))
+          : field.value;
+
+        return (
+          <div className="mb-4">
+            {label && (
+              <label
+                htmlFor={String(name)}
+                className="block mb-1 text-sm font-medium text-neutral-400"
+              >
+                {label}
+              </label>
+            )}
+            <Input
+              {...inputProps}
+              id={String(name)}
+              value={displayValue}
+              onChange={(e) => {
+                const raw = e.target.value;
+                const masked = mask ? mask(raw) : raw;
+                // Atualiza o valor do RHF com a versão mascarada
+                field.onChange(masked);
+              }}
+              onBlur={field.onBlur}
+            />
+            {fieldState.error && (
+              <p className="text-sm text-red-600 mt-1">
+                {fieldState.error.message}
+              </p>
+            )}
+          </div>
+        );
+      }}
     />
   );
 }

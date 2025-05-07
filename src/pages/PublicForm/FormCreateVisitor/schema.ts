@@ -10,7 +10,7 @@ export const credenciamentoSchema = z
     name: z.string().nonempty("Nome é obrigatório"),
     company: z.string().nonempty("Empresa é obrigatória"),
     email: z.string().email("Email inválido"),
-    cnpj: z.string().length(14, "CNPJ deve conter 14 dígitos"),
+    cnpj: z.string().length(18, "CNPJ deve conter 14 dígitos"),
     phone: z.string().nonempty("Telefone é obrigatório"),
     zipCode: z
       .string()

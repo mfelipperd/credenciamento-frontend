@@ -15,6 +15,7 @@ import {
   defaultVisitorCnpj,
   type CredenciamentoFormData,
 } from "./schema";
+import { maskCNPJ, unmaskString } from "@/utils/masks";
 
 const setoresOpcoes = [
   "Brinquedos",
@@ -45,6 +46,9 @@ export const FormularioCredenciamento: React.FC = () => {
   const onSubmit = async (data: CredenciamentoFormData) => {
     const payload = {
       ...data,
+      zipCode: unmaskString(data.zipCode),
+      cnpj: unmaskString(data.cnpj),
+      phone: unmaskString(data.phone),
       category: data.ingresso,
       fair_visitor: currentFairId,
     };
@@ -58,7 +62,7 @@ export const FormularioCredenciamento: React.FC = () => {
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="max-w-md mx-auto p-6 bg-neutral-100 rounded-lg "
+      className="max-w-md p-6 bg-neutral-100 rounded-lg "
     >
       <div className="h-[60vh] scrollable-content">
         {/* Tipo de ingresso */}
@@ -82,7 +86,7 @@ export const FormularioCredenciamento: React.FC = () => {
                   <ToggleGroupItem
                     key={opt}
                     value={opt}
-                    className={`px-2 py-2 rounded-full cursor-pointer ${
+                    className={` rounded-full cursor-pointer ${
                       field.value === opt
                         ? "bg-gray-400 text-white"
                         : "bg-transparent"
@@ -126,6 +130,7 @@ export const FormularioCredenciamento: React.FC = () => {
             name="cnpj"
             label="CNPJ"
             placeholder="00000000000000"
+            mask={maskCNPJ}
           />
         )}
         <ControlledInput
@@ -164,6 +169,7 @@ export const FormularioCredenciamento: React.FC = () => {
         </div>
         {/* Como nos conheceu */}
         <ControlledSelect
+          className="bg-white border-none rounded-full"
           control={control}
           name="howDidYouKnow"
           label="Como nos conheceu"

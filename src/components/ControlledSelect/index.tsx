@@ -11,6 +11,7 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 
 interface SelectOption {
   label: string;
@@ -23,6 +24,7 @@ interface ControlledSelectProps<T extends FieldValues> {
   options: SelectOption[];
   placeholder?: string;
   label?: string;
+  className?: string;
 }
 
 export function ControlledSelect<T extends FieldValues>({
@@ -31,6 +33,7 @@ export function ControlledSelect<T extends FieldValues>({
   options,
   placeholder,
   label,
+  className,
 }: ControlledSelectProps<T>) {
   return (
     <Controller
@@ -50,7 +53,7 @@ export function ControlledSelect<T extends FieldValues>({
             onValueChange={field.onChange}
             value={field.value as unknown as string}
           >
-            <SelectTrigger className="w-full">
+            <SelectTrigger className={cn("w-full", className)}>
               <SelectValue placeholder={placeholder} />
             </SelectTrigger>
             <SelectContent>
