@@ -175,8 +175,14 @@ export const FormularioCredenciamento: React.FC = () => {
           label="Como nos conheceu"
           placeholder="Selecione uma opção"
           options={[
-            { value: "internet", label: "Internet" },
-            { value: "amigo", label: "Indicação de amigo" },
+            { value: "facebook", label: "Facebook" },
+            { value: "instagram", label: "Instagram" },
+            { value: "google", label: "Google" },
+            { value: "outdoor", label: "Outdoor" },
+            { value: "busdoor", label: "Busdoor" },
+            { value: "tv", label: "Televisão" },
+            { value: "indicação", label: "Indicação" },
+            { value: "representante", label: "Indicação de Representante" },
             { value: "outro", label: "Outro" },
           ]}
         />
