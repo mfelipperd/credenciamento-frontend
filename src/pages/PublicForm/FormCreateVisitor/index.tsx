@@ -1,5 +1,5 @@
 // src/pages/FormularioCredenciamento.tsx
-import React from "react";
+import React, { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ControlledInput } from "@/components/ControlledInput";
@@ -36,7 +36,6 @@ export const FormularioCredenciamento: React.FC = () => {
         ingresso: "lojista",
         sectors: [],
         howDidYouKnow: "",
-        cnpj: defaultVisitorCnpj,
       },
     });
   const { fairId } = useParams<{ fairId: string }>();
@@ -59,6 +58,10 @@ export const FormularioCredenciamento: React.FC = () => {
 
   const setoresSelecionados = watch("sectors") || [];
   const ingresso = watch("ingresso");
+
+  useEffect(() => {
+    if (ingresso === "visitante") setValue("cnpj", defaultVisitorCnpj);
+  }, [ingresso]);
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
