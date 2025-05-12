@@ -53,11 +53,12 @@ export function ControlledSelect<T extends FieldValues>({
             onValueChange={field.onChange}
             value={field.value as unknown as string}
           >
-            <SelectTrigger className={cn("w-full", className)}>
+            <SelectTrigger className={cn("w-ful", className)}>
               <SelectValue placeholder={placeholder} />
             </SelectTrigger>
             <SelectContent
               className={`
+            
           border-none
           data-[state=open]:animate-fadeIn
           data-[state=closed]:animate-fadeOut

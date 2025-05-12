@@ -1,5 +1,5 @@
 // src/pages/FormularioCredenciamento.tsx
-import React, { useEffect } from "react";
+import React from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ControlledInput } from "@/components/ControlledInput";
@@ -46,7 +46,10 @@ export const FormularioCredenciamento: React.FC = () => {
     const payload = {
       ...data,
       zipCode: unmaskString(data.zipCode),
-      cnpj: unmaskString(data.cnpj),
+      cnpj:
+        data.ingresso === "visitante"
+          ? defaultVisitorCnpj
+          : unmaskString(data.cnpj),
       phone: unmaskString(data.phone),
       category: data.ingresso,
       fair_visitor: currentFairId,
@@ -59,15 +62,9 @@ export const FormularioCredenciamento: React.FC = () => {
   const setoresSelecionados = watch("sectors") || [];
   const ingresso = watch("ingresso");
 
-  useEffect(() => {
-    if (ingresso === "visitante") setValue("cnpj", defaultVisitorCnpj);
-  }, [ingresso]);
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className="max-w-md p-6 bg-neutral-100 rounded-lg "
-    >
-      <div className="h-full ">
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <div>
         {/* Tipo de ingresso */}
         <Controller
           control={control}
@@ -132,7 +129,7 @@ export const FormularioCredenciamento: React.FC = () => {
             control={control}
             name="cnpj"
             label="CNPJ"
-            placeholder="00000000000000"
+            placeholder="__.___.___/____-__"
             mask={maskCNPJ}
           />
         )}

@@ -45,7 +45,7 @@ export function ControlledInput<T extends FieldValues>({
             {label && (
               <label
                 htmlFor={String(name)}
-                className="block mb-1 text-sm font-medium text-neutral-400"
+                className="block mb-1 text-sm font-medium "
               >
                 {label}
               </label>
