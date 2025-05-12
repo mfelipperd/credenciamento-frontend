@@ -83,16 +83,16 @@ export const FormularioCredenciamento: React.FC = () => {
                 onValueChange={(val) =>
                   setValue("ingresso", val as "lojista" | "visitante")
                 }
-                className="mt-2 w-full"
+                className="mt-2 w-full space-x-2.5 "
               >
                 {(["lojista", "visitante"] as const).map((opt) => (
                   <ToggleGroupItem
                     key={opt}
                     value={opt}
-                    className={` rounded-full cursor-pointer ${
+                    className={` rounded-full cursor-pointer text ${
                       field.value === opt
-                        ? "bg-gray-400 text-white"
-                        : "bg-transparent"
+                        ? "bg-pink-600 text-white"
+                        : "bg-white"
                     }`}
                   >
                     {opt.charAt(0).toUpperCase() + opt.slice(1)}
@@ -148,6 +148,25 @@ export const FormularioCredenciamento: React.FC = () => {
           label="CEP"
           placeholder="00000000"
         />
+        {/* Como nos conheceu */}
+        <ControlledSelect
+          className="bg-white border-none rounded-full"
+          control={control}
+          name="howDidYouKnow"
+          label="Como nos conheceu"
+          placeholder="Selecione uma opção"
+          options={[
+            { value: "facebook", label: "Facebook" },
+            { value: "instagram", label: "Instagram" },
+            { value: "google", label: "Google" },
+            { value: "outdoor", label: "Outdoor" },
+            { value: "busdoor", label: "Busdoor" },
+            { value: "tv", label: "Televisão" },
+            { value: "indicação", label: "Indicação" },
+            { value: "representante", label: "Indicação de Representante" },
+            { value: "outro", label: "Outro" },
+          ]}
+        />
         {/* Setores */}
         <div className="mb-4">
           <label className="block mb-1 text-sm font-medium">
@@ -170,31 +189,12 @@ export const FormularioCredenciamento: React.FC = () => {
             ))}
           </div>
         </div>
-        {/* Como nos conheceu */}
-        <ControlledSelect
-          className="bg-white border-none rounded-full"
-          control={control}
-          name="howDidYouKnow"
-          label="Como nos conheceu"
-          placeholder="Selecione uma opção"
-          options={[
-            { value: "facebook", label: "Facebook" },
-            { value: "instagram", label: "Instagram" },
-            { value: "google", label: "Google" },
-            { value: "outdoor", label: "Outdoor" },
-            { value: "busdoor", label: "Busdoor" },
-            { value: "tv", label: "Televisão" },
-            { value: "indicação", label: "Indicação" },
-            { value: "representante", label: "Indicação de Representante" },
-            { value: "outro", label: "Outro" },
-          ]}
-        />
       </div>
 
-      <div className="flex justify-end pt-4">
+      <div className="flex justify-center pt-4">
         <Button
           type="submit"
-          className="bg-pink-600 hover:bg-pink-700 text-white"
+          className="bg-pink-600 rounded-full w-[80%] hover:bg-pink-700 text-white"
         >
           {loading ? <Loader2 className="animate-spin" /> : <Save />}
           Enviar

@@ -56,9 +56,19 @@ export function ControlledSelect<T extends FieldValues>({
             <SelectTrigger className={cn("w-full", className)}>
               <SelectValue placeholder={placeholder} />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent
+              className={`
+          border-none
+          data-[state=open]:animate-fadeIn
+          data-[state=closed]:animate-fadeOut
+        `}
+            >
               {options.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
+                <SelectItem
+                  key={opt.value}
+                  value={opt.value}
+                  className="hover:bg-gray-100"
+                >
                   {opt.label}
                 </SelectItem>
               ))}
