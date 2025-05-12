@@ -67,7 +67,7 @@ export const FormularioCredenciamento: React.FC = () => {
       onSubmit={handleSubmit(onSubmit)}
       className="max-w-md p-6 bg-neutral-100 rounded-lg "
     >
-      <div className="h-[60vh] scrollable-content">
+      <div className="h-full ">
         {/* Tipo de ingresso */}
         <Controller
           control={control}
