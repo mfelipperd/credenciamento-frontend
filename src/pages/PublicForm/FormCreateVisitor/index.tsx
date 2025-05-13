@@ -7,7 +7,7 @@ import { ControlledSelect } from "@/components/ControlledSelect";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { usePublicFormService } from "@/service/publicform.service";
 import { Loader2, Save } from "lucide-react";
 import {
@@ -16,6 +16,7 @@ import {
   type CredenciamentoFormData,
 } from "./schema";
 import { maskCNPJ, unmaskString } from "@/utils/masks";
+import { isValidCNPJ } from "@/utils/isValidCnpj";
 
 const setoresOpcoes = [
   "Brinquedos",
@@ -29,7 +30,7 @@ const setoresOpcoes = [
 ];
 
 export const FormularioCredenciamento: React.FC = () => {
-  const { control, handleSubmit, watch, setValue } =
+  const { control, handleSubmit, watch, setValue, setError } =
     useForm<CredenciamentoFormData>({
       resolver: zodResolver(credenciamentoSchema),
       defaultValues: {
@@ -41,22 +42,41 @@ export const FormularioCredenciamento: React.FC = () => {
   const { fairId } = useParams<{ fairId: string }>();
   const { create, loading } = usePublicFormService();
   const currentFairId = fairId;
+  const navigate = useNavigate();
 
   const onSubmit = async (data: CredenciamentoFormData) => {
+    if (data.ingresso === "lojista") {
+      if (!data.cnpj) {
+        setError("cnpj", {
+          type: "manual",
+          message: "CNPJ é obrigatório para lojistas",
+        });
+        return;
+      }
+      // 2. Valida algoritmo
+      if (!isValidCNPJ(data.cnpj)) {
+        setError("cnpj", {
+          type: "manual",
+          message: "CNPJ inválido segundo algoritmo",
+        });
+        return;
+      }
+    }
+
     const payload = {
       ...data,
       zipCode: unmaskString(data.zipCode),
       cnpj:
         data.ingresso === "visitante"
           ? defaultVisitorCnpj
-          : unmaskString(data.cnpj),
+          : unmaskString(data.cnpj || ""),
       phone: unmaskString(data.phone),
       category: data.ingresso,
       fair_visitor: currentFairId,
     };
     const result = await create(payload);
     if (!result) return window.alert("Algo deu errado tente novamente");
-    window.alert("Inscrição relaizada com sucesso!");
+    navigate("/sucess");
   };
 
   const setoresSelecionados = watch("sectors") || [];
