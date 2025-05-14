@@ -10,7 +10,7 @@ export const CardTotals = ({ className, title, value }: CardTotalsProps) => {
   return (
     <div
       className={cn(
-        "bg-white col-span-4 h-20 rounded-2xl flex flex-col items-center justify-between py-2 px-4 ",
+        "bg-white col-span-4 h-20 rounded-4xl flex flex-col items-center justify-between py-2 px-4 ",
         className
       )}
     >
