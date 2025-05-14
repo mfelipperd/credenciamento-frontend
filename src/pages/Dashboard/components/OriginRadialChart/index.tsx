@@ -73,10 +73,10 @@ export const OriginRadialChart: React.FC<{ fairId: string }> = ({ fairId }) => {
   return (
     <div
       id="origin-radial-chart"
-      className="flex items-center justify-around gap-4 w-full"
+      className="flex flex-col-reverse sm:flex sm:flex-row sm:items-center sm:justify-around  gap-4 w-full"
     >
       {/* Legenda à esquerda */}
-      <div className="flex flex-wrap w-[50%] h-full  gap-4">
+      <div className="flex flex-wrap w-full sm:w-[50%] h-full  gap-4">
         {chart.options.labels!.map((label, i) => (
           <div key={label} className="flex items-center gap-4">
             <div

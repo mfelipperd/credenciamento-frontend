@@ -9,40 +9,46 @@ export const Dashboard = () => {
   return (
     <div className="w-ful grid grid-cols-12 gap-4">
       <CardTotals
-        className="bg-gray-500 col-span-4 "
+        className="bg-gray-500 sm:col-span-4 col-span-full "
         title="Total de inscritos"
         value={controller.overview?.totalVisitors}
       />
       <CardTotals
-        className="bg-green-600  col-span-4 "
+        className="bg-green-600  sm:col-span-4 col-span-full "
         title="Check-ins realizados"
         value={controller.overview?.totalCheckIns}
       />
       <CardTotals
-        className="bg-yellow-600 col-span-4 "
+        className="bg-yellow-600 sm:col-span-4 col-span-full "
         title="inscritos ausentes"
         value={Number(
           (controller.overview?.totalVisitors ?? 0) -
             (controller.overview?.totalCheckIns ?? 0)
         )}
       />
-      <CardRoot title="tipos de ingresso " className="bg-white col-span-6 h-96">
+      <CardRoot
+        title="tipos de ingresso "
+        className="bg-white sm:col-span-6 h-96 min-h-fit col-span-full"
+      >
         <CategoryRadialChart fairId={controller.fairId} />
       </CardRoot>
-      <CardRoot title="como conheceu" className="bg-white col-span-6 h-96">
+      <CardRoot
+        title="como conheceu"
+        className="bg-white sm:col-span-6 h-96 min-h-fit col-span-full"
+      >
         <OriginRadialChart fairId={controller.fairId} />
       </CardRoot>{" "}
       <CardRoot
         title="Equipe do evento "
-        className="bg-white col-span-4 h-96"
+        className="bg-white sm:col-span-4 h-96 col-span-full"
       />{" "}
       <CardRoot
         title="mapa de inscritos "
-        className="bg-white col-span-4 h-96"
+        className="bg-white sm:col-span-4 h-96 col-span-full"
       />{" "}
       <CardRoot
         title="Setor de interesse"
-        className="bg-white col-span-4 h-96"
+        className="bg-white sm:col-span-4 h-96 col-span-full"
       />
     </div>
   );

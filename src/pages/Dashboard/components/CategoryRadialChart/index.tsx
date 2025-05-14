@@ -80,7 +80,7 @@ export const CategoryRadialChart: React.FC<{ fairId: string }> = ({
   return (
     <div
       id="category-radial-chart"
-      className="flex items-center justify-around gap-4 w-full"
+      className=" flex flex-col-reverse  sm:flex sm:flex-row sm:items-center sm:justify-around  gap-4 w-full"
     >
       <div className="flex flex-col gap-8">
         {chart.options.labels?.map((label, i) => (
