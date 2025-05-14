@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 
 interface CardTotalsProps {
   title?: string;
-  value?: string;
+  value?: string | number;
   className?: string;
 }
 
