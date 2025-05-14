@@ -1,7 +1,8 @@
+// AuthProvider.tsx
 import { useAuth } from "@/hooks/useAuth";
 import type { AuthResponse } from "@/interfaces/auth";
 import type { User } from "@/interfaces/user";
-import { useState, useEffect, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { useLocation, Navigate, Outlet } from "react-router-dom";
 import { AuthContext } from "./authContext";
 
@@ -9,17 +10,14 @@ const STORAGE_USER_KEY = "app_user";
 const STORAGE_TOKEN_KEY = "app_token";
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-
-  useEffect(() => {
-    const storedUser = localStorage.getItem(STORAGE_USER_KEY);
-    const storedToken = localStorage.getItem(STORAGE_TOKEN_KEY);
-    if (storedUser && storedToken) {
-      setUser(JSON.parse(storedUser));
-      setToken(storedToken);
-    }
-  }, []);
+  // carrega direto do localStorage na inicialização
+  const [user, setUser] = useState<User | null>(() => {
+    const stored = localStorage.getItem(STORAGE_USER_KEY);
+    return stored ? JSON.parse(stored) : null;
+  });
+  const [token, setToken] = useState<string | null>(() => {
+    return localStorage.getItem(STORAGE_TOKEN_KEY);
+  });
 
   const signIn = ({ access_token, user }: AuthResponse) => {
     localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(user));
