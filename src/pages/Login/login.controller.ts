@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 
 export const useLoginController = () => {
-  const { create } = useAuthService();
+  const { create, loading } = useAuthService();
   const form = useForm<ILoginFormPost>();
   const navigate = useNavigate();
   const { signIn } = useAuth();
@@ -19,5 +19,6 @@ export const useLoginController = () => {
   return {
     handleSubmit,
     form,
+    loading,
   };
 };
