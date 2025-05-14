@@ -184,7 +184,8 @@ export const FormularioCredenciamento: React.FC = () => {
         {/* Setores */}
         <div className="mb-4">
           <label className="block mb-1 text-sm font-medium">
-            Setores que a empresa atua
+            Setores que{" "}
+            {ingresso === "visitante" ? "tem interesse:" : "a empresa atua:"}
           </label>
           <div className="grid grid-cols-2 gap-2 mt-2">
             {setoresOpcoes.map((setor) => (
