@@ -53,7 +53,6 @@ export const FormularioCredenciamento: React.FC = () => {
         });
         return;
       }
-      // 2. Valida algoritmo
       if (!isValidCNPJ(data.cnpj)) {
         setError("cnpj", {
           type: "manual",
@@ -85,7 +84,6 @@ export const FormularioCredenciamento: React.FC = () => {
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <div>
-        {/* Tipo de ingresso */}
         <Controller
           control={control}
           name="ingresso"
@@ -124,7 +122,6 @@ export const FormularioCredenciamento: React.FC = () => {
             </div>
           )}
         />
-        {/* Campos de texto alinhados ao DTO */}
         <ControlledInput
           control={control}
           name="name"
@@ -167,7 +164,7 @@ export const FormularioCredenciamento: React.FC = () => {
         />
         {/* Como nos conheceu */}
         <ControlledSelect
-          className="bg-white border-none rounded-full"
+          className="bg-white w-full border-none rounded-full"
           control={control}
           name="howDidYouKnow"
           label="Como nos conheceu"
