@@ -1,17 +1,27 @@
 import { handleRequest } from "@/utils/handleRequest";
 import { useBaseService } from "./base.service";
-import type { DashboardOverviewReponse } from "@/interfaces/dashboard";
+import type {
+  DashboardOverviewReponse,
+  DashboardCheckedInResponse,
+  DashboardByCategoryResponse,
+  DashboardByOriginResponse,
+  DashboardBySectorsResponse,
+} from "@/interfaces/dashboard";
 import { useState } from "react";
 
 export const useDashboardService = () => {
   const { api, loading, setLoading } = useBaseService();
   const [overview, setOverview] = useState<DashboardOverviewReponse>();
+  const [checkedIn, setCheckedIn] = useState<DashboardCheckedInResponse>();
+  const [byCategory, setByCategory] = useState<DashboardByCategoryResponse>();
+  const [byOrigin, setByOrigin] = useState<DashboardByOriginResponse>();
+  const [bySectors, setBySectors] = useState<DashboardBySectorsResponse>();
 
-  const getOverView = async (params: string) => {
+  const getOverView = async (fairId: string) => {
     const result = await handleRequest({
       request: () =>
         api.get<DashboardOverviewReponse>(`/dashboard/overview`, {
-          params: { fairId: params },
+          params: { fairId },
         }),
       setLoading,
     });
@@ -20,9 +30,70 @@ export const useDashboardService = () => {
     return result;
   };
 
+  const getCheckedInVisitors = async (fairId: string) => {
+    const result = await handleRequest({
+      request: () =>
+        api.get<DashboardCheckedInResponse>(`/dashboard/visitors/checked-in`, {
+          params: { fairId },
+        }),
+      setLoading,
+    });
+    if (!result) return;
+    console.log(result);
+    setCheckedIn(result);
+    return result;
+  };
+
+  const getVisitorsByCategory = async (fairId: string) => {
+    const result = await handleRequest({
+      request: () =>
+        api.get<DashboardByCategoryResponse>(`/dashboard/visitors/category`, {
+          params: { fairId },
+        }),
+      setLoading,
+    });
+    if (!result) return;
+    setByCategory(result);
+    return result;
+  };
+
+  const getVisitorsByOrigin = async (fairId: string) => {
+    const result = await handleRequest({
+      request: () =>
+        api.get<DashboardByOriginResponse>(`/dashboard/visitors/origin`, {
+          params: { fairId },
+        }),
+      setLoading,
+    });
+    if (!result) return;
+    setByOrigin(result);
+    return result;
+  };
+
+  const getVisitorsBySectors = async (fairId: string) => {
+    const result = await handleRequest({
+      request: () =>
+        api.get<DashboardBySectorsResponse>(`/dashboard/visitors/sectors`, {
+          params: { fairId },
+        }),
+      setLoading,
+    });
+    if (!result) return;
+    setBySectors(result);
+    return result;
+  };
+
   return {
     getOverView,
+    getCheckedInVisitors,
+    getVisitorsByCategory,
+    getVisitorsByOrigin,
+    getVisitorsBySectors,
     loading,
     overview,
+    checkedIn,
+    byCategory,
+    byOrigin,
+    bySectors,
   };
 };

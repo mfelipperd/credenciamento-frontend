@@ -1,6 +1,8 @@
 import { CardRoot } from "@/components/Card";
 import { CardTotals } from "@/components/CardTotals";
 import { useDashboardController } from "./dashboard.controller";
+import { CategoryRadialChart } from "./components/CategoryRadialChart";
+import { OriginRadialChart } from "./components/OriginRadialChart";
 
 export const Dashboard = () => {
   const controller = useDashboardController();
@@ -24,10 +26,12 @@ export const Dashboard = () => {
             (controller.overview?.totalCheckIns ?? 0)
         )}
       />
-      <CardRoot title="tipos de ingresso " className="bg-white col-span-8 h-96">
-        <p>TESTEEEE</p>
+      <CardRoot title="tipos de ingresso " className="bg-white col-span-4 h-96">
+        <CategoryRadialChart fairId={controller.fairId} />
       </CardRoot>
-      <CardRoot title="como conheceu" className="bg-white col-span-4 h-96" />{" "}
+      <CardRoot title="como conheceu" className="bg-white col-span-8 h-96">
+        <OriginRadialChart fairId={controller.fairId} />
+      </CardRoot>{" "}
       <CardRoot
         title="Equipe do evento "
         className="bg-white col-span-4 h-96"
