@@ -39,7 +39,7 @@ export const useDashboardService = () => {
       setLoading,
     });
     if (!result) return;
-    console.log(result);
+
     setCheckedIn(result);
     return result;
   };

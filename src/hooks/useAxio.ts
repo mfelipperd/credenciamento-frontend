@@ -1,7 +1,7 @@
 import { useMemo } from "react";
-import { useAuth } from "@/auth/AuthProvider";
 import type { AxiosInstance, AxiosRequestConfig } from "axios";
 import axios from "axios";
+import { useAuth } from "./useAuth";
 
 export const useAxios = (): AxiosInstance => {
   const { token } = useAuth(); // pega o token do contexto

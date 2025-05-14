@@ -1,4 +1,4 @@
-import { useAuth } from "@/auth/AuthProvider";
+import { useAuth } from "@/hooks/useAuth";
 import type { ILoginFormPost } from "@/interfaces/logint";
 import { useAuthService } from "@/service/auth.service";
 import { useForm } from "react-hook-form";

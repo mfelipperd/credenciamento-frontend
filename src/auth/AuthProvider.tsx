@@ -1,26 +1,12 @@
+import { useAuth } from "@/hooks/useAuth";
 import type { AuthResponse } from "@/interfaces/auth";
 import type { User } from "@/interfaces/user";
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  type ReactNode,
-} from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import { useLocation, Navigate, Outlet } from "react-router-dom";
-
-interface AuthContextType {
-  user: User | null;
-  token: string | null;
-  signIn: (auth: AuthResponse) => void;
-  signOut: () => void;
-  isAuthenticated: boolean;
-}
+import { AuthContext } from "./authContext";
 
 const STORAGE_USER_KEY = "app_user";
 const STORAGE_TOKEN_KEY = "app_token";
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -58,14 +44,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       {children}
     </AuthContext.Provider>
   );
-};
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth deve ser usado dentro de AuthProvider");
-  }
-  return context;
 };
 
 export const ProtectedRoute = () => {

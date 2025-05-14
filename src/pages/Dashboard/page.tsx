@@ -26,10 +26,10 @@ export const Dashboard = () => {
             (controller.overview?.totalCheckIns ?? 0)
         )}
       />
-      <CardRoot title="tipos de ingresso " className="bg-white col-span-4 h-96">
+      <CardRoot title="tipos de ingresso " className="bg-white col-span-6 h-96">
         <CategoryRadialChart fairId={controller.fairId} />
       </CardRoot>
-      <CardRoot title="como conheceu" className="bg-white col-span-8 h-96">
+      <CardRoot title="como conheceu" className="bg-white col-span-6 h-96">
         <OriginRadialChart fairId={controller.fairId} />
       </CardRoot>{" "}
       <CardRoot
