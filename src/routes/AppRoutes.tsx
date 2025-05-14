@@ -1,14 +1,36 @@
+import { createBrowserRouter } from "react-router-dom";
+import { Login } from "@/pages/Login/page";
 import { PublicForm } from "@/pages/PublicForm/page";
 import { SucessForm } from "@/pages/Sucess/page";
-import React from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { ProtectedRoute } from "@/auth/AuthProvider";
+import { MainLayout } from "@/components/Layout/mainLayout";
+import { Dashboard } from "@/pages/Dashboard/page";
 
-export const AppRoutes: React.FC = () => {
-  return (
-    <Routes>
-      <Route path="/public-form/:fairId" element={<PublicForm />} />
-      <Route path="/sucess" element={<SucessForm />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
-  );
-};
+export const AppRoutes = createBrowserRouter([
+  {
+    path: "/login",
+    element: <Login />,
+  },
+  {
+    path: "/sucess",
+    element: <SucessForm />,
+  },
+  {
+    path: "/public-form/:fairId",
+    element: <PublicForm />,
+  },
+  {
+    element: <ProtectedRoute />,
+    children: [
+      {
+        element: <MainLayout />,
+        children: [
+          {
+            path: "/",
+            element: <Dashboard />,
+          },
+        ],
+      },
+    ],
+  },
+]);
