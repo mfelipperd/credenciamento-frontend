@@ -1,6 +1,6 @@
 import type { AuthResponse } from "@/interfaces/auth";
 import type { User } from "@/interfaces/user";
-import React, {
+import {
   createContext,
   useContext,
   useState,
