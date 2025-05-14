@@ -6,9 +6,8 @@ import React, {
   useState,
   useEffect,
   type ReactNode,
-  type JSX,
 } from "react";
-import { useLocation, Navigate } from "react-router-dom";
+import { useLocation, Navigate, Outlet } from "react-router-dom";
 
 interface AuthContextType {
   user: User | null;
@@ -69,13 +68,14 @@ export const useAuth = () => {
   return context;
 };
 
-export const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
+export const ProtectedRoute = () => {
   const { isAuthenticated } = useAuth();
   const location = useLocation();
+  console.log(isAuthenticated);
 
   if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  return children;
+  return <Outlet />;
 };
