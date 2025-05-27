@@ -6,6 +6,8 @@ import { useSearchParams } from "react-router-dom";
 
 export const useTableVisitorsController = () => {
   const fairId = useSearchParams()[0].get("fairId") ?? "";
+  const [id, setId] = useState<string>("");
+  const [isOpen, setIsOpen] = useState<boolean>(false);
   const { getVisitors, loading, visitors, deleteVisitor } =
     useVisitorsService();
   const [search, setSearch] = useState("");
@@ -22,10 +24,16 @@ export const useTableVisitorsController = () => {
     );
   }, [search, visitors]);
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async () => {
     const result = await deleteVisitor(id);
     if (!result) return;
     getVisitors(fairId);
+    setIsOpen(false);
+  };
+
+  const openDeleteModal = (id: string) => {
+    setIsOpen(true);
+    setId(id);
   };
 
   useEffect(() => {
@@ -38,5 +46,8 @@ export const useTableVisitorsController = () => {
     filteredData,
     search,
     handleDelete,
+    isOpen,
+    setIsOpen,
+    openDeleteModal,
   };
 };
