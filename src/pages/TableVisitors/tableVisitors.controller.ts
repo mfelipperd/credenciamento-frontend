@@ -17,7 +17,7 @@ export const useTableVisitorsController = () => {
     const term = search.toLowerCase();
 
     return visitors.filter((visitor) =>
-      Object.entries(visitor).some(([key, value]) => {
+      Object.entries(visitor).some(([_, value]) => {
         const str = Array.isArray(value) ? value.join(", ") : String(value);
         return str.toLowerCase().includes(term);
       })
