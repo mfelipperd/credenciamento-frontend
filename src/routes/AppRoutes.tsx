@@ -8,29 +8,33 @@ import { MainLayout } from "@/components/Layout/mainLayout";
 import { Dashboard } from "@/pages/Dashboard/page";
 
 export const AppRoutes = createBrowserRouter([
+  // 1) Rotas públicas que NÃO usam AuthProvider
   {
-    element: <PublicForm />,
     path: "/public-form/:fairId",
+    element: <PublicForm />,
   },
+
+  // 2) Layout de autenticação, **somente** sob "/" e subrotas
   {
+    path: "/", // importante: restringir ao prefixo "/"
     element: (
       <AuthProvider>
         <Outlet />
       </AuthProvider>
     ),
     children: [
-      { path: "/login", element: <Login /> },
-      { path: "/sucess", element: <SucessForm /> },
+      { path: "login", element: <Login /> },
+      { path: "sucess", element: <SucessForm /> },
 
-      // Rotas que precisam de autenticação
+      // 3) Só aqui entram as rotas protegidas
       {
         element: <ProtectedRoute />,
         children: [
           {
             element: <MainLayout />,
             children: [
-              { path: "/", element: <Dashboard /> },
-              // outras rotas internas
+              { index: true, element: <Dashboard /> },
+              // outras rotas internas, ex: { path: "profile", element: <Profile /> }
             ],
           },
         ],
