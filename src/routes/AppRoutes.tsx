@@ -9,7 +9,10 @@ import { Dashboard } from "@/pages/Dashboard/page";
 
 export const AppRoutes = createBrowserRouter([
   {
-    // <-- Aqui injetamos o AuthProvider DENTRO do Router
+    element: <PublicForm />,
+    path: "/public-form/:fairId",
+  },
+  {
     element: (
       <AuthProvider>
         <Outlet />
@@ -18,7 +21,6 @@ export const AppRoutes = createBrowserRouter([
     children: [
       { path: "/login", element: <Login /> },
       { path: "/sucess", element: <SucessForm /> },
-      { path: "/public-form/:fairId", element: <PublicForm /> },
 
       // Rotas que precisam de autenticação
       {
