@@ -23,7 +23,7 @@ export const SectorsRadialChart: React.FC<{ fairId: string }> = ({
   const [chart, setChart] = useState<SectorsChartState>({
     series: [],
     options: {
-      chart: { height: 250, type: "radialBar" },
+      chart: { height: 350, type: "radialBar" },
       colors: SECTOR_COLORS,
       plotOptions: {
         radialBar: {
@@ -75,32 +75,13 @@ export const SectorsRadialChart: React.FC<{ fairId: string }> = ({
   return (
     <div
       id="sectors-radial-chart"
-      className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-around gap-4 w-full"
+      className="flex flex-col-reverse  sm:items-center sm:justify-around  w-full"
     >
-      {/* Legenda */}
-      <div className="flex flex-wrap w-full sm:w-[50%] gap-4">
-        {chart.options.labels!.map((label, i) => (
-          <div key={label} className="flex items-center gap-4">
-            <div
-              className="h-5 w-5 rounded-full"
-              style={{ backgroundColor: chart.options.colors![i] }}
-            />
-            <p className="text-lg capitalize text-gray-600 font-bold">
-              {label}
-            </p>
-            <p className="text-base font-light text-gray-500">
-              {chart.series[i]}
-            </p>
-          </div>
-        ))}
-      </div>
-
-      {/* Gráfico */}
       <ReactApexChart
         options={chart.options}
         series={chart.series}
         type="radialBar"
-        height={350}
+        height={450}
       />
     </div>
   );
