@@ -129,12 +129,12 @@ export const FormularioCredenciamento: React.FC = () => {
           )}
         />
         {ingresso === "visitante" && (
-          <div className="w-full">
+          <div className="w-full flex items-center justify-center mb-4 gap-4">
             <Checkbox
               checked={isRep}
               onCheckedChange={() => setIsRep((prev) => !prev)}
             ></Checkbox>
-            Representatne Comercial
+            Representante Comercial
           </div>
         )}
         <ControlledInput
@@ -223,11 +223,16 @@ export const FormularioCredenciamento: React.FC = () => {
       <div className=" w-full flex items-center justify-center mt-4 gap-4">
         <Checkbox
           checked={checkbox}
-          onCheckedChange={() => setCheckbox((prev) => !!prev)}
+          onCheckedChange={() => setCheckbox((prev) => !prev)}
         />{" "}
         <p>
           Aceito os{" "}
-          <a href="ou" target="_blank" rel="noopener noreferrer">
+          <a
+            href="https://www.expomultimix.com/politica-de-privacidade"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-pink-600 hover:underline"
+          >
             termos e condições
           </a>
         </p>
