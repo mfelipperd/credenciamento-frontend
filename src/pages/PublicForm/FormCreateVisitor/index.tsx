@@ -1,5 +1,5 @@
 // src/pages/FormularioCredenciamento.tsx
-import React from "react";
+import React, { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ControlledInput } from "@/components/ControlledInput";
@@ -17,6 +17,7 @@ import {
 } from "./schema";
 import { maskCNPJ, unmaskString } from "@/utils/masks";
 import { isValidCNPJ } from "@/utils/isValidCnpj";
+import { toast } from "sonner";
 
 const setoresOpcoes = [
   "Brinquedos",
@@ -30,6 +31,7 @@ const setoresOpcoes = [
 ];
 
 export const FormularioCredenciamento: React.FC = () => {
+  const [checkbox, setCheckbox] = useState<boolean>(false);
   const { control, handleSubmit, watch, setValue, setError } =
     useForm<CredenciamentoFormData>({
       resolver: zodResolver(credenciamentoSchema),
@@ -45,6 +47,9 @@ export const FormularioCredenciamento: React.FC = () => {
   const navigate = useNavigate();
 
   const onSubmit = async (data: CredenciamentoFormData) => {
+    if (!checkbox) {
+      return toast.error("Aceite os termos!");
+    }
     if (data.ingresso === "lojista") {
       if (!data.cnpj) {
         setError("cnpj", {
@@ -205,9 +210,21 @@ export const FormularioCredenciamento: React.FC = () => {
           </div>
         </div>
       </div>
-
+      <div className=" w-full flex items-center justify-center mt-4 gap-4">
+        <Checkbox
+          checked={checkbox}
+          onCheckedChange={() => setCheckbox((prev) => !!prev)}
+        />{" "}
+        <p>
+          Aceito os{" "}
+          <a href="ou" target="_blank" rel="noopener noreferrer">
+            termos e condições
+          </a>
+        </p>
+      </div>
       <div className="flex justify-center pt-4">
         <Button
+          disabled={!checkbox}
           type="submit"
           className="bg-pink-600 rounded-full w-[80%] hover:bg-pink-700 text-white"
         >
