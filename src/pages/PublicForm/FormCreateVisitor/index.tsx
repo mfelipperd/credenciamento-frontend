@@ -32,6 +32,7 @@ const setoresOpcoes = [
 
 export const FormularioCredenciamento: React.FC = () => {
   const [checkbox, setCheckbox] = useState<boolean>(false);
+  const [isRep, setIsRep] = useState<boolean>(false);
   const { control, handleSubmit, watch, setValue, setError } =
     useForm<CredenciamentoFormData>({
       resolver: zodResolver(credenciamentoSchema),
@@ -75,7 +76,7 @@ export const FormularioCredenciamento: React.FC = () => {
           ? defaultVisitorCnpj
           : unmaskString(data.cnpj || ""),
       phone: unmaskString(data.phone),
-      category: data.ingresso,
+      category: isRep ? "representante comercial" : data.ingresso,
       fair_visitor: currentFairId,
     };
     const result = await create(payload);
@@ -127,6 +128,15 @@ export const FormularioCredenciamento: React.FC = () => {
             </div>
           )}
         />
+        {ingresso === "visitante" && (
+          <div className="w-full">
+            <Checkbox
+              checked={isRep}
+              onCheckedChange={() => setIsRep((prev) => !prev)}
+            ></Checkbox>
+            Representatne Comercial
+          </div>
+        )}
         <ControlledInput
           control={control}
           name="name"
