@@ -3,6 +3,7 @@ import { CardTotals } from "@/components/CardTotals";
 import { useDashboardController } from "./dashboard.controller";
 import { CategoryRadialChart } from "./components/CategoryRadialChart";
 import { OriginRadialChart } from "./components/OriginRadialChart";
+import { SectorsRadialChart } from "./components/SectorRadialChart";
 
 export const Dashboard = () => {
   const controller = useDashboardController();
@@ -49,7 +50,9 @@ export const Dashboard = () => {
       <CardRoot
         title="Setor de interesse"
         className="bg-white sm:col-span-4 h-96 col-span-full"
-      />
+      >
+        <SectorsRadialChart fairId={controller.fairId} />
+      </CardRoot>
     </div>
   );
 };
