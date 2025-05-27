@@ -53,7 +53,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Redireciona se não autenticado, exceto em public-form
   useEffect(() => {
     const isPublicForm = location.pathname.startsWith("/public-form");
-    if (!isAuthenticated && !isPublicForm && location.pathname !== "/login") {
+    const isSucessPage = location.pathname.startsWith("/sucess");
+    if (
+      !isAuthenticated &&
+      !isPublicForm &&
+      !isSucessPage &&
+      location.pathname !== "/login"
+    ) {
       navigate("/login", {
         replace: true,
         state: { from: location },
