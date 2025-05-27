@@ -1,16 +1,11 @@
 // AuthProvider.tsx
-import { jwtDecode } from "jwt-decode";
-import { useState, useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useNavigate, useLocation, Navigate, Outlet } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
 import { AuthContext } from "./authContext";
 import type { AuthResponse } from "@/interfaces/auth";
 import type { User } from "@/interfaces/user";
 import { useAuth } from "@/hooks/useAuth";
-
-interface JWTPayload {
-  exp: number;
-  iat?: number;
-}
 
 const STORAGE_USER_KEY = "app_user";
 const STORAGE_TOKEN_KEY = "app_token";
@@ -35,7 +30,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(user);
     setToken(access_token);
   };
-
   const signOut = () => {
     localStorage.removeItem(STORAGE_USER_KEY);
     localStorage.removeItem(STORAGE_TOKEN_KEY);
@@ -43,26 +37,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setToken(null);
   };
 
-  // 1️⃣ Verifica exp no JWT
+  // Valida exp do JWT
   useEffect(() => {
     if (!token) return;
-
     try {
-      const { exp } = jwtDecode<JWTPayload>(token);
-      const now = Date.now() / 1000;
-      if (exp < now) {
-        // expirou!
+      const { exp } = jwtDecode<{ exp: number }>(token);
+      if (exp * 1000 < Date.now()) {
         signOut();
       }
     } catch {
-      // token mal formado
       signOut();
     }
   }, [token]);
 
-  // 2️⃣ Redireciona pro login se não autenticado
+  // Redireciona se não autenticado, exceto em public-form
   useEffect(() => {
-    if (!isAuthenticated && location.pathname !== "/login") {
+    const isPublicForm = location.pathname.startsWith("/public-form");
+    if (!isAuthenticated && !isPublicForm && location.pathname !== "/login") {
       navigate("/login", {
         replace: true,
         state: { from: location },
