@@ -1,28 +1,26 @@
 import { useEffect, useState } from "react";
 import { Outlet, useSearchParams } from "react-router-dom";
 import { useFairService } from "@/service/fair.service";
-import { Calendar, MapPin, Settings, User2 } from "lucide-react";
+import { Calendar, HomeIcon, MapPin, Settings, User2 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export const MainLayout: React.FC = () => {
   const { fairs, getFairs } = useFairService();
-
-  // useSearchParams te dá [searchParams, setSearchParams]
   const [searchParams, setSearchParams] = useSearchParams();
-
-  // Pega do URL ou, se não existir, usa o primeiro da lista
   const initialId = searchParams.get("fairId") ?? fairs[0]?.id ?? "";
-
+  const fairID = searchParams.get("faird");
   const [selectedId, setSelectedId] = useState(initialId);
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const id = e.target.value;
     setSelectedId(id);
 
-    // atualiza a URL sem recarregar
     setSearchParams({ fairId: id });
   };
 
   const selectedFair = fairs.find((f) => f.id === selectedId);
+
+  const search = `?fairId=${selectedId}`;
 
   useEffect(() => {
     getFairs();
@@ -30,11 +28,14 @@ export const MainLayout: React.FC = () => {
 
   // Se as fairs chegarem depois, garanta que o selectedId acompanhe
   useEffect(() => {
+    if (searchParams.get("faird") && fairs.length > 0) {
+      setSelectedId(fairID || fairs[0].id);
+    }
     if (!searchParams.get("fairId") && fairs.length > 0) {
       setSearchParams({ fairId: fairs[0].id });
       setSelectedId(fairs[0].id);
     }
-  }, [fairs, searchParams, setSearchParams]);
+  }, [fairs, searchParams, fairID]);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -42,7 +43,25 @@ export const MainLayout: React.FC = () => {
         <img src="/logo.png" alt="logo" className="text-xl w-28" />
         <User2 size={40} className="text-gray-600 border-1 rounded-full p-1" />
       </header>
-      <div className="bg-purple-300 w-full h-8"></div>
+      <div
+        className="w-full h-8 flex justify-center gap-4 uppercase text-sm font-bold text-white"
+        style={{ background: "#AC9FCC" }}
+      >
+        <Link
+          className="flex items-center gap-2"
+          to={{ pathname: "/", search }}
+        >
+          <HomeIcon size={18} />
+          Home
+        </Link>
+        <Link
+          className="flex items-center gap-2"
+          to={{ pathname: "/visitors-table", search }}
+        >
+          <User2 size={18} />
+          Visitantes
+        </Link>
+      </div>
       <div className="relative w-full h-40 rounded- ">
         {/* imagem de fundo */}
         <img

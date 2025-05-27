@@ -1,6 +1,11 @@
 module.exports = {
   theme: {
     extend: {
+      colors: {
+        lilas: {
+          200: "#AC9FCC",
+        },
+      },
       keyframes: {
         fadeIn: {
           "0%": { opacity: 0, transform: "scale(0.95)" },

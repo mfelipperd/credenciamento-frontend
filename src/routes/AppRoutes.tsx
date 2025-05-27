@@ -6,6 +6,7 @@ import { PublicForm } from "@/pages/PublicForm/page";
 import { SucessForm } from "@/pages/Sucess/page";
 import { MainLayout } from "@/components/Layout/mainLayout";
 import { Dashboard } from "@/pages/Dashboard/page";
+import { TabeleVisitors } from "@/pages/TableVisitors";
 
 export const AppRoutes = createBrowserRouter([
   {
@@ -28,7 +29,7 @@ export const AppRoutes = createBrowserRouter([
             element: <MainLayout />,
             children: [
               { path: "/", element: <Dashboard /> },
-              // outras rotas internas
+              { path: "/visitors-table", element: <TabeleVisitors /> },
             ],
           },
         ],
