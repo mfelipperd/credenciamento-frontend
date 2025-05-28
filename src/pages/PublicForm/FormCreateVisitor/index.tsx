@@ -177,12 +177,11 @@ export const FormularioCredenciamento: React.FC = () => {
           label="CEP"
           placeholder="00000000"
         />
-        {/* Como nos conheceu */}
         <ControlledSelect
           className="bg-white w-full border-none rounded-full"
           control={control}
           name="howDidYouKnow"
-          label="Como nos conheceu"
+          label="Como soube da feira?"
           placeholder="Selecione uma opção"
           options={[
             { value: "facebook", label: "Facebook" },
@@ -196,7 +195,6 @@ export const FormularioCredenciamento: React.FC = () => {
             { value: "outro", label: "Outro" },
           ]}
         />
-        {/* Setores */}
         <div className="mb-4">
           <label className="block mb-1 text-sm font-medium">
             Setores que{" "}
