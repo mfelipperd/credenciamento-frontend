@@ -192,7 +192,7 @@ export const FormularioCredenciamento: React.FC = () => {
             { value: "tv", label: "Televisão" },
             { value: "indicação", label: "Indicação" },
             { value: "representante", label: "Indicação de Representante" },
-            { value: "outro", label: "Outro" },
+            { value: "outro", label: "Outros" },
           ]}
         />
         <div className="mb-4">
