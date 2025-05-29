@@ -1,4 +1,3 @@
-// routes/AppRoutes.tsx
 import { createBrowserRouter, Outlet } from "react-router-dom";
 import { AuthProvider, ProtectedRoute } from "@/auth/AuthProvider";
 import { Login } from "@/pages/Login/page";
@@ -9,6 +8,9 @@ import { Dashboard } from "@/pages/Dashboard/page";
 import { TabeleVisitors } from "@/pages/TableVisitors";
 
 export const AppRoutes = createBrowserRouter([
+  { path: "/login", element: <Login /> },
+  { path: "/sucess", element: <SucessForm /> },
+  { path: "/public-form/:fairId", element: <PublicForm /> },
   {
     // <-- Aqui injetamos o AuthProvider DENTRO do Router
     element: (
@@ -17,10 +19,6 @@ export const AppRoutes = createBrowserRouter([
       </AuthProvider>
     ),
     children: [
-      { path: "/login", element: <Login /> },
-      { path: "/sucess", element: <SucessForm /> },
-      { path: "/public-form/:fairId", element: <PublicForm /> },
-
       // Rotas que precisam de autenticação
       {
         element: <ProtectedRoute />,

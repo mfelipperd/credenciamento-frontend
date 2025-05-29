@@ -1,11 +1,12 @@
 import { handleRequest } from "@/utils/handleRequest";
-import { useBaseService } from "./base.service";
 import type { ILoginFormPost } from "@/interfaces/logint";
 import type { AuthResponse } from "@/interfaces/auth";
+import { useState } from "react";
+import { useAxiosPublic } from "@/hooks/useAxiosPublic";
 
 export const useAuthService = () => {
-  const { api, loading, setLoading } = useBaseService();
-
+  const [loading, setLoading] = useState<boolean>(false);
+  const api = useAxiosPublic();
   const create = async (
     data: ILoginFormPost
   ): Promise<AuthResponse | undefined> => {
