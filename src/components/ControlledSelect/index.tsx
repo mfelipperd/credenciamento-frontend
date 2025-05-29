@@ -50,27 +50,19 @@ export function ControlledSelect<T extends FieldValues>({
             </label>
           )}
           <Select
-            key={field.name} // importante para manter a instância sincronizada
+            key={field.name}
             onValueChange={(val) => {
               field.onChange(val);
-              // NÃO desmonte imediatamente aqui
             }}
-            value={(field.value ?? "") as string} // previne undefined
+            value={(field.value ?? "") as string}
           >
             <SelectTrigger className={cn("w-ful", className)}>
               <SelectValue placeholder={placeholder} />
             </SelectTrigger>
-            <SelectContent
-              className={`
-            
-          border-none
-          data-[state=open]:animate-fadeIn
-          data-[state=closed]:animate-fadeOut
-        `}
-            >
-              {options.map((opt, index) => (
+            <SelectContent className={cn("border-none")}>
+              {options.map((opt) => (
                 <SelectItem
-                  key={opt.value + index}
+                  key={opt.value}
                   value={opt.value}
                   className="hover:bg-gray-100"
                 >
