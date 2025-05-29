@@ -50,6 +50,7 @@ export function ControlledSelect<T extends FieldValues>({
             </label>
           )}
           <Select
+            key={field.name}
             onValueChange={field.onChange}
             value={field.value as unknown as string}
           >
@@ -64,9 +65,9 @@ export function ControlledSelect<T extends FieldValues>({
           data-[state=closed]:animate-fadeOut
         `}
             >
-              {options.map((opt) => (
+              {options.map((opt, index) => (
                 <SelectItem
-                  key={opt.value}
+                  key={opt.value + index}
                   value={opt.value}
                   className="hover:bg-gray-100"
                 >
