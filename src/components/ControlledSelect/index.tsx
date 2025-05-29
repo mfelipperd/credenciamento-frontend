@@ -50,9 +50,12 @@ export function ControlledSelect<T extends FieldValues>({
             </label>
           )}
           <Select
-            key={field.name}
-            onValueChange={field.onChange}
-            value={field.value as unknown as string}
+            key={field.name} // importante para manter a instância sincronizada
+            onValueChange={(val) => {
+              field.onChange(val);
+              // NÃO desmonte imediatamente aqui
+            }}
+            value={(field.value ?? "") as string} // previne undefined
           >
             <SelectTrigger className={cn("w-ful", className)}>
               <SelectValue placeholder={placeholder} />
