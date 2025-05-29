@@ -4,14 +4,8 @@ import {
   type FieldPath,
   type FieldValues,
 } from "react-hook-form";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { ChevronDownIcon } from "lucide-react";
 
 interface SelectOption {
   label: string;
@@ -27,7 +21,7 @@ interface ControlledSelectProps<T extends FieldValues> {
   className?: string;
 }
 
-export function ControlledSelect<T extends FieldValues>({
+export function ControlledNativeSelect<T extends FieldValues>({
   control,
   name,
   options,
@@ -40,7 +34,7 @@ export function ControlledSelect<T extends FieldValues>({
       control={control}
       name={name}
       render={({ field, fieldState }) => (
-        <div className="mb-4">
+        <div className="mb-4 relative">
           {label && (
             <label
               htmlFor={String(name)}
@@ -49,27 +43,31 @@ export function ControlledSelect<T extends FieldValues>({
               {label}
             </label>
           )}
-          <Select
-            onValueChange={(val) => {
-              field.onChange(val);
-            }}
-            value={field.value ? String(field.value) : ""}
-          >
-            <SelectTrigger className={cn("w-full", className)}>
-              <SelectValue placeholder={placeholder} />
-            </SelectTrigger>
-            <SelectContent className="border-none overflow-y-auto max-h-60 ">
+
+          <div className="relative">
+            <select
+              id={String(name)}
+              className={cn(
+                "w-full appearance-none border rounded-md px-3 py-2 text-sm pr-10 focus:outline-none focus:ring-2 focus:ring-black",
+                className
+              )}
+              value={field.value ?? ""}
+              onChange={(e) => field.onChange(e.target.value)}
+            >
+              <option value="" disabled>
+                {placeholder || "Selecione"}
+              </option>
               {options.map((opt) => (
-                <SelectItem
-                  key={opt.value}
-                  value={opt.value}
-                  className="hover:bg-gray-100"
-                >
+                <option key={opt.value} value={opt.value}>
                   {opt.label}
-                </SelectItem>
+                </option>
               ))}
-            </SelectContent>
-          </Select>
+            </select>
+
+            {/* Ícone Chevron customizado */}
+            <ChevronDownIcon className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
+          </div>
+
           {fieldState.error && (
             <p className="text-sm text-red-600 mt-1">
               {fieldState.error.message as string}

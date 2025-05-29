@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ControlledInput } from "@/components/ControlledInput";
-import { ControlledSelect } from "@/components/ControlledSelect";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
@@ -18,6 +17,7 @@ import {
 import { maskCNPJ, unmaskString } from "@/utils/masks";
 import { isValidCNPJ } from "@/utils/isValidCnpj";
 import { toast } from "sonner";
+import { ControlledNativeSelect } from "@/components/ControlledSelectV2";
 
 const setoresOpcoes = [
   "Brinquedos",
@@ -177,7 +177,7 @@ export const FormularioCredenciamento: React.FC = () => {
           label="CEP"
           placeholder="00000000"
         />
-        <ControlledSelect
+        <ControlledNativeSelect
           className="bg-white w-full border-none rounded-full"
           control={control}
           name="howDidYouKnow"
