@@ -13,12 +13,14 @@ export const SucessForm = () => {
         Sua inscrição foi concluída com sucesso, verifique o e-mail cadastrado
         para mais informações.
       </h2>
-      <div
+      <a
+        href="https://www.expomultimix.com/"
+        target="_blank"
+        rel="noopener noreferrer"
         className="p-3 text-white bg-blue-950 flex justify-center items-center rounded-2xl h-9"
-        onClick={() => navigate("https://www.expomultimix.com/")}
       >
         Voltar para a página inicial
-      </div>
+      </a>
       <div
         onClick={() => navigate(-1)}
         className="text-gray-500 text-xl cursor-pointer hover:underline"
