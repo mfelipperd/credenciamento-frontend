@@ -8,7 +8,6 @@ import { Dashboard } from "@/pages/Dashboard/page";
 import { TabeleVisitors } from "@/pages/TableVisitors";
 
 export const AppRoutes = createBrowserRouter([
-  { path: "/login", element: <Login /> },
   { path: "/sucess", element: <SucessForm /> },
   { path: "/public-form/:fairId", element: <PublicForm /> },
   {
@@ -20,6 +19,7 @@ export const AppRoutes = createBrowserRouter([
     ),
     children: [
       // Rotas que precisam de autenticação
+      { path: "/login", element: <Login /> },
       {
         element: <ProtectedRoute />,
         children: [
