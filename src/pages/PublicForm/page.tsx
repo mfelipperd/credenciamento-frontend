@@ -1,3 +1,4 @@
+import { MetaPixel } from "@/components/MetaPixel/MetaPixel";
 import { FormularioCredenciamento } from "./FormCreateVisitor";
 
 export const PublicForm = () => {
@@ -7,6 +8,7 @@ export const PublicForm = () => {
         <h1 className="text-pink-600 uppercase text-center text-2xl font-semibold ">
           Faça seu credenciamento
         </h1>
+        <MetaPixel pixelId="798068891626886" eventName="InitiateCheckout" />
         <FormularioCredenciamento />
       </div>
     </section>
