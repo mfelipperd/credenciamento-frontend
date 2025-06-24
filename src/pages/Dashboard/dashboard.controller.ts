@@ -1,4 +1,5 @@
 import { useDashboardService } from "@/service/dashboard.service";
+import { useVisitorsService } from "@/service/visitors.service";
 import { useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 
@@ -13,16 +14,20 @@ export const useDashboardController = () => {
     absenteeVisitors,
   } = useDashboardService();
 
+  const { getCheckinPerHour, checkinPerHour } = useVisitorsService();
+
   useEffect(() => {
     getOverView(fairId);
     getCheckedInVisitors(fairId);
     getVisitorsBySectors(fairId);
     getAbsenteeVisitors(fairId);
+    getCheckinPerHour(fairId);
   }, [fairId]);
 
   return {
     overview,
     fairId,
     absenteeVisitors,
+    checkinPerHour,
   };
 };

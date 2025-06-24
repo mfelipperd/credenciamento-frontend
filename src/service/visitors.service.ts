@@ -1,12 +1,14 @@
 import { handleRequest } from "@/utils/handleRequest";
 import { useBaseService } from "./base.service";
-import type { Visitor } from "@/interfaces/visitors";
+import type { CheckinPerHourResponse, Visitor } from "@/interfaces/visitors";
 import { useState } from "react";
 
 export const useVisitorsService = () => {
   const { api, loading, setLoading } = useBaseService();
   const [visitors, setVisitors] = useState<Visitor[]>([]);
   const [visitor, setVisitor] = useState<Visitor>();
+  const [checkinPerHour, setCheckinPerHour] =
+    useState<CheckinPerHourResponse>();
   const getVisitors = async (faird: string) => {
     const result = await handleRequest({
       request: () => api.get("visitors", { params: { fairId: faird } }),
@@ -41,6 +43,18 @@ export const useVisitorsService = () => {
     return result;
   };
 
+  const getCheckinPerHour = async (fairId: string) => {
+    const result = await handleRequest({
+      request: () =>
+        api.get<CheckinPerHourResponse>(`checkins/today`, {
+          params: { fairId },
+        }),
+      setLoading,
+    });
+    if (!result) return;
+    setCheckinPerHour(result);
+  };
+
   const deleteVisitor = async (visitorId: string) => {
     const result = await handleRequest({
       request: () => api.delete(`visitors/${visitorId}`),
@@ -57,5 +71,7 @@ export const useVisitorsService = () => {
     getVisitorById,
     visitor,
     checkinVisitor,
+    getCheckinPerHour,
+    checkinPerHour,
   };
 };
