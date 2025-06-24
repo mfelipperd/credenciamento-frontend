@@ -1,3 +1,5 @@
+import type { AbsentVisitor } from "./visitors";
+
 export interface DashboardOverviewReponse {
   fairId: string;
   totalVisitors: number;
@@ -31,4 +33,9 @@ export interface VisitorBySector {
 export interface DashboardBySectorsResponse {
   fairId: string;
   visitorsBySectors: VisitorBySector[];
+}
+
+export interface DashboardByabsentVisitorsResponse {
+  fairId: string;
+  absentVisitors: AbsentVisitor[];
 }

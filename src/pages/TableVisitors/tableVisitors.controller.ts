@@ -12,6 +12,19 @@ export const useTableVisitorsController = () => {
     useVisitorsService();
   const [search, setSearch] = useState("");
 
+  const handleClick = (checkinId: string) => {
+    const params = new URLSearchParams(window.location.search);
+    const fairId = params.get("fairId");
+
+    if (!fairId) {
+      console.warn("fairId não encontrado na URL.");
+      return;
+    }
+
+    const url = `${window.location.origin}/visitor/checkin${checkinId}?fairId=${fairId}`;
+    window.open(url, "_blank");
+  };
+
   const filteredData = useMemo(() => {
     if (!search) return visitors;
     const term = search.toLowerCase();
@@ -49,5 +62,6 @@ export const useTableVisitorsController = () => {
     isOpen,
     setIsOpen,
     openDeleteModal,
+    handleClick,
   };
 };

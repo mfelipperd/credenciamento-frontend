@@ -14,7 +14,7 @@ export const Visitor = () => {
   const [params] = useSearchParams();
   const fairId = params.get("fairId");
 
-  const { getVisitorById, visitor } = useVisitorsService();
+  const { getVisitorById, visitor, checkinVisitor } = useVisitorsService();
   const [isMobile, setIsMobile] = useState(false);
   const [generatedUrl, setGeneratedUrl] = useState("");
 
@@ -64,17 +64,26 @@ export const Visitor = () => {
               align-items: center;
               box-sizing: border-box;
               text-align: center;
+              
             }
             .label div {
               margin: 0;
               line-height: 1.2;
             }
-            .name {
-              font-size: 22pt;
-              font-weight: bold;
-            }
+           .name {
+                font-size: 22pt;
+                font-weight: bold;
+                white-space: nowrap;      
+                overflow: hidden;        
+                text-overflow: clip;      
+                max-width: 100%;          
+}
             .company {
-              font-size: 18pt;
+              font-size: 16pt;
+                white-space: nowrap;      
+                overflow: hidden;        
+                text-overflow: clip;      
+                max-width: 100%;
             }
             .category {
               font-size: 10pt;
@@ -96,6 +105,20 @@ export const Visitor = () => {
     printWindow.close();
   }, [visitor]);
 
+  const handleCheckin = () => {
+    if (!checkinId || !fairId) return;
+
+    checkinVisitor(checkinId, fairId)
+      .then(() => {
+        const url = `${window.location.origin}/visitor/checkin${checkinId}?fairId=${fairId}`;
+        setGeneratedUrl(url);
+      })
+      .catch((error) => {
+        console.error("Error during check-in:", error);
+      });
+    handlePrint();
+  };
+
   const handleSendToWhatsapp = () => {
     if (!generatedUrl) return;
     const message = `Clique aqui no computador para imprimir a etiqueta:\n\n${generatedUrl}`;
@@ -116,11 +139,17 @@ export const Visitor = () => {
             </p>
 
             {isMobile ? (
-              <Button onClick={handleSendToWhatsapp} className="mt-4">
+              <Button
+                onClick={handleSendToWhatsapp}
+                className="mt-4 px-8 rounded-full bg-orange-400 hover:bg-orange-500 text-xl text-white cursor-pointer"
+              >
                 Enviar link para meu WhatsApp
               </Button>
             ) : (
-              <Button onClick={handlePrint} className="mt-4">
+              <Button
+                onClick={handleCheckin}
+                className="mt-4 px-8 rounded-full bg-orange-400 hover:bg-orange-500 text-xl text-white cursor-pointer"
+              >
                 Imprimir Etiqueta
               </Button>
             )}
