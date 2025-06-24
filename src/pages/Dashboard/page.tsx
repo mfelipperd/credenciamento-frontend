@@ -22,10 +22,7 @@ export const Dashboard = () => {
       <CardTotals
         className="bg-yellow-600 sm:col-span-4 col-span-full "
         title="inscritos ausentes"
-        value={Number(
-          (controller.overview?.totalVisitors ?? 0) -
-            (controller.overview?.totalCheckIns ?? 0)
-        )}
+        value={Number(controller.absenteeVisitors?.absentVisitors.length)}
       />
       <CardRoot
         title="tipos de ingresso "

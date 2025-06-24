@@ -12,3 +12,10 @@ export interface Visitor {
   category: string;
   registrationDate: string;
 }
+
+export interface AbsentVisitor {
+  registrationCode: string;
+  name: string;
+  company: string;
+  email: string;
+}

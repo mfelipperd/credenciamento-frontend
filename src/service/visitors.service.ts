@@ -30,6 +30,17 @@ export const useVisitorsService = () => {
     setVisitor(result);
   };
 
+  const checkinVisitor = async (visitorId: string, fairId: string) => {
+    const result = await handleRequest({
+      request: () =>
+        api.post(`/checkins`, { registrationCode: visitorId, fairId: fairId }),
+      setLoading,
+      successMessage: "Check-in realizado com sucesso!",
+    });
+    if (!result) return;
+    return result;
+  };
+
   const deleteVisitor = async (visitorId: string) => {
     const result = await handleRequest({
       request: () => api.delete(`visitors/${visitorId}`),
@@ -45,5 +56,6 @@ export const useVisitorsService = () => {
     deleteVisitor,
     getVisitorById,
     visitor,
+    checkinVisitor,
   };
 };

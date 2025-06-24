@@ -6,6 +6,7 @@ import type {
   DashboardByCategoryResponse,
   DashboardByOriginResponse,
   DashboardBySectorsResponse,
+  DashboardByabsentVisitorsResponse,
 } from "@/interfaces/dashboard";
 import { useState } from "react";
 
@@ -16,6 +17,8 @@ export const useDashboardService = () => {
   const [byCategory, setByCategory] = useState<DashboardByCategoryResponse>();
   const [byOrigin, setByOrigin] = useState<DashboardByOriginResponse>();
   const [bySectors, setBySectors] = useState<DashboardBySectorsResponse>();
+  const [absenteeVisitors, setAbsenteeVisitors] =
+    useState<DashboardByabsentVisitorsResponse>();
 
   const getOverView = async (fairId: string) => {
     const result = await handleRequest({
@@ -83,17 +86,35 @@ export const useDashboardService = () => {
     return result;
   };
 
+  const getAbsenteeVisitors = async (fairId: string) => {
+    const result = await handleRequest({
+      request: () =>
+        api.get<DashboardByabsentVisitorsResponse>(
+          `/dashboard/absent-visitors`,
+          {
+            params: { fairId },
+          }
+        ),
+      setLoading,
+    });
+    if (!result) return;
+    setAbsenteeVisitors(result);
+    return result;
+  };
+
   return {
     getOverView,
     getCheckedInVisitors,
     getVisitorsByCategory,
     getVisitorsByOrigin,
     getVisitorsBySectors,
+    getAbsenteeVisitors,
     loading,
     overview,
     checkedIn,
     byCategory,
     byOrigin,
     bySectors,
+    absenteeVisitors,
   };
 };

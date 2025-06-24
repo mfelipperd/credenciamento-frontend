@@ -42,38 +42,20 @@ export const MainLayout: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="bg-neutral-100 text-white p-4 h-20 flex items-center justify-between shadow-2xl">
-        <img src="/logo.png" alt="logo" className="text-xl w-28" />
-        <User2 size={40} className="text-gray-600 border-1 rounded-full p-1" />
-      </header>
-      <div
-        className="w-full h-8 flex justify-center gap-4 uppercase text-sm font-bold text-white"
-        style={{ background: "#AC9FCC" }}
-      >
-        <Link
-          className="flex items-center gap-2"
-          to={{ pathname: "/", search }}
-        >
-          <HomeIcon size={18} />
-          Home
-        </Link>
-        <Link
-          className="flex items-center gap-2"
-          to={{ pathname: "/visitors-table", search }}
-        >
-          <User2 size={18} />
-          Visitantes
-        </Link>
-      </div>
       <div className="relative w-full h-40 rounded- ">
         {/* imagem de fundo */}
         <img
           src="/bg.png"
           alt="Background"
-          className="w-full h-full object-cover rounded-b-4xl"
+          className="w-full h-full object-cover "
         />
 
-        <div className="absolute inset-0 bg-blue-900 opacity-70 rounded-b-4xl" />
+        <div className="absolute inset-0 bg-blue-900 opacity-70" />
+        <img
+          src="/logo.png"
+          alt="logo"
+          className="absolute top-7 left-3 text-xl w-28 "
+        />
         <Settings className="absolute right-5 top-5 text-white" />
 
         <div className="absolute inset-0 flex flex-col gap-6 items-center justify-center w-full">
@@ -139,6 +121,25 @@ export const MainLayout: React.FC = () => {
             </div>
           </div>
         </div>
+      </div>
+      <div
+        className="w-full h-8 flex justify-center gap-4 uppercase text-sm font-bold text-white rounded-b-4xl"
+        style={{ background: "#AC9FCC" }}
+      >
+        <Link
+          className="flex items-center gap-2"
+          to={{ pathname: "/", search }}
+        >
+          <HomeIcon size={18} />
+          Home
+        </Link>
+        <Link
+          className="flex items-center gap-2"
+          to={{ pathname: "/visitors-table", search }}
+        >
+          <User2 size={18} />
+          Visitantes
+        </Link>
       </div>
       <main className="flex-grow p-6 bg-neutral-100">
         <Outlet />

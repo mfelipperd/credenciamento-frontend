@@ -16,6 +16,7 @@ export interface VisitorTableProps {
   setIsOpen: (params: boolean) => void;
   isOpen: boolean;
   openDeleteModal: (id: string) => void;
+  handleClick: (checkinId: string) => void;
 }
 
 export const VisitorTable: React.FC<VisitorTableProps> = ({
@@ -24,6 +25,7 @@ export const VisitorTable: React.FC<VisitorTableProps> = ({
   isOpen,
   setIsOpen,
   openDeleteModal,
+  handleClick,
 }) => {
   return (
     <Table className=" h-[50vh] w-full max-h-[60rem] scrollable-content">
@@ -91,7 +93,11 @@ export const VisitorTable: React.FC<VisitorTableProps> = ({
       </TableHeader>
       <TableBody>
         {filteredData.map((visitor) => (
-          <TableRow key={visitor.registrationCode}>
+          <TableRow
+            key={visitor.registrationCode}
+            onClick={() => handleClick(visitor.registrationCode)}
+            className="cursor-pointer hover:bg-purple-100 transition-colors"
+          >
             <TableCell>{visitor.name}</TableCell>
             <TableCell>{visitor.company}</TableCell>
             <TableCell>{visitor.email}</TableCell>
