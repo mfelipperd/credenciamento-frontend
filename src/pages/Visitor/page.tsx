@@ -14,7 +14,7 @@ export const Visitor = () => {
 
   useEffect(() => {
     getVisitorById(checkinId ?? undefined, fairId ?? undefined);
-  }, []);
+  }, [fairId, checkinId]);
 
   const handlePrint = useCallback(() => {
     if (!visitor) return;
