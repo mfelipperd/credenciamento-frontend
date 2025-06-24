@@ -3,6 +3,7 @@
     { "source": "/login", "destination": "/index.html" },
     { "source": "/sucess", "destination": "/index.html" },
     { "source": "/public-form/:path*", "destination": "/index.html" },
+    { "source": "/visitor/:path*", "destination": "/index.html" },
     { "source": "/", "destination": "/index.html" }
   ]
 }
