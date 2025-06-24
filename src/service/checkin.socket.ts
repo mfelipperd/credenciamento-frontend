@@ -1,0 +1,41 @@
+import { useEffect } from "react";
+import io from "socket.io-client";
+import type { Socket } from "socket.io-client";
+import type { Visitor } from "@/interfaces/visitors";
+
+// Armazena o socket fora do hook para manter conexão estável
+let socket: typeof Socket | null = null;
+
+/**
+ * Escuta o WebSocket e chama o callback quando os dados do visitante chegam
+ * @param onVisitorReceived Função que recebe os dados do visitante
+ */
+export function useCheckinSocket(
+  onVisitorReceived: (visitor: Visitor) => void
+) {
+  useEffect(() => {
+    if (!socket) {
+      socket = io("http://localhost:3000", {
+        transports: ["websocket"],
+      });
+    }
+
+    socket.on("connect", () => {
+      console.log("🟢 Conectado ao WebSocket");
+    });
+
+    socket.on("checkinConfirmed", (visitorData: Visitor) => {
+      console.log("📨 Visitante recebido via socket:", visitorData);
+      onVisitorReceived(visitorData);
+    });
+
+    socket.on("disconnect", () => {
+      console.warn("🔴 WebSocket desconectado");
+    });
+
+    return () => {
+      // opcional: manter conexão ativa ou não
+      // socket?.disconnect(); // descomente se quiser encerrar ao desmontar
+    };
+  }, []);
+}

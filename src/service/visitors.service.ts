@@ -73,5 +73,6 @@ export const useVisitorsService = () => {
     checkinVisitor,
     getCheckinPerHour,
     checkinPerHour,
+    setVisitor,
   };
 };

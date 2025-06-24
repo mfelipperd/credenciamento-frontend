@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
 import { useCheckinId } from "@/hooks/useCheckinId";
+import { useCheckinSocket } from "@/service/checkin.socket";
 import { useVisitorsService } from "@/service/visitors.service";
 import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
@@ -14,9 +15,20 @@ export const Visitor = () => {
   const [params] = useSearchParams();
   const fairId = params.get("fairId");
 
-  const { getVisitorById, visitor, checkinVisitor } = useVisitorsService();
+  const { getVisitorById, visitor, checkinVisitor, setVisitor } =
+    useVisitorsService();
   const [isMobile, setIsMobile] = useState(false);
   const [generatedUrl, setGeneratedUrl] = useState("");
+  const [fallbackTimeoutReached, setFallbackTimeoutReached] = useState(false);
+  console.log(fallbackTimeoutReached);
+  const clearTimeoutFallback = () => {
+    setFallbackTimeoutReached(false);
+  };
+
+  useCheckinSocket((socketVisitor) => {
+    setVisitor(socketVisitor);
+    clearTimeoutFallback();
+  });
 
   useEffect(() => {
     if (checkinId && fairId) {
