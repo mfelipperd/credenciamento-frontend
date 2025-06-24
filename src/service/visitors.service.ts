@@ -6,6 +6,7 @@ import { useState } from "react";
 export const useVisitorsService = () => {
   const { api, loading, setLoading } = useBaseService();
   const [visitors, setVisitors] = useState<Visitor[]>([]);
+  const [visitor, setVisitor] = useState<Visitor>();
   const getVisitors = async (faird: string) => {
     const result = await handleRequest({
       request: () => api.get("visitors", { params: { fairId: faird } }),
@@ -13,6 +14,20 @@ export const useVisitorsService = () => {
     });
     if (!result) return;
     setVisitors(result);
+  };
+
+  const getVisitorById = async (visitorId?: string, params?: string) => {
+    const result = await handleRequest({
+      request: () =>
+        api.get<Visitor>(`visitors/${visitorId}`, {
+          params: {
+            fairId: params,
+          },
+        }),
+      setLoading,
+    });
+    if (!result) return;
+    setVisitor(result);
   };
 
   const deleteVisitor = async (visitorId: string) => {
@@ -28,5 +43,7 @@ export const useVisitorsService = () => {
     loading,
     visitors,
     deleteVisitor,
+    getVisitorById,
+    visitor,
   };
 };
