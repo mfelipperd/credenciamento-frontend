@@ -1,9 +1,13 @@
-import { Button } from "@/components/ui/button"; // Ajuste conforme seu sistema
+import { Button } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
 import { useCheckinId } from "@/hooks/useCheckinId";
 import { useVisitorsService } from "@/service/visitors.service";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+
+function isMobileDevice(): boolean {
+  return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+}
 
 export const Visitor = () => {
   const checkinId = useCheckinId();
@@ -11,10 +15,18 @@ export const Visitor = () => {
   const fairId = params.get("fairId");
 
   const { getVisitorById, visitor } = useVisitorsService();
+  const [isMobile, setIsMobile] = useState(false);
+  const [generatedUrl, setGeneratedUrl] = useState("");
 
   useEffect(() => {
-    getVisitorById(checkinId ?? undefined, fairId ?? undefined);
-  }, [fairId, checkinId]);
+    if (checkinId && fairId) {
+      getVisitorById(checkinId, fairId);
+      const url = `${window.location.origin}/visitor/checkin${checkinId}?fairId=${fairId}`;
+      setGeneratedUrl(url);
+    }
+
+    setIsMobile(isMobileDevice());
+  }, [checkinId, fairId]);
 
   const handlePrint = useCallback(() => {
     if (!visitor) return;
@@ -22,7 +34,7 @@ export const Visitor = () => {
     const printWindow = window.open("", "PRINT", "width=400,height=300");
     if (!printWindow) return;
 
-    const { name, company } = visitor;
+    const { name, company, category } = visitor;
 
     printWindow.document.write(`
       <html>
@@ -51,6 +63,7 @@ export const Visitor = () => {
               justify-content: center;
               align-items: center;
               box-sizing: border-box;
+              text-align: center;
             }
             .label div {
               margin: 0;
@@ -72,7 +85,7 @@ export const Visitor = () => {
           <div class="label">
             <div class="name">${name}</div>
             <div class="company">${company}</div>
-            
+            <div class="category">${category || ""}</div>
           </div>
         </body>
       </html>
@@ -83,8 +96,16 @@ export const Visitor = () => {
     printWindow.close();
   }, [visitor]);
 
+  const handleSendToWhatsapp = () => {
+    if (!generatedUrl) return;
+    const message = `Clique aqui no computador para imprimir a etiqueta:\n\n${generatedUrl}`;
+    const encoded = encodeURIComponent(message);
+    const whatsappLink = `https://wa.me/?text=${encoded}`;
+    window.open(whatsappLink, "_blank");
+  };
+
   return (
-    <Card className="w-full h-full flex flex-col items-center justify-center gap-4">
+    <Card className="w-full h-full flex flex-col items-center justify-center gap-4 p-6">
       <CardTitle>Visitor Page</CardTitle>
       <div className="text-2xl font-bold text-gray-800 text-center">
         {visitor?.name && (
@@ -93,9 +114,16 @@ export const Visitor = () => {
             <p>
               <span className="font-semibold">Empresa:</span> {visitor.company}
             </p>
-            <Button onClick={handlePrint} className="mt-4">
-              Imprimir Etiqueta
-            </Button>
+
+            {isMobile ? (
+              <Button onClick={handleSendToWhatsapp} className="mt-4">
+                Enviar link para meu WhatsApp
+              </Button>
+            ) : (
+              <Button onClick={handlePrint} className="mt-4">
+                Imprimir Etiqueta
+              </Button>
+            )}
           </>
         )}
       </div>
