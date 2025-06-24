@@ -4,6 +4,7 @@ import { useDashboardController } from "./dashboard.controller";
 import { CategoryRadialChart } from "./components/CategoryRadialChart";
 import { OriginRadialChart } from "./components/OriginRadialChart";
 import { SectorsRadialChart } from "./components/SectorRadialChart";
+import { CheckinPerHourChart } from "./components/CheckinPerHourChat";
 
 export const Dashboard = () => {
   const controller = useDashboardController();
@@ -32,21 +33,23 @@ export const Dashboard = () => {
       </CardRoot>
       <CardRoot
         title="como conheceu"
-        className="bg-white sm:col-span-6 h-96 min-h-fit col-span-full"
+        className="bg-white sm:col-span-6  min-h-fit col-span-full"
       >
         <OriginRadialChart fairId={controller.fairId} />
       </CardRoot>{" "}
       <CardRoot
         title="Equipe do evento "
-        className="bg-white sm:col-span-4 h-96 col-span-full"
+        className="bg-white sm:col-span-4  col-span-full"
       />{" "}
       <CardRoot
-        title="mapa de inscritos "
-        className="bg-white sm:col-span-4 h-96 col-span-full"
-      />{" "}
+        title="Horarios de Checkins"
+        className="bg-white sm:col-span-4 col-span-full min-h-fit"
+      >
+        <CheckinPerHourChart fairId={controller.fairId} />
+      </CardRoot>
       <CardRoot
         title="Setor de interesse"
-        className="bg-white sm:col-span-4 h-96 col-span-full"
+        className="bg-white sm:col-span-4 col-span-full"
       >
         <SectorsRadialChart fairId={controller.fairId} />
       </CardRoot>
