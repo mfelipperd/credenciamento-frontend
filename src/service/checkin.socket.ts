@@ -13,9 +13,10 @@ let socket: typeof Socket | null = null;
 export function useCheckinSocket(
   onVisitorReceived: (visitor: Visitor) => void
 ) {
+  const socketUrl = import.meta.env.VITE_API_BASE_URL.replace(/^https/, "wss");
   useEffect(() => {
     if (!socket) {
-      socket = io("http://localhost:3000", {
+      socket = io(socketUrl, {
         transports: ["websocket"],
       });
     }
