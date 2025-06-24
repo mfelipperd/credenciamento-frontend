@@ -3,6 +3,7 @@ import { Outlet, useSearchParams } from "react-router-dom";
 import { useFairService } from "@/service/fair.service";
 import { Calendar, HomeIcon, MapPin, Settings, User2 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useCheckinId } from "@/hooks/useCheckinId";
 
 export const MainLayout: React.FC = () => {
   const { fairs, getFairs } = useFairService();
@@ -18,6 +19,8 @@ export const MainLayout: React.FC = () => {
     setSearchParams({ fairId: id });
   };
 
+  const checkinId = useCheckinId();
+
   const selectedFair = fairs.find((f) => f.id === selectedId);
 
   const search = `?fairId=${selectedId}`;
@@ -32,10 +35,10 @@ export const MainLayout: React.FC = () => {
       setSelectedId(fairID || fairs[0].id);
     }
     if (!searchParams.get("fairId") && fairs.length > 0) {
-      setSearchParams({ fairId: fairs[0].id });
-      setSelectedId(fairs[0].id);
+      setSearchParams({ fairId: fairs[1].id });
+      setSelectedId(fairs[1].id);
     }
-  }, [fairs, searchParams, fairID]);
+  }, [fairs, searchParams, fairID, checkinId]);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -90,10 +93,15 @@ export const MainLayout: React.FC = () => {
                 text-start
                 appearance-none
                 focus:outline-none
+                capitalize
               "
             >
               {fairs.map((fair) => (
-                <option key={fair.id} value={fair.id} className="text-black">
+                <option
+                  key={fair.id}
+                  value={fair.id}
+                  className="text-black capitalize"
+                >
                   {`${fair.name} ${new Date(fair.date).getFullYear()} – ${
                     fair.location
                   }`}
