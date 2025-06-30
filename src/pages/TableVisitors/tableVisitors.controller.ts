@@ -37,6 +37,10 @@ export const useTableVisitorsController = () => {
     );
   }, [search, visitors]);
 
+  const reload = () => {
+    getVisitors(fairId);
+  };
+
   const handleDelete = async () => {
     const result = await deleteVisitor(id);
     if (!result) return;
@@ -63,5 +67,6 @@ export const useTableVisitorsController = () => {
     setIsOpen,
     openDeleteModal,
     handleClick,
+    reload,
   };
 };

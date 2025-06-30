@@ -1,3 +1,11 @@
+export interface Fair {
+  id: string;
+  name: string;
+  location: string;
+  date: string;
+  createdAt: string;
+}
+
 export interface Visitor {
   id: string;
   registrationCode: string;
@@ -11,6 +19,11 @@ export interface Visitor {
   howDidYouKnow: string;
   category: string;
   registrationDate: string;
+  fair_visitor: Fair[];
+}
+export interface VisitorEdit extends Omit<Visitor, "fair_visitor"> {
+  name: string;
+  fairIds: string[];
 }
 
 export interface AbsentVisitor {

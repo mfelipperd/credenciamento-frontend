@@ -1,6 +1,10 @@
 import { handleRequest } from "@/utils/handleRequest";
 import { useBaseService } from "./base.service";
-import type { CheckinPerHourResponse, Visitor } from "@/interfaces/visitors";
+import type {
+  CheckinPerHourResponse,
+  Visitor,
+  VisitorEdit,
+} from "@/interfaces/visitors";
 import { useState } from "react";
 
 export const useVisitorsService = () => {
@@ -55,6 +59,20 @@ export const useVisitorsService = () => {
     setCheckinPerHour(result);
   };
 
+  const updateVisitor = async (visitor: Partial<VisitorEdit>) => {
+    const result = await handleRequest({
+      request: () =>
+        api.patch<VisitorEdit>(`visitors/${visitor.registrationCode}`, {
+          name: visitor.name,
+          fairIds: visitor.fairIds,
+        }),
+      setLoading,
+      successMessage: "Visitante atualizado com sucesso!",
+    });
+    if (!result) return;
+    return result;
+  };
+
   const deleteVisitor = async (visitorId: string) => {
     const result = await handleRequest({
       request: () => api.delete(`visitors/${visitorId}`),
@@ -74,5 +92,6 @@ export const useVisitorsService = () => {
     getCheckinPerHour,
     checkinPerHour,
     setVisitor,
+    updateVisitor,
   };
 };

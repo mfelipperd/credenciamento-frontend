@@ -7,8 +7,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { Visitor } from "@/interfaces/visitors";
-import { Trash2 } from "lucide-react";
+import { MoreHorizontal, PencilLine, Trash2 } from "lucide-react";
 import { ConfirmDeleteModal } from "../ModalDelete";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { EditVisitorModal } from "../ModalEdit";
+import { useState } from "react";
 
 export interface VisitorTableProps {
   filteredData: Visitor[];
@@ -17,6 +24,7 @@ export interface VisitorTableProps {
   isOpen: boolean;
   openDeleteModal: (id: string) => void;
   handleClick: (checkinId: string) => void;
+  reload?: () => void;
 }
 
 export const VisitorTable: React.FC<VisitorTableProps> = ({
@@ -26,9 +34,21 @@ export const VisitorTable: React.FC<VisitorTableProps> = ({
   setIsOpen,
   openDeleteModal,
   handleClick,
+  reload,
 }) => {
+  const [openEditModal, setOpenEditModal] = useState<boolean>(false);
+  const [visitorEdit, setVisitorEdit] = useState<Visitor | undefined>(
+    undefined
+  );
+
+  const handleEdit = (visitor?: Visitor) => {
+    if (visitor) {
+      setVisitorEdit(visitor);
+    }
+    setOpenEditModal((prev) => !prev);
+  };
   return (
-    <Table className=" h-[50vh] w-full max-h-[60rem] scrollable-content">
+    <Table className=" h-[50vh]max-h-[60rem] scrollable-content">
       <TableHeader className="sticky top-0 z-40 bg-gray-100">
         <TableRow className="border-none">
           <TableHead>
@@ -43,7 +63,7 @@ export const VisitorTable: React.FC<VisitorTableProps> = ({
           <TableHead>
             {" "}
             <div
-              className="text-white rounded-full w-full flex justify-center items-center px-4 py-2 uppercase  text-sm"
+              className="text-white rounded-full w-[80%] flex justify-center items-center px-4 py-2 uppercase  text-sm"
               style={{ background: "#7764A5" }}
             >
               Empresa
@@ -98,8 +118,12 @@ export const VisitorTable: React.FC<VisitorTableProps> = ({
             onClick={() => handleClick(visitor.registrationCode)}
             className="cursor-pointer hover:bg-purple-100 transition-colors"
           >
-            <TableCell>{visitor.name}</TableCell>
-            <TableCell>{visitor.company}</TableCell>
+            <TableCell className="truncate text-nowrap max-w-[15rem] w">
+              {visitor.name}
+            </TableCell>
+            <TableCell className="truncate text-nowrap max-w-[15rem] w">
+              {visitor.company}
+            </TableCell>
             <TableCell>{visitor.email}</TableCell>
             <TableCell align="center">{visitor.cnpj}</TableCell>
             <TableCell align="center">{visitor.phone}</TableCell>
@@ -112,9 +136,39 @@ export const VisitorTable: React.FC<VisitorTableProps> = ({
               })}
             </TableCell>
             <TableCell align="center">
-              <Trash2
-                onClick={() => openDeleteModal(visitor.registrationCode)}
-              />
+              <Popover>
+                <PopoverTrigger onClick={(e) => e.stopPropagation()}>
+                  <div className="flex justify-center items-center gap-2">
+                    <MoreHorizontal className="cursor-pointer" />
+                  </div>
+                </PopoverTrigger>
+                <PopoverContent className="bg-white p-4 shadow-lg rounded-lg max-w-[20rem]">
+                  <div className="flex flex-col gap-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (handleEdit) {
+                          handleEdit(visitor);
+                        }
+                      }}
+                      className="text-blue-600 hover:underline flex items-center gap-2"
+                    >
+                      <PencilLine size={13} />
+                      Editar
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openDeleteModal(visitor.registrationCode);
+                      }}
+                      className="text-red-600 hover:underline flex items-center gap-2"
+                    >
+                      <Trash2 size={13} />
+                      Deletar
+                    </button>
+                  </div>
+                </PopoverContent>
+              </Popover>
             </TableCell>
           </TableRow>
         ))}
@@ -125,6 +179,14 @@ export const VisitorTable: React.FC<VisitorTableProps> = ({
         onConfirm={handleDelete}
         title="Tem certeza que deseja deletar esse visitante?"
       />
+      {visitorEdit && (
+        <EditVisitorModal
+          open={openEditModal}
+          onOpenChange={handleEdit}
+          visitor={visitorEdit}
+          reload={reload}
+        />
+      )}
     </Table>
   );
 };
