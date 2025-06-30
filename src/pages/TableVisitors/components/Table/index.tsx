@@ -135,7 +135,7 @@ export const VisitorTable: React.FC<VisitorTableProps> = ({
                 year: "numeric",
               })}
             </TableCell>
-            <TableCell align="center">
+            <TableCell align="center" onClick={(e) => e.stopPropagation()}>
               <Popover>
                 <PopoverTrigger onClick={(e) => e.stopPropagation()}>
                   <div className="flex justify-center items-center gap-2">
