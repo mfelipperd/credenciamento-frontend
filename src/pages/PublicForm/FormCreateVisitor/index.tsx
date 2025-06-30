@@ -88,8 +88,8 @@ export const FormularioCredenciamento: React.FC = () => {
   const ingresso = watch("ingresso");
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <div>
+    <form onSubmit={handleSubmit(onSubmit)} className="h-[80%] ">
+      <div className="h-full">
         <Controller
           control={control}
           name="ingresso"
