@@ -6,7 +6,7 @@ export const SucessForm = () => {
   return (
     <section className="w-full h-[100vh]  p-5 flex flex-col justify-around items-center  bg-neutral-100  ">
       <MetaPixel pixelId="798068891626886" eventName="Lead" />
-      <img src="/logo.png" className="w-3xs" />
+      <img src="/logo2.png" className="w-3xs" />
       <h1 className="text-green-600 uppercase text-center text-2xl font-bold w-96">
         Inscrição realizada com sucesso!{" "}
       </h1>
