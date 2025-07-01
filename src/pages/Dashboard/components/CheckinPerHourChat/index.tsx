@@ -54,9 +54,20 @@ export const CheckinPerHourChart: React.FC<{ fairId: string }> = ({
       chart: {
         type: "bar",
         height: 350,
-        stacked: true,
-        toolbar: { show: true },
-        zoom: { enabled: true },
+        animations: {
+          enabled: true,
+          speed: 800,
+          animateGradually: {
+            enabled: true,
+            delay: 150,
+          },
+          dynamicAnimation: {
+            enabled: true,
+            speed: 350,
+          },
+        },
+        toolbar: { show: false },
+        zoom: { enabled: false },
         width: "100%",
       },
       plotOptions: {
@@ -64,22 +75,34 @@ export const CheckinPerHourChart: React.FC<{ fairId: string }> = ({
           horizontal: false,
           columnWidth: "40%",
         },
+        radar: {
+          size: 140,
+          polygons: {
+            connectorColors: "#e9e9e9",
+          },
+        },
       },
       dataLabels: { enabled: false },
       stroke: { show: true, width: 1, colors: ["#fff"] },
-      xaxis: {
-        categories: [],
-        title: { text: "Horário" },
-      },
-      yaxis: {
-        title: { text: "Check-ins" },
-      },
+
       legend: {
         position: "top",
         horizontalAlign: "center",
       },
       fill: {
         opacity: 1,
+      },
+      grid: {
+        yaxis: {
+          lines: {
+            show: false,
+          },
+        },
+      },
+      yaxis: {
+        labels: {
+          show: false,
+        },
       },
     },
   });
@@ -104,6 +127,40 @@ export const CheckinPerHourChart: React.FC<{ fairId: string }> = ({
         xaxis: {
           ...prev.options.xaxis!,
           categories: result.hours,
+        },
+      },
+    }));
+  }, [result]);
+
+  useEffect(() => {
+    if (!result) return;
+
+    const rawHours = result.hours; // ex: ["08:00", …, "21:00"]
+    const rawSeries = result.data; // ex: [{ name: "01/07/2025", data: [0,0,14,…] }]
+
+    // 1) Descobre quais índices têm ao menos um valor > 0
+    const validIndices = rawHours
+      .map((_, i) => (rawSeries.some((s) => s.data[i] > 0) ? i : null))
+      .filter((i): i is number => i !== null);
+
+    // 2) Monta categorias filtradas
+    const filteredHours = validIndices.map((i) => rawHours[i]);
+
+    // 3) Monta séries só com esses slots
+    const filteredSeries = rawSeries.map((s) => ({
+      name: s.name,
+      data: validIndices.map((i) => s.data[i]),
+    }));
+
+    // 4) Atualiza o chart
+    setChart((prev) => ({
+      series: filteredSeries,
+      options: {
+        ...prev.options,
+        colors: CHART_COLORS,
+        xaxis: {
+          ...prev.options.xaxis!,
+          categories: filteredHours,
         },
       },
     }));
@@ -144,9 +201,8 @@ export const CheckinPerHourChart: React.FC<{ fairId: string }> = ({
         <ReactApexChart
           options={chart.options}
           series={chart.series}
-          type="bar"
-          height={400}
-          width="100%"
+          type="area"
+          width={400}
         />
       </div>
     </div>
