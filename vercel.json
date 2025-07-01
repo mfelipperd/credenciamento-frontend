@@ -1,9 +1,10 @@
 {
-  "rewrites": [
-    { "source": "/login", "destination": "/index.html" },
-    { "source": "/sucess", "destination": "/index.html" },
-    { "source": "/public-form/:path*", "destination": "/index.html" },
-    { "source": "/visitor/:path*", "destination": "/index.html" },
-    { "source": "/", "destination": "/index.html" }
-  ]
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": { "distDir": "dist" }
+    }
+  ],
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
 }
