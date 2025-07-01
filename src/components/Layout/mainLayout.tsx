@@ -1,9 +1,18 @@
 import { useEffect, useState } from "react";
 import { Outlet, useSearchParams } from "react-router-dom";
 import { useFairService } from "@/service/fair.service";
-import { Calendar, HomeIcon, MapPin, Settings, User2 } from "lucide-react";
+import {
+  Calendar,
+  HomeIcon,
+  LogOut,
+  MapPin,
+  Settings,
+  User2,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import { useCheckinId } from "@/hooks/useCheckinId";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { useAuth } from "@/hooks/useAuth";
 
 export const MainLayout: React.FC = () => {
   const { fairs, getFairs } = useFairService();
@@ -11,6 +20,7 @@ export const MainLayout: React.FC = () => {
   const initialId = searchParams.get("fairId") ?? fairs[0]?.id ?? "";
   const fairID = searchParams.get("faird");
   const [selectedId, setSelectedId] = useState(initialId);
+  const auth = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const id = e.target.value;
@@ -56,14 +66,23 @@ export const MainLayout: React.FC = () => {
           alt="logo"
           className="absolute top-7 left-3 text-xl w-28 "
         />
-        <Settings className="absolute right-5 top-5 text-white" />
+        <Popover>
+          <PopoverTrigger asChild>
+            <Settings className="absolute right-5 top-5 text-white z-50 cursor-pointer" />
+          </PopoverTrigger>
+          <PopoverContent className="bg-white">
+            <div onClick={auth.signOut}>
+              <p className="flex items-center gap-2 text-gray-700 hover:text-gray-900 cursor-pointer">
+                <LogOut size={16} /> Sair
+              </p>
+            </div>
+          </PopoverContent>
+        </Popover>
 
         <div className="absolute inset-0 flex flex-col gap-6 items-center justify-center w-full">
           <div className="flex items-center gap-4 w-[80%]">
-            {/* Indicador de status */}
             <div className="bg-green-500 rounded-full h-4 w-4" />
 
-            {/* Select estilizado */}
             <select
               value={selectedId}
               onChange={handleChange}
