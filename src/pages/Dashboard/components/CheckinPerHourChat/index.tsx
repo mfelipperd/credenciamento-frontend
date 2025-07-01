@@ -25,9 +25,7 @@ const CHART_COLORS = [
   "#34D399",
 ];
 
-export const CheckinPerHourChart: React.FC<{ fairId: string }> = ({
-  fairId,
-}) => {
+export const CheckinPerHourChart: React.FC<{ fairId: string }> = () => {
   const { checkinPerHour: result } = useDashboardController();
 
   const [chart, setChart] = useState<CheckinChartState>({
@@ -82,7 +80,7 @@ export const CheckinPerHourChart: React.FC<{ fairId: string }> = ({
         },
       }));
     })();
-  }, [fairId]);
+  }, [result]);
 
   // if (chart.series.length === 0)
   //   return <p>Sem dados de check-in por horário.</p>;
