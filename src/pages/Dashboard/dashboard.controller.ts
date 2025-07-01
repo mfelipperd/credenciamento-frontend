@@ -14,7 +14,7 @@ export const useDashboardController = () => {
     absenteeVisitors,
   } = useDashboardService();
 
-  const { getCheckinPerHour, checkinPerHour } = useVisitorsService();
+  const { getCheckinPerHour, checkinPerHour, loading } = useVisitorsService();
 
   useEffect(() => {
     getOverView(fairId);
@@ -29,5 +29,7 @@ export const useDashboardController = () => {
     fairId,
     absenteeVisitors,
     checkinPerHour,
+    getCheckinPerHour,
+    loading,
   };
 };

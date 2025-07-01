@@ -1,10 +1,19 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import ReactApexChart from "react-apexcharts";
 import { useDashboardController } from "../../dashboard.controller";
+import { format } from "date-fns";
+import { Calendar as CalendarIcon } from "lucide-react";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 
-export interface CheckinSeries {
-  name: string; // Ex: "24/06"
-  data: number[]; // Ex: [2, 4, 0, ...] por hora
+interface CheckinSeries {
+  name: string; // ex.: "01/07/2025"
+  data: number[]; // ex.: [0,0,14,16,48,...]
 }
 
 interface CheckinChartState {
@@ -25,8 +34,19 @@ const CHART_COLORS = [
   "#34D399",
 ];
 
-export const CheckinPerHourChart: React.FC<{ fairId: string }> = () => {
-  const { checkinPerHour: result } = useDashboardController();
+export const CheckinPerHourChart: React.FC<{ fairId: string }> = ({
+  fairId,
+}) => {
+  const {
+    getCheckinPerHour,
+    checkinPerHour: result,
+    loading,
+  } = useDashboardController();
+
+  // seleciona filtro de data: undefined = todos os dias
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(
+    new Date()
+  );
 
   const [chart, setChart] = useState<CheckinChartState>({
     series: [],
@@ -37,6 +57,7 @@ export const CheckinPerHourChart: React.FC<{ fairId: string }> = () => {
         stacked: true,
         toolbar: { show: true },
         zoom: { enabled: true },
+        width: "100%",
       },
       plotOptions: {
         bar: {
@@ -56,7 +77,6 @@ export const CheckinPerHourChart: React.FC<{ fairId: string }> = () => {
       legend: {
         position: "top",
         horizontalAlign: "center",
-        offsetY: 0,
       },
       fill: {
         opacity: 1,
@@ -64,35 +84,71 @@ export const CheckinPerHourChart: React.FC<{ fairId: string }> = () => {
     },
   });
 
+  // 1) Recarrega dados sempre que fairId ou selectedDate mudarem
   useEffect(() => {
-    (async () => {
-      if (!result) return;
+    if (!fairId) return;
+    const isoDay = selectedDate
+      ? format(selectedDate, "yyyy-MM-dd")
+      : undefined;
+    getCheckinPerHour(fairId, isoDay);
+  }, [fairId, selectedDate]);
 
-      setChart((prev) => ({
-        series: result.data,
-        options: {
-          ...prev.options,
-          colors: CHART_COLORS,
-          xaxis: {
-            ...prev.options.xaxis,
-            categories: result.hours,
-          },
+  // 2) Quando chegar resultado, atualiza gráfico
+  useEffect(() => {
+    if (!result) return;
+    setChart((prev) => ({
+      series: result.data,
+      options: {
+        ...prev.options,
+        colors: CHART_COLORS,
+        xaxis: {
+          ...prev.options.xaxis!,
+          categories: result.hours,
         },
-      }));
-    })();
+      },
+    }));
   }, [result]);
 
-  // if (chart.series.length === 0)
-  //   return <p>Sem dados de check-in por horário.</p>;
+  if (loading) {
+    return <p>Carregando dados...</p>;
+  }
 
   return (
-    <div id="checkin-per-hour-chart" className="w-full overflow-x-auto">
-      <ReactApexChart
-        options={chart.options}
-        series={chart.series}
-        type="bar"
-        height={400}
-      />
+    <div>
+      {/* Date picker para filtrar o dia */}
+      <div className="mb-6 w-full flex justify-end">
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" className="w-44 justify-between">
+              {selectedDate
+                ? format(selectedDate, "dd/MM/yyyy")
+                : "Todos os dias"}
+              <CalendarIcon className="ml-2 h-4 w-4 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent align="start" className="p-0 bg-white">
+            <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={(date: Date | undefined) =>
+                setSelectedDate(date ?? undefined)
+              }
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
+
+      {/* Gráfico */}
+      <div id="checkin-per-hour-chart" className="w-full overflow-x-auto">
+        <ReactApexChart
+          options={chart.options}
+          series={chart.series}
+          type="bar"
+          height={400}
+          width="100%"
+        />
+      </div>
     </div>
   );
 };

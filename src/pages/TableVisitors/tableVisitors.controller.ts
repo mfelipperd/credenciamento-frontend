@@ -8,9 +8,14 @@ export const useTableVisitorsController = () => {
   const fairId = useSearchParams()[0].get("fairId") ?? "";
   const [id, setId] = useState<string>("");
   const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [openCreateForm, setOpenCreateForm] = useState<boolean>(false);
   const { getVisitors, loading, visitors, deleteVisitor } =
     useVisitorsService();
   const [search, setSearch] = useState("");
+
+  const handleCreateForm = () => {
+    setOpenCreateForm((prev) => !prev);
+  };
 
   const handleClick = (checkinId: string) => {
     const params = new URLSearchParams(window.location.search);
@@ -68,5 +73,7 @@ export const useTableVisitorsController = () => {
     openDeleteModal,
     handleClick,
     reload,
+    handleCreateForm,
+    openCreateForm,
   };
 };

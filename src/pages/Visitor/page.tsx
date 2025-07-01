@@ -21,6 +21,7 @@ export const Visitor = () => {
   const [generatedUrl, setGeneratedUrl] = useState("");
   const [fallbackTimeoutReached, setFallbackTimeoutReached] = useState(false);
   console.log(fallbackTimeoutReached);
+
   const clearTimeoutFallback = () => {
     setFallbackTimeoutReached(false);
   };

@@ -47,11 +47,11 @@ export const useVisitorsService = () => {
     return result;
   };
 
-  const getCheckinPerHour = async (fairId: string) => {
+  const getCheckinPerHour = async (fairId: string, filterDay?: string) => {
     const result = await handleRequest({
       request: () =>
         api.get<CheckinPerHourResponse>(`checkins/today`, {
-          params: { fairId },
+          params: { fairId, filterDay },
         }),
       setLoading,
     });
