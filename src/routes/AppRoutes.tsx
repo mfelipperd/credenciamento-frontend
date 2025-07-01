@@ -7,6 +7,7 @@ import { MainLayout } from "@/components/Layout/mainLayout";
 import { Dashboard } from "@/pages/Dashboard/page";
 import { TabeleVisitors } from "@/pages/TableVisitors";
 import { Visitor } from "@/pages/Visitor/page";
+import { PrivateForm } from "@/pages/PrivateForm/page";
 
 export const AppRoutes = createBrowserRouter([
   { path: "/sucess", element: <SucessForm /> },
@@ -32,6 +33,7 @@ export const AppRoutes = createBrowserRouter([
           },
         ],
       },
+      { path: "/private-form/:fairId", element: <PrivateForm /> },
     ],
   },
 ]);
