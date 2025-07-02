@@ -49,7 +49,7 @@ export const VisitorTable: React.FC<VisitorTableProps> = ({
   };
   return (
     <Table className=" h-[50vh]max-h-[60rem] scrollable-content">
-      <TableHeader className="sticky top-0 z-40 bg-gray-100">
+      <TableHeader className="sticky top-0 z-40 bg-white">
         <TableRow className="border-none">
           <TableHead>
             {" "}

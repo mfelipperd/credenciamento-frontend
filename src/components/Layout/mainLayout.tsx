@@ -6,6 +6,7 @@ import {
   HomeIcon,
   LogOut,
   MapPin,
+  RefreshCcw,
   Settings,
   User2,
 } from "lucide-react";
@@ -15,7 +16,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { useAuth } from "@/hooks/useAuth";
 
 export const MainLayout: React.FC = () => {
-  const { fairs, getFairs } = useFairService();
+  const { fairs, getFairs, loading } = useFairService();
   const [searchParams, setSearchParams] = useSearchParams();
   const initialId = searchParams.get("fairId") ?? fairs[0]?.id ?? "";
   const fairID = searchParams.get("faird");
@@ -51,9 +52,8 @@ export const MainLayout: React.FC = () => {
   }, [fairs, searchParams, fairID, checkinId]);
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-neutral-100">
       <div className="relative w-full h-40 rounded- ">
-        {/* imagem de fundo */}
         <img
           src="/bg.png"
           alt="Background"
@@ -78,7 +78,12 @@ export const MainLayout: React.FC = () => {
             </div>
           </PopoverContent>
         </Popover>
-
+        <RefreshCcw
+          onClick={() => window.location.reload()}
+          className={`absolute right-5 top-16 text-white z-50 cursor-pointer ${
+            loading ? "animate-spin" : ""
+          }`}
+        />
         <div className="absolute inset-0 flex flex-col gap-6 items-center justify-center w-full">
           <div className="flex items-center gap-4 w-[80%]">
             <div className="bg-green-500 rounded-full h-4 w-4" />
@@ -110,7 +115,6 @@ export const MainLayout: React.FC = () => {
               ))}
             </select>
 
-            {/* Ícone de dropdown */}
             <svg
               className="h-6 w-6 text-white pointer-events-none"
               fill="none"
