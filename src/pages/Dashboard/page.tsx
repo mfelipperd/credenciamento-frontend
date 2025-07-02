@@ -2,7 +2,7 @@ import { CardRoot } from "@/components/Card";
 import { CardTotals } from "@/components/CardTotals";
 import { useDashboardController } from "./dashboard.controller";
 import { CategoryRadialChart } from "./components/CategoryRadialChart";
-import { OriginRadialChart } from "./components/OriginRadialChart";
+import { OriginBarChart } from "./components/OriginRadialChart";
 import { SectorsRadialChart } from "./components/SectorRadialChart";
 import { CheckinPerHourChart } from "./components/CheckinPerHourChat";
 
@@ -33,9 +33,9 @@ export const Dashboard = () => {
       </CardRoot>
       <CardRoot
         title="como conheceu"
-        className="bg-white sm:col-span-6  min-h-fit col-span-full"
+        className="bg-white sm:col-span-6  min-h-fit h-full col-span-full"
       >
-        <OriginRadialChart fairId={controller.fairId} />
+        <OriginBarChart fairId={controller.fairId} />
       </CardRoot>{" "}
       <CardRoot
         title="Horarios de Checkins"
