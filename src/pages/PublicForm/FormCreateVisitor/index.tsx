@@ -14,7 +14,7 @@ import {
   defaultVisitorCnpj,
   type CredenciamentoFormData,
 } from "./schema";
-import { maskCNPJ, unmaskString } from "@/utils/masks";
+import { maskCNPJ, maskPhoneBR, unmaskString } from "@/utils/masks";
 import { isValidCNPJ } from "@/utils/isValidCnpj";
 import { toast } from "sonner";
 import { ControlledNativeSelect } from "@/components/ControlledSelectV2";
@@ -170,6 +170,7 @@ export const FormularioCredenciamento: React.FC = () => {
           name="phone"
           label="Telefone"
           placeholder="(00)00000-0000"
+          mask={maskPhoneBR}
         />
         <ControlledInput
           control={control}

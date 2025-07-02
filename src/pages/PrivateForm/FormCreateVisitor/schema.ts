@@ -11,7 +11,7 @@ export const credenciamentoSchema = z.object({
   phone: z
     .string()
     .nonempty("Telefone é obrigatório")
-    .length(11, "Telefone deve conter 11 dígitos"),
+    .length(15, "Telefone deve conter 11 dígitos"),
   zipCode: z
     .string()
     .regex(

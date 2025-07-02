@@ -8,7 +8,10 @@ export const credenciamentoSchema = z.object({
   company: z.string().nonempty("Empresa é obrigatória"),
   email: z.string().email("Email inválido"),
   cnpj: z.string().length(18, "CNPJ deve conter 14 dígitos").optional(),
-  phone: z.string().nonempty("Telefone é obrigatório"),
+  phone: z
+    .string()
+    .nonempty("Telefone é obrigatório")
+    .length(15, "Telefone deve conter 11 dígitos"),
   zipCode: z
     .string()
     .regex(
