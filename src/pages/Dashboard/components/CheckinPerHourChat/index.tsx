@@ -54,18 +54,6 @@ export const CheckinPerHourChart: React.FC<{ fairId: string }> = ({
       chart: {
         type: "bar",
         height: 350,
-        animations: {
-          enabled: true,
-          speed: 800,
-          animateGradually: {
-            enabled: true,
-            delay: 150,
-          },
-          dynamicAnimation: {
-            enabled: true,
-            speed: 350,
-          },
-        },
         toolbar: { show: false },
         zoom: { enabled: false },
         width: "100%",
@@ -74,12 +62,6 @@ export const CheckinPerHourChart: React.FC<{ fairId: string }> = ({
         bar: {
           horizontal: false,
           columnWidth: "40%",
-        },
-        radar: {
-          size: 140,
-          polygons: {
-            connectorColors: "#e9e9e9",
-          },
         },
       },
       dataLabels: { enabled: false },
@@ -136,7 +118,7 @@ export const CheckinPerHourChart: React.FC<{ fairId: string }> = ({
     if (!result) return;
 
     const rawHours = result.hours; // ex: ["08:00", …, "21:00"]
-    const rawSeries = result.data; // ex: [{ name: "01/07/2025", data: [0,0,14,…] }]
+    const rawSeries = result.data; // ex: [{ name: "01/07/2025", data: [0, 0, 14, 16, 48, ...] }, ...];
 
     // 1) Descobre quais índices têm ao menos um valor > 0
     const validIndices = rawHours
@@ -148,7 +130,7 @@ export const CheckinPerHourChart: React.FC<{ fairId: string }> = ({
 
     // 3) Monta séries só com esses slots
     const filteredSeries = rawSeries.map((s) => ({
-      name: s.name,
+      name: s.name + " " + s.data.reduce((acc, i) => acc + i, 0),
       data: validIndices.map((i) => s.data[i]),
     }));
 
@@ -197,12 +179,13 @@ export const CheckinPerHourChart: React.FC<{ fairId: string }> = ({
       </div>
 
       {/* Gráfico */}
-      <div id="checkin-per-hour-chart" className="w-full overflow-x-auto">
+      <div id="checkin-per-hour-chart" className="w-full overflow-hidden">
         <ReactApexChart
           options={chart.options}
           series={chart.series}
           type="area"
-          width={400}
+          height={300}
+          width={"100%"}
         />
       </div>
     </div>

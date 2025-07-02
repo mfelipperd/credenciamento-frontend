@@ -38,12 +38,8 @@ export const Dashboard = () => {
         <OriginRadialChart fairId={controller.fairId} />
       </CardRoot>{" "}
       <CardRoot
-        title="Equipe do evento "
-        className="bg-white sm:col-span-4  col-span-full"
-      />{" "}
-      <CardRoot
         title="Horarios de Checkins"
-        className="bg-white sm:col-span-4 col-span-full min-h-fit"
+        className="bg-white sm:col-span-8 col-span-full min-h-fit"
       >
         <CheckinPerHourChart fairId={controller.fairId} />
       </CardRoot>
