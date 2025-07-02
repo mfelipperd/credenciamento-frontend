@@ -9,11 +9,13 @@ import { TabeleVisitors } from "@/pages/TableVisitors";
 import { Visitor } from "@/pages/Visitor/page";
 import { PrivateForm } from "@/pages/PrivateForm/page";
 import { PublicFormtotem } from "@/pages/PublicFormTotem/page";
+import { SucessFormTotem } from "@/pages/SucessTotem/page";
 
 export const AppRoutes = createBrowserRouter([
   { path: "/sucess", element: <SucessForm /> },
   { path: "/public-form/:fairId", element: <PublicForm /> },
   { path: "/public-form-totem/:fairId", element: <PublicFormtotem /> },
+  { path: "/sucess-totem", element: <SucessFormTotem /> },
   {
     element: (
       <AuthProvider>

@@ -81,7 +81,7 @@ export const FormularioCredenciamento: React.FC = () => {
     };
     const result = await create(payload);
     if (!result) return window.alert("Algo deu errado tente novamente");
-    navigate("/sucess");
+    navigate("/sucess-totem");
   };
 
   const setoresSelecionados = watch("sectors") || [];
