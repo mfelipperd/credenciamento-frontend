@@ -11,7 +11,7 @@ export const PublicFormtotem = () => {
         backgroundColor: "#0f2348",
       }}
     >
-      <div className="w-full lg:w-fit p-5   bg-neutral-100  lg:rounded-3xl sm:border-amber-300 lg:shadow-2xl h-full lg:h-[70%] ">
+      <div className="w-full lg:w-fit p-5   bg-neutral-100  lg:rounded-3xl sm:border-amber-300 lg:shadow-2xl py-10 ">
         <h1 className="text-pink-600 uppercase text-center text-2xl font-semibold ">
           Faça seu credenciamento
         </h1>
