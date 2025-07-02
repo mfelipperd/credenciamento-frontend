@@ -8,10 +8,12 @@ import { Dashboard } from "@/pages/Dashboard/page";
 import { TabeleVisitors } from "@/pages/TableVisitors";
 import { Visitor } from "@/pages/Visitor/page";
 import { PrivateForm } from "@/pages/PrivateForm/page";
+import { PublicFormtotem } from "@/pages/PublicFormTotem/page";
 
 export const AppRoutes = createBrowserRouter([
   { path: "/sucess", element: <SucessForm /> },
   { path: "/public-form/:fairId", element: <PublicForm /> },
+  { path: "/public-form-totem/:fairId", element: <PublicFormtotem /> },
   {
     element: (
       <AuthProvider>
