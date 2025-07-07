@@ -20,6 +20,7 @@ export const credenciamentoSchema = z.object({
     ),
   sectors: z.array(z.string()).optional(),
   howDidYouKnow: z.string().nonempty("Selecione uma opção"),
+  visitors: z.array(z.string()).optional(),
 });
 
 export type CredenciamentoFormData = z.infer<typeof credenciamentoSchema>;

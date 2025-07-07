@@ -8,7 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { useNavigate, useParams } from "react-router-dom";
 import { usePublicFormService } from "@/service/publicform.service";
-import { Loader2, Save } from "lucide-react";
+import { Loader2, Save, Trash } from "lucide-react";
 import {
   credenciamentoSchema,
   defaultVisitorCnpj,
@@ -18,6 +18,7 @@ import { maskCNPJ, maskPhoneBR, unmaskString } from "@/utils/masks";
 import { isValidCNPJ } from "@/utils/isValidCnpj";
 import { toast } from "sonner";
 import { ControlledNativeSelect } from "@/components/ControlledSelectV2";
+import { Input } from "@/components/ui/input";
 
 const setoresOpcoes = [
   "Brinquedos",
@@ -40,17 +41,36 @@ export const FormularioCredenciamento: React.FC = () => {
         ingresso: "lojista",
         sectors: [],
         howDidYouKnow: "",
+        visitors: [],
       },
     });
+
   const { fairId } = useParams<{ fairId: string }>();
   const { create, loading } = usePublicFormService();
   const currentFairId = fairId;
   const navigate = useNavigate();
 
+  const [visitors, setVisitors] = useState<string[]>([]);
+
+  const addVisitor = () => setVisitors((prev) => [...prev, ""]);
+
+  const updateVisitor = (idx: number, value: string) => {
+    setVisitors((prev) => {
+      const copy = [...prev];
+      copy[idx] = value;
+      return copy;
+    });
+  };
+
+  const removeVisitor = (idx: number) => {
+    setVisitors((prev) => prev.filter((_, i) => i !== idx));
+  };
+
   const onSubmit = async (data: CredenciamentoFormData) => {
     if (!checkbox) {
       return toast.error("Aceite os termos!");
     }
+
     if (data.ingresso === "lojista") {
       if (!data.cnpj) {
         setError("cnpj", {
@@ -68,20 +88,39 @@ export const FormularioCredenciamento: React.FC = () => {
       }
     }
 
-    const payload = {
-      ...data,
-      zipCode: unmaskString(data.zipCode),
-      cnpj:
-        data.ingresso === "visitante"
-          ? defaultVisitorCnpj
-          : unmaskString(data.cnpj || ""),
-      phone: unmaskString(data.phone),
-      category: isRep ? "representante comercial" : data.ingresso,
-      fair_visitor: currentFairId,
-    };
-    const result = await create(payload);
-    if (!result) return window.alert("Algo deu errado tente novamente");
-    navigate("/sucess");
+    const allNames = [data.name, ...visitors];
+
+    try {
+      for (const nome of allNames) {
+        const payload = {
+          ingresso: data.ingresso,
+          name: nome,
+          company: data.company,
+          email: data.email,
+          phone: unmaskString(data.phone),
+          zipCode: unmaskString(data.zipCode),
+          howDidYouKnow: data.howDidYouKnow,
+          category: data.ingresso === "visitante" ? "Visitante" : "Lojista",
+          cnpj:
+            data.ingresso === "visitante"
+              ? defaultVisitorCnpj
+              : unmaskString(data.cnpj || ""),
+          sectors: data.sectors,
+          fair_visitor: currentFairId || "",
+          visitors: [],
+        };
+        const result = await create(payload);
+        if (!result) {
+          window.alert(`Falha ao cadastrar: ${nome}`);
+          return;
+        }
+      }
+
+      navigate("/sucess");
+    } catch (err) {
+      console.error(err);
+      window.alert("Algo deu errado, tente novamente");
+    }
   };
 
   const setoresSelecionados = watch("sectors") || [];
@@ -219,6 +258,32 @@ export const FormularioCredenciamento: React.FC = () => {
           </div>
         </div>
       </div>
+      <div className="w-full flex items-center justify-center mb-4 gap-4">
+        <Button type="button" onClick={addVisitor}>
+          + Adicionar acompanhante
+        </Button>
+      </div>
+      {visitors.length > 0 && (
+        <div className="max-h-[5rem] overflow-auto space-y-2 p-2  rounded flex flex-col   items-center w-full">
+          {visitors.map((name, idx) => (
+            <div key={idx} className="flex items-center gap-2">
+              <Input
+                defaultValue={name}
+                placeholder="Nome do acompanhante"
+                onChange={(e) => updateVisitor(idx, e.target.value)}
+              />
+              <Button
+                type="button"
+                variant="destructive"
+                size="icon"
+                onClick={() => removeVisitor(idx)}
+              >
+                <Trash className="w-4 h-4 text-red-500" />
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
       <div className=" w-full flex items-center justify-center mt-4 gap-4">
         <Checkbox
           checked={checkbox}
