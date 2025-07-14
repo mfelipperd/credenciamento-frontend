@@ -9,11 +9,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate, useParams } from "react-router-dom";
 import { usePublicFormService } from "@/service/publicform.service";
 import { Loader2, Save } from "lucide-react";
-import {
-  credenciamentoSchema,
-  defaultVisitorCnpj,
-  type CredenciamentoFormData,
-} from "./schema";
+import { credenciamentoSchema, type CredenciamentoFormData } from "./schema";
 import { maskCNPJ, maskPhoneBR, unmaskString } from "@/utils/masks";
 import { isValidCNPJ } from "@/utils/isValidCnpj";
 import { toast } from "sonner";
@@ -32,7 +28,6 @@ const setoresOpcoes = [
 
 export const FormularioCredenciamento: React.FC = () => {
   const [checkbox, setCheckbox] = useState<boolean>(false);
-  const [isRep, setIsRep] = useState<boolean>(false);
   const { control, handleSubmit, watch, setValue, setError } =
     useForm<CredenciamentoFormData>({
       resolver: zodResolver(credenciamentoSchema),
@@ -71,12 +66,10 @@ export const FormularioCredenciamento: React.FC = () => {
     const payload = {
       ...data,
       zipCode: unmaskString(data.zipCode),
-      cnpj:
-        data.ingresso === "visitante"
-          ? defaultVisitorCnpj
-          : unmaskString(data.cnpj || ""),
+      cnpj: unmaskString(data.cnpj || ""),
       phone: unmaskString(data.phone),
-      category: isRep ? "representante comercial" : data.ingresso,
+      ingresso: data.ingresso as "lojista" | "representante-comercial",
+
       fair_visitor: currentFairId,
     };
     const result = await create(payload);
@@ -102,23 +95,28 @@ export const FormularioCredenciamento: React.FC = () => {
                 type="single"
                 value={field.value}
                 onValueChange={(val) =>
-                  setValue("ingresso", val as "lojista" | "visitante")
+                  setValue(
+                    "ingresso",
+                    val as "lojista" | "representante-comercial"
+                  )
                 }
                 className="mt-2 w-full space-x-2.5 "
               >
-                {(["lojista", "visitante"] as const).map((opt) => (
-                  <ToggleGroupItem
-                    key={opt}
-                    value={opt}
-                    className={` rounded-full cursor-pointer text ${
-                      field.value === opt
-                        ? "bg-pink-600 text-white"
-                        : "bg-white"
-                    }`}
-                  >
-                    {opt.charAt(0).toUpperCase() + opt.slice(1)}
-                  </ToggleGroupItem>
-                ))}
+                {(["lojista", "representante-comercial"] as const).map(
+                  (opt) => (
+                    <ToggleGroupItem
+                      key={opt}
+                      value={opt}
+                      className={` rounded-full cursor-pointer text ${
+                        field.value === opt
+                          ? "bg-pink-600 text-white"
+                          : "bg-white"
+                      }`}
+                    >
+                      {opt.charAt(0).toUpperCase() + opt.slice(1)}
+                    </ToggleGroupItem>
+                  )
+                )}
               </ToggleGroup>
               {fieldState.error && (
                 <p className="text-sm text-red-600 mt-1">
@@ -128,15 +126,6 @@ export const FormularioCredenciamento: React.FC = () => {
             </div>
           )}
         />
-        {ingresso === "visitante" && (
-          <div className="w-full flex items-center justify-center mb-4 gap-4">
-            <Checkbox
-              checked={isRep}
-              onCheckedChange={() => setIsRep((prev) => !prev)}
-            ></Checkbox>
-            Representante Comercial
-          </div>
-        )}
         <ControlledInput
           control={control}
           name="name"
@@ -156,15 +145,13 @@ export const FormularioCredenciamento: React.FC = () => {
           type="email"
           placeholder="seu@email.com"
         />{" "}
-        {ingresso === "lojista" && (
-          <ControlledInput
-            control={control}
-            name="cnpj"
-            label="CNPJ"
-            placeholder="__.___.___/____-__"
-            mask={maskCNPJ}
-          />
-        )}
+        <ControlledInput
+          control={control}
+          name="cnpj"
+          label="CNPJ"
+          placeholder="__.___.___/____-__"
+          mask={maskCNPJ}
+        />
         <ControlledInput
           control={control}
           name="phone"
@@ -199,7 +186,9 @@ export const FormularioCredenciamento: React.FC = () => {
         <div className="mb-4">
           <label className="block mb-1 text-sm font-medium">
             Setores que{" "}
-            {ingresso === "visitante" ? "tem interesse:" : "a empresa atua:"}
+            {ingresso === "representante-comercial"
+              ? "tem interesse:"
+              : "a empresa atua:"}
           </label>
           <div className="grid grid-cols-2 gap-2 mt-2">
             {setoresOpcoes.map((setor) => (

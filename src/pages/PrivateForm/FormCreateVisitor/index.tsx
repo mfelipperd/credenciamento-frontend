@@ -162,6 +162,9 @@ export const FormularioCredenciamento: React.FC = () => {
       phone: unmaskString(data.phone),
       category: isRep ? "representante comercial" : data.ingresso,
       fair_visitor: currentFairId,
+      ingresso: isRep
+        ? "representante-comercial"
+        : ("lojista" as "lojista" | "representante-comercial"), // Ensure ingresso matches expected type
     };
     const result = await create(payload);
 

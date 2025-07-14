@@ -3,7 +3,7 @@ import { z } from "zod";
 export const defaultVisitorCnpj = "29615037000106";
 
 export const credenciamentoSchema = z.object({
-  ingresso: z.enum(["lojista", "visitante"]),
+  ingresso: z.enum(["lojista", "representante-comercial"]),
   name: z.string().nonempty("Nome é obrigatório"),
   company: z.string().nonempty("Empresa é obrigatória"),
   email: z.string().email("Email inválido"),
