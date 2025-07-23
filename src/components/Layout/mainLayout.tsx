@@ -14,6 +14,7 @@ import { Link } from "react-router-dom";
 import { useCheckinId } from "@/hooks/useCheckinId";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { useAuth } from "@/hooks/useAuth";
+import { CreateUserModal } from "./ModalCreateUser";
 
 export const MainLayout: React.FC = () => {
   const { fairs, getFairs, loading } = useFairService();
@@ -76,6 +77,7 @@ export const MainLayout: React.FC = () => {
                 <LogOut size={16} /> Sair
               </p>
             </div>
+            <CreateUserModal />
           </PopoverContent>
         </Popover>
         <RefreshCcw

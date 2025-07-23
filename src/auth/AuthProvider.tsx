@@ -50,7 +50,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [token]);
 
-  // Redireciona se não autenticado, exceto em public-form
   useEffect(() => {
     const isPublicForm = location.pathname.startsWith("/public-form");
     const isSucessPage = location.pathname.startsWith("/sucess");
@@ -64,6 +63,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         replace: true,
         state: { from: location },
       });
+    } else if (user?.role === "consultant" && location.pathname === "/") {
+      navigate("/consultant-dashboard", { replace: true });
     }
   }, [isAuthenticated, location, navigate]);
 

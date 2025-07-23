@@ -10,6 +10,7 @@ import { Visitor } from "@/pages/Visitor/page";
 import { PrivateForm } from "@/pages/PrivateForm/page";
 import { PublicFormtotem } from "@/pages/PublicFormTotem/page";
 import { SucessFormTotem } from "@/pages/SucessTotem/page";
+import { ConsultantPage } from "@/pages/ConsultantPage";
 
 export const AppRoutes = createBrowserRouter([
   { path: "/sucess", element: <SucessForm /> },
@@ -38,6 +39,7 @@ export const AppRoutes = createBrowserRouter([
         ],
       },
       { path: "/private-form/:fairId", element: <PrivateForm /> },
+      { path: "/consultant-dashboard", element: <ConsultantPage /> },
     ],
   },
 ]);
