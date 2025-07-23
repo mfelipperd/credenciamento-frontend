@@ -88,7 +88,9 @@ export const EnhancedTableConsultant = () => {
 
   // Fetch data
   useEffect(() => {
-    getVisitors(fairId);
+    if (fairId) {
+      getVisitors(fairId);
+    }
   }, [fairId]);
 
   // Apply filters

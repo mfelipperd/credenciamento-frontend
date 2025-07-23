@@ -62,13 +62,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         replace: true,
         state: { from: location },
       });
-    } else if (user?.role === "consultant" && location.pathname === "/") {
-      type LocationState = { from?: { pathname: string; search?: string } };
-      const fromState = (location.state as LocationState)?.from;
-      const target = fromState
-        ? `${fromState.pathname}${fromState.search || ""}`
-        : "/consultant-dashboard";
-      navigate(target, { replace: true });
+    } else if (user?.role === "consultant") {
+      // Se veio de uma rota protegida (ex: /consultant-dashboard?fairId=...)
+      const state = location.state;
+      if (state?.from) {
+        const { pathname, search = "" } = state.from;
+        navigate(`${pathname}${search}`, { replace: true });
+      }
     }
   }, [isAuthenticated, location, navigate]);
 
