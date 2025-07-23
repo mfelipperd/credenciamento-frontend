@@ -1,4 +1,3 @@
-// AuthProvider.tsx
 import { useEffect, useState, type ReactNode } from "react";
 import { useNavigate, useLocation, Navigate, Outlet } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
@@ -64,7 +63,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         state: { from: location },
       });
     } else if (user?.role === "consultant" && location.pathname === "/") {
-      navigate("/consultant-dashboard", { replace: true });
+      type LocationState = { from?: { pathname: string; search?: string } };
+      const fromState = (location.state as LocationState)?.from;
+      const target = fromState
+        ? `${fromState.pathname}${fromState.search || ""}`
+        : "/consultant-dashboard";
+      navigate(target, { replace: true });
     }
   }, [isAuthenticated, location, navigate]);
 
