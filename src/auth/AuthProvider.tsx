@@ -52,6 +52,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const isPublicForm = location.pathname.startsWith("/public-form");
     const isSucessPage = location.pathname.startsWith("/sucess");
+    if (user && user.role === "consultant") {
+      // Se o usuário é um consultor, redireciona para o dashboard
+      navigate("/consultant-dashboard", { replace: true });
+    }
     if (
       !isAuthenticated &&
       !isPublicForm &&
