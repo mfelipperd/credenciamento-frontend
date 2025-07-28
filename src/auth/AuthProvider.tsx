@@ -54,7 +54,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const isSucessPage = location.pathname.startsWith("/sucess");
     if (user && user.role === "consultant") {
       // Se o usuário é um consultor, redireciona para o dashboard
+      const state = location.state;
+      if (state?.from) {
+        const { pathname, search = "" } = state.from;
+        navigate(`${pathname}${search}`, { replace: true });
+      }
       navigate("/consultant-dashboard", { replace: true });
+      return;
     }
     if (
       !isAuthenticated &&
@@ -74,7 +80,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         navigate(`${pathname}${search}`, { replace: true });
       }
     }
-  }, [isAuthenticated, location, navigate]);
+  }, [isAuthenticated, location]);
 
   return (
     <AuthContext.Provider

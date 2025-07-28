@@ -67,19 +67,21 @@ export const MainLayout: React.FC = () => {
           alt="logo"
           className="absolute top-7 left-3 text-xl w-28 "
         />
-        <Popover>
-          <PopoverTrigger asChild>
-            <Settings className="absolute right-5 top-5 text-white z-50 cursor-pointer" />
-          </PopoverTrigger>
-          <PopoverContent className="bg-white">
-            <div onClick={auth.signOut}>
-              <p className="flex items-center gap-2 text-gray-700 hover:text-gray-900 cursor-pointer">
-                <LogOut size={16} /> Sair
-              </p>
-            </div>
-            <CreateUserModal />
-          </PopoverContent>
-        </Popover>
+        <div>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Settings className="absolute right-5 top-5 text-white z-50 cursor-pointer" />
+            </PopoverTrigger>
+            <PopoverContent className="bg-white">
+              <div onClick={auth.signOut}>
+                <p className="flex items-center gap-2 text-gray-700 hover:text-gray-900 cursor-pointer">
+                  <LogOut size={16} /> Sair
+                </p>
+              </div>
+              <CreateUserModal />
+            </PopoverContent>
+          </Popover>
+        </div>
         <RefreshCcw
           onClick={() => window.location.reload()}
           className={`absolute right-5 top-16 text-white z-50 cursor-pointer ${
@@ -148,9 +150,10 @@ export const MainLayout: React.FC = () => {
         </div>
       </div>
       <div
-        className="w-full h-8 flex justify-center gap-4 uppercase text-sm font-bold text-white rounded-b-4xl"
+        className="w-full h-8 flex justify-center items-center gap-4 uppercase text-sm font-bold text-white rounded-b-4xl"
         style={{ background: "#AC9FCC" }}
       >
+        <h3>{auth.user?.email}</h3>
         <Link
           className="flex items-center gap-2"
           to={{ pathname: "/", search }}

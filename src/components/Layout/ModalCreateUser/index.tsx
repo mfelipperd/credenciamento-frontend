@@ -9,11 +9,19 @@ import { ControlledSelect } from "@/components/ControlledSelect";
 import { EUserRole } from "@/enums/user.enum";
 import { Button } from "@/components/ui/button";
 import { useUserService } from "@/service/user.service";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useFairService } from "@/service/fair.service";
 
 export const CreateUserModal = () => {
   const [open, onOpenChange] = useState(false);
   const { createUser, loading } = useUserService();
+  const { fairs, getFairs } = useFairService();
+
+  const fairsOptions = fairs.map((fair) => ({
+    value: fair.id,
+    label: fair.name,
+  }));
+
   const form = useForm({
     resolver: zodResolver(createUserSchema),
   });
@@ -24,6 +32,10 @@ export const CreateUserModal = () => {
       form.reset();
     }
   };
+
+  useEffect(() => {
+    getFairs();
+  });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -61,6 +73,13 @@ export const CreateUserModal = () => {
                 value: value.toLowerCase(),
                 label: key.charAt(0).toUpperCase() + key.slice(1),
               }))}
+            />
+
+            <ControlledSelect
+              control={form.control}
+              name="fairId"
+              label="Feira"
+              options={fairsOptions}
             />
             <Button type="submit" className="mt-4">
               {loading ? <Loader2 className="animate-spin" /> : <PlusIcon />}
