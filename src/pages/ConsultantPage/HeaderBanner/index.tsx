@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { MessageCircleMore, Globe, Instagram } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { MessageCircleMore, Globe, Instagram, LogOut } from "lucide-react";
 
 /**
  * Header banner component to thank attendees and invite to reserve a stand next year.
@@ -7,6 +8,7 @@ import { MessageCircleMore, Globe, Instagram } from "lucide-react";
  */
 export const HeaderBanner = () => {
   const headerHeight = 140; // altura do header fixo
+  const auth = useAuth();
 
   return (
     <header
@@ -62,6 +64,14 @@ export const HeaderBanner = () => {
       </div>
 
       <div className="flex flex-col items-end gap-2">
+        <Button
+          variant="ghost"
+          className="text-white hover:bg-transparent"
+          onClick={() => auth.signOut()}
+        >
+          <LogOut size={20} /> Sair
+        </Button>
+
         <a
           href="https://www.expomultimix.com"
           target="_blank"

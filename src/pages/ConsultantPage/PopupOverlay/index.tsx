@@ -161,7 +161,7 @@ export const PopupOverlay = ({ onClose }: PopupOverlayProps) => {
               `Lembrar-me mais tarde em ${timer}s`
             ) : (
               <div className="flex items-center gap-2">
-                "Lembrar-me mais tarde" <TimerReset size={16} />
+                Lembrar-me mais tarde <TimerReset size={16} />
               </div>
             )}
           </Button>
