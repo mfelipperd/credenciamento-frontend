@@ -40,8 +40,9 @@ export const CreateUserModal = () => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger className="flex items-center gap-2 text-gray-700 hover:text-gray-900 cursor-pointer">
-        <PlusIcon />
-        Criar Usuário
+        <p className="flex items-center gap-2 text-gray-700 hover:text-gray-900 cursor-pointer">
+          <PlusIcon size={16} /> Criar Usuário
+        </p>
       </DialogTrigger>
       <DialogContent className="bg-white p-6 rounded-lg shadow-lg">
         <Form {...form}>

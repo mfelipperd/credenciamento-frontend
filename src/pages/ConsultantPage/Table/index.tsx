@@ -164,7 +164,7 @@ export const EnhancedTableConsultant = () => {
               <SelectTrigger className="w-[100px] h-9 bg-white">
                 <SelectValue placeholder="Qtd" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white">
                 {[5, 10, 20, 50].map((n) => (
                   <SelectItem key={n} value={String(n)}>
                     {n}/pág
