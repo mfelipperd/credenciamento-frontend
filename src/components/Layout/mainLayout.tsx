@@ -47,8 +47,8 @@ export const MainLayout: React.FC = () => {
       setSelectedId(fairID || fairs[0].id);
     }
     if (!searchParams.get("fairId") && fairs.length > 0) {
-      setSearchParams({ fairId: fairs[1].id });
-      setSelectedId(fairs[1].id);
+      setSearchParams({ fairId: fairs[0].id });
+      setSelectedId(fairs[0].id);
     }
   }, [fairs, searchParams, fairID, checkinId]);
 
