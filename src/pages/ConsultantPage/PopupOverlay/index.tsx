@@ -9,7 +9,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { X, MessageCircleMore } from "lucide-react";
+import { MessageCircleMore, TimerReset } from "lucide-react";
 
 interface PopupOverlayProps {
   onClose?: () => void;
@@ -157,7 +157,13 @@ export const PopupOverlay = ({ onClose }: PopupOverlayProps) => {
             variant="outline"
             className="px-4 py-2 flex items-center justify-center gap-2"
           >
-            {timer > 0 ? `Fechar em ${timer}s` : <X size={16} />}
+            {timer > 0 ? (
+              `Lembrar-me mais tarde em ${timer}s`
+            ) : (
+              <div className="flex items-center gap-2">
+                "Lembrar-me mais tarde" <TimerReset size={16} />
+              </div>
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

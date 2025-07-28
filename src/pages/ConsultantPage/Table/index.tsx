@@ -53,9 +53,7 @@ export interface Visitor {
 export const EnhancedTableConsultant = () => {
   const { visitors, getVisitors } = useVisitorsService();
   const [searchParams, setSearchParams] = useSearchParams();
-  const fairId = searchParams.get("fairId") ?? "";
 
-  // Local UI state
   const [search, setSearch] = useState(searchParams.get("search") ?? "");
   const [page, setPage] = useState(Number(searchParams.get("page")) || 0);
   const [pageSize, setPageSize] = useState(
@@ -88,8 +86,8 @@ export const EnhancedTableConsultant = () => {
 
   // Fetch data
   useEffect(() => {
-    getVisitors(fairId);
-  }, [fairId]);
+    getVisitors();
+  }, []);
 
   // Apply filters
   const filteredVisitors = useMemo(() => {

@@ -13,7 +13,7 @@ export const useVisitorsService = () => {
   const [visitor, setVisitor] = useState<Visitor>();
   const [checkinPerHour, setCheckinPerHour] =
     useState<CheckinPerHourResponse>();
-  const getVisitors = async (faird: string) => {
+  const getVisitors = async (faird?: string) => {
     const result = await handleRequest({
       request: () => api.get("visitors", { params: { fairId: faird } }),
       setLoading,
