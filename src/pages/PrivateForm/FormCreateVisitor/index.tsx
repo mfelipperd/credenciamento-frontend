@@ -302,7 +302,7 @@ export const FormularioCredenciamento: React.FC = () => {
 
   if (resgister) {
     return (
-      <div className="text-2xl font-bold text-gray-800 text-center min-h-screen flex items-center justify-center">
+      <div className="text-2xl font-bold text-gray-800 text-center  flex items-center justify-center">
         <div className="max-w-md mx-auto p-8">
           {resgister?.name && resgister?.company ? (
             <>
