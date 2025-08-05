@@ -55,7 +55,12 @@ export const FormularioCredenciamento: React.FC = () => {
     });
 
   const handlePrint = useCallback(() => {
-    if (!visitor) return;
+    if (!visitor || !visitor.name || !visitor.company) {
+      toast.error(
+        "Dados do visitante não carregados completamente. Aguarde..."
+      );
+      return;
+    }
 
     const printWindow = window.open("", "PRINT", "width=400,height=300");
     if (!printWindow) return;
@@ -135,6 +140,11 @@ export const FormularioCredenciamento: React.FC = () => {
     if (!checkbox) {
       return toast.error("Aceite os termos!");
     }
+
+    if (!fairId) {
+      return toast.error("ID da feira não encontrado. Recarregue a página.");
+    }
+
     if (data.ingresso === "lojista") {
       if (!data.cnpj) {
         setError("cnpj", {
@@ -168,22 +178,42 @@ export const FormularioCredenciamento: React.FC = () => {
     };
     const result = await create(payload);
 
-    if (!result) return window.alert("Algo deu errado tente novamente");
+    if (!result) {
+      toast.error(
+        "Erro ao criar cadastro. Verifique sua conexão com a internet e tente novamente."
+      );
+      return;
+    }
     setRegistrationCode(result);
   };
 
   const handleCheckin = () => {
-    if (!resgister?.registrationCode || !fairId) return;
+    if (!resgister?.registrationCode || !fairId) {
+      toast.error(
+        "Dados necessários não estão disponíveis. Verifique se possui conexão com a internet."
+      );
+      return;
+    }
+
+    if (!visitor || !visitor.name || !visitor.company) {
+      toast.error(
+        "Dados do visitante não carregados. Aguarde o carregamento completo."
+      );
+      return;
+    }
 
     checkinVisitor(resgister?.registrationCode, fairId)
       .then(() => {
         const url = `${window.location.origin}/visitor/checkin${resgister?.registrationCode}?fairId=${fairId}`;
         setGeneratedUrl(url);
+        handlePrint();
       })
       .catch((error) => {
         console.error("Error during check-in:", error);
+        toast.error(
+          "Erro ao realizar check-in. Verifique sua conexão e tente novamente."
+        );
       });
-    handlePrint();
   };
 
   const setoresSelecionados = watch("sectors") || [];
@@ -195,12 +225,23 @@ export const FormularioCredenciamento: React.FC = () => {
       const url = `${window.location.origin}/visitor/checkin${resgister?.registrationCode}?fairId=${fairId}`;
       setGeneratedUrl(url);
     }
-  }, [resgister?.registrationCode, fairId]);
+  }, [resgister?.registrationCode, fairId, getVisitorById]);
+
+  // Validação inicial do fairId - após todos os hooks
+  if (!fairId) {
+    return (
+      <div className="text-center p-8">
+        <p className="text-red-500 text-lg">
+          ID da feira não encontrado na URL. Verifique o link e tente novamente.
+        </p>
+      </div>
+    );
+  }
 
   if (resgister) {
     return (
       <div className="text-2xl font-bold text-gray-800 text-center">
-        {resgister?.name && (
+        {resgister?.name && resgister?.company ? (
           <>
             <p>{resgister.name}</p>
             <p>
@@ -210,11 +251,19 @@ export const FormularioCredenciamento: React.FC = () => {
 
             <Button
               onClick={handleCheckin}
-              className="mt-4 px-8 rounded-full bg-orange-400 hover:bg-orange-500 text-xl text-white cursor-pointer"
+              disabled={!visitor || !visitor.name || !visitor.company}
+              className="mt-4 px-8 rounded-full bg-orange-400 hover:bg-orange-500 text-xl text-white cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Imprimir Etiqueta
+              {!visitor || !visitor.name || !visitor.company
+                ? "Carregando dados..."
+                : "Imprimir Etiqueta"}
             </Button>
           </>
+        ) : (
+          <div className="flex items-center justify-center">
+            <Loader2 className="animate-spin mr-2" />
+            <p>Carregando dados do visitante...</p>
+          </div>
         )}
       </div>
     );
