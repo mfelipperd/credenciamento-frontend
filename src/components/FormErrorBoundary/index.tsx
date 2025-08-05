@@ -24,13 +24,13 @@ export class FormErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error("FormErrorBoundary capturou um erro:", error, errorInfo);
-    
+
     // Log específico para o erro de insertBefore
     if (error.message.includes("insertBefore")) {
       console.error("Erro de DOM insertBefore detectado:", {
         error: error.message,
         stack: error.stack,
-        componentStack: errorInfo.componentStack
+        componentStack: errorInfo.componentStack,
       });
     }
   }
@@ -53,14 +53,14 @@ export class FormErrorBoundary extends Component<Props, State> {
                 <AlertTriangle className="h-8 w-8 text-red-600" />
               </div>
             </div>
-            
+
             <h2 className="text-xl font-bold text-gray-900 mb-4">
               Erro no Formulário
             </h2>
-            
+
             <p className="text-gray-600 mb-6">
-              Ocorreu um erro inesperado no formulário de cadastro. 
-              Isso pode ter acontecido devido a um problema temporário.
+              Ocorreu um erro inesperado no formulário de cadastro. Isso pode
+              ter acontecido devido a um problema temporário.
             </p>
 
             <div className="space-y-3">
@@ -71,7 +71,7 @@ export class FormErrorBoundary extends Component<Props, State> {
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Recarregar Página
               </Button>
-              
+
               <Button
                 onClick={this.handleReset}
                 variant="outline"

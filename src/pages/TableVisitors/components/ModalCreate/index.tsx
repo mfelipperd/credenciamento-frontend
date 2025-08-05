@@ -14,7 +14,7 @@ export const ModalCreateFormPrivate = ({
 }) => {
   return (
     <Dialog {...props}>
-      <DialogContent className="max-w-2xl bg-neutral-100 min-w-[50rem]">
+      <DialogContent className="max-w-2xl bg-neutral-100 min-w-[50rem] ">
         <DialogHeader>
           <DialogTitle>Cadastrar Participante</DialogTitle>
         </DialogHeader>

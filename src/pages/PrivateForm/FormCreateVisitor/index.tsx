@@ -144,10 +144,10 @@ export const FormularioCredenciamento: React.FC = () => {
              </body>
            </html>
          `);
-        
+
         printWindow.document.close();
         printWindow.focus();
-        
+
         // Aguarda o documento carregar antes de imprimir
         setTimeout(() => {
           try {
@@ -159,7 +159,6 @@ export const FormularioCredenciamento: React.FC = () => {
           }
         }, 100);
       }, 50);
-      
     } catch (error) {
       console.error("Erro ao preparar impressão:", error);
       toast.error("Erro ao preparar impressão. Tente novamente.");
@@ -168,7 +167,7 @@ export const FormularioCredenciamento: React.FC = () => {
 
   const onSubmit = async (data: CredenciamentoFormData) => {
     if (isSubmitting) return; // Previne múltiplas submissões
-    
+
     if (!checkbox) {
       return toast.error("Aceite os termos!");
     }
@@ -196,7 +195,7 @@ export const FormularioCredenciamento: React.FC = () => {
 
     try {
       setIsSubmitting(true);
-      
+
       const payload = {
         ...data,
         zipCode: unmaskString(data.zipCode),
@@ -211,7 +210,7 @@ export const FormularioCredenciamento: React.FC = () => {
           ? "representante-comercial"
           : ("lojista" as "lojista" | "representante-comercial"),
       };
-      
+
       const result = await create(payload);
 
       if (!result) {
@@ -220,12 +219,11 @@ export const FormularioCredenciamento: React.FC = () => {
         );
         return;
       }
-      
+
       // Aguarda um pequeno delay antes de atualizar o estado para evitar conflitos de DOM
       setTimeout(() => {
         setRegistrationCode(result);
       }, 100);
-      
     } catch (error) {
       console.error("Erro durante o cadastro:", error);
       toast.error("Erro inesperado durante o cadastro. Tente novamente.");
@@ -255,7 +253,7 @@ export const FormularioCredenciamento: React.FC = () => {
       .then(() => {
         const url = `${window.location.origin}/visitor/checkin${resgister?.registrationCode}?fairId=${fairId}`;
         setGeneratedUrl(url);
-        
+
         // Aguarda um delay antes de tentar imprimir
         setTimeout(() => {
           handlePrint();
@@ -267,7 +265,13 @@ export const FormularioCredenciamento: React.FC = () => {
           "Erro ao realizar check-in. Verifique sua conexão e tente novamente."
         );
       });
-  }, [resgister?.registrationCode, fairId, visitor, checkinVisitor, handlePrint]);
+  }, [
+    resgister?.registrationCode,
+    fairId,
+    visitor,
+    checkinVisitor,
+    handlePrint,
+  ]);
 
   const setoresSelecionados = watch("sectors") || [];
   const ingresso = watch("ingresso");
