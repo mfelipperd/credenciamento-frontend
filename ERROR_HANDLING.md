@@ -22,11 +22,22 @@ src/
 
 ### 1. **Erros React (Error Boundary)**
 
+<<<<<<< HEAD
+
+=======
+
+> > > > > > > 780eb9dbe57c255d6b9d961bf9bc18a92a28b2b0
+
 - Erros durante renderização de componentes
 - Erros em métodos do ciclo de vida
 - Erros em construtores
 
 **Como funciona:**
+<<<<<<< HEAD
+
+=======
+
+> > > > > > > 780eb9dbe57c255d6b9d961bf9bc18a92a28b2b0
 
 ```tsx
 // Automaticamente captura erros como:
@@ -38,11 +49,22 @@ const ComponenteComErro = () => {
 
 ### 2. **Erros JavaScript Globais**
 
+<<<<<<< HEAD
+
+=======
+
+> > > > > > > 780eb9dbe57c255d6b9d961bf9bc18a92a28b2b0
+
 - Erros JavaScript não capturados
 - Erros em código assíncrono
 - Erros de sintaxe em runtime
 
 **Como funciona:**
+<<<<<<< HEAD
+
+=======
+
+> > > > > > > 780eb9dbe57c255d6b9d961bf9bc18a92a28b2b0
 
 ```tsx
 // Captura erros como:
@@ -53,11 +75,22 @@ setTimeout(() => {
 
 ### 3. **Promises Rejeitadas**
 
+<<<<<<< HEAD
+
+=======
+
+> > > > > > > 780eb9dbe57c255d6b9d961bf9bc18a92a28b2b0
+
 - Promises rejeitadas sem `.catch()`
 - Erros em async/await sem try/catch
 - Falhas de API não tratadas
 
 **Como funciona:**
+<<<<<<< HEAD
+
+=======
+
+> > > > > > > 780eb9dbe57c255d6b9d961bf9bc18a92a28b2b0
 
 ```tsx
 // Captura rejeições como:
@@ -71,6 +104,12 @@ fetchData(); // Sem await/catch
 ```
 
 ### 4. **Erros de Build/Desenvolvimento (Vite Plugin)**
+
+<<<<<<< HEAD
+
+=======
+
+> > > > > > > 780eb9dbe57c255d6b9d961bf9bc18a92a28b2b0
 
 - Erros de compilação
 - Erros de hot reload
@@ -93,12 +132,20 @@ A página de erro exibe:
 
 ### Página de Teste (Desenvolvimento)
 
+<<<<<<< HEAD
+
 Acesse `/error-test` para testar diferentes tipos de erros:
 
 1. **Erro React**: Dispara erro em componente
-2. **Erro JavaScript**: Erro assíncrono global
-3. **Promise Rejeitada**: Promise sem tratamento
-4. **Erro de Rede**: Simula falha de conexão
+2. # **Erro JavaScript**: Erro assíncrono global
+
+   Acesse `/error-test` para testar diferentes tipos de erros:
+
+3. **Erro React**: Dispara erro em componente
+4. **Erro JavaScript**: Erro assíncrono global
+   > > > > > > > 780eb9dbe57c255d6b9d961bf9bc18a92a28b2b0
+5. **Promise Rejeitada**: Promise sem tratamento
+6. **Erro de Rede**: Simula falha de conexão
 
 ### Testando Manualmente
 
@@ -109,7 +156,11 @@ const TesteErroReact = () => {
 };
 
 // 2. Erro JavaScript Global
+<<<<<<< HEAD
 window.addEventListener("click", () => {
+=======
+window.addEventListener('click', () => {
+>>>>>>> 780eb9dbe57c255d6b9d961bf9bc18a92a28b2b0
   throw new Error("Erro global");
 });
 
@@ -117,7 +168,11 @@ window.addEventListener("click", () => {
 Promise.reject(new Error("Promise rejeitada"));
 
 // 4. Erro de Rede
+<<<<<<< HEAD
 fetch("/api/inexistente");
+=======
+fetch('/api/inexistente');
+>>>>>>> 780eb9dbe57c255d6b9d961bf9bc18a92a28b2b0
 ```
 
 ## ⚙️ Configuração
@@ -145,14 +200,17 @@ export const AppWrapper = () => {
 
 ### 3. Plugin Vite
 
-```ts
+````ts
 // vite.config.ts
 import { errorPagePlugin } from "./src/plugins/errorPagePlugin";
+```ts
+// vite.config.ts
+import { errorPagePlugin } from './src/plugins/errorPagePlugin';
 
 export default defineConfig({
   plugins: [react(), errorPagePlugin()],
 });
-```
+````
 
 ## 📊 Monitoramento (Produção)
 

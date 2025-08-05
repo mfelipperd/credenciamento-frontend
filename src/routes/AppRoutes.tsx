@@ -11,12 +11,14 @@ import { PrivateForm } from "@/pages/PrivateForm/page";
 import { PublicFormtotem } from "@/pages/PublicFormTotem/page";
 import { SucessFormTotem } from "@/pages/SucessTotem/page";
 import { ConsultantPage } from "@/pages/ConsultantPage";
+import { ErrorTestPage } from "@/pages/ErrorTestPage";
 
 export const AppRoutes = createBrowserRouter([
   { path: "/sucess", element: <SucessForm /> },
   { path: "/public-form/:fairId", element: <PublicForm /> },
   { path: "/public-form-totem/:fairId", element: <PublicFormtotem /> },
   { path: "/sucess-totem", element: <SucessFormTotem /> },
+  { path: "/error-test", element: <ErrorTestPage /> },
   {
     element: (
       <AuthProvider>
