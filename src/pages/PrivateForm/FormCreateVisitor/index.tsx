@@ -36,6 +36,7 @@ export const FormularioCredenciamento: React.FC = () => {
   const [checkbox, setCheckbox] = useState<boolean>(false);
   const [isRep, setIsRep] = useState<boolean>(false);
   const [resgister, setRegistrationCode] = useState<IVisistor>();
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [searchParams] = useSearchParams();
 
   const { getVisitorById, visitor, checkinVisitor } = useVisitorsService();
@@ -62,81 +63,112 @@ export const FormularioCredenciamento: React.FC = () => {
       return;
     }
 
-    const printWindow = window.open("", "PRINT", "width=400,height=300");
-    if (!printWindow) return;
+    try {
+      const printWindow = window.open("", "PRINT", "width=400,height=300");
+      if (!printWindow) {
+        toast.error(
+          "Não foi possível abrir a janela de impressão. Verifique se popups estão habilitados."
+        );
+        return;
+      }
 
-    const { name, company, category } = visitor;
+      const { name, company, category } = visitor;
 
-    printWindow.document.write(`
-       <html>
-         <head>
-           <title>Etiqueta</title>
-           <style>
-             @page {
-               size: 90mm 29mm;
-               margin: 0;
-             }
-             body {
-               margin: 0;
-               padding: 0;
-               display: flex;
-               align-items: center;
-               justify-content: center;
-               height: 100vh;
-               font-family: Arial, sans-serif;
-             }
-             .label {
-               width: 90mm;
-               height: 29mm;
-               padding: 5mm;
-               display: flex;
-               flex-direction: column;
-               justify-content: center;
-               align-items: center;
-               box-sizing: border-box;
-               text-align: center;
-               
-             }
-             .label div {
-               margin: 0;
-               line-height: 1.2;
-             }
-            .name {
-                 font-size: 22pt;
-                 font-weight: bold;
-                 white-space: nowrap;      
-                 overflow: hidden;        
-                 text-overflow: clip;      
-                 max-width: 100%;          
- }
-             .company {
-               font-size: 16pt;
-                 white-space: nowrap;      
-                 overflow: hidden;        
-                 text-overflow: clip;      
-                 max-width: 100%;
-             }
-             .category {
-               font-size: 10pt;
-             }
-           </style>
-         </head>
-         <body>
-           <div class="label">
-             <div class="name">${name}</div>
-             <div class="company">${company}</div>
-             <div class="category">${category || ""}</div>
-           </div>
-         </body>
-       </html>
-     `);
-    printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
-    printWindow.close();
+      // Aguarda um pequeno delay para garantir que a janela foi criada
+      setTimeout(() => {
+        if (printWindow.closed) {
+          toast.error("Janela de impressão foi fechada. Tente novamente.");
+          return;
+        }
+
+        printWindow.document.write(`
+           <html>
+             <head>
+               <title>Etiqueta</title>
+               <style>
+                 @page {
+                   size: 90mm 29mm;
+                   margin: 0;
+                 }
+                 body {
+                   margin: 0;
+                   padding: 0;
+                   display: flex;
+                   align-items: center;
+                   justify-content: center;
+                   height: 100vh;
+                   font-family: Arial, sans-serif;
+                 }
+                 .label {
+                   width: 90mm;
+                   height: 29mm;
+                   padding: 5mm;
+                   display: flex;
+                   flex-direction: column;
+                   justify-content: center;
+                   align-items: center;
+                   box-sizing: border-box;
+                   text-align: center;
+                   
+                 }
+                 .label div {
+                   margin: 0;
+                   line-height: 1.2;
+                 }
+                .name {
+                     font-size: 22pt;
+                     font-weight: bold;
+                     white-space: nowrap;      
+                     overflow: hidden;        
+                     text-overflow: clip;      
+                     max-width: 100%;          
+     }
+                 .company {
+                   font-size: 16pt;
+                     white-space: nowrap;      
+                     overflow: hidden;        
+                     text-overflow: clip;      
+                     max-width: 100%;
+                 }
+                 .category {
+                   font-size: 10pt;
+                 }
+               </style>
+             </head>
+             <body>
+               <div class="label">
+                 <div class="name">${name}</div>
+                 <div class="company">${company}</div>
+                 <div class="category">${category || ""}</div>
+               </div>
+             </body>
+           </html>
+         `);
+        
+        printWindow.document.close();
+        printWindow.focus();
+        
+        // Aguarda o documento carregar antes de imprimir
+        setTimeout(() => {
+          try {
+            printWindow.print();
+            printWindow.close();
+          } catch (error) {
+            console.error("Erro durante impressão:", error);
+            toast.error("Erro durante a impressão. Tente novamente.");
+          }
+        }, 100);
+      }, 50);
+      
+    } catch (error) {
+      console.error("Erro ao preparar impressão:", error);
+      toast.error("Erro ao preparar impressão. Tente novamente.");
+    }
   }, [visitor]);
 
   const onSubmit = async (data: CredenciamentoFormData) => {
+    if (isSubmitting) return; // Previne múltiplas submissões
+    
     if (!checkbox) {
       return toast.error("Aceite os termos!");
     }
@@ -162,32 +194,49 @@ export const FormularioCredenciamento: React.FC = () => {
       }
     }
 
-    const payload = {
-      ...data,
-      zipCode: unmaskString(data.zipCode),
-      cnpj:
-        data.ingresso === "visitante"
-          ? defaultVisitorCnpj
-          : unmaskString(data.cnpj || ""),
-      phone: unmaskString(data.phone),
-      category: isRep ? "representante comercial" : data.ingresso,
-      fair_visitor: currentFairId,
-      ingresso: isRep
-        ? "representante-comercial"
-        : ("lojista" as "lojista" | "representante-comercial"), // Ensure ingresso matches expected type
-    };
-    const result = await create(payload);
+    try {
+      setIsSubmitting(true);
+      
+      const payload = {
+        ...data,
+        zipCode: unmaskString(data.zipCode),
+        cnpj:
+          data.ingresso === "visitante"
+            ? defaultVisitorCnpj
+            : unmaskString(data.cnpj || ""),
+        phone: unmaskString(data.phone),
+        category: isRep ? "representante comercial" : data.ingresso,
+        fair_visitor: currentFairId,
+        ingresso: isRep
+          ? "representante-comercial"
+          : ("lojista" as "lojista" | "representante-comercial"),
+      };
+      
+      const result = await create(payload);
 
-    if (!result) {
-      toast.error(
-        "Erro ao criar cadastro. Verifique sua conexão com a internet e tente novamente."
-      );
-      return;
+      if (!result) {
+        toast.error(
+          "Erro ao criar cadastro. Verifique sua conexão com a internet e tente novamente."
+        );
+        return;
+      }
+      
+      // Aguarda um pequeno delay antes de atualizar o estado para evitar conflitos de DOM
+      setTimeout(() => {
+        setRegistrationCode(result);
+      }, 100);
+      
+    } catch (error) {
+      console.error("Erro durante o cadastro:", error);
+      toast.error("Erro inesperado durante o cadastro. Tente novamente.");
+    } finally {
+      setTimeout(() => {
+        setIsSubmitting(false);
+      }, 200);
     }
-    setRegistrationCode(result);
   };
 
-  const handleCheckin = () => {
+  const handleCheckin = useCallback(() => {
     if (!resgister?.registrationCode || !fairId) {
       toast.error(
         "Dados necessários não estão disponíveis. Verifique se possui conexão com a internet."
@@ -206,7 +255,11 @@ export const FormularioCredenciamento: React.FC = () => {
       .then(() => {
         const url = `${window.location.origin}/visitor/checkin${resgister?.registrationCode}?fairId=${fairId}`;
         setGeneratedUrl(url);
-        handlePrint();
+        
+        // Aguarda um delay antes de tentar imprimir
+        setTimeout(() => {
+          handlePrint();
+        }, 200);
       })
       .catch((error) => {
         console.error("Error during check-in:", error);
@@ -214,18 +267,23 @@ export const FormularioCredenciamento: React.FC = () => {
           "Erro ao realizar check-in. Verifique sua conexão e tente novamente."
         );
       });
-  };
+  }, [resgister?.registrationCode, fairId, visitor, checkinVisitor, handlePrint]);
 
   const setoresSelecionados = watch("sectors") || [];
   const ingresso = watch("ingresso");
 
   useEffect(() => {
-    if (resgister?.registrationCode && fairId) {
-      getVisitorById(resgister?.registrationCode, fairId);
-      const url = `${window.location.origin}/visitor/checkin${resgister?.registrationCode}?fairId=${fairId}`;
-      setGeneratedUrl(url);
+    // Adiciona uma verificação para evitar chamadas desnecessárias
+    if (resgister?.registrationCode && fairId && !visitor?.name) {
+      const timeoutId = setTimeout(() => {
+        getVisitorById(resgister?.registrationCode, fairId);
+        const url = `${window.location.origin}/visitor/checkin${resgister?.registrationCode}?fairId=${fairId}`;
+        setGeneratedUrl(url);
+      }, 50); // Pequeno delay para evitar conflitos de DOM
+
+      return () => clearTimeout(timeoutId);
     }
-  }, [resgister?.registrationCode, fairId, getVisitorById]);
+  }, [resgister?.registrationCode, fairId, getVisitorById, visitor?.name]);
 
   // Validação inicial do fairId - após todos os hooks
   if (!fairId) {
@@ -240,37 +298,39 @@ export const FormularioCredenciamento: React.FC = () => {
 
   if (resgister) {
     return (
-      <div className="text-2xl font-bold text-gray-800 text-center">
-        {resgister?.name && resgister?.company ? (
-          <>
-            <p>{resgister.name}</p>
-            <p>
-              <span className="font-semibold">Empresa:</span>{" "}
-              {resgister.company}
-            </p>
+      <div className="text-2xl font-bold text-gray-800 text-center min-h-screen flex items-center justify-center">
+        <div className="max-w-md mx-auto p-8">
+          {resgister?.name && resgister?.company ? (
+            <>
+              <p className="mb-2">{resgister.name}</p>
+              <p className="mb-6">
+                <span className="font-semibold">Empresa:</span>{" "}
+                {resgister.company}
+              </p>
 
-            <Button
-              onClick={handleCheckin}
-              disabled={!visitor || !visitor.name || !visitor.company}
-              className="mt-4 px-8 rounded-full bg-orange-400 hover:bg-orange-500 text-xl text-white cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {!visitor || !visitor.name || !visitor.company
-                ? "Carregando dados..."
-                : "Imprimir Etiqueta"}
-            </Button>
-          </>
-        ) : (
-          <div className="flex items-center justify-center">
-            <Loader2 className="animate-spin mr-2" />
-            <p>Carregando dados do visitante...</p>
-          </div>
-        )}
+              <Button
+                onClick={handleCheckin}
+                disabled={!visitor || !visitor.name || !visitor.company}
+                className="mt-4 px-8 rounded-full bg-orange-400 hover:bg-orange-500 text-xl text-white cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {!visitor || !visitor.name || !visitor.company
+                  ? "Carregando dados..."
+                  : "Imprimir Etiqueta"}
+              </Button>
+            </>
+          ) : (
+            <div className="flex items-center justify-center">
+              <Loader2 className="animate-spin mr-2" />
+              <p>Carregando dados do visitante...</p>
+            </div>
+          )}
+        </div>
       </div>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
+    <form onSubmit={handleSubmit(onSubmit)} key={`form-${fairId}`}>
       <div>
         <Controller
           control={control}
@@ -423,12 +483,21 @@ export const FormularioCredenciamento: React.FC = () => {
       </div>
       <div className="flex justify-center pt-4">
         <Button
-          disabled={!checkbox}
+          disabled={!checkbox || loading || isSubmitting}
           type="submit"
-          className="bg-pink-600 rounded-full w-[80%] hover:bg-pink-700 text-white"
+          className="bg-pink-600 rounded-full w-[80%] hover:bg-pink-700 text-white disabled:opacity-50"
         >
-          {loading ? <Loader2 className="animate-spin" /> : <Save />}
-          Enviar
+          {loading || isSubmitting ? (
+            <>
+              <Loader2 className="animate-spin mr-2" />
+              Processando...
+            </>
+          ) : (
+            <>
+              <Save className="mr-2" />
+              Enviar
+            </>
+          )}
         </Button>
       </div>
     </form>
