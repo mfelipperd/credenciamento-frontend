@@ -152,12 +152,20 @@ export const Visitor = () => {
             </p>
 
             {isMobile ? (
-              <Button
-                onClick={handleSendToWhatsapp}
-                className="mt-4 px-8 rounded-full bg-orange-400 hover:bg-orange-500 text-xl text-white cursor-pointer"
-              >
-                Enviar link para meu WhatsApp
-              </Button>
+              <div className="flex flex-col items-center">
+                <Button
+                  onClick={handleSendToWhatsapp}
+                  className="mt-4 px-8 rounded-full bg-orange-400 hover:bg-orange-500 text-xl text-white cursor-pointer"
+                >
+                  Enviar link para meu WhatsApp
+                </Button>
+                <Button
+                  onClick={handleCheckin}
+                  className="mt-4 px-8 rounded-full bg-orange-400 hover:bg-orange-500 text-xl text-white cursor-pointer"
+                >
+                  Imprimir Etiqueta
+                </Button>
+              </div>
             ) : (
               <Button
                 onClick={handleCheckin}
