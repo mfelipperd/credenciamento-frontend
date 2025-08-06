@@ -110,3 +110,35 @@
 .no-edge-reveal::-ms-clear {
   display: none;
 }
+
+/* Dialog z-index overrides to appear above header (z-1000) */
+[data-radix-popper-content-wrapper] {
+  z-index: 1100 !important;
+}
+
+[data-slot="dialog-portal"] > [data-slot="dialog-overlay"] {
+  z-index: 1100 !important;
+}
+
+[data-slot="dialog-portal"] > [data-slot="dialog-content"] {
+  z-index: 1101 !important;
+}
+
+/* Additional overrides for Radix Dialog portals */
+[data-radix-portal] {
+  z-index: 1100 !important;
+}
+
+/* Radix UI Dialog specific overrides */
+[data-radix-dialog-overlay] {
+  z-index: 9998 !important;
+}
+
+[data-radix-dialog-content] {
+  z-index: 9999 !important;
+}
+
+/* Ensure all dialog related elements appear above header */
+.dialog-portal * {
+  z-index: 1100 !important;
+}

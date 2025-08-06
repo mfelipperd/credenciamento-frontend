@@ -61,7 +61,8 @@ export const CheckinPerHourChart: React.FC<{ fairId: string }> = ({
       plotOptions: {
         bar: {
           horizontal: false,
-          columnWidth: "40%",
+          columnWidth: "55%",
+          borderRadius: 2,
         },
       },
       dataLabels: { enabled: false },
@@ -70,6 +71,8 @@ export const CheckinPerHourChart: React.FC<{ fairId: string }> = ({
       legend: {
         position: "top",
         horizontalAlign: "center",
+        fontSize: "12px",
+        offsetY: -5,
       },
       fill: {
         opacity: 1,
@@ -86,6 +89,43 @@ export const CheckinPerHourChart: React.FC<{ fairId: string }> = ({
           show: false,
         },
       },
+      responsive: [
+        {
+          breakpoint: 768,
+          options: {
+            chart: {
+              height: 300,
+            },
+            legend: {
+              position: "bottom",
+              fontSize: "10px",
+            },
+            plotOptions: {
+              bar: {
+                columnWidth: "60%",
+              },
+            },
+          },
+        },
+        {
+          breakpoint: 640,
+          options: {
+            chart: {
+              height: 250,
+            },
+            legend: {
+              position: "bottom",
+              fontSize: "9px",
+              offsetY: 5,
+            },
+            plotOptions: {
+              bar: {
+                columnWidth: "70%",
+              },
+            },
+          },
+        },
+      ],
     },
   });
 
@@ -153,16 +193,19 @@ export const CheckinPerHourChart: React.FC<{ fairId: string }> = ({
   }
 
   return (
-    <div>
+    <div className="w-full h-full p-4 flex flex-col min-h-[400px]">
       {/* Date picker para filtrar o dia */}
-      <div className="mb-6 w-full flex justify-end">
+      <div className="mb-4 w-full flex justify-end">
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="outline" className="w-44 justify-between">
+            <Button
+              variant="outline"
+              className="w-36 sm:w-44 justify-between text-xs sm:text-sm"
+            >
               {selectedDate
                 ? format(selectedDate, "dd/MM/yyyy")
                 : "Todos os dias"}
-              <CalendarIcon className="ml-2 h-4 w-4 opacity-50" />
+              <CalendarIcon className="ml-1 sm:ml-2 h-3 w-3 sm:h-4 sm:w-4 opacity-50" />
             </Button>
           </PopoverTrigger>
           <PopoverContent align="start" className="p-0 bg-white">
@@ -179,14 +222,26 @@ export const CheckinPerHourChart: React.FC<{ fairId: string }> = ({
       </div>
 
       {/* Gráfico */}
-      <div id="checkin-per-hour-chart" className="w-full overflow-hidden">
-        <ReactApexChart
-          options={chart.options}
-          series={chart.series}
-          type="area"
-          height={300}
-          width={"100%"}
-        />
+      <div className="flex-1 w-full">
+        <div className="w-full max-w-full h-full">
+          <ReactApexChart
+            options={{
+              ...chart.options,
+              chart: {
+                ...chart.options.chart,
+                height: 320,
+                width: "100%",
+                parentHeightOffset: 0,
+                offsetX: 0,
+                offsetY: 0,
+              },
+            }}
+            series={chart.series}
+            type="area"
+            height={320}
+            width="100%"
+          />
+        </div>
       </div>
     </div>
   );

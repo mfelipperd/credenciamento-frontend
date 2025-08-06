@@ -63,14 +63,18 @@ export const ConversionChart: React.FC<{ fairId: string }> = ({ fairId }) => {
         categories: [],
         labels: {
           formatter: (val: string) => `${val}%`,
+          style: {
+            fontSize: "11px",
+          },
         },
       },
       yaxis: {
         labels: {
           style: {
-            fontSize: "12px",
+            fontSize: "10px",
             fontWeight: 600,
           },
+          maxWidth: 120,
         },
       },
       colors: CONVERSION_COLORS,
@@ -90,6 +94,47 @@ export const ConversionChart: React.FC<{ fairId: string }> = ({ fairId }) => {
         borderColor: "#e5e7eb",
         strokeDashArray: 3,
       },
+      responsive: [
+        {
+          breakpoint: 640,
+          options: {
+            chart: {
+              height: 300,
+            },
+            yaxis: {
+              labels: {
+                style: {
+                  fontSize: "9px",
+                },
+                maxWidth: 80,
+              },
+            },
+            xaxis: {
+              labels: {
+                style: {
+                  fontSize: "10px",
+                },
+              },
+            },
+          },
+        },
+        {
+          breakpoint: 480,
+          options: {
+            chart: {
+              height: 250,
+            },
+            yaxis: {
+              labels: {
+                style: {
+                  fontSize: "8px",
+                },
+                maxWidth: 60,
+              },
+            },
+          },
+        },
+      ],
     },
   });
 
@@ -172,13 +217,26 @@ export const ConversionChart: React.FC<{ fairId: string }> = ({ fairId }) => {
   };
 
   return (
-    <div className="w-full">
-      <ReactApexChart
-        options={tooltipOptions}
-        series={chart.series}
-        type="bar"
-        height={400}
-      />
+    <div className="w-full h-full p-4 flex items-center justify-center min-h-[350px]">
+      <div className="w-full max-w-full h-full flex items-center justify-center">
+        <ReactApexChart
+          options={{
+            ...tooltipOptions,
+            chart: {
+              ...tooltipOptions.chart,
+              height: 320,
+              width: "100%",
+              parentHeightOffset: 0,
+              offsetX: 0,
+              offsetY: 0,
+            },
+          }}
+          series={chart.series}
+          type="bar"
+          height={320}
+          width="100%"
+        />
+      </div>
     </div>
   );
 };

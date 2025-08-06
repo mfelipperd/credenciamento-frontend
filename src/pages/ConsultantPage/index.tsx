@@ -1,20 +1,15 @@
-import { Card, CardContent } from "@/components/ui/card";
 import { EnhancedTableConsultant } from "./Table";
 import { PopupOverlay } from "./PopupOverlay";
 import { HeaderBanner } from "./HeaderBanner";
 
 export const ConsultantPage = () => {
-  const headerHeight = 140; // deve bater com o height do HeaderBanner
-
   return (
-    <div style={{ paddingTop: `${headerHeight}px` }}>
+    <div className="pt-20 sm:pt-24 lg:pt-28 xl:pt-36">
       <HeaderBanner />
       <PopupOverlay />
-      <Card>
-        <CardContent>
-          <EnhancedTableConsultant />
-        </CardContent>
-      </Card>
+      <div className="container mx-auto px-4 py-8">
+        <EnhancedTableConsultant />
+      </div>
     </div>
   );
 };

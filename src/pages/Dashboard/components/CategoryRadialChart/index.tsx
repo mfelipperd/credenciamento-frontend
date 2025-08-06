@@ -78,32 +78,52 @@ export const CategoryRadialChart: React.FC<{ fairId: string }> = ({
   if (chart.series.length === 0) return <p>Sem dados para exibir.</p>;
   console.log(chart);
   return (
-    <div
-      id="category-radial-chart"
-      className=" flex flex-col-reverse  sm:flex sm:flex-row sm:items-center sm:justify-around  gap-4 w-full"
-    >
-      <div className="flex flex-col gap-8">
+    <div className="w-full h-full flex flex-col lg:flex-row items-center justify-between gap-4 p-4 min-h-[350px]">
+      {/* Legenda */}
+      <div className="flex flex-col gap-3 order-2 lg:order-1 w-full lg:w-auto">
         {chart.options.labels?.map((label, i) => (
-          <div key={label} className="flex items-center gap-8">
-            <div
-              className="h-5 w-5 rounded-full"
-              style={{ backgroundColor: chart.options.colors![i] }}
-            />
-            <p className="text-lg capitalize text-gray-600 font-bold">
-              {label}
-            </p>
-            <p className="text-base font-light text-gray-500">
+          <div
+            key={label}
+            className="flex items-center gap-3 justify-between lg:justify-start"
+          >
+            <div className="flex items-center gap-2">
+              <div
+                className="h-4 w-4 rounded-full flex-shrink-0"
+                style={{ backgroundColor: chart.options.colors![i] }}
+              />
+              <p className="text-sm sm:text-base capitalize text-gray-600 font-semibold">
+                {label}
+              </p>
+            </div>
+            <p className="text-sm sm:text-base font-medium text-gray-800">
               {chart.series[i]}
             </p>
           </div>
         ))}
       </div>
-      <ReactApexChart
-        options={chart.options}
-        series={chart.series}
-        type="radialBar"
-        height={350}
-      />
+
+      {/* Gráfico */}
+      <div className="flex-1 order-1 lg:order-2 w-full flex justify-center items-center">
+        <div className="w-full max-w-full h-full flex items-center justify-center">
+          <ReactApexChart
+            options={{
+              ...chart.options,
+              chart: {
+                ...chart.options.chart,
+                height: 300,
+                width: "100%",
+                parentHeightOffset: 0,
+                offsetX: 0,
+                offsetY: 0,
+              },
+            }}
+            series={chart.series}
+            type="radialBar"
+            height={300}
+            width="100%"
+          />
+        </div>
+      </div>
     </div>
   );
 };

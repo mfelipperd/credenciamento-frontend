@@ -73,16 +73,42 @@ export const SectorsRadialChart: React.FC<{ fairId: string }> = ({
   if (chart.series.length === 0) return <p>Sem dados para exibir.</p>;
 
   return (
-    <div
-      id="sectors-radial-chart"
-      className="flex flex-col-reverse  sm:items-center sm:justify-around  w-full"
-    >
-      <ReactApexChart
-        options={chart.options}
-        series={chart.series}
-        type="radialBar"
-        height={450}
-      />
+    <div className="w-full h-full flex flex-col items-center justify-center p-4 min-h-[400px]">
+      <div className="w-full max-w-full h-full flex items-center justify-center">
+        <ReactApexChart
+          options={{
+            ...chart.options,
+            chart: {
+              ...chart.options.chart,
+              height: 350,
+              width: "100%",
+              parentHeightOffset: 0,
+              offsetX: 0,
+              offsetY: 0,
+            },
+            plotOptions: {
+              radialBar: {
+                ...chart.options.plotOptions?.radialBar,
+                dataLabels: {
+                  name: { fontSize: "16px" },
+                  value: { fontSize: "14px" },
+                  total: {
+                    show: true,
+                    label: "Total",
+                    fontSize: "14px",
+                    formatter: () =>
+                      chart.series.reduce((sum, n) => sum + n, 0).toString(),
+                  },
+                },
+              },
+            },
+          }}
+          series={chart.series}
+          type="radialBar"
+          height={350}
+          width="100%"
+        />
+      </div>
     </div>
   );
 };

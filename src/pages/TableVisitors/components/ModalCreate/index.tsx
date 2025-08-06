@@ -14,11 +14,15 @@ export const ModalCreateFormPrivate = ({
 }) => {
   return (
     <Dialog {...props}>
-      <DialogContent className="max-w-2xl bg-neutral-100 min-w-[50rem] ">
-        <DialogHeader>
-          <DialogTitle>Cadastrar Participante</DialogTitle>
+      <DialogContent className="w-[95vw] max-w-2xl bg-neutral-100 mx-auto my-4 max-h-[90vh] overflow-y-auto">
+        <DialogHeader className="pb-4 border-b border-gray-200">
+          <DialogTitle className="text-lg sm:text-xl font-semibold text-gray-800">
+            Cadastrar Participante
+          </DialogTitle>
         </DialogHeader>
-        <FormularioCredenciamento />
+        <div className="mt-4">
+          <FormularioCredenciamento />
+        </div>
       </DialogContent>
     </Dialog>
   );

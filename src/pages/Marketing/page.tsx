@@ -135,21 +135,25 @@ export const MarketingPage: React.FC = () => {
           `Processamento iniciado! ${response.totalAbsent} email(s) serão enviados em background para visitantes ausentes.`,
           {
             duration: 5000,
-            description: `Status: ${response.status}`
+            description: `Status: ${response.status}`,
           }
         );
-        
+
         // Exibe lista de visitantes que receberão o email
-        console.log("📧 Visitantes que receberão o email:", response.absentVisitors);
-        
+        console.log(
+          "📧 Visitantes que receberão o email:",
+          response.absentVisitors
+        );
+
         // Toast adicional com detalhes
         setTimeout(() => {
           toast.info(
-            `✅ Emails sendo processados em lotes de 10. Tempo estimado: ~${Math.ceil(response.totalAbsent / 300)} minutos`,
+            `✅ Emails sendo processados em lotes de 10. Tempo estimado: ~${Math.ceil(
+              response.totalAbsent / 300
+            )} minutos`,
             { duration: 4000 }
           );
         }, 1000);
-        
       } else {
         toast.error("Erro ao iniciar processamento de emails");
       }
@@ -174,7 +178,8 @@ export const MarketingPage: React.FC = () => {
           Marketing por Email
         </h1>
         <p className="text-gray-600">
-          Sistema de envio em massa com processamento em background para todos os visitantes ausentes da feira
+          Sistema de envio em massa com processamento em background para todos
+          os visitantes ausentes da feira
         </p>
       </div>
 
@@ -296,7 +301,9 @@ export const MarketingPage: React.FC = () => {
       {/* Informações sobre o sistema */}
       <Card className="mt-8">
         <CardHeader>
-          <CardTitle className="text-lg">🚀 Sistema de Envio em Massa - Processamento em Background</CardTitle>
+          <CardTitle className="text-lg">
+            🚀 Sistema de Envio em Massa - Processamento em Background
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid md:grid-cols-2 gap-4 text-sm">
@@ -306,35 +313,56 @@ export const MarketingPage: React.FC = () => {
                 <li>Todos os visitantes ausentes da feira específica</li>
                 <li>Que se registraram mas não fizeram check-in</li>
                 <li>Com email válido no cadastro</li>
-                <li><strong>Envio real para todos os ausentes</strong></li>
+                <li>
+                  <strong>Envio real para todos os ausentes</strong>
+                </li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold mb-2">⚡ Performance:</h4>
               <ul className="list-disc list-inside space-y-1 text-gray-600">
-                <li>Processamento em <strong>background</strong></li>
+                <li>
+                  Processamento em <strong>background</strong>
+                </li>
                 <li>Lotes de 10 emails por vez</li>
                 <li>2 segundos entre lotes (rate limit)</li>
                 <li>3 tentativas automáticas por email</li>
               </ul>
             </div>
           </div>
-          
+
           <div className="mt-6 p-4 bg-blue-50 border-l-4 border-blue-400 rounded-r-lg">
-            <h4 className="font-semibold text-blue-800 mb-2">💡 Como funciona:</h4>
+            <h4 className="font-semibold text-blue-800 mb-2">
+              💡 Como funciona:
+            </h4>
             <div className="text-sm text-blue-700 space-y-1">
-              <p><strong>1. Resposta instantânea:</strong> API retorna imediatamente após iniciar o processamento</p>
-              <p><strong>2. Processamento em lotes:</strong> Emails enviados em grupos de 10 para evitar sobrecarga</p>
-              <p><strong>3. Retry inteligente:</strong> Falhas temporárias são reprocessadas automaticamente</p>
-              <p><strong>4. Tempo estimado:</strong> ~300 emails por minuto (respeitando limites SMTP)</p>
+              <p>
+                <strong>1. Resposta instantânea:</strong> API retorna
+                imediatamente após iniciar o processamento
+              </p>
+              <p>
+                <strong>2. Processamento em lotes:</strong> Emails enviados em
+                grupos de 10 para evitar sobrecarga
+              </p>
+              <p>
+                <strong>3. Retry inteligente:</strong> Falhas temporárias são
+                reprocessadas automaticamente
+              </p>
+              <p>
+                <strong>4. Tempo estimado:</strong> ~300 emails por minuto
+                (respeitando limites SMTP)
+              </p>
             </div>
           </div>
 
           <div className="mt-4 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-r-lg">
-            <h4 className="font-semibold text-yellow-800 mb-2">⚠️ ATENÇÃO - Sistema de Produção:</h4>
+            <h4 className="font-semibold text-yellow-800 mb-2">
+              ⚠️ ATENÇÃO - Sistema de Produção:
+            </h4>
             <p className="text-sm text-yellow-700">
-              <strong>Este sistema envia emails reais</strong> para todos os visitantes ausentes da feira selecionada. 
-              Certifique-se de que o conteúdo esteja correto antes de enviar.
+              <strong>Este sistema envia emails reais</strong> para todos os
+              visitantes ausentes da feira selecionada. Certifique-se de que o
+              conteúdo esteja correto antes de enviar.
             </p>
           </div>
         </CardContent>

@@ -113,13 +113,15 @@ export const ConversionByHowDidYouKnowChart: React.FC<{ fairId: string }> = ({
       const data = await getConversionsByHowDidYouKnow(fairId);
       if (!data || !data.conversions.length) return;
 
-      const series = data.conversions.map((item: ConversionByHowDidYouKnow) =>
-        item.totalCheckIns
+      const series = data.conversions.map(
+        (item: ConversionByHowDidYouKnow) => item.totalCheckIns
       );
       const rawLabels = data.conversions.map(
         (item: ConversionByHowDidYouKnow) => item.howDidYouKnow
       );
-      const labels = rawLabels.map((label: string) => LABEL_MAPPING[label] || label);
+      const labels = rawLabels.map(
+        (label: string) => LABEL_MAPPING[label] || label
+      );
       const total = series.reduce((sum: number, n: number) => sum + n, 0);
 
       setChart({
