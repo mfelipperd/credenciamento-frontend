@@ -37,13 +37,13 @@ export const OriginBarChart: React.FC<{ fairId: string }> = ({ fairId }) => {
       colors: ORIGIN_COLORS,
       plotOptions: {
         bar: {
-          horizontal: false, // barras verticais
-          columnWidth: "50%",
-          borderRadius: 18,
+          horizontal: false,
+          columnWidth: "60%",
+          borderRadius: 6,
         },
       },
       dataLabels: {
-        enabled: false, // desabilita labels dentro das barras
+        enabled: false,
       },
       grid: {
         yaxis: {
@@ -57,11 +57,66 @@ export const OriginBarChart: React.FC<{ fairId: string }> = ({ fairId }) => {
           show: false,
         },
       },
-      tooltip: {
-        y: {
-          formatter: (val) => `${val}`,
+      xaxis: {
+        labels: {
+          style: {
+            fontSize: "11px",
+            fontWeight: 500,
+          },
+          rotate: -45,
         },
       },
+      tooltip: {
+        y: {
+          formatter: (val) => `${val} visitantes`,
+        },
+      },
+      responsive: [
+        {
+          breakpoint: 768,
+          options: {
+            chart: {
+              height: 300,
+            },
+            plotOptions: {
+              bar: {
+                columnWidth: "70%",
+                borderRadius: 4,
+              },
+            },
+            xaxis: {
+              labels: {
+                style: {
+                  fontSize: "10px",
+                },
+                rotate: -45,
+              },
+            },
+          },
+        },
+        {
+          breakpoint: 640,
+          options: {
+            chart: {
+              height: 250,
+            },
+            plotOptions: {
+              bar: {
+                columnWidth: "80%",
+                borderRadius: 3,
+              },
+            },
+            xaxis: {
+              labels: {
+                style: {
+                  fontSize: "9px",
+                },
+                rotate: -50,
+              },
+            },
+          },
+        },
+      ],
     },
   });
 
@@ -95,15 +150,26 @@ export const OriginBarChart: React.FC<{ fairId: string }> = ({ fairId }) => {
   if (chart.series[0].data.length === 0) return <p>Sem dados para exibir.</p>;
 
   return (
-    <div className="h-full w-full overflow-hidden">
-      {/* Gráfico de Barras */}
-      <ReactApexChart
-        options={chart.options}
-        series={chart.series}
-        type="bar"
-        height={290}
-        width={"100%"}
-      />
+    <div className="h-full w-full p-4 flex items-center justify-center min-h-[350px]">
+      <div className="w-full max-w-full h-full flex items-center justify-center">
+        <ReactApexChart
+          options={{
+            ...chart.options,
+            chart: {
+              ...chart.options.chart,
+              height: 320,
+              width: "100%",
+              parentHeightOffset: 0,
+              offsetX: 0,
+              offsetY: 0,
+            },
+          }}
+          series={chart.series}
+          type="bar"
+          height={320}
+          width="100%"
+        />
+      </div>
     </div>
   );
 };

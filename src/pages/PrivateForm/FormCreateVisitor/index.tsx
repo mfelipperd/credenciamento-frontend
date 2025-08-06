@@ -340,8 +340,8 @@ export const FormularioCredenciamento: React.FC = () => {
           control={control}
           name="ingresso"
           render={({ field, fieldState }) => (
-            <div className="mb-4 flex flex-col items-center">
-              <label className="block mb-1  text-center text-xl font-normal text-gray-400">
+            <div className="mb-6 flex flex-col items-center">
+              <label className="block mb-2 text-center text-lg sm:text-xl font-normal text-gray-600">
                 Tipo de ingresso
               </label>
               <ToggleGroup
@@ -350,16 +350,16 @@ export const FormularioCredenciamento: React.FC = () => {
                 onValueChange={(val) =>
                   setValue("ingresso", val as "lojista" | "visitante")
                 }
-                className="mt-2 w-full space-x-2.5 "
+                className="mt-2 w-full max-w-md flex flex-col sm:flex-row gap-2 sm:space-x-2.5"
               >
                 {(["lojista", "visitante"] as const).map((opt) => (
                   <ToggleGroupItem
                     key={opt}
                     value={opt}
-                    className={` rounded-full cursor-pointer text ${
+                    className={`w-full sm:w-auto rounded-full cursor-pointer py-3 px-6 text-sm font-medium transition-colors ${
                       field.value === opt
-                        ? "bg-pink-600 text-white"
-                        : "bg-white"
+                        ? "bg-pink-600 text-white shadow-md"
+                        : "bg-white border border-gray-200 text-gray-700 hover:bg-gray-50"
                     }`}
                   >
                     {opt.charAt(0).toUpperCase() + opt.slice(1)}
@@ -367,7 +367,7 @@ export const FormularioCredenciamento: React.FC = () => {
                 ))}
               </ToggleGroup>
               {fieldState.error && (
-                <p className="text-sm text-red-600 mt-1">
+                <p className="text-sm text-red-600 mt-2">
                   {fieldState.error.message}
                 </p>
               )}
@@ -375,15 +375,17 @@ export const FormularioCredenciamento: React.FC = () => {
           )}
         />
         {ingresso === "visitante" && (
-          <div className="w-full flex items-center justify-center mb-4 gap-4">
+          <div className="w-full flex items-center justify-center mb-6 gap-3 p-3 bg-blue-50 rounded-lg">
             <Checkbox
               checked={isRep}
               onCheckedChange={() => setIsRep((prev) => !prev)}
-            ></Checkbox>
-            Representante Comercial
+            />
+            <span className="text-sm font-medium text-blue-800">
+              Representante Comercial
+            </span>
           </div>
         )}
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <ControlledInput
             control={control}
             name="name"
@@ -444,14 +446,17 @@ export const FormularioCredenciamento: React.FC = () => {
             ]}
           />
         </div>
-        <div className="mb-4">
-          <label className="block mb-1 text-sm font-medium">
+        <div className="mb-6">
+          <label className="block mb-3 text-sm font-medium">
             Setores que{" "}
             {ingresso === "visitante" ? "tem interesse:" : "a empresa atua:"}
           </label>
-          <div className="grid grid-cols-2 gap-2 mt-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3 mt-2">
             {setoresOpcoes.map((setor) => (
-              <label key={setor} className="flex items-center space-x-2">
+              <label
+                key={setor}
+                className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer"
+              >
                 <Checkbox
                   checked={setoresSelecionados.includes(setor)}
                   onCheckedChange={(checked) => {
@@ -461,44 +466,46 @@ export const FormularioCredenciamento: React.FC = () => {
                     setValue("sectors", novos);
                   }}
                 />
-                <span>{setor}</span>
+                <span className="text-sm">{setor}</span>
               </label>
             ))}
           </div>
         </div>
       </div>
-      <div className=" w-full flex items-center justify-center mt-4 gap-4">
+      <div className="w-full flex items-start justify-center mt-6 gap-3 p-4 bg-gray-50 rounded-lg">
         <Checkbox
           checked={checkbox}
           onCheckedChange={() => setCheckbox((prev) => !prev)}
-        />{" "}
-        <p>
+          className="mt-1 flex-shrink-0"
+        />
+        <p className="text-sm text-gray-700 leading-relaxed">
           Aceito os{" "}
           <a
             href="https://www.expomultimix.com/politica-de-privacidade"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-pink-600 hover:underline"
+            className="text-pink-600 hover:underline font-medium"
           >
             termos e condições
-          </a>
+          </a>{" "}
+          de uso e política de privacidade
         </p>
       </div>
-      <div className="flex justify-center pt-4">
+      <div className="flex justify-center pt-6">
         <Button
           disabled={!checkbox || loading || isSubmitting}
           type="submit"
-          className="bg-pink-600 rounded-full w-[80%] hover:bg-pink-700 text-white disabled:opacity-50"
+          className="bg-pink-600 rounded-full w-full max-w-sm py-3 hover:bg-pink-700 text-white disabled:opacity-50 font-medium text-base shadow-md transition-all duration-200"
         >
           {loading || isSubmitting ? (
             <>
-              <Loader2 className="animate-spin mr-2" />
+              <Loader2 className="animate-spin mr-2 h-5 w-5" />
               Processando...
             </>
           ) : (
             <>
-              <Save className="mr-2" />
-              Enviar
+              <Save className="mr-2 h-5 w-5" />
+              Cadastrar Participante
             </>
           )}
         </Button>

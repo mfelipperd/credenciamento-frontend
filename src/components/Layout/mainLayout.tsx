@@ -55,128 +55,160 @@ export const MainLayout: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-neutral-100">
-      <div className="relative w-full h-40 rounded- ">
-        <img
-          src="/bg.png"
-          alt="Background"
-          className="w-full h-full object-cover "
-        />
-
-        <div className="absolute inset-0 bg-blue-900 opacity-70" />
-        <img
-          src="/logo.png"
-          alt="logo"
-          className="absolute top-7 left-3 text-xl w-28 "
-        />
-        <div>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Settings className="absolute right-5 top-5 text-white z-50 cursor-pointer" />
-            </PopoverTrigger>
-            <PopoverContent className="bg-white">
-              <div onClick={auth.signOut}>
-                <p className="flex items-center gap-2 text-gray-700 hover:text-gray-900 cursor-pointer">
-                  <LogOut size={16} /> Sair
-                </p>
-              </div>
-              <CreateUserModal />
-            </PopoverContent>
-          </Popover>
+      {/* Header Principal */}
+      <header className="relative w-full bg-gradient-to-r from-blue-900 to-purple-800 shadow-lg">
+        {/* Background Image com Overlay */}
+        <div className="absolute inset-0">
+          <img
+            src="/bg.png"
+            alt="Background"
+            className="w-full h-full object-cover opacity-20"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-900/90 to-purple-800/90" />
         </div>
-        <RefreshCcw
-          onClick={() => window.location.reload()}
-          className={`absolute right-5 top-16 text-white z-50 cursor-pointer ${
-            loading ? "animate-spin" : ""
-          }`}
-        />
-        <div className="absolute inset-0 flex flex-col gap-6 items-center justify-center w-full">
-          <div className="flex items-center gap-4 w-[80%]">
-            <div className="bg-green-500 rounded-full h-4 w-4" />
 
-            <select
-              value={selectedId}
-              onChange={handleChange}
-              className="
-                bg-transparent
-                text-white
-                text-2xl
-                w-full
-                text-start
-                appearance-none
-                focus:outline-none
-                capitalize
-              "
-            >
-              {fairs.map((fair) => (
-                <option
-                  key={fair.id}
-                  value={fair.id}
-                  className="text-black capitalize"
-                >
-                  {`${fair.name} ${new Date(fair.date).getFullYear()} – ${
-                    fair.location
-                  }`}
-                </option>
-              ))}
-            </select>
+        {/* Conteúdo do Header - Tudo numa única linha */}
+        <div className="relative z-10 px-4 py-2">
+          <div className="flex items-center gap-3 text-white">
+            {/* Logo */}
+            <img
+              src="/logo.png"
+              alt="Logo"
+              className="h-8 w-auto flex-shrink-0"
+            />
 
-            <svg
-              className="h-6 w-6 text-white pointer-events-none"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 9l-7 7-7-7"
+            {/* Separator */}
+            <div className="h-6 w-px bg-white/30"></div>
+
+            {/* Controls */}
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <RefreshCcw
+                onClick={() => window.location.reload()}
+                className={`h-4 w-4 text-white/80 hover:text-white cursor-pointer transition-all hover:scale-110 ${
+                  loading ? "animate-spin" : ""
+                }`}
               />
-            </svg>
-          </div>
-          <div className="flex items-center gap-8 text-white w-[73%]">
-            <div>
-              <p className="flex items-center gap-2 font-semibold">
-                <Calendar /> {selectedFair?.date}
-              </p>
-              <p className="font-light text-sm">13h às 21h</p>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Settings className="h-4 w-4 text-white/80 hover:text-white cursor-pointer transition-all hover:scale-110" />
+                </PopoverTrigger>
+                <PopoverContent className="bg-white shadow-lg border-0 rounded-lg p-0">
+                  <div className="p-3 space-y-2">
+                    <div
+                      onClick={auth.signOut}
+                      className="flex items-center gap-2 text-gray-700 hover:text-red-600 cursor-pointer transition-colors p-2 rounded-lg hover:bg-red-50"
+                    >
+                      <LogOut size={14} />
+                      <span className="text-sm font-medium">Sair</span>
+                    </div>
+                    <CreateUserModal />
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
-            <div>
-              <p className="flex items-center gap-2 font-semibold">
-                <MapPin /> {selectedFair?.location}
-              </p>
-              <p className="font-light text-sm">Av. Visconde de Souza...</p>
+
+            {/* Separator */}
+            <div className="h-6 w-px bg-white/30"></div>
+
+            {/* User Email */}
+            <div className="hidden sm:flex items-center gap-1 flex-shrink-0">
+              <div className="w-1.5 h-1.5 bg-green-400 rounded-full"></div>
+              <span className="text-xs font-medium truncate max-w-32">
+                {auth.user?.email}
+              </span>
+            </div>
+
+            {/* Separator */}
+            <div className="h-6 w-px bg-white/30 hidden sm:block"></div>
+
+            {/* Fair Selector */}
+            <div className="flex items-center gap-2 flex-1 min-w-0 bg-white/10 backdrop-blur-sm rounded px-3 py-1">
+              <div className="bg-green-400 rounded-full h-2 w-2 flex-shrink-0"></div>
+              <select
+                value={selectedId}
+                onChange={handleChange}
+                className="bg-transparent text-white text-xs font-semibold flex-1 min-w-0 appearance-none focus:outline-none truncate pr-4"
+              >
+                {fairs.map((fair) => (
+                  <option
+                    key={fair.id}
+                    value={fair.id}
+                    className="text-black bg-white"
+                  >
+                    {`${fair.name} ${new Date(fair.date).getFullYear()}`}
+                  </option>
+                ))}
+              </select>
+              <svg
+                className="h-3 w-3 text-white/70 flex-shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </div>
+
+            {/* Separator */}
+            <div className="h-6 w-px bg-white/30 hidden md:block"></div>
+
+            {/* Data e Horário */}
+            <div className="hidden md:flex items-center gap-1 flex-shrink-0 text-xs">
+              <Calendar className="h-3 w-3 text-blue-300" />
+              <span className="font-medium">{selectedFair?.date}</span>
+              <span className="text-white/60">•</span>
+              <span className="text-white/80">13h-21h</span>
+            </div>
+
+            {/* Separator */}
+            <div className="h-6 w-px bg-white/30 hidden lg:block"></div>
+
+            {/* Local */}
+            <div className="hidden lg:flex items-center gap-1 flex-shrink-0 text-xs">
+              <MapPin className="h-3 w-3 text-green-300" />
+              <span className="font-medium">Estação das Docas</span>
             </div>
           </div>
         </div>
-      </div>
-      <div
-        className="w-full h-8 flex justify-center items-center gap-4 uppercase text-sm font-bold text-white rounded-b-4xl"
-        style={{ background: "#AC9FCC" }}
-      >
-        <h3>{auth.user?.email}</h3>
-        <Link
-          className="flex items-center gap-2"
-          to={{ pathname: "/", search }}
-        >
-          <HomeIcon size={18} />
-          Home
-        </Link>
-        <Link
-          className="flex items-center gap-2"
-          to={{ pathname: "/visitors-table", search }}
-        >
-          <User2 size={18} />
-          Visitantes
-        </Link>
-        <Link
-          className="flex items-center gap-2"
-          to={{ pathname: "/marketing", search }}
-        >
-          <Mail size={18} />
-          Marketing
-        </Link>
-      </div>
+      </header>
+
+      {/* Navigation Bar Compacta */}
+      <nav className="bg-gradient-to-r from-purple-600 to-purple-700">
+        <div className="px-4 py-2">
+          <div className="flex items-center justify-center gap-3 sm:gap-6">
+            <Link
+              className="flex items-center gap-1.5 text-white/90 hover:text-white transition-colors px-2 py-1 rounded hover:bg-white/10"
+              to={{ pathname: "/", search }}
+            >
+              <HomeIcon size={16} />
+              <span className="hidden sm:inline text-sm font-medium">Home</span>
+            </Link>
+            <Link
+              className="flex items-center gap-1.5 text-white/90 hover:text-white transition-colors px-2 py-1 rounded hover:bg-white/10"
+              to={{ pathname: "/visitors-table", search }}
+            >
+              <User2 size={16} />
+              <span className="hidden sm:inline text-sm font-medium">
+                Visitantes
+              </span>
+            </Link>
+            <Link
+              className="flex items-center gap-1.5 text-white/90 hover:text-white transition-colors px-2 py-1 rounded hover:bg-white/10"
+              to={{ pathname: "/marketing", search }}
+            >
+              <Mail size={16} />
+              <span className="hidden sm:inline text-sm font-medium">
+                Marketing
+              </span>
+            </Link>
+          </div>
+        </div>
+      </nav>
       <main className="flex-grow p-6 bg-neutral-100">
         <Outlet />
       </main>
