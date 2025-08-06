@@ -56,7 +56,8 @@ interface UserWithFairIds {
 }
 
 export const EnhancedTableConsultant = () => {
-  const { visitors, getVisitorsPaginated, loading, paginationMeta, error } = useVisitorsService();
+  const { visitors, getVisitorsPaginated, loading, paginationMeta, error } =
+    useVisitorsService();
   const { fairs, getFairs } = useFairService();
   const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -96,7 +97,7 @@ export const EnhancedTableConsultant = () => {
     if (isConsultant) {
       const userWithFairs = user as UserWithFairIds;
       const userFairIds = userWithFairs?.fairIds || [];
-      
+
       // Se é consultant, usar o fairId selecionado se houver múltiplas feiras
       // ou o primeiro fairId se houver apenas uma
       if (userFairIds.length > 1) {
@@ -123,17 +124,25 @@ export const EnhancedTableConsultant = () => {
 
   // Buscar feiras quando necessário (para admins e consultants com múltiplas feiras)
   useEffect(() => {
-    if ((shouldShowFairSelect || shouldShowConsultantFairSelect) && !hasFairsFetch) {
+    if (
+      (shouldShowFairSelect || shouldShowConsultantFairSelect) &&
+      !hasFairsFetch
+    ) {
       getFairs();
       setHasFairsFetch(true);
     }
-  }, [shouldShowFairSelect, shouldShowConsultantFairSelect, hasFairsFetch, getFairs]);
+  }, [
+    shouldShowFairSelect,
+    shouldShowConsultantFairSelect,
+    hasFairsFetch,
+    getFairs,
+  ]);
 
   // Definir fairId inicial para não-consultants
   useEffect(() => {
     if (shouldShowFairSelect && fairs.length > 0 && !selectedFairId) {
       const fairFromUrl = searchParams.get("fairId");
-      if (fairFromUrl && fairs.some(f => f.id === fairFromUrl)) {
+      if (fairFromUrl && fairs.some((f) => f.id === fairFromUrl)) {
         setSelectedFairId(fairFromUrl);
       } else {
         // Selecionar primeira feira por padrão
@@ -145,12 +154,12 @@ export const EnhancedTableConsultant = () => {
   // Atualizar URL com parâmetros
   useEffect(() => {
     const params = new URLSearchParams();
-    
+
     if (search) params.set("search", search);
     params.set("page", String(page));
     params.set("limit", String(limit));
     if (currentFairId) params.set("fairId", currentFairId);
-    
+
     setSearchParams(params, { replace: true });
   }, [search, page, limit, currentFairId, setSearchParams]);
 
@@ -176,18 +185,21 @@ export const EnhancedTableConsultant = () => {
   }, [currentFairId]);
 
   // Função para fazer fetch dos dados (sem page nas dependências para evitar loops)
-  const fetchData = useCallback((targetPage: number, resetPage = false) => {
-    if (!currentFairId) return;
-    
-    if (resetPage) setPage(1);
-    
-    getVisitorsPaginated({
-      page: targetPage,
-      limit,
-      search: search || undefined,
-      fairId: currentFairId,
-    });
-  }, [currentFairId, limit, search, getVisitorsPaginated]);
+  const fetchData = useCallback(
+    (targetPage: number, resetPage = false) => {
+      if (!currentFairId) return;
+
+      if (resetPage) setPage(1);
+
+      getVisitorsPaginated({
+        page: targetPage,
+        limit,
+        search: search || undefined,
+        fairId: currentFairId,
+      });
+    },
+    [currentFairId, limit, search, getVisitorsPaginated]
+  );
 
   // Fetch inicial e quando currentFairId mudar
   useEffect(() => {
@@ -207,7 +219,7 @@ export const EnhancedTableConsultant = () => {
   // Debounce search
   useEffect(() => {
     if (!hasInitialFetch) return;
-    
+
     const timer = setTimeout(() => {
       fetchData(1, true);
     }, 300);
@@ -261,7 +273,9 @@ export const EnhancedTableConsultant = () => {
               🎪 Dados Exclusivos da ExpoMultiMix
             </h1>
             <p className="text-xl mb-6 text-purple-100">
-              Acesse informações privilegiadas dos visitantes, análises avançadas e ferramentas de CRM para maximizar seus resultados na feira
+              Acesse informações privilegiadas dos visitantes, análises
+              avançadas e ferramentas de CRM para maximizar seus resultados na
+              feira
             </p>
             <div className="flex flex-wrap gap-4">
               <Button
@@ -307,7 +321,8 @@ export const EnhancedTableConsultant = () => {
             🏢 Painel do Expositor
           </h2>
           <p className="text-gray-600 mb-4">
-            <strong>Usuário:</strong> {user?.name} | <strong>Email:</strong> {user?.email}
+            <strong>Usuário:</strong> {user?.name} | <strong>Email:</strong>{" "}
+            {user?.email}
           </p>
           {(() => {
             const userWithFairs = user as UserWithFairIds;
@@ -316,7 +331,8 @@ export const EnhancedTableConsultant = () => {
               return (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                   <p className="text-red-700">
-                    ⚠️ Nenhuma feira associada. Entre em contato para adquirir seu acesso.
+                    ⚠️ Nenhuma feira associada. Entre em contato para adquirir
+                    seu acesso.
                   </p>
                   <Button
                     asChild
@@ -337,7 +353,8 @@ export const EnhancedTableConsultant = () => {
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                 <p className="text-green-700">
                   ✅ Acesso liberado para {userFairIds.length} feira(s)
-                  {userFairIds.length > 1 && " - Use o filtro abaixo para alternar entre elas"}
+                  {userFairIds.length > 1 &&
+                    " - Use o filtro abaixo para alternar entre elas"}
                 </p>
               </div>
             );
@@ -345,7 +362,10 @@ export const EnhancedTableConsultant = () => {
         </div>
       )}
 
-      <CardRoot title="📊 Central de Dados dos Visitantes" className="bg-white shadow-lg border-t-4 border-t-purple-600">
+      <CardRoot
+        title="📊 Central de Dados dos Visitantes"
+        className="bg-white shadow-lg border-t-4 border-t-purple-600"
+      >
         <>
           {/* Alerta Premium para quem não tem acesso */}
           {!currentFairId && (
@@ -361,8 +381,8 @@ export const EnhancedTableConsultant = () => {
                     🔒 Acesso Premium Necessário
                   </h3>
                   <p className="text-amber-700 mb-4">
-                    {isConsultant 
-                      ? "Para acessar os dados completos dos visitantes, você precisa de uma feira associada ao seu perfil." 
+                    {isConsultant
+                      ? "Para acessar os dados completos dos visitantes, você precisa de uma feira associada ao seu perfil."
                       : "Esta é uma área exclusiva para expositores. Adquira seu stand e tenha acesso a dados valiosos dos visitantes."}
                   </p>
                   <div className="flex gap-3">
@@ -386,14 +406,18 @@ export const EnhancedTableConsultant = () => {
               </div>
             </div>
           )}
-          
+
           {/* Toolbar Premium - Funcionalidades de Análise */}
           <div className="bg-gray-50 rounded-lg p-6 border-2 border-dashed border-gray-300">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
                   ⚡ Ferramentas Avançadas de Análise
-                  {!currentFairId && <span className="text-xs bg-amber-500 text-white px-2 py-1 rounded-full">PREMIUM</span>}
+                  {!currentFairId && (
+                    <span className="text-xs bg-amber-500 text-white px-2 py-1 rounded-full">
+                      PREMIUM
+                    </span>
+                  )}
                 </h3>
                 <p className="text-sm text-gray-600">
                   Filtre, organize e analise dados com precisão profissional
@@ -415,7 +439,11 @@ export const EnhancedTableConsultant = () => {
               )}
             </div>
 
-            <div className={`w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 ${!currentFairId ? 'opacity-60 pointer-events-none' : ''}`}>
+            <div
+              className={`w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 ${
+                !currentFairId ? "opacity-60 pointer-events-none" : ""
+              }`}
+            >
               <div className="flex flex-col gap-2">
                 <div className="flex flex-col sm:flex-row gap-2 w-full">
                   {/* Select de Feira para admins */}
@@ -459,7 +487,7 @@ export const EnhancedTableConsultant = () => {
                           const userFairIds = userWithFairs?.fairIds || [];
                           // Filtrar apenas as feiras que o consultant tem acesso
                           return fairs
-                            .filter(fair => userFairIds.includes(fair.id))
+                            .filter((fair) => userFairIds.includes(fair.id))
                             .map((fair) => (
                               <SelectItem key={fair.id} value={fair.id}>
                                 {fair.name}
@@ -480,7 +508,7 @@ export const EnhancedTableConsultant = () => {
                     disabled={!currentFairId}
                   />
                 </div>
-                
+
                 {/* Info de resultados com badges premium */}
                 <div className="flex items-center gap-2 text-sm flex-wrap">
                   <span className="text-gray-600">
@@ -516,7 +544,7 @@ export const EnhancedTableConsultant = () => {
                   )}
                 </div>
               </div>
-              
+
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 flex-wrap">
                 <Select
                   value={String(limit)}
@@ -540,14 +568,18 @@ export const EnhancedTableConsultant = () => {
 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
+                    <Button
+                      variant="outline"
+                      size="sm"
                       className="bg-white w-full sm:w-auto relative"
                       disabled={!currentFairId}
                     >
                       📊 Colunas Personalizadas
-                      {!currentFairId && <span className="absolute -top-1 -right-1 bg-amber-500 text-white text-xs px-1 rounded-full">PRO</span>}
+                      {!currentFairId && (
+                        <span className="absolute -top-1 -right-1 bg-amber-500 text-white text-xs px-1 rounded-full">
+                          PRO
+                        </span>
+                      )}
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="w-48">
@@ -592,22 +624,29 @@ export const EnhancedTableConsultant = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      className={`w-full sm:w-auto relative ${categoryFilter.length > 0 ? "bg-purple-600 text-white" : ""}`}
+                      className={`w-full sm:w-auto relative ${
+                        categoryFilter.length > 0
+                          ? "bg-purple-600 text-white"
+                          : ""
+                      }`}
                       disabled={!currentFairId}
                     >
                       <SlidersHorizontal className="mr-1" />
                       Filtros Avançados
-                      {!currentFairId && <span className="absolute -top-1 -right-1 bg-amber-500 text-white text-xs px-1 rounded-full">PRO</span>}
+                      {!currentFairId && (
+                        <span className="absolute -top-1 -right-1 bg-amber-500 text-white text-xs px-1 rounded-full">
+                          PRO
+                        </span>
+                      )}
                     </Button>
                   </SheetTrigger>
-                  <SheetContent
-                    side="right"
-                    className="w-80 bg-white p-6 z-50"
-                  >
+                  <SheetContent side="right" className="w-80 bg-white p-6 z-50">
                     <SheetHeader>
                       <SheetTitle className="flex items-center gap-2">
                         🎯 Filtros Profissionais
-                        <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">PREMIUM</span>
+                        <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">
+                          PREMIUM
+                        </span>
                       </SheetTitle>
                     </SheetHeader>
                     <div className="space-y-6 mt-6">
@@ -617,7 +656,10 @@ export const EnhancedTableConsultant = () => {
                         </h4>
                         <div className="space-y-3">
                           {categories.map((cat) => (
-                            <Label key={cat} className="flex items-center gap-2 cursor-pointer p-2 hover:bg-gray-50 rounded">
+                            <Label
+                              key={cat}
+                              className="flex items-center gap-2 cursor-pointer p-2 hover:bg-gray-50 rounded"
+                            >
                               <Checkbox
                                 checked={categoryFilter.includes(cat)}
                                 onCheckedChange={(checked) =>
@@ -629,47 +671,37 @@ export const EnhancedTableConsultant = () => {
                           ))}
                         </div>
                       </div>
-                      
+
                       <div className="bg-purple-50 p-4 rounded-lg">
-                        <h4 className="font-medium text-purple-800 mb-2">💡 Dica Premium</h4>
+                        <h4 className="font-medium text-purple-800 mb-2">
+                          💡 Dica Premium
+                        </h4>
                         <p className="text-sm text-purple-600">
-                          Use os filtros para segmentar seus leads e criar campanhas direcionadas mais eficazes.
+                          Use os filtros para segmentar seus leads e criar
+                          campanhas direcionadas mais eficazes.
                         </p>
                       </div>
                     </div>
                     <SheetClose asChild>
-                      <Button className="mt-6 w-full bg-purple-600 hover:bg-purple-700">Aplicar Filtros</Button>
+                      <Button className="mt-6 w-full bg-purple-600 hover:bg-purple-700">
+                        Aplicar Filtros
+                      </Button>
                     </SheetClose>
                   </SheetContent>
                 </Sheet>
-                
+
                 <HoverCard>
                   <HoverCardTrigger>
-                    <Button 
-                      disabled 
-                      variant="outline" 
-                      size="sm" 
+                    <Button
+                      disabled
+                      variant="outline"
+                      size="sm"
                       className="w-full sm:w-auto relative opacity-60"
                     >
                       📄 Exportar PDF
-                      <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded-full">EM BREVE</span>
-                    </Button>
-                  </HoverCardTrigger>
-                  <HoverCardContent className="bg-white w-fit px-3 py-2">
-                    Funcionalidade em desenvolvimento - Aguarde novidades!
-                  </HoverCardContent>
-                </HoverCard>
-                
-                <HoverCard>
-                  <HoverCardTrigger>
-                    <Button 
-                      disabled 
-                      variant="outline" 
-                      size="sm" 
-                      className="w-full sm:w-auto relative opacity-60"
-                    >
-                      📊 Exportar Excel
-                      <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded-full">EM BREVE</span>
+                      <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+                        EM BREVE
+                      </span>
                     </Button>
                   </HoverCardTrigger>
                   <HoverCardContent className="bg-white w-fit px-3 py-2">
@@ -679,14 +711,35 @@ export const EnhancedTableConsultant = () => {
 
                 <HoverCard>
                   <HoverCardTrigger>
-                    <Button 
-                      disabled 
-                      variant="outline" 
-                      size="sm" 
+                    <Button
+                      disabled
+                      variant="outline"
+                      size="sm"
+                      className="w-full sm:w-auto relative opacity-60"
+                    >
+                      📊 Exportar Excel
+                      <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+                        EM BREVE
+                      </span>
+                    </Button>
+                  </HoverCardTrigger>
+                  <HoverCardContent className="bg-white w-fit px-3 py-2">
+                    Funcionalidade em desenvolvimento - Aguarde novidades!
+                  </HoverCardContent>
+                </HoverCard>
+
+                <HoverCard>
+                  <HoverCardTrigger>
+                    <Button
+                      disabled
+                      variant="outline"
+                      size="sm"
                       className="w-full sm:w-auto relative opacity-60"
                     >
                       📧 Email Marketing
-                      <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded-full">EM BREVE</span>
+                      <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+                        EM BREVE
+                      </span>
                     </Button>
                   </HoverCardTrigger>
                   <HoverCardContent className="bg-white w-fit px-3 py-2">
@@ -696,14 +749,16 @@ export const EnhancedTableConsultant = () => {
 
                 <HoverCard>
                   <HoverCardTrigger>
-                    <Button 
-                      disabled 
-                      variant="outline" 
-                      size="sm" 
+                    <Button
+                      disabled
+                      variant="outline"
+                      size="sm"
                       className="w-full sm:w-auto relative opacity-60"
                     >
                       � Analytics
-                      <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded-full">EM BREVE</span>
+                      <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+                        EM BREVE
+                      </span>
                     </Button>
                   </HoverCardTrigger>
                   <HoverCardContent className="bg-white w-fit px-3 py-2">
@@ -713,14 +768,16 @@ export const EnhancedTableConsultant = () => {
 
                 <HoverCard>
                   <HoverCardTrigger>
-                    <Button 
-                      disabled 
-                      variant="outline" 
-                      size="sm" 
+                    <Button
+                      disabled
+                      variant="outline"
+                      size="sm"
                       className="w-full sm:w-auto relative opacity-60"
                     >
                       🎯 CRM Integrado
-                      <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded-full">EM BREVE</span>
+                      <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+                        EM BREVE
+                      </span>
                     </Button>
                   </HoverCardTrigger>
                   <HoverCardContent className="bg-white w-fit px-3 py-2">
@@ -730,31 +787,36 @@ export const EnhancedTableConsultant = () => {
 
                 <HoverCard>
                   <HoverCardTrigger>
-                    <Button 
-                      disabled 
-                      variant="outline" 
-                      size="sm" 
+                    <Button
+                      disabled
+                      variant="outline"
+                      size="sm"
                       className="w-full sm:w-auto relative opacity-60"
                     >
                       📱 App Mobile
-                      <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded-full">EM BREVE</span>
+                      <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+                        EM BREVE
+                      </span>
                     </Button>
                   </HoverCardTrigger>
                   <HoverCardContent className="bg-white w-fit px-3 py-2">
-                    Aplicativo para captura de leads em campo - Em desenvolvimento
+                    Aplicativo para captura de leads em campo - Em
+                    desenvolvimento
                   </HoverCardContent>
                 </HoverCard>
 
                 <HoverCard>
                   <HoverCardTrigger>
-                    <Button 
-                      disabled 
-                      variant="outline" 
-                      size="sm" 
+                    <Button
+                      disabled
+                      variant="outline"
+                      size="sm"
                       className="w-full sm:w-auto relative opacity-60"
                     >
                       🔔 Automações
-                      <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded-full">EM BREVE</span>
+                      <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+                        EM BREVE
+                      </span>
                     </Button>
                   </HoverCardTrigger>
                   <HoverCardContent className="bg-white w-fit px-3 py-2">
@@ -795,24 +857,24 @@ export const EnhancedTableConsultant = () => {
             </TableHeader>
             <TableBody>
               {loading ? (
-                <TableSkeleton 
-                  rows={limit > 10 ? 10 : limit} 
-                  columns={Object.values(visibleColumns).filter(Boolean).length + 1}
+                <TableSkeleton
+                  rows={limit > 10 ? 10 : limit}
+                  columns={
+                    Object.values(visibleColumns).filter(Boolean).length + 1
+                  }
                 />
               ) : error ? (
                 <TableRow>
                   <TableCell colSpan={12} className="text-center py-8">
-                    <div className="text-red-500">
-                      {error}
-                    </div>
+                    <div className="text-red-500">{error}</div>
                   </TableCell>
                 </TableRow>
               ) : visitors.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={12} className="text-center py-8">
                     <div className="text-gray-500">
-                      {!currentFairId 
-                        ? "Selecione uma feira para visualizar os visitantes" 
+                      {!currentFairId
+                        ? "Selecione uma feira para visualizar os visitantes"
                         : "Nenhum visitante encontrado"}
                     </div>
                   </TableCell>
@@ -892,8 +954,8 @@ export const EnhancedTableConsultant = () => {
 
           {/* Pagination */}
           <div className="flex justify-between items-center mt-4">
-            <Button 
-              disabled={page === 1 || loading} 
+            <Button
+              disabled={page === 1 || loading}
               onClick={() => setPage((p) => p - 1)}
               className="relative"
             >
@@ -913,7 +975,9 @@ export const EnhancedTableConsultant = () => {
               )}
             </span>
             <Button
-              disabled={(paginationMeta && page >= paginationMeta.totalPages) || loading}
+              disabled={
+                (paginationMeta && page >= paginationMeta.totalPages) || loading
+              }
               onClick={() => setPage((p) => p + 1)}
               className="relative"
             >
