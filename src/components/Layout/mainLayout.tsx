@@ -55,128 +55,181 @@ export const MainLayout: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-neutral-100">
-      <div className="relative w-full h-40 rounded- ">
-        <img
-          src="/bg.png"
-          alt="Background"
-          className="w-full h-full object-cover "
-        />
-
-        <div className="absolute inset-0 bg-blue-900 opacity-70" />
-        <img
-          src="/logo.png"
-          alt="logo"
-          className="absolute top-7 left-3 text-xl w-28 "
-        />
-        <div>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Settings className="absolute right-5 top-5 text-white z-50 cursor-pointer" />
-            </PopoverTrigger>
-            <PopoverContent className="bg-white">
-              <div onClick={auth.signOut}>
-                <p className="flex items-center gap-2 text-gray-700 hover:text-gray-900 cursor-pointer">
-                  <LogOut size={16} /> Sair
-                </p>
-              </div>
-              <CreateUserModal />
-            </PopoverContent>
-          </Popover>
+      {/* Header Principal */}
+      <header className="relative w-full bg-gradient-to-r from-blue-900 to-purple-800 shadow-lg">
+        {/* Background Image com Overlay */}
+        <div className="absolute inset-0">
+          <img
+            src="/bg.png"
+            alt="Background"
+            className="w-full h-full object-cover opacity-30"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-900/80 to-purple-800/80" />
         </div>
-        <RefreshCcw
-          onClick={() => window.location.reload()}
-          className={`absolute right-5 top-16 text-white z-50 cursor-pointer ${
-            loading ? "animate-spin" : ""
-          }`}
-        />
-        <div className="absolute inset-0 flex flex-col gap-6 items-center justify-center w-full">
-          <div className="flex items-center gap-4 w-[80%]">
-            <div className="bg-green-500 rounded-full h-4 w-4" />
 
-            <select
-              value={selectedId}
-              onChange={handleChange}
-              className="
-                bg-transparent
-                text-white
-                text-2xl
-                w-full
-                text-start
-                appearance-none
-                focus:outline-none
-                capitalize
-              "
-            >
-              {fairs.map((fair) => (
-                <option
-                  key={fair.id}
-                  value={fair.id}
-                  className="text-black capitalize"
-                >
-                  {`${fair.name} ${new Date(fair.date).getFullYear()} – ${
-                    fair.location
-                  }`}
-                </option>
-              ))}
-            </select>
-
-            <svg
-              className="h-6 w-6 text-white pointer-events-none"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 9l-7 7-7-7"
+        {/* Conteúdo do Header */}
+        <div className="relative z-10 px-4 py-4 md:px-6">
+          {/* Top Row: Logo + User Controls */}
+          <div className="flex items-center justify-between mb-4">
+            {/* Logo */}
+            <div className="flex items-center">
+              <img
+                src="/logo.png"
+                alt="Logo"
+                className="h-8 w-auto sm:h-10 md:h-12"
               />
-            </svg>
-          </div>
-          <div className="flex items-center gap-8 text-white w-[73%]">
-            <div>
-              <p className="flex items-center gap-2 font-semibold">
-                <Calendar /> {selectedFair?.date}
-              </p>
-              <p className="font-light text-sm">13h às 21h</p>
             </div>
-            <div>
-              <p className="flex items-center gap-2 font-semibold">
-                <MapPin /> {selectedFair?.location}
-              </p>
-              <p className="font-light text-sm">Av. Visconde de Souza...</p>
+
+            {/* User Info + Controls */}
+            <div className="flex items-center gap-2 sm:gap-4">
+              {/* User Email */}
+              <div className="hidden sm:flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/20">
+                <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                <span className="text-white text-sm font-medium truncate max-w-32 md:max-w-none">
+                  {auth.user?.email}
+                </span>
+              </div>
+
+              {/* Controls */}
+              <div className="flex items-center gap-1 sm:gap-2">
+                <RefreshCcw
+                  onClick={() => window.location.reload()}
+                  className={`h-6 w-6 text-white/80 hover:text-white cursor-pointer transition-all hover:scale-110 ${
+                    loading ? "animate-spin" : ""
+                  }`}
+                />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Settings className="h-6 w-6 text-white/80 hover:text-white cursor-pointer transition-all hover:scale-110" />
+                  </PopoverTrigger>
+                  <PopoverContent className="bg-white shadow-lg border-0 rounded-lg p-0">
+                    <div className="p-4 space-y-3">
+                      <div 
+                        onClick={auth.signOut}
+                        className="flex items-center gap-2 text-gray-700 hover:text-red-600 cursor-pointer transition-colors p-2 rounded-lg hover:bg-red-50"
+                      >
+                        <LogOut size={16} />
+                        <span className="font-medium">Sair</span>
+                      </div>
+                      <CreateUserModal />
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+          </div>
+
+          {/* Main Content: Fair Selection + Info */}
+          <div className="space-y-4">
+            {/* Fair Selector */}
+            <div className="flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
+              <div className="bg-green-400 rounded-full h-3 w-3 flex-shrink-0 animate-pulse"></div>
+              <div className="flex-1 min-w-0">
+                <select
+                  value={selectedId}
+                  onChange={handleChange}
+                  className="bg-transparent text-white text-base sm:text-lg md:text-xl font-semibold w-full appearance-none focus:outline-none truncate"
+                >
+                  {fairs.map((fair) => (
+                    <option
+                      key={fair.id}
+                      value={fair.id}
+                      className="text-black bg-white"
+                    >
+                      {`${fair.name} ${new Date(fair.date).getFullYear()}`}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <svg
+                className="h-5 w-5 text-white/70 flex-shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </div>
+
+            {/* Fair Details */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              {/* Data e Horário */}
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
+                <div className="flex items-center gap-2 text-white">
+                  <Calendar className="h-4 w-4 text-blue-300 flex-shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold text-sm md:text-base truncate">
+                      {selectedFair?.date}
+                    </p>
+                    <p className="text-xs sm:text-sm text-white/80">
+                      13h às 21h
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Local */}
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
+                <div className="flex items-center gap-2 text-white">
+                  <MapPin className="h-4 w-4 text-green-300 flex-shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold text-sm md:text-base">
+                      Estação das Docas
+                    </p>
+                    <p className="text-xs sm:text-sm text-white/80 truncate">
+                      Belém - PA
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Mobile User Email */}
+            <div className="sm:hidden bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
+              <div className="flex items-center gap-2 text-white">
+                <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                <span className="text-sm font-medium truncate">
+                  {auth.user?.email}
+                </span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-      <div
-        className="w-full h-8 flex justify-center items-center gap-4 uppercase text-sm font-bold text-white rounded-b-4xl"
-        style={{ background: "#AC9FCC" }}
-      >
-        <h3>{auth.user?.email}</h3>
-        <Link
-          className="flex items-center gap-2"
-          to={{ pathname: "/", search }}
-        >
-          <HomeIcon size={18} />
-          Home
-        </Link>
-        <Link
-          className="flex items-center gap-2"
-          to={{ pathname: "/visitors-table", search }}
-        >
-          <User2 size={18} />
-          Visitantes
-        </Link>
-        <Link
-          className="flex items-center gap-2"
-          to={{ pathname: "/marketing", search }}
-        >
-          <Mail size={18} />
-          Marketing
-        </Link>
-      </div>
+      </header>
+
+      {/* Navigation Bar */}
+      <nav className="bg-gradient-to-r from-purple-600 to-purple-700 shadow-sm">
+        <div className="px-4 py-3">
+          <div className="flex items-center justify-center gap-4 sm:gap-6 md:gap-8">
+            <Link
+              className="flex items-center gap-2 text-white/90 hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-white/10"
+              to={{ pathname: "/", search }}
+            >
+              <HomeIcon size={18} />
+              <span className="hidden sm:inline font-medium">Home</span>
+            </Link>
+            <Link
+              className="flex items-center gap-2 text-white/90 hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-white/10"
+              to={{ pathname: "/visitors-table", search }}
+            >
+              <User2 size={18} />
+              <span className="hidden sm:inline font-medium">Visitantes</span>
+            </Link>
+            <Link
+              className="flex items-center gap-2 text-white/90 hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-white/10"
+              to={{ pathname: "/marketing", search }}
+            >
+              <Mail size={18} />
+              <span className="hidden sm:inline font-medium">Marketing</span>
+            </Link>
+          </div>
+        </div>
+      </nav>
       <main className="flex-grow p-6 bg-neutral-100">
         <Outlet />
       </main>
