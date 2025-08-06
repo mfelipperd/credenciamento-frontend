@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { CardRoot } from "@/components/Card";
 import {
@@ -44,6 +44,7 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import type { Visitor } from "@/interfaces/visitors";
+import { TableSkeleton } from "./TableSkeleton";
 
 // Extend User interface to include fairIds
 interface UserWithFairIds {
@@ -163,56 +164,70 @@ export const EnhancedTableConsultant = () => {
         fairId: currentFairId,
       });
       setHasInitialFetch(true);
+      setPage(1);
     }
   }, [currentFairId, hasInitialFetch, getVisitorsPaginated, limit, search]);
 
   // Reset hasInitialFetch quando fairId mudar
   useEffect(() => {
-    setHasInitialFetch(false);
-    setPage(1);
+    if (currentFairId) {
+      setHasInitialFetch(false);
+    }
+  }, [currentFairId]);
+
+  // Função para fazer fetch dos dados (sem page nas dependências para evitar loops)
+  const fetchData = useCallback((targetPage: number, resetPage = false) => {
+    if (!currentFairId) return;
+    
+    if (resetPage) setPage(1);
+    
+    getVisitorsPaginated({
+      page: targetPage,
+      limit,
+      search: search || undefined,
+      fairId: currentFairId,
+    });
+  }, [currentFairId, limit, search, getVisitorsPaginated]);
+
+  // Fetch inicial e quando currentFairId mudar
+  useEffect(() => {
+    if (currentFairId && !hasInitialFetch) {
+      fetchData(1, true);
+      setHasInitialFetch(true);
+    }
+  }, [currentFairId, hasInitialFetch, fetchData]);
+
+  // Reset hasInitialFetch quando fairId mudar
+  useEffect(() => {
+    if (currentFairId) {
+      setHasInitialFetch(false);
+    }
   }, [currentFairId]);
 
   // Debounce search
   useEffect(() => {
-    if (!currentFairId) return;
-
+    if (!hasInitialFetch) return;
+    
     const timer = setTimeout(() => {
-      getVisitorsPaginated({
-        page: 1,
-        limit,
-        search: search || undefined,
-        fairId: currentFairId,
-      });
-      setPage(1);
+      fetchData(1, true);
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [search, currentFairId, getVisitorsPaginated, limit]);
+  }, [search, fetchData, hasInitialFetch]);
 
   // Fetch quando página mudar
   useEffect(() => {
-    if (currentFairId && hasInitialFetch && page > 1) {
-      getVisitorsPaginated({
-        page,
-        limit,
-        search: search || undefined,
-        fairId: currentFairId,
-      });
+    if (hasInitialFetch && currentFairId) {
+      fetchData(page, false);
     }
-  }, [page, currentFairId, getVisitorsPaginated, hasInitialFetch, limit, search]);
+  }, [page, hasInitialFetch, currentFairId, fetchData]);
 
   // Fetch quando limite mudar
   useEffect(() => {
-    if (currentFairId && hasInitialFetch) {
-      getVisitorsPaginated({
-        page: 1,
-        limit,
-        search: search || undefined,
-        fairId: currentFairId,
-      });
-      setPage(1);
+    if (hasInitialFetch) {
+      fetchData(1, true);
     }
-  }, [limit, currentFairId, getVisitorsPaginated, hasInitialFetch, search]);
+  }, [limit, fetchData, hasInitialFetch]);
 
   // Category filter from URL
   const categoryFilter = useMemo(() => {
@@ -780,14 +795,10 @@ export const EnhancedTableConsultant = () => {
             </TableHeader>
             <TableBody>
               {loading ? (
-                <TableRow>
-                  <TableCell colSpan={12} className="text-center py-8">
-                    <div className="flex items-center justify-center gap-2">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600"></div>
-                      Carregando visitantes...
-                    </div>
-                  </TableCell>
-                </TableRow>
+                <TableSkeleton 
+                  rows={limit > 10 ? 10 : limit} 
+                  columns={Object.values(visibleColumns).filter(Boolean).length + 1}
+                />
               ) : error ? (
                 <TableRow>
                   <TableCell colSpan={12} className="text-center py-8">
@@ -884,16 +895,31 @@ export const EnhancedTableConsultant = () => {
             <Button 
               disabled={page === 1 || loading} 
               onClick={() => setPage((p) => p - 1)}
+              className="relative"
             >
+              {loading && page > 1 ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+              ) : null}
               Anterior
             </Button>
-            <span>
-              Página {page} de {paginationMeta?.totalPages || 1}
+            <span className="flex items-center gap-2">
+              {loading ? (
+                <>
+                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-purple-600"></div>
+                  Carregando...
+                </>
+              ) : (
+                `Página ${page} de ${paginationMeta?.totalPages || 1}`
+              )}
             </span>
             <Button
               disabled={(paginationMeta && page >= paginationMeta.totalPages) || loading}
               onClick={() => setPage((p) => p + 1)}
+              className="relative"
             >
+              {loading && page < (paginationMeta?.totalPages || 1) ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current ml-2"></div>
+              ) : null}
               Próxima
             </Button>
           </div>
