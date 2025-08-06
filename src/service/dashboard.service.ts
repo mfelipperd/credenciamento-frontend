@@ -20,7 +20,8 @@ export const useDashboardService = () => {
   const [bySectors, setBySectors] = useState<DashboardBySectorsResponse>();
   const [absenteeVisitors, setAbsenteeVisitors] =
     useState<DashboardByabsentVisitorsResponse>();
-  const [conversionData, setConversionData] = useState<DashboardConversionResponse>();
+  const [conversionData, setConversionData] =
+    useState<DashboardConversionResponse>();
 
   const getOverView = async (fairId: string) => {
     const result = await handleRequest({

@@ -9,6 +9,7 @@ import {
   RefreshCcw,
   Settings,
   User2,
+  Mail,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useCheckinId } from "@/hooks/useCheckinId";
@@ -167,6 +168,13 @@ export const MainLayout: React.FC = () => {
         >
           <User2 size={18} />
           Visitantes
+        </Link>
+        <Link
+          className="flex items-center gap-2"
+          to={{ pathname: "/marketing", search }}
+        >
+          <Mail size={18} />
+          Marketing
         </Link>
       </div>
       <main className="flex-grow p-6 bg-neutral-100">

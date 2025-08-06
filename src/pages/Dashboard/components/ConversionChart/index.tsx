@@ -40,38 +40,38 @@ export const ConversionChart: React.FC<{ fairId: string }> = ({ fairId }) => {
     conversionsData: [],
     labels: [],
     options: {
-      chart: { 
-        height: 350, 
+      chart: {
+        height: 350,
         type: "bar",
         toolbar: {
-          show: false
-        }
+          show: false,
+        },
       },
       plotOptions: {
         bar: {
           horizontal: true,
           borderRadius: 4,
           dataLabels: {
-            position: 'center'
-          }
-        }
+            position: "center",
+          },
+        },
       },
       dataLabels: {
-        enabled: false
+        enabled: false,
       },
       xaxis: {
         categories: [],
         labels: {
-          formatter: (val: string) => `${val}%`
-        }
+          formatter: (val: string) => `${val}%`,
+        },
       },
       yaxis: {
         labels: {
           style: {
-            fontSize: '12px',
-            fontWeight: 600
-          }
-        }
+            fontSize: "12px",
+            fontWeight: 600,
+          },
+        },
       },
       colors: CONVERSION_COLORS,
       legend: {
@@ -87,9 +87,9 @@ export const ConversionChart: React.FC<{ fairId: string }> = ({ fairId }) => {
       },
       grid: {
         show: true,
-        borderColor: '#e5e7eb',
-        strokeDashArray: 3
-      }
+        borderColor: "#e5e7eb",
+        strokeDashArray: 3,
+      },
     },
   });
 
@@ -103,9 +103,13 @@ export const ConversionChart: React.FC<{ fairId: string }> = ({ fairId }) => {
         (a, b) => b.totalCheckIns - a.totalCheckIns
       );
 
-      const series = sortedConversions.map((conversion) => conversion.totalCheckIns);
-      const labels = sortedConversions.map((conversion) => 
-        HOW_DID_YOU_KNOW_LABELS[conversion.howDidYouKnow] || conversion.howDidYouKnow
+      const series = sortedConversions.map(
+        (conversion) => conversion.totalCheckIns
+      );
+      const labels = sortedConversions.map(
+        (conversion) =>
+          HOW_DID_YOU_KNOW_LABELS[conversion.howDidYouKnow] ||
+          conversion.howDidYouKnow
       );
 
       setChart({
@@ -116,7 +120,7 @@ export const ConversionChart: React.FC<{ fairId: string }> = ({ fairId }) => {
           ...chart.options,
           xaxis: {
             ...chart.options.xaxis,
-            categories: labels
+            categories: labels,
           },
           colors: CONVERSION_COLORS.slice(0, series.length),
         },
@@ -125,21 +129,34 @@ export const ConversionChart: React.FC<{ fairId: string }> = ({ fairId }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fairId]);
 
-  if (loading) return <p className="text-center py-8">Carregando dados de conversão...</p>;
-  if (chart.series.length === 0) return <p className="text-center py-8">Sem dados de conversão disponíveis.</p>;
+  if (loading)
+    return <p className="text-center py-8">Carregando dados de conversão...</p>;
+  if (chart.series.length === 0)
+    return (
+      <p className="text-center py-8">Sem dados de conversão disponíveis.</p>
+    );
 
   // Cria um tooltip personalizado com acesso aos dados
   const tooltipOptions = {
     ...chart.options,
     tooltip: {
       enabled: true,
-      custom: function({series, seriesIndex, dataPointIndex}: {series: number[][], seriesIndex: number, dataPointIndex: number}) {
+      custom: function ({
+        series,
+        seriesIndex,
+        dataPointIndex,
+      }: {
+        series: number[][];
+        seriesIndex: number;
+        dataPointIndex: number;
+      }) {
         const conversionData = chart.conversionsData[dataPointIndex];
         const checkIns = series[seriesIndex][dataPointIndex];
-        const conversionRate = conversionData?.conversionRate?.toFixed(1) || '0';
+        const conversionRate =
+          conversionData?.conversionRate?.toFixed(1) || "0";
         const totalRegistered = conversionData?.totalRegistered || 0;
         const channel = chart.labels[dataPointIndex];
-        
+
         return `
           <div style="padding: 8px 12px; background: white; border: 1px solid #e5e7eb; border-radius: 6px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
             <div style="font-weight: 600; margin-bottom: 4px;">${channel}</div>
@@ -150,7 +167,7 @@ export const ConversionChart: React.FC<{ fairId: string }> = ({ fairId }) => {
             </div>
           </div>
         `;
-      }
+      },
     },
   };
 
