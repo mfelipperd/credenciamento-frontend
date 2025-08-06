@@ -12,6 +12,7 @@ import { PublicFormtotem } from "@/pages/PublicFormTotem/page";
 import { SucessFormTotem } from "@/pages/SucessTotem/page";
 import { ConsultantPage } from "@/pages/ConsultantPage";
 import { ErrorTestPage } from "@/pages/ErrorTestPage";
+import { MarketingPage } from "@/pages/Marketing/page";
 
 export const AppRoutes = createBrowserRouter([
   { path: "/sucess", element: <SucessForm /> },
@@ -36,6 +37,7 @@ export const AppRoutes = createBrowserRouter([
               { path: "/", element: <Dashboard /> },
               { path: "/visitors-table", element: <TabeleVisitors /> },
               { path: "/visitor/:id", element: <Visitor /> },
+              { path: "/marketing", element: <MarketingPage /> },
             ],
           },
         ],
