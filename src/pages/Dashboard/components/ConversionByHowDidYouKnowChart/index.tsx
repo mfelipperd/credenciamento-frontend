@@ -1,6 +1,7 @@
 import { useDashboardService } from "@/service/dashboard.service";
 import React, { useEffect, useState } from "react";
 import ReactApexChart from "react-apexcharts";
+import type { ConversionByHowDidYouKnow } from "@/interfaces/dashboard";
 
 interface ConversionChartState {
   series: number[];
@@ -110,16 +111,16 @@ export const ConversionByHowDidYouKnowChart: React.FC<{ fairId: string }> = ({
   useEffect(() => {
     (async () => {
       const data = await getConversionsByHowDidYouKnow(fairId);
-      if (!data || !data.conversionsByHowDidYouKnow.length) return;
+      if (!data || !data.conversions.length) return;
 
-      const series = data.conversionsByHowDidYouKnow.map((item) =>
-        Number(item.count)
+      const series = data.conversions.map((item: ConversionByHowDidYouKnow) =>
+        item.totalCheckIns
       );
-      const rawLabels = data.conversionsByHowDidYouKnow.map(
-        (item) => item.howDidYouKnow
+      const rawLabels = data.conversions.map(
+        (item: ConversionByHowDidYouKnow) => item.howDidYouKnow
       );
-      const labels = rawLabels.map((label) => LABEL_MAPPING[label] || label);
-      const total = series.reduce((sum, n) => sum + n, 0);
+      const labels = rawLabels.map((label: string) => LABEL_MAPPING[label] || label);
+      const total = series.reduce((sum: number, n: number) => sum + n, 0);
 
       setChart({
         series,
