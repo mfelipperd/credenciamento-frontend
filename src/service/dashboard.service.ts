@@ -7,6 +7,7 @@ import type {
   DashboardByOriginResponse,
   DashboardBySectorsResponse,
   DashboardByabsentVisitorsResponse,
+  DashboardConversionResponse,
 } from "@/interfaces/dashboard";
 import { useState } from "react";
 
@@ -19,6 +20,7 @@ export const useDashboardService = () => {
   const [bySectors, setBySectors] = useState<DashboardBySectorsResponse>();
   const [absenteeVisitors, setAbsenteeVisitors] =
     useState<DashboardByabsentVisitorsResponse>();
+  const [conversionData, setConversionData] = useState<DashboardConversionResponse>();
 
   const getOverView = async (fairId: string) => {
     const result = await handleRequest({
@@ -102,6 +104,22 @@ export const useDashboardService = () => {
     return result;
   };
 
+  const getConversionsByHowDidYouKnow = async (fairId: string) => {
+    const result = await handleRequest({
+      request: () =>
+        api.get<DashboardConversionResponse>(
+          `/dashboard/conversions/how-did-you-know`,
+          {
+            params: { fairId },
+          }
+        ),
+      setLoading,
+    });
+    if (!result) return;
+    setConversionData(result);
+    return result;
+  };
+
   return {
     getOverView,
     getCheckedInVisitors,
@@ -109,6 +127,7 @@ export const useDashboardService = () => {
     getVisitorsByOrigin,
     getVisitorsBySectors,
     getAbsenteeVisitors,
+    getConversionsByHowDidYouKnow,
     loading,
     overview,
     checkedIn,
@@ -116,5 +135,6 @@ export const useDashboardService = () => {
     byOrigin,
     bySectors,
     absenteeVisitors,
+    conversionData,
   };
 };

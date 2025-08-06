@@ -39,3 +39,16 @@ export interface DashboardByabsentVisitorsResponse {
   fairId: string;
   absentVisitors: AbsentVisitor[];
 }
+
+export interface ConversionByHowDidYouKnow {
+  howDidYouKnow: string;
+  totalRegistered: number;
+  visitorsWithCheckins: number;
+  totalCheckIns: number;
+  conversionRate: number;
+}
+
+export interface DashboardConversionResponse {
+  fairId: string;
+  conversions: ConversionByHowDidYouKnow[];
+}

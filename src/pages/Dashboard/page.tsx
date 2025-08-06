@@ -5,6 +5,7 @@ import { CategoryRadialChart } from "./components/CategoryRadialChart";
 import { OriginBarChart } from "./components/OriginRadialChart";
 import { SectorsRadialChart } from "./components/SectorRadialChart";
 import { CheckinPerHourChart } from "./components/CheckinPerHourChat";
+import { ConversionChart } from "./components/ConversionChart";
 
 export const Dashboard = () => {
   const controller = useDashboardController();
@@ -48,6 +49,12 @@ export const Dashboard = () => {
         className="bg-white sm:col-span-4 col-span-full"
       >
         <SectorsRadialChart fairId={controller.fairId} />
+      </CardRoot>
+      <CardRoot
+        title="Taxa de Conversão por Meio de Divulgação"
+        className="bg-white col-span-full"
+      >
+        <ConversionChart fairId={controller.fairId} />
       </CardRoot>
     </div>
   );
