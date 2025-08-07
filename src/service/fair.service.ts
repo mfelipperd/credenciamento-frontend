@@ -1,12 +1,13 @@
 import { handleRequest } from "@/utils/handleRequest";
 import { useBaseService } from "./base.service";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import type { IListFair } from "@/interfaces/fairs";
 
 export const useFairService = () => {
   const { api, loading, setLoading } = useBaseService();
   const [fairs, setFairs] = useState<IListFair[]>([]);
-  const getFairs = async () => {
+
+  const getFairs = useCallback(async () => {
     const result = await handleRequest({
       request: () => api.get<IListFair[]>("fairs"),
       setLoading,
@@ -14,7 +15,7 @@ export const useFairService = () => {
     if (!result) return;
 
     return setFairs(result || []);
-  };
+  }, [api, setLoading]);
 
   return {
     getFairs,

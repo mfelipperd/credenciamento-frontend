@@ -1,4 +1,10 @@
-import { useEffect, useState, type ReactNode } from "react";
+import {
+  useEffect,
+  useState,
+  useCallback,
+  useMemo,
+  type ReactNode,
+} from "react";
 import { useNavigate, useLocation, Navigate, Outlet } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import { AuthContext } from "./authContext";
@@ -23,18 +29,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const isAuthenticated = !!token;
 
-  const signIn = ({ access_token, user }: AuthResponse) => {
+  const signIn = useCallback(({ access_token, user }: AuthResponse) => {
     localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(user));
     localStorage.setItem(STORAGE_TOKEN_KEY, access_token);
     setUser(user);
     setToken(access_token);
-  };
-  const signOut = () => {
+  }, []);
+
+  const signOut = useCallback(() => {
     localStorage.removeItem(STORAGE_USER_KEY);
     localStorage.removeItem(STORAGE_TOKEN_KEY);
     setUser(null);
     setToken(null);
-  };
+  }, []);
+
+  const contextValue = useMemo(
+    () => ({
+      user,
+      token,
+      signIn,
+      signOut,
+      isAuthenticated,
+    }),
+    [user, token, signIn, signOut, isAuthenticated]
+  );
 
   // Valida exp do JWT
   useEffect(() => {
@@ -47,7 +65,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch {
       signOut();
     }
-  }, [token]);
+  }, [token, signOut]);
 
   useEffect(() => {
     const isPublicForm = location.pathname.startsWith("/public-form");
@@ -83,11 +101,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [isAuthenticated, location]);
 
   return (
-    <AuthContext.Provider
-      value={{ user, token, signIn, signOut, isAuthenticated }}
-    >
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
   );
 };
 

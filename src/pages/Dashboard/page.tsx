@@ -12,17 +12,17 @@ export const Dashboard = () => {
   return (
     <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4">
       <CardTotals
-        className="bg-gray-500 lg:col-span-4 md:col-span-1 col-span-1"
+        className="bg-blue-800 dark:bg-blue-950 lg:col-span-4 md:col-span-1 col-span-1"
         title="Total de inscritos"
         value={controller.overview?.totalVisitors}
       />
       <CardTotals
-        className="bg-green-600 lg:col-span-4 md:col-span-1 col-span-1"
+        className="bg-green-600 dark:bg-green-800 lg:col-span-4 md:col-span-1 col-span-1"
         title="Check-ins realizados"
         value={controller.overview?.totalCheckIns}
       />
       <CardTotals
-        className="bg-yellow-600 lg:col-span-4 md:col-span-2 col-span-1"
+        className="bg-yellow-600 dark:bg-yellow-800 lg:col-span-4 md:col-span-2 col-span-1"
         title="inscritos ausentes"
         value={Number(controller.absenteeVisitors?.absentVisitors.length)}
       />
@@ -30,13 +30,13 @@ export const Dashboard = () => {
       {/* Primeira linha de gráficos */}
       <CardRoot
         title="tipos de ingresso"
-        className="bg-white lg:col-span-6 md:col-span-2 col-span-1 h-[420px]"
+        className="lg:col-span-6 md:col-span-2 col-span-1 h-[420px]"
       >
         <CategoryRadialChart fairId={controller.fairId} />
       </CardRoot>
       <CardRoot
         title="como conheceu"
-        className="bg-white lg:col-span-6 md:col-span-2 col-span-1 h-[420px]"
+        className="lg:col-span-6 md:col-span-2 col-span-1 h-[420px]"
       >
         <OriginBarChart fairId={controller.fairId} />
       </CardRoot>
@@ -44,13 +44,13 @@ export const Dashboard = () => {
       {/* Segunda linha de gráficos */}
       <CardRoot
         title="Horarios de Checkins"
-        className="bg-white lg:col-span-8 md:col-span-2 col-span-1 h-[480px]"
+        className="lg:col-span-8 md:col-span-2 col-span-1 h-[480px]"
       >
         <CheckinPerHourChart fairId={controller.fairId} />
       </CardRoot>
       <CardRoot
         title="Setor de interesse"
-        className="bg-white lg:col-span-4 md:col-span-2 col-span-1 h-[480px]"
+        className="lg:col-span-4 md:col-span-2 col-span-1 h-[480px]"
       >
         <SectorsRadialChart fairId={controller.fairId} />
       </CardRoot>
@@ -58,7 +58,7 @@ export const Dashboard = () => {
       {/* Gráfico de conversão ocupa toda a largura */}
       <CardRoot
         title="Taxa de Conversão por Meio de Divulgação"
-        className="bg-white lg:col-span-12 md:col-span-2 col-span-1 min-h-[400px]"
+        className="lg:col-span-12 md:col-span-2 col-span-1 min-h-[480px]"
       >
         <ConversionChart fairId={controller.fairId} />
       </CardRoot>

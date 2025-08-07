@@ -12,7 +12,7 @@ export const CardRoot = ({ children, title, className }: CardProps) => {
       <CardHeader>
         <CardTitle>{title}</CardTitle>
       </CardHeader>
-      <CardContent>{children}</CardContent>
+      <CardContent className="flex-1 flex flex-col">{children}</CardContent>
     </Card>
   );
 };

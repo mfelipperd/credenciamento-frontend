@@ -52,8 +52,8 @@ export const Pagination: React.FC<PaginationProps> = ({
   if (totalPages <= 1) return null;
 
   return (
-    <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200">
-      <div className="flex items-center text-sm text-gray-700">
+    <div className="flex items-center justify-between px-4 py-3 bg-background border-t border-border">
+      <div className="flex items-center text-sm text-foreground">
         <span>
           Mostrando <span className="font-medium">{startItem}</span> a{" "}
           <span className="font-medium">{endItem}</span> de{" "}

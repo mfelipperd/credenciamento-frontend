@@ -287,7 +287,7 @@ export const FormularioCredenciamento: React.FC = () => {
 
       return () => clearTimeout(timeoutId);
     }
-  }, [resgister?.registrationCode, fairId, getVisitorById, visitor?.name]);
+  }, [resgister?.registrationCode, fairId, visitor?.name]);
 
   // Validação inicial do fairId - após todos os hooks
   if (!fairId) {

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Test Background</title>
+    <style>
+      :root {
+        --background: 0 0% 100%;
+      }
+
+      .dark {
+        --background: 224 71.4% 4.1%;
+      }
+
+      .test-bg {
+        background-color: hsl(var(--background));
+        padding: 20px;
+        margin: 10px;
+        border: 1px solid red;
+      }
+
+      .toggle-dark {
+        padding: 10px;
+        background: #333;
+        color: white;
+        border: none;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <button
+      class="toggle-dark"
+      onclick="document.documentElement.classList.toggle('dark')"
+    >
+      Toggle Dark Mode
+    </button>
+
+    <div class="test-bg">
+      Teste de background - deve mudar de branco para escuro
+    </div>
+
+    <div
+      style="
+        background-color: white;
+        padding: 20px;
+        margin: 10px;
+        border: 1px solid blue;
+      "
+    >
+      Background fixo branco para comparação
+    </div>
+
+    <div
+      style="
+        background-color: #1a1a1a;
+        color: white;
+        padding: 20px;
+        margin: 10px;
+        border: 1px solid green;
+      "
+    >
+      Background fixo escuro para comparação
+    </div>
+  </body>
+</html>

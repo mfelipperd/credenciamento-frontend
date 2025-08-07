@@ -29,7 +29,6 @@ export const OriginBarChart: React.FC<{ fairId: string }> = ({ fairId }) => {
     options: {
       chart: {
         type: "bar",
-        height: 350,
         toolbar: { show: false },
         zoom: { enabled: false },
         width: "100%",
@@ -62,6 +61,7 @@ export const OriginBarChart: React.FC<{ fairId: string }> = ({ fairId }) => {
           style: {
             fontSize: "11px",
             fontWeight: 500,
+            colors: "#ffffff",
           },
           rotate: -45,
         },
@@ -75,9 +75,6 @@ export const OriginBarChart: React.FC<{ fairId: string }> = ({ fairId }) => {
         {
           breakpoint: 768,
           options: {
-            chart: {
-              height: 300,
-            },
             plotOptions: {
               bar: {
                 columnWidth: "70%",
@@ -88,6 +85,7 @@ export const OriginBarChart: React.FC<{ fairId: string }> = ({ fairId }) => {
               labels: {
                 style: {
                   fontSize: "10px",
+                  colors: "#ffffff",
                 },
                 rotate: -45,
               },
@@ -97,9 +95,6 @@ export const OriginBarChart: React.FC<{ fairId: string }> = ({ fairId }) => {
         {
           breakpoint: 640,
           options: {
-            chart: {
-              height: 250,
-            },
             plotOptions: {
               bar: {
                 columnWidth: "80%",
@@ -110,6 +105,7 @@ export const OriginBarChart: React.FC<{ fairId: string }> = ({ fairId }) => {
               labels: {
                 style: {
                   fontSize: "9px",
+                  colors: "#ffffff",
                 },
                 rotate: -50,
               },
@@ -144,20 +140,21 @@ export const OriginBarChart: React.FC<{ fairId: string }> = ({ fairId }) => {
         },
       }));
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fairId]);
 
   if (loading) return <p>Carregando...</p>;
   if (chart.series[0].data.length === 0) return <p>Sem dados para exibir.</p>;
 
   return (
-    <div className="h-full w-full p-4 flex items-center justify-center min-h-[350px]">
-      <div className="w-full max-w-full h-full flex items-center justify-center">
+    <div className="w-full h-full flex flex-col min-h-[320px]">
+      <div className="w-full flex-1">
         <ReactApexChart
           options={{
             ...chart.options,
             chart: {
               ...chart.options.chart,
-              height: 320,
+              height: "100%",
               width: "100%",
               parentHeightOffset: 0,
               offsetX: 0,
@@ -166,7 +163,7 @@ export const OriginBarChart: React.FC<{ fairId: string }> = ({ fairId }) => {
           }}
           series={chart.series}
           type="bar"
-          height={320}
+          height="100%"
           width="100%"
         />
       </div>

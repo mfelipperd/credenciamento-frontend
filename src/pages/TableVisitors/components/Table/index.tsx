@@ -59,20 +59,24 @@ const VisitorRow = memo(
     return (
       <TableRow
         onClick={handleRowClick}
-        className="cursor-pointer hover:bg-gray-50 transition-colors group"
+        className="cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors group border-b border-slate-200 dark:border-slate-700"
       >
-        <TableCell className="truncate text-nowrap max-w-[15rem]">
+        <TableCell className="truncate text-nowrap max-w-[15rem] text-slate-900 dark:text-slate-100 font-medium">
           {visitor.name}
         </TableCell>
-        <TableCell className="truncate text-nowrap max-w-[15rem]">
+        <TableCell className="truncate text-nowrap max-w-[15rem] text-slate-700 dark:text-slate-300">
           {visitor.company}
         </TableCell>
-        <TableCell className="truncate max-w-[20rem]">
+        <TableCell className="truncate max-w-[20rem] text-slate-700 dark:text-slate-300">
           {visitor.email}
         </TableCell>
-        <TableCell className="text-center">{visitor.cnpj}</TableCell>
-        <TableCell className="text-center">{visitor.phone}</TableCell>
-        <TableCell className="text-center">
+        <TableCell className="text-center text-slate-700 dark:text-slate-300">
+          {visitor.cnpj}
+        </TableCell>
+        <TableCell className="text-center text-slate-700 dark:text-slate-300">
+          {visitor.phone}
+        </TableCell>
+        <TableCell className="text-center text-slate-700 dark:text-slate-300">
           {new Date(visitor.registrationDate).toLocaleDateString("pt-BR", {
             day: "2-digit",
             month: "2-digit",
@@ -84,7 +88,7 @@ const VisitorRow = memo(
             {/* Botão Editar */}
             <button
               onClick={handleEditClick}
-              className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors min-w-[2rem] shadow-sm"
+              className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-md hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors min-w-[2rem] shadow-sm"
               title="Editar visitante"
             >
               <PencilLine size={12} />
@@ -94,7 +98,7 @@ const VisitorRow = memo(
             {/* Botão Deletar */}
             <button
               onClick={handleDeleteClick}
-              className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors min-w-[2rem] shadow-sm"
+              className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-md hover:bg-red-200 dark:hover:bg-red-800 transition-colors min-w-[2rem] shadow-sm"
               title="Deletar visitante"
             >
               <Trash2 size={12} />
@@ -157,61 +161,40 @@ export const VisitorTable: React.FC<VisitorTableProps> = memo(
       <>
         <div className="overflow-auto max-h-[50vh]">
           <Table>
-            <TableHeader className="sticky top-0 z-10 bg-white">
+            <TableHeader className="sticky top-0 z-10 bg-background">
               <TableRow className="border-none">
                 <TableHead>
-                  <div
-                    className="text-white rounded-full w-full flex justify-center items-center px-3 py-2 text-xs font-semibold"
-                    style={{ background: "#7764A5" }}
-                  >
+                  <div className="bg-slate-800 dark:bg-slate-700 text-white rounded-lg w-full flex justify-center items-center px-3 py-2 text-xs font-semibold shadow-lg backdrop-blur-sm">
                     NOME
                   </div>
                 </TableHead>
                 <TableHead>
-                  <div
-                    className="text-white rounded-full w-full flex justify-center items-center px-3 py-2 text-xs font-semibold"
-                    style={{ background: "#7764A5" }}
-                  >
+                  <div className="bg-slate-800 dark:bg-slate-700 text-white rounded-lg w-full flex justify-center items-center px-3 py-2 text-xs font-semibold shadow-lg backdrop-blur-sm">
                     EMPRESA
                   </div>
                 </TableHead>
                 <TableHead>
-                  <div
-                    className="text-white rounded-full w-full flex justify-center items-center px-3 py-2 text-xs font-semibold"
-                    style={{ background: "#7764A5" }}
-                  >
+                  <div className="bg-slate-800 dark:bg-slate-700 text-white rounded-lg w-full flex justify-center items-center px-3 py-2 text-xs font-semibold shadow-lg backdrop-blur-sm">
                     EMAIL
                   </div>
                 </TableHead>
                 <TableHead>
-                  <div
-                    className="text-white rounded-full w-full flex justify-center items-center px-3 py-2 text-xs font-semibold"
-                    style={{ background: "#7764A5" }}
-                  >
+                  <div className="bg-slate-800 dark:bg-slate-700 text-white rounded-lg w-full flex justify-center items-center px-3 py-2 text-xs font-semibold shadow-lg backdrop-blur-sm">
                     CNPJ
                   </div>
                 </TableHead>
                 <TableHead>
-                  <div
-                    className="text-white rounded-full w-full flex justify-center items-center px-3 py-2 text-xs font-semibold"
-                    style={{ background: "#7764A5" }}
-                  >
+                  <div className="bg-slate-800 dark:bg-slate-700 text-white rounded-lg w-full flex justify-center items-center px-3 py-2 text-xs font-semibold shadow-lg backdrop-blur-sm">
                     TELEFONE
                   </div>
                 </TableHead>
                 <TableHead>
-                  <div
-                    className="text-white rounded-full w-full flex justify-center items-center px-3 py-2 text-xs font-semibold"
-                    style={{ background: "#7764A5" }}
-                  >
+                  <div className="bg-slate-800 dark:bg-slate-700 text-white rounded-lg w-full flex justify-center items-center px-3 py-2 text-xs font-semibold shadow-lg backdrop-blur-sm">
                     DATA
                   </div>
                 </TableHead>
                 <TableHead className="w-32">
-                  <div
-                    className="text-white rounded-full w-full flex justify-center items-center px-3 py-2 text-xs font-semibold"
-                    style={{ background: "#7764A5" }}
-                  >
+                  <div className="bg-slate-800 dark:bg-slate-700 text-white rounded-lg w-full flex justify-center items-center px-3 py-2 text-xs font-semibold shadow-lg backdrop-blur-sm">
                     AÇÕES
                   </div>
                 </TableHead>

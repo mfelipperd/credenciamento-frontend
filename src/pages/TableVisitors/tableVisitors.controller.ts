@@ -91,14 +91,7 @@ export const useTableVisitorsController = () => {
     } catch {
       // Erro já é tratado no service, apenas ignora aqui para não quebrar o fluxo
     }
-  }, [
-    fairId,
-    debouncedSearch,
-    searchField,
-    currentPage,
-    itemsPerPage,
-    getVisitorsPaginated,
-  ]);
+  }, [fairId, debouncedSearch, searchField, currentPage, itemsPerPage]);
 
   // Buscar dados quando parâmetros mudarem
   useEffect(() => {

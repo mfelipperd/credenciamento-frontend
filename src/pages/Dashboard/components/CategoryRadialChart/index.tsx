@@ -1,5 +1,5 @@
 import { useDashboardService } from "@/service/dashboard.service";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import ReactApexChart from "react-apexcharts";
 
 interface CategoryChartState {
@@ -19,6 +19,7 @@ export const CategoryRadialChart: React.FC<{ fairId: string }> = ({
   fairId,
 }) => {
   const { getVisitorsByCategory, loading } = useDashboardService();
+  const lastFetchedFairIdRef = useRef<string | null>(null);
   const [chart, setChart] = useState<CategoryChartState>({
     series: [],
     options: {
@@ -26,12 +27,13 @@ export const CategoryRadialChart: React.FC<{ fairId: string }> = ({
       plotOptions: {
         radialBar: {
           dataLabels: {
-            name: { fontSize: "22px" },
-            value: { fontSize: "16px" },
+            name: { fontSize: "22px", color: "#ffffff" },
+            value: { fontSize: "16px", color: "#ffffff" },
             total: {
               show: true,
               label: "Total",
               formatter: () => "0",
+              color: "#ffffff",
             },
           },
         },
@@ -40,34 +42,62 @@ export const CategoryRadialChart: React.FC<{ fairId: string }> = ({
     },
   });
 
+  // Estado separado para armazenar os valores absolutos
+  const [absoluteValues, setAbsoluteValues] = useState<number[]>([]);
+
   useEffect(() => {
     (async () => {
+      // Só faz requisição se fairId é válido e diferente da última requisição
+      if (!fairId || fairId.trim() === "") {
+        console.log(
+          "CategoryRadialChart: fairId inválido, não fazendo requisição:",
+          fairId
+        );
+        return;
+      }
+
+      // Evita requisições duplicadas
+      if (lastFetchedFairIdRef.current === fairId) {
+        return;
+      }
+
+      lastFetchedFairIdRef.current = fairId;
+
       const data = await getVisitorsByCategory(fairId);
       if (!data) return;
 
-      const series = data.visitorsByCategory.map((v) => Number(v.count));
+      const counts = data.visitorsByCategory.map((v) => Number(v.count));
       const labels = data.visitorsByCategory.map((v) => v.visitor_category);
-      const total = series.reduce((sum, n) => sum + n, 0);
+      const total = counts.reduce((sum, n) => sum + n, 0);
+
+      // Converte os valores absolutos para porcentagens (0-100)
+      const series = counts.map((count) =>
+        total > 0 ? Math.round((count / total) * 100) : 0
+      );
+
+      // Armazenar os valores absolutos no estado separado
+      setAbsoluteValues(counts);
 
       setChart({
         series,
         options: {
-          ...chart.options,
-          colors: CATEGORY_COLORS,
-          labels,
+          chart: { height: 250, type: "radialBar" },
           plotOptions: {
             radialBar: {
-              ...chart.options.plotOptions!.radialBar!,
               dataLabels: {
-                ...chart.options.plotOptions!.radialBar!.dataLabels!,
+                name: { fontSize: "22px", color: "#ffffff" },
+                value: { fontSize: "16px", color: "#ffffff" },
                 total: {
                   show: true,
                   label: "Total",
                   formatter: () => total.toString(),
+                  color: "#ffffff",
                 },
               },
             },
           },
+          colors: CATEGORY_COLORS,
+          labels,
         },
       });
     })();
@@ -76,6 +106,7 @@ export const CategoryRadialChart: React.FC<{ fairId: string }> = ({
 
   if (loading) return <p>Carregando...</p>;
   if (chart.series.length === 0) return <p>Sem dados para exibir.</p>;
+
   console.log(chart);
   return (
     <div className="w-full h-full flex flex-col lg:flex-row items-center justify-between gap-4 p-4 min-h-[350px]">
@@ -91,13 +122,18 @@ export const CategoryRadialChart: React.FC<{ fairId: string }> = ({
                 className="h-4 w-4 rounded-full flex-shrink-0"
                 style={{ backgroundColor: chart.options.colors![i] }}
               />
-              <p className="text-sm sm:text-base capitalize text-gray-600 font-semibold">
+              <p className="text-sm sm:text-base capitalize text-muted-foreground font-semibold">
                 {label}
               </p>
             </div>
-            <p className="text-sm sm:text-base font-medium text-gray-800">
-              {chart.series[i]}
-            </p>
+            <div className="text-right">
+              <p className="text-sm sm:text-base font-medium text-foreground">
+                {absoluteValues[i] || 0}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {chart.series[i]}%
+              </p>
+            </div>
           </div>
         ))}
       </div>

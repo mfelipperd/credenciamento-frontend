@@ -46,7 +46,7 @@ export const ExportModalPDF = ({ data, ...props }: ExportModalPDFProps) => {
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="w-[95vw] max-w-4xl h-[90vh] bg-white overflow-hidden flex flex-col mx-auto my-2">
+      <DialogContent className="w-[95vw] max-w-4xl h-[90vh] overflow-hidden flex flex-col mx-auto my-2">
         <DialogHeader className="pb-4 border-b border-gray-200">
           <DialogTitle className="text-lg font-semibold">
             Exportar PDF

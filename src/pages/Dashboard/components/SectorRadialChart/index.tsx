@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import ReactApexChart from "react-apexcharts";
 import { useDashboardService } from "@/service/dashboard.service";
 
@@ -20,6 +20,7 @@ export const SectorsRadialChart: React.FC<{ fairId: string }> = ({
   fairId,
 }) => {
   const { getVisitorsBySectors, loading } = useDashboardService();
+  const lastFairIdRef = useRef<string | null>(null);
   const [chart, setChart] = useState<SectorsChartState>({
     series: [],
     options: {
@@ -28,9 +29,14 @@ export const SectorsRadialChart: React.FC<{ fairId: string }> = ({
       plotOptions: {
         radialBar: {
           dataLabels: {
-            name: { fontSize: "22px" },
-            value: { fontSize: "16px" },
-            total: { show: true, label: "Total", formatter: () => "0" },
+            name: { fontSize: "22px", color: "#ffffff" },
+            value: { fontSize: "16px", color: "#ffffff" },
+            total: {
+              show: true,
+              label: "Total",
+              formatter: () => "0",
+              color: "#ffffff",
+            },
           },
         },
       },
@@ -40,12 +46,23 @@ export const SectorsRadialChart: React.FC<{ fairId: string }> = ({
 
   useEffect(() => {
     (async () => {
+      // Só faz requisição se fairId é válido e diferente do anterior
+      if (!fairId || fairId.trim() === "" || lastFairIdRef.current === fairId) {
+        return;
+      }
+
+      lastFairIdRef.current = fairId;
       const data = await getVisitorsBySectors(fairId);
       if (!data) return;
 
-      const series = data.visitorsBySectors.map((v) => Number(v.count));
+      const counts = data.visitorsBySectors.map((v) => Number(v.count));
       const labels = data.visitorsBySectors.map((v) => v.sector);
-      const total = series.reduce((sum, n) => sum + n, 0);
+      const total = counts.reduce((sum, n) => sum + n, 0);
+
+      // Converte os valores absolutos para porcentagens (0-100)
+      const series = counts.map((count) =>
+        total > 0 ? Math.round((count / total) * 100) : 0
+      );
 
       setChart((cur) => ({
         series,
@@ -55,11 +72,13 @@ export const SectorsRadialChart: React.FC<{ fairId: string }> = ({
           plotOptions: {
             radialBar: {
               dataLabels: {
-                ...cur.options.plotOptions!.radialBar!.dataLabels!,
+                name: { fontSize: "22px", color: "#ffffff" },
+                value: { fontSize: "16px", color: "#ffffff" },
                 total: {
                   show: true,
                   label: "Total",
                   formatter: () => total.toString(),
+                  color: "#ffffff",
                 },
               },
             },
@@ -67,45 +86,28 @@ export const SectorsRadialChart: React.FC<{ fairId: string }> = ({
         },
       }));
     })();
-  }, [fairId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fairId]); // Apenas fairId nas dependências, SEM funções
 
   if (loading) return <p>Carregando...</p>;
   if (chart.series.length === 0) return <p>Sem dados para exibir.</p>;
 
   return (
-    <div className="w-full h-full flex flex-col items-center justify-center p-4 min-h-[400px]">
+    <div className="w-full h-full flex items-center justify-center p-4 min-h-[400px]">
       <div className="w-full max-w-full h-full flex items-center justify-center">
         <ReactApexChart
           options={{
             ...chart.options,
             chart: {
               ...chart.options.chart,
-              height: 350,
+              height: 380,
               width: "100%",
               parentHeightOffset: 0,
-              offsetX: 0,
-              offsetY: 0,
-            },
-            plotOptions: {
-              radialBar: {
-                ...chart.options.plotOptions?.radialBar,
-                dataLabels: {
-                  name: { fontSize: "16px" },
-                  value: { fontSize: "14px" },
-                  total: {
-                    show: true,
-                    label: "Total",
-                    fontSize: "14px",
-                    formatter: () =>
-                      chart.series.reduce((sum, n) => sum + n, 0).toString(),
-                  },
-                },
-              },
             },
           }}
           series={chart.series}
           type="radialBar"
-          height={350}
+          height={380}
           width="100%"
         />
       </div>

@@ -9,13 +9,14 @@ import { ControlledSelect } from "@/components/ControlledSelect";
 import { EUserRole } from "@/enums/user.enum";
 import { Button } from "@/components/ui/button";
 import { useUserService } from "@/service/user.service";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useFairService } from "@/service/fair.service";
 
 export const CreateUserModal = () => {
   const [open, onOpenChange] = useState(false);
   const { createUser, loading } = useUserService();
   const { fairs, getFairs } = useFairService();
+  const hasFetchedRef = useRef(false);
 
   const fairsOptions = fairs.map((fair) => ({
     value: fair.id,
@@ -34,8 +35,12 @@ export const CreateUserModal = () => {
   };
 
   useEffect(() => {
-    getFairs();
-  });
+    if (open && !hasFetchedRef.current) {
+      getFairs();
+      hasFetchedRef.current = true;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -44,7 +49,7 @@ export const CreateUserModal = () => {
           <PlusIcon size={16} /> Criar Usuário
         </p>
       </DialogTrigger>
-      <DialogContent className="bg-white p-6 rounded-lg shadow-lg">
+      <DialogContent className="p-6 rounded-lg shadow-lg">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)}>
             <ControlledInput

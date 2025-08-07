@@ -9,7 +9,7 @@ import type {
   DashboardByabsentVisitorsResponse,
   DashboardConversionResponse,
 } from "@/interfaces/dashboard";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 
 export const useDashboardService = () => {
   const { api, loading, setLoading } = useBaseService();
@@ -23,32 +23,41 @@ export const useDashboardService = () => {
   const [conversionData, setConversionData] =
     useState<DashboardConversionResponse>();
 
-  const getOverView = async (fairId: string) => {
-    const result = await handleRequest({
-      request: () =>
-        api.get<DashboardOverviewReponse>(`/dashboard/overview`, {
-          params: { fairId },
-        }),
-      setLoading,
-    });
-    if (!result) return;
-    setOverview(result);
-    return result;
-  };
+  const getOverView = useCallback(
+    async (fairId: string) => {
+      const result = await handleRequest({
+        request: () =>
+          api.get<DashboardOverviewReponse>(`/dashboard/overview`, {
+            params: { fairId },
+          }),
+        setLoading,
+      });
+      if (!result) return;
+      setOverview(result);
+      return result;
+    },
+    [api, setLoading]
+  );
 
-  const getCheckedInVisitors = async (fairId: string) => {
-    const result = await handleRequest({
-      request: () =>
-        api.get<DashboardCheckedInResponse>(`/dashboard/visitors/checked-in`, {
-          params: { fairId },
-        }),
-      setLoading,
-    });
-    if (!result) return;
+  const getCheckedInVisitors = useCallback(
+    async (fairId: string) => {
+      const result = await handleRequest({
+        request: () =>
+          api.get<DashboardCheckedInResponse>(
+            `/dashboard/visitors/checked-in`,
+            {
+              params: { fairId },
+            }
+          ),
+        setLoading,
+      });
+      if (!result) return;
 
-    setCheckedIn(result);
-    return result;
-  };
+      setCheckedIn(result);
+      return result;
+    },
+    [api, setLoading]
+  );
 
   const getVisitorsByCategory = async (fairId: string) => {
     const result = await handleRequest({

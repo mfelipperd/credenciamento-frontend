@@ -12,27 +12,44 @@ import {
   Mail,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useCheckinId } from "@/hooks/useCheckinId";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { SimpleFooter } from "../Footer";
 import { useAuth } from "@/hooks/useAuth";
 import { CreateUserModal } from "./ModalCreateUser";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { useCookie } from "@/hooks/useCookie";
 
 export const MainLayout: React.FC = () => {
   const { fairs, getFairs, loading } = useFairService();
   const [searchParams, setSearchParams] = useSearchParams();
-  const initialId = searchParams.get("fairId") ?? fairs[0]?.id ?? "";
-  const fairID = searchParams.get("faird");
-  const [selectedId, setSelectedId] = useState(initialId);
   const auth = useAuth();
+
+  // Hook para gerenciar o cookie da feira selecionada
+  const [savedFairId, setSavedFairId] = useCookie("selectedFairId", "", {
+    days: 30,
+  });
+
+  // Determina o ID inicial baseado em: URL params > Cookie > Primeira feira disponível
+  const getInitialFairId = () => {
+    const urlFairId = searchParams.get("fairId");
+    if (urlFairId) return urlFairId;
+    if (savedFairId && fairs.find((f) => f.id === savedFairId))
+      return savedFairId;
+    return fairs[0]?.id ?? "";
+  };
+
+  const [selectedId, setSelectedId] = useState(getInitialFairId);
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const id = e.target.value;
     setSelectedId(id);
 
+    // Salva no cookie
+    setSavedFairId(id);
+
+    // Atualiza URL
     setSearchParams({ fairId: id });
   };
-
-  const checkinId = useCheckinId();
 
   const selectedFair = fairs.find((f) => f.id === selectedId);
 
@@ -40,21 +57,26 @@ export const MainLayout: React.FC = () => {
 
   useEffect(() => {
     getFairs();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Executa apenas uma vez no mount
 
-  // Se as fairs chegarem depois, garanta que o selectedId acompanhe
+  // Sincroniza o selectedId quando as feiras são carregadas ou os params mudam
   useEffect(() => {
-    if (searchParams.get("faird") && fairs.length > 0) {
-      setSelectedId(fairID || fairs[0].id);
+    if (fairs.length > 0) {
+      const newId = getInitialFairId();
+      if (newId && newId !== selectedId) {
+        setSelectedId(newId);
+        // Se não há fairId na URL, adiciona
+        if (!searchParams.get("fairId")) {
+          setSearchParams({ fairId: newId });
+        }
+      }
     }
-    if (!searchParams.get("fairId") && fairs.length > 0) {
-      setSearchParams({ fairId: fairs[0].id });
-      setSelectedId(fairs[0].id);
-    }
-  }, [fairs, searchParams, fairID, checkinId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fairs, searchParams]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-neutral-100">
+    <div className="min-h-screen flex flex-col bg-background">
       {/* Header Principal */}
       <header className="relative w-full bg-gradient-to-r from-blue-900 to-purple-800 shadow-lg">
         {/* Background Image com Overlay */}
@@ -67,111 +89,115 @@ export const MainLayout: React.FC = () => {
           <div className="absolute inset-0 bg-gradient-to-r from-blue-900/90 to-purple-800/90" />
         </div>
 
-        {/* Conteúdo do Header - Tudo numa única linha */}
+        {/* Conteúdo do Header - Organizado com Esquerda e Direita */}
         <div className="relative z-10 px-4 py-2">
-          <div className="flex items-center gap-3 text-white">
-            {/* Logo */}
-            <img
-              src="/logo.png"
-              alt="Logo"
-              className="h-8 w-auto flex-shrink-0"
-            />
-
-            {/* Separator */}
-            <div className="h-6 w-px bg-white/30"></div>
-
-            {/* Controls */}
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <RefreshCcw
-                onClick={() => window.location.reload()}
-                className={`h-4 w-4 text-white/80 hover:text-white cursor-pointer transition-all hover:scale-110 ${
-                  loading ? "animate-spin" : ""
-                }`}
+          <div className="flex items-center justify-between text-white">
+            {/* Lado Esquerdo - Logo, Select, Data e Hora */}
+            <div className="flex items-center gap-3">
+              {/* Logo */}
+              <img
+                src="/logo.png"
+                alt="Logo"
+                className="h-8 w-auto flex-shrink-0"
               />
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Settings className="h-4 w-4 text-white/80 hover:text-white cursor-pointer transition-all hover:scale-110" />
-                </PopoverTrigger>
-                <PopoverContent className="bg-white shadow-lg border-0 rounded-lg p-0">
-                  <div className="p-3 space-y-2">
-                    <div
-                      onClick={auth.signOut}
-                      className="flex items-center gap-2 text-gray-700 hover:text-red-600 cursor-pointer transition-colors p-2 rounded-lg hover:bg-red-50"
+
+              {/* Separator */}
+              <div className="h-6 w-px bg-white/30"></div>
+
+              {/* Fair Selector */}
+              <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded px-3 py-1">
+                <div className="bg-green-400 rounded-full h-2 w-2 flex-shrink-0"></div>
+                <select
+                  value={selectedId}
+                  onChange={handleChange}
+                  className="bg-transparent text-white text-xs font-semibold min-w-0 appearance-none focus:outline-none truncate pr-4"
+                >
+                  {fairs.map((fair) => (
+                    <option
+                      key={fair.id}
+                      value={fair.id}
+                      className="text-black bg-white"
                     >
-                      <LogOut size={14} />
-                      <span className="text-sm font-medium">Sair</span>
-                    </div>
-                    <CreateUserModal />
-                  </div>
-                </PopoverContent>
-              </Popover>
+                      {`${fair.name} ${new Date(fair.date).getFullYear()}`}
+                    </option>
+                  ))}
+                </select>
+                <svg
+                  className="h-3 w-3 text-white/70 flex-shrink-0"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </div>
+
+              {/* Separator */}
+              <div className="h-6 w-px bg-white/30 hidden md:block"></div>
+
+              {/* Data e Horário */}
+              <div className="hidden md:flex items-center gap-1 flex-shrink-0 text-xs">
+                <Calendar className="h-3 w-3 text-blue-300" />
+                <span className="font-medium">{selectedFair?.date}</span>
+                <span className="text-white/60">•</span>
+                <span className="text-white/80">13h-21h</span>
+              </div>
+
+              {/* Separator */}
+              <div className="h-6 w-px bg-white/30 hidden lg:block"></div>
+
+              {/* Local */}
+              <div className="hidden lg:flex items-center gap-1 flex-shrink-0 text-xs">
+                <MapPin className="h-3 w-3 text-green-300" />
+                <span className="font-medium">Estação das Docas</span>
+              </div>
             </div>
 
-            {/* Separator */}
-            <div className="h-6 w-px bg-white/30"></div>
+            {/* Lado Direito - Email, Controls */}
+            <div className="flex items-center gap-3">
+              {/* User Email */}
+              <div className="hidden sm:flex items-center gap-1 flex-shrink-0">
+                <div className="w-1.5 h-1.5 bg-green-400 rounded-full"></div>
+                <span className="text-xs font-medium truncate max-w-32">
+                  {auth.user?.email}
+                </span>
+              </div>
 
-            {/* User Email */}
-            <div className="hidden sm:flex items-center gap-1 flex-shrink-0">
-              <div className="w-1.5 h-1.5 bg-green-400 rounded-full"></div>
-              <span className="text-xs font-medium truncate max-w-32">
-                {auth.user?.email}
-              </span>
-            </div>
+              {/* Separator */}
+              <div className="h-6 w-px bg-white/30 hidden sm:block"></div>
 
-            {/* Separator */}
-            <div className="h-6 w-px bg-white/30 hidden sm:block"></div>
-
-            {/* Fair Selector */}
-            <div className="flex items-center gap-2 flex-1 min-w-0 bg-white/10 backdrop-blur-sm rounded px-3 py-1">
-              <div className="bg-green-400 rounded-full h-2 w-2 flex-shrink-0"></div>
-              <select
-                value={selectedId}
-                onChange={handleChange}
-                className="bg-transparent text-white text-xs font-semibold flex-1 min-w-0 appearance-none focus:outline-none truncate pr-4"
-              >
-                {fairs.map((fair) => (
-                  <option
-                    key={fair.id}
-                    value={fair.id}
-                    className="text-black bg-white"
-                  >
-                    {`${fair.name} ${new Date(fair.date).getFullYear()}`}
-                  </option>
-                ))}
-              </select>
-              <svg
-                className="h-3 w-3 text-white/70 flex-shrink-0"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 9l-7 7-7-7"
+              {/* Controls */}
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <ThemeToggle />
+                <RefreshCcw
+                  onClick={() => window.location.reload()}
+                  className={`h-4 w-4 text-white/80 hover:text-white cursor-pointer transition-all hover:scale-110 ${
+                    loading ? "animate-spin" : ""
+                  }`}
                 />
-              </svg>
-            </div>
-
-            {/* Separator */}
-            <div className="h-6 w-px bg-white/30 hidden md:block"></div>
-
-            {/* Data e Horário */}
-            <div className="hidden md:flex items-center gap-1 flex-shrink-0 text-xs">
-              <Calendar className="h-3 w-3 text-blue-300" />
-              <span className="font-medium">{selectedFair?.date}</span>
-              <span className="text-white/60">•</span>
-              <span className="text-white/80">13h-21h</span>
-            </div>
-
-            {/* Separator */}
-            <div className="h-6 w-px bg-white/30 hidden lg:block"></div>
-
-            {/* Local */}
-            <div className="hidden lg:flex items-center gap-1 flex-shrink-0 text-xs">
-              <MapPin className="h-3 w-3 text-green-300" />
-              <span className="font-medium">Estação das Docas</span>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Settings className="h-4 w-4 text-white/80 hover:text-white cursor-pointer transition-all hover:scale-110" />
+                  </PopoverTrigger>
+                  <PopoverContent className="w-48 bg-white  ">
+                    <div className="p-3 space-y-2">
+                      <div
+                        onClick={auth.signOut}
+                        className="flex items-center gap-2 text-foreground hover:text-red-600 cursor-pointer transition-colors p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-950"
+                      >
+                        <LogOut size={14} />
+                        <span className="text-sm font-medium">Sair</span>
+                      </div>
+                      <CreateUserModal />
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              </div>
             </div>
           </div>
         </div>
@@ -209,12 +235,10 @@ export const MainLayout: React.FC = () => {
           </div>
         </div>
       </nav>
-      <main className="flex-grow p-6 bg-neutral-100">
+      <main className="flex-grow p-6 bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 dark:from-slate-900 dark:via-blue-950 dark:to-purple-950">
         <Outlet />
       </main>
-      <footer className="bg-gray-200 text-gray-700 p-4 text-center">
-        © {new Date().getFullYear()} Meu App. Todos os direitos reservados.
-      </footer>
+      <SimpleFooter />
     </div>
   );
 };

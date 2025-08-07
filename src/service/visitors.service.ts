@@ -155,19 +155,22 @@ export const useVisitorsService = () => {
     [api, setLoading]
   );
 
-  const getVisitorById = async (visitorId?: string, params?: string) => {
-    const result = await handleRequest({
-      request: () =>
-        api.get<Visitor>(`visitors/${visitorId}`, {
-          params: {
-            fairId: params,
-          },
-        }),
-      setLoading,
-    });
-    if (!result) return;
-    setVisitor(result);
-  };
+  const getVisitorById = useCallback(
+    async (visitorId?: string, params?: string) => {
+      const result = await handleRequest({
+        request: () =>
+          api.get<Visitor>(`visitors/${visitorId}`, {
+            params: {
+              fairId: params,
+            },
+          }),
+        setLoading,
+      });
+      if (!result) return;
+      setVisitor(result);
+    },
+    [api, setLoading]
+  );
 
   const checkinVisitor = async (visitorId: string, fairId: string) => {
     const result = await handleRequest({
@@ -180,17 +183,20 @@ export const useVisitorsService = () => {
     return result;
   };
 
-  const getCheckinPerHour = async (fairId: string, filterDay?: string) => {
-    const result = await handleRequest({
-      request: () =>
-        api.get<CheckinPerHourResponse>(`checkins/today`, {
-          params: { fairId, filterDay },
-        }),
-      setLoading,
-    });
-    if (!result) return;
-    setCheckinPerHour(result);
-  };
+  const getCheckinPerHour = useCallback(
+    async (fairId: string, filterDay?: string) => {
+      const result = await handleRequest({
+        request: () =>
+          api.get<CheckinPerHourResponse>(`checkins/today`, {
+            params: { fairId, filterDay },
+          }),
+        setLoading,
+      });
+      if (!result) return;
+      setCheckinPerHour(result);
+    },
+    [api, setLoading]
+  );
 
   const updateVisitor = async (visitor: Partial<VisitorEdit>) => {
     const result = await handleRequest({

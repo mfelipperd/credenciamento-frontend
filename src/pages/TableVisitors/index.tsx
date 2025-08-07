@@ -23,7 +23,7 @@ export const TabeleVisitors = () => {
 
   return (
     <div className="space-y-4">
-      <CardRoot className="bg-white">
+      <CardRoot className="">
         <>
           <div className="w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
             <div className="flex flex-col gap-2">
@@ -33,12 +33,12 @@ export const TabeleVisitors = () => {
                   placeholder="Pesquisar por nome, email, empresa, código..."
                   value={controller.search}
                   onChange={(e) => controller.setSearch(e.target.value)}
-                  className="flex-1 sm:max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
+                  className="flex-1 sm:max-w-md px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring shadow-sm bg-background text-foreground"
                 />
                 <select
                   value={controller.searchField}
                   onChange={(e) => controller.setSearchField(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white"
+                  className="px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring text-sm bg-background text-foreground"
                 >
                   <option value="all">Todos os campos</option>
                   <option value="name">Nome</option>

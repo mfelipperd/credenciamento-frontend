@@ -4,6 +4,7 @@ import { Login } from "@/pages/Login/page";
 import { PublicForm } from "@/pages/PublicForm/page";
 import { SucessForm } from "@/pages/Sucess/page";
 import { MainLayout } from "@/components/Layout/mainLayout";
+import { PublicLayout } from "@/components/Layout/PublicLayout";
 import { Dashboard } from "@/pages/Dashboard/page";
 import { TabeleVisitors } from "@/pages/TableVisitors";
 import { Visitor } from "@/pages/Visitor/page";
@@ -15,11 +16,46 @@ import { ErrorTestPage } from "@/pages/ErrorTestPage";
 import { MarketingPage } from "@/pages/Marketing/page";
 
 export const AppRoutes = createBrowserRouter([
-  { path: "/sucess", element: <SucessForm /> },
-  { path: "/public-form/:fairId", element: <PublicForm /> },
-  { path: "/public-form-totem/:fairId", element: <PublicFormtotem /> },
-  { path: "/sucess-totem", element: <SucessFormTotem /> },
-  { path: "/error-test", element: <ErrorTestPage /> },
+  {
+    path: "/sucess",
+    element: (
+      <PublicLayout>
+        <SucessForm />
+      </PublicLayout>
+    ),
+  },
+  {
+    path: "/public-form/:fairId",
+    element: (
+      <PublicLayout>
+        <PublicForm />
+      </PublicLayout>
+    ),
+  },
+  {
+    path: "/public-form-totem/:fairId",
+    element: (
+      <PublicLayout>
+        <PublicFormtotem />
+      </PublicLayout>
+    ),
+  },
+  {
+    path: "/sucess-totem",
+    element: (
+      <PublicLayout>
+        <SucessFormTotem />
+      </PublicLayout>
+    ),
+  },
+  {
+    path: "/error-test",
+    element: (
+      <PublicLayout>
+        <ErrorTestPage />
+      </PublicLayout>
+    ),
+  },
   {
     element: (
       <AuthProvider>
@@ -27,7 +63,14 @@ export const AppRoutes = createBrowserRouter([
       </AuthProvider>
     ),
     children: [
-      { path: "/login", element: <Login /> },
+      {
+        path: "/login",
+        element: (
+          <PublicLayout>
+            <Login />
+          </PublicLayout>
+        ),
+      },
       {
         element: <ProtectedRoute />,
         children: [
@@ -42,7 +85,14 @@ export const AppRoutes = createBrowserRouter([
           },
         ],
       },
-      { path: "/private-form/:fairId", element: <PrivateForm /> },
+      {
+        path: "/private-form/:fairId",
+        element: (
+          <PublicLayout>
+            <PrivateForm />
+          </PublicLayout>
+        ),
+      },
       { path: "/consultant-dashboard", element: <ConsultantPage /> },
     ],
   },

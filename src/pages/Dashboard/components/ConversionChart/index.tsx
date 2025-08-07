@@ -41,7 +41,6 @@ export const ConversionChart: React.FC<{ fairId: string }> = ({ fairId }) => {
     labels: [],
     options: {
       chart: {
-        height: 350,
         type: "bar",
         toolbar: {
           show: false,
@@ -65,6 +64,7 @@ export const ConversionChart: React.FC<{ fairId: string }> = ({ fairId }) => {
           formatter: (val: string) => `${val}%`,
           style: {
             fontSize: "11px",
+            colors: "#ffffff",
           },
         },
       },
@@ -73,6 +73,7 @@ export const ConversionChart: React.FC<{ fairId: string }> = ({ fairId }) => {
           style: {
             fontSize: "10px",
             fontWeight: 600,
+            colors: "#ffffff",
           },
           maxWidth: 120,
         },
@@ -91,20 +92,18 @@ export const ConversionChart: React.FC<{ fairId: string }> = ({ fairId }) => {
       },
       grid: {
         show: true,
-        borderColor: "#e5e7eb",
+        borderColor: "#ffffff40",
         strokeDashArray: 3,
       },
       responsive: [
         {
           breakpoint: 640,
           options: {
-            chart: {
-              height: 300,
-            },
             yaxis: {
               labels: {
                 style: {
                   fontSize: "9px",
+                  colors: "#ffffff",
                 },
                 maxWidth: 80,
               },
@@ -113,6 +112,7 @@ export const ConversionChart: React.FC<{ fairId: string }> = ({ fairId }) => {
               labels: {
                 style: {
                   fontSize: "10px",
+                  colors: "#ffffff",
                 },
               },
             },
@@ -121,13 +121,11 @@ export const ConversionChart: React.FC<{ fairId: string }> = ({ fairId }) => {
         {
           breakpoint: 480,
           options: {
-            chart: {
-              height: 250,
-            },
             yaxis: {
               labels: {
                 style: {
                   fontSize: "8px",
+                  colors: "#ffffff",
                 },
                 maxWidth: 60,
               },
@@ -217,23 +215,21 @@ export const ConversionChart: React.FC<{ fairId: string }> = ({ fairId }) => {
   };
 
   return (
-    <div className="w-full h-full p-4 flex items-center justify-center min-h-[350px]">
-      <div className="w-full max-w-full h-full flex items-center justify-center">
+    <div className="w-full h-full flex flex-col min-h-[320px]">
+      <div className="w-full flex-1">
         <ReactApexChart
           options={{
             ...tooltipOptions,
             chart: {
               ...tooltipOptions.chart,
-              height: 320,
+              height: "100%",
               width: "100%",
               parentHeightOffset: 0,
-              offsetX: 0,
-              offsetY: 0,
             },
           }}
           series={chart.series}
           type="bar"
-          height={320}
+          height="100%"
           width="100%"
         />
       </div>

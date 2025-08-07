@@ -56,6 +56,7 @@ export const ConversionByHowDidYouKnowChart: React.FC<{ fairId: string }> = ({
         style: {
           fontSize: "12px",
           fontWeight: "bold",
+          colors: ["#ffffff"],
         },
       },
       plotOptions: {
@@ -69,14 +70,14 @@ export const ConversionByHowDidYouKnowChart: React.FC<{ fairId: string }> = ({
                 label: "Total de Conversões",
                 fontSize: "16px",
                 fontWeight: "bold",
-                color: "#373d3f",
+                color: "#ffffff",
                 formatter: () => "0",
               },
               value: {
                 show: true,
                 fontSize: "24px",
                 fontWeight: "bold",
-                color: "#373d3f",
+                color: "#ffffff",
               },
             },
           },
@@ -141,14 +142,14 @@ export const ConversionByHowDidYouKnowChart: React.FC<{ fairId: string }> = ({
                     label: "Total de Conversões",
                     fontSize: "16px",
                     fontWeight: "bold",
-                    color: "#373d3f",
+                    color: "#ffffff",
                     formatter: () => total.toString(),
                   },
                   value: {
                     show: true,
                     fontSize: "24px",
                     fontWeight: "bold",
-                    color: "#373d3f",
+                    color: "#ffffff",
                   },
                 },
               },
@@ -236,13 +237,13 @@ export const ConversionByHowDidYouKnowChart: React.FC<{ fairId: string }> = ({
         </div>
 
         {/* Gráfico */}
-        <div className="flex justify-center order-1 xl:order-2">
+        <div className="w-full flex justify-center order-1 xl:order-2">
           <ReactApexChart
             options={chart.options}
             series={chart.series}
             type="donut"
             height={380}
-            width={380}
+            width="100%"
           />
         </div>
       </div>

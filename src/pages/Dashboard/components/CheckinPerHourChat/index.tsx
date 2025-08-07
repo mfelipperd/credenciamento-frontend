@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import ReactApexChart from "react-apexcharts";
 import { useDashboardController } from "../../dashboard.controller";
 import { format } from "date-fns";
@@ -43,6 +43,8 @@ export const CheckinPerHourChart: React.FC<{ fairId: string }> = ({
     loading,
   } = useDashboardController();
 
+  const lastRequestRef = useRef<string>("");
+
   // seleciona filtro de data: undefined = todos os dias
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
     new Date()
@@ -73,6 +75,9 @@ export const CheckinPerHourChart: React.FC<{ fairId: string }> = ({
         horizontalAlign: "center",
         fontSize: "12px",
         offsetY: -5,
+        labels: {
+          colors: "#ffffff",
+        },
       },
       fill: {
         opacity: 1,
@@ -83,6 +88,15 @@ export const CheckinPerHourChart: React.FC<{ fairId: string }> = ({
             show: false,
           },
         },
+      },
+      xaxis: {
+        labels: {
+          style: {
+            colors: "#ffffff",
+            fontSize: "12px",
+          },
+        },
+        categories: [],
       },
       yaxis: {
         labels: {
@@ -99,6 +113,9 @@ export const CheckinPerHourChart: React.FC<{ fairId: string }> = ({
             legend: {
               position: "bottom",
               fontSize: "10px",
+              labels: {
+                colors: "#ffffff",
+              },
             },
             plotOptions: {
               bar: {
@@ -117,6 +134,9 @@ export const CheckinPerHourChart: React.FC<{ fairId: string }> = ({
               position: "bottom",
               fontSize: "9px",
               offsetY: 5,
+              labels: {
+                colors: "#ffffff",
+              },
             },
             plotOptions: {
               bar: {
@@ -132,11 +152,19 @@ export const CheckinPerHourChart: React.FC<{ fairId: string }> = ({
   // 1) Recarrega dados sempre que fairId ou selectedDate mudarem
   useEffect(() => {
     if (!fairId) return;
+
     const isoDay = selectedDate
       ? format(selectedDate, "yyyy-MM-dd")
       : undefined;
+
+    // Criar uma chave única para evitar requisições duplicadas
+    const requestKey = `${fairId}-${isoDay || "all"}`;
+    if (lastRequestRef.current === requestKey) return;
+
+    lastRequestRef.current = requestKey;
     getCheckinPerHour(fairId, isoDay);
-  }, [fairId, selectedDate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fairId, selectedDate]); // SEM getCheckinPerHour nas dependências
 
   // 2) Quando chegar resultado, atualiza gráfico
   useEffect(() => {
@@ -208,7 +236,10 @@ export const CheckinPerHourChart: React.FC<{ fairId: string }> = ({
               <CalendarIcon className="ml-1 sm:ml-2 h-3 w-3 sm:h-4 sm:w-4 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent align="start" className="p-0 bg-white">
+          <PopoverContent
+            align="start"
+            className="p-0 bg-popover border border-border"
+          >
             <Calendar
               mode="single"
               selected={selectedDate}
@@ -216,6 +247,7 @@ export const CheckinPerHourChart: React.FC<{ fairId: string }> = ({
                 setSelectedDate(date ?? undefined)
               }
               initialFocus
+              className="bg-popover"
             />
           </PopoverContent>
         </Popover>

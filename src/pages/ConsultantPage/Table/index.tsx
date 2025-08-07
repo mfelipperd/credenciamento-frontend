@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { CardRoot } from "@/components/Card";
 import {
@@ -120,23 +120,19 @@ export const EnhancedTableConsultant = () => {
 
   // Estado para controlar fetch inicial
   const [hasInitialFetch, setHasInitialFetch] = useState(false);
-  const [hasFairsFetch, setHasFairsFetch] = useState(false);
+  const hasFairsFetchRef = useRef(false);
 
   // Buscar feiras quando necessário (para admins e consultants com múltiplas feiras)
   useEffect(() => {
     if (
       (shouldShowFairSelect || shouldShowConsultantFairSelect) &&
-      !hasFairsFetch
+      !hasFairsFetchRef.current
     ) {
       getFairs();
-      setHasFairsFetch(true);
+      hasFairsFetchRef.current = true;
     }
-  }, [
-    shouldShowFairSelect,
-    shouldShowConsultantFairSelect,
-    hasFairsFetch,
-    getFairs,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shouldShowFairSelect, shouldShowConsultantFairSelect]);
 
   // Definir fairId inicial para não-consultants
   useEffect(() => {
@@ -175,7 +171,7 @@ export const EnhancedTableConsultant = () => {
       setHasInitialFetch(true);
       setPage(1);
     }
-  }, [currentFairId, hasInitialFetch, getVisitorsPaginated, limit, search]);
+  }, [currentFairId, hasInitialFetch, limit, search]);
 
   // Reset hasInitialFetch quando fairId mudar
   useEffect(() => {
@@ -198,7 +194,7 @@ export const EnhancedTableConsultant = () => {
         fairId: currentFairId,
       });
     },
-    [currentFairId, limit, search, getVisitorsPaginated]
+    [currentFairId, limit, search]
   );
 
   // Fetch inicial e quando currentFairId mudar
@@ -207,7 +203,7 @@ export const EnhancedTableConsultant = () => {
       fetchData(1, true);
       setHasInitialFetch(true);
     }
-  }, [currentFairId, hasInitialFetch, fetchData]);
+  }, [currentFairId, hasInitialFetch]);
 
   // Reset hasInitialFetch quando fairId mudar
   useEffect(() => {
@@ -225,21 +221,21 @@ export const EnhancedTableConsultant = () => {
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [search, fetchData, hasInitialFetch]);
+  }, [search, hasInitialFetch]);
 
   // Fetch quando página mudar
   useEffect(() => {
     if (hasInitialFetch && currentFairId) {
       fetchData(page, false);
     }
-  }, [page, hasInitialFetch, currentFairId, fetchData]);
+  }, [page, hasInitialFetch, currentFairId]);
 
   // Fetch quando limite mudar
   useEffect(() => {
     if (hasInitialFetch) {
       fetchData(1, true);
     }
-  }, [limit, fetchData, hasInitialFetch]);
+  }, [limit, hasInitialFetch]);
 
   // Category filter from URL
   const categoryFilter = useMemo(() => {
@@ -408,7 +404,7 @@ export const EnhancedTableConsultant = () => {
           )}
 
           {/* Toolbar Premium - Funcionalidades de Análise */}
-          <div className="bg-gray-50 rounded-lg p-6 border-2 border-dashed border-gray-300">
+          <div className="bg-white/60 dark:bg-white/10 backdrop-blur-xl text-slate-900 dark:text-white rounded-lg p-6 border-2 border-dashed border-gray-300">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
@@ -419,7 +415,7 @@ export const EnhancedTableConsultant = () => {
                     </span>
                   )}
                 </h3>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-white">
                   Filtre, organize e analise dados com precisão profissional
                 </p>
               </div>
@@ -456,7 +452,7 @@ export const EnhancedTableConsultant = () => {
                       }}
                       disabled={!currentFairId}
                     >
-                      <SelectTrigger className="w-full sm:w-[200px] h-9 bg-white">
+                      <SelectTrigger className="w-full sm:w-[200px] h-9 bg-white text-black">
                         <SelectValue placeholder="Selecione uma feira" />
                       </SelectTrigger>
                       <SelectContent className="bg-white">
@@ -478,10 +474,10 @@ export const EnhancedTableConsultant = () => {
                         setPage(1); // Reset página ao trocar feira
                       }}
                     >
-                      <SelectTrigger className="w-full sm:w-[200px] h-9 bg-white">
+                      <SelectTrigger className="w-full sm:w-[200px] h-9 bg-white text-black">
                         <SelectValue placeholder="Selecione uma feira" />
                       </SelectTrigger>
-                      <SelectContent className="bg-white">
+                      <SelectContent className="bg-white text-black">
                         {(() => {
                           const userWithFairs = user as UserWithFairIds;
                           const userFairIds = userWithFairs?.fairIds || [];
@@ -504,7 +500,7 @@ export const EnhancedTableConsultant = () => {
                     onChange={(e) => {
                       setSearch(e.target.value);
                     }}
-                    className="flex-1 sm:max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm"
+                    className="flex-1 sm:max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm text-black"
                     disabled={!currentFairId}
                   />
                 </div>
@@ -554,7 +550,7 @@ export const EnhancedTableConsultant = () => {
                   }}
                   disabled={!currentFairId}
                 >
-                  <SelectTrigger className="w-full sm:w-[120px] h-9 bg-white">
+                  <SelectTrigger className="w-full sm:w-[120px] h-9 bg-white text-black">
                     <SelectValue placeholder="Qtd" />
                   </SelectTrigger>
                   <SelectContent className="bg-white">
@@ -571,7 +567,7 @@ export const EnhancedTableConsultant = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="bg-white w-full sm:w-auto relative"
+                      className="bg-white w-full sm:w-auto relative text-black"
                       disabled={!currentFairId}
                     >
                       📊 Colunas Personalizadas
@@ -582,7 +578,7 @@ export const EnhancedTableConsultant = () => {
                       )}
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-48">
+                  <DropdownMenuContent className="w-48 bg-white">
                     {Object.entries(visibleColumns).map(([col, isVisible]) => {
                       const labels: Record<keyof Visitor, string> = {
                         id: "ID",
