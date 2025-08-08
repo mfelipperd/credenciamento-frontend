@@ -1,30 +1,49 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSearchParams } from "react-router-dom";
 import { useFinanceService } from "@/service/finance.service";
 import { FinanceFiltersSheet } from "./components/FinanceFiltersSheet";
 import { FinanceKpis } from "./components/FinanceKpis";
-import { FinanceCharts } from "./components/FinanceCharts";
 import { FinanceTable } from "./components/FinanceTable";
 import { ReceitaDrawer } from "./components/ReceitaDrawer";
 import { EntryModelsDialog } from "./components/EntryModelsDialog";
+import { RevenueDetailModal } from "./components/RevenueDetailModal";
 import type { RevenueFilters } from "@/interfaces/finance";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Settings, Filter } from "lucide-react";
 
 export function FinancePage() {
+  const [searchParams] = useSearchParams();
+  const fairId = searchParams.get("fairId");
+  const queryClient = useQueryClient();
+
   const [filters, setFilters] = useState<RevenueFilters>({
     page: 1,
     pageSize: 20,
-    fairId: "feira-1", // Valor padrão para teste
+    fairId: fairId || "",
   });
+
+  // Atualiza o fairId nos filtros quando a URL muda
+  useEffect(() => {
+    if (fairId) {
+      setFilters((prev) => ({
+        ...prev,
+        fairId: fairId,
+      }));
+    }
+  }, [fairId]);
 
   const [selectedRevenueId, setSelectedRevenueId] = useState<string | null>(
     null
   );
+  const [selectedRevenueForDetail, setSelectedRevenueForDetail] = useState<
+    string | null
+  >(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isConfigDialogOpen, setIsConfigDialogOpen] = useState(false);
   const [isFiltersSheetOpen, setIsFiltersSheetOpen] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
   const financeService = useFinanceService();
 
@@ -47,6 +66,19 @@ export function FinancePage() {
     enabled: !!filters.fairId,
   });
 
+  // Mutation para deletar receita
+  const deleteRevenueMutation = useMutation({
+    mutationFn: financeService.deleteRevenue,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["finance-revenues"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["finance-kpis"],
+      });
+    },
+  });
+
   const handleFiltersChange = (newFilters: Partial<RevenueFilters>) => {
     setFilters((prev) => ({
       ...prev,
@@ -65,10 +97,30 @@ export function FinancePage() {
     setIsDrawerOpen(true);
   };
 
+  const handleViewRevenueDetail = (revenueId: string) => {
+    setSelectedRevenueForDetail(revenueId);
+    setIsDetailModalOpen(true);
+  };
+
+  const handleDeleteRevenue = async (revenueId: string) => {
+    if (
+      confirm(
+        "Tem certeza que deseja excluir esta receita? Esta ação não pode ser desfeita."
+      )
+    ) {
+      deleteRevenueMutation.mutate(revenueId);
+    }
+  };
+
   const handleDrawerClose = () => {
     setIsDrawerOpen(false);
     setSelectedRevenueId(null);
     refetchRevenues();
+  };
+
+  const handleDetailModalClose = () => {
+    setIsDetailModalOpen(false);
+    setSelectedRevenueForDetail(null);
   };
 
   // Função para detectar se há filtros ativos
@@ -137,16 +189,7 @@ export function FinancePage() {
           <FinanceKpis data={kpisData} isLoading={isLoadingKpis} />
         )}
 
-        {/* Gráficos */}
-        {filters.fairId && (
-          <FinanceCharts
-            fairId={filters.fairId}
-            dateFrom={filters.from}
-            dateTo={filters.to}
-          />
-        )}
-
-        {/* Tabela de Receitas */}
+        {/* Tabela de Receitas - Movida para cima */}
         {filters.fairId && (
           <Card className="glass-card">
             <FinanceTable
@@ -155,6 +198,9 @@ export function FinancePage() {
               filters={filters}
               onFiltersChange={handleFiltersChange}
               onEditRevenue={handleEditRevenue}
+              onViewDetail={handleViewRevenueDetail}
+              onDeleteRevenue={handleDeleteRevenue}
+              isDeletingRevenue={deleteRevenueMutation.isPending}
             />
           </Card>
         )}
@@ -180,6 +226,15 @@ export function FinancePage() {
           onClose={() => setIsFiltersSheetOpen(false)}
           filters={filters}
           onChange={handleFiltersChange}
+        />
+
+        {/* Modal de detalhamento da receita */}
+        <RevenueDetailModal
+          isOpen={isDetailModalOpen}
+          onClose={handleDetailModalClose}
+          revenueId={selectedRevenueForDetail}
+          fairId={fairId || ""}
+          onEditRevenue={handleEditRevenue}
         />
       </div>
     </div>

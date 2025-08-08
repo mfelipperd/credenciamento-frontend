@@ -26,7 +26,7 @@ import { ControlledInput } from "@/components/ControlledInput";
 import { ControlledSelect } from "@/components/ControlledSelect";
 import { X, Search, Plus, Upload, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import type { CreateRevenueForm } from "@/interfaces/finance";
+import type { CreateRevenueForm, EntryModelType } from "@/interfaces/finance";
 
 interface ReceitaDrawerProps {
   isOpen: boolean;
@@ -46,6 +46,12 @@ const revenueSchema = z.object({
     })
     .int("Desconto deve ser um número inteiro")
     .min(0, "Desconto não pode ser negativo"),
+  paymentMethod: z.enum(
+    ["PIX", "BOLETO", "CARTAO", "TED", "DINHEIRO", "TRANSFERENCIA"],
+    {
+      required_error: "Selecione um método de pagamento",
+    }
+  ),
   installmentsCount: z.string().min(1, "Quantidade de parcelas inválida"),
   notes: z.string().optional(),
 });
@@ -101,6 +107,7 @@ export function ReceitaDrawer({ isOpen, onClose, fairId }: ReceitaDrawerProps) {
     defaultValues: {
       installmentsCount: "1",
       discountCents: 0,
+      paymentMethod: "PIX", // Valor padrão
     },
   });
 
@@ -285,25 +292,17 @@ export function ReceitaDrawer({ isOpen, onClose, fairId }: ReceitaDrawerProps) {
 
     const formData: CreateRevenueForm = {
       fairId: fairId!,
-      clientId: selectedClient.id,
+      type: selectedEntryModel.type as EntryModelType, // Tipo do modelo (STAND ou PATROCINIO)
       entryModelId: selectedEntryModel.id,
+      clientId: selectedClient.id,
       baseValue: numericBaseValue,
-      contractValue: numericContractValue,
       discountCents: numericDiscountCents,
-      paymentMethod: "PIX", // Padrão por enquanto
-      condition: data.installmentsCount === "1" ? "avista" : "parcelado",
-      notes: data.notes,
+      contractValue: numericContractValue,
+      paymentMethod: data.paymentMethod || "PIX", // Método de pagamento selecionado
+      numberOfInstallments: parseInt(data.installmentsCount), // Número de parcelas
       createdBy: user.id.toString(), // ID do usuário logado como string
-      installmentsConfig:
-        parseInt(data.installmentsCount) > 1
-          ? {
-              count: parseInt(data.installmentsCount),
-              firstDueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-                .toISOString()
-                .split("T")[0],
-              periodicity: "MENSAL" as const,
-            }
-          : undefined,
+      condition: data.installmentsCount === "1" ? "À vista" : "Parcelado", // Condição opcional
+      notes: data.notes, // Observações opcionais
     };
 
     createRevenueMutation.mutate(formData);
@@ -554,6 +553,29 @@ export function ReceitaDrawer({ isOpen, onClose, fairId }: ReceitaDrawerProps) {
             <h3 className="text-lg font-medium text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
               3. Forma de Pagamento
             </h3>
+
+            {/* Método de Pagamento */}
+            <div className="space-y-2">
+              <ControlledSelect
+                control={control}
+                name="paymentMethod"
+                label="Método de Pagamento *"
+                placeholder="Selecione"
+                options={[
+                  { value: "PIX", label: "PIX" },
+                  { value: "BOLETO", label: "Boleto" },
+                  { value: "CARTAO", label: "Cartão" },
+                  { value: "TED", label: "TED" },
+                  { value: "DINHEIRO", label: "Dinheiro" },
+                  { value: "TRANSFERENCIA", label: "Transferência" },
+                ]}
+              />
+              {errors.paymentMethod && (
+                <span className="text-sm text-red-500">
+                  {errors.paymentMethod.message}
+                </span>
+              )}
+            </div>
 
             {/* Parcelas */}
             <div className="space-y-2">

@@ -8,7 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Edit, Eye, ChevronLeft, ChevronRight } from "lucide-react";
+import { Edit, Eye, ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import dayjs from "dayjs";
 import type {
   PagedResponse,
@@ -23,6 +23,9 @@ interface FinanceTableProps {
   filters: RevenueFilters;
   onFiltersChange: (filters: Partial<RevenueFilters>) => void;
   onEditRevenue: (revenueId: string) => void;
+  onViewDetail?: (revenueId: string) => void;
+  onDeleteRevenue?: (revenueId: string) => void;
+  isDeletingRevenue?: boolean;
 }
 
 // Componente Badge simples
@@ -60,6 +63,9 @@ export function FinanceTable({
   filters,
   onFiltersChange,
   onEditRevenue,
+  onViewDetail,
+  onDeleteRevenue,
+  isDeletingRevenue,
 }: FinanceTableProps) {
   const formatCurrency = (cents: number | string) => {
     const numericCents =
@@ -156,14 +162,18 @@ export function FinanceTable({
               </TableRow>
             ) : (
               revenues.map((revenue: RevenueListItem) => (
-                <TableRow key={revenue.id}>
+                <TableRow
+                  key={revenue.id}
+                  className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                  onClick={() => onViewDetail?.(revenue.id)}
+                >
                   <TableCell>
                     <div>
                       <div className="font-medium text-gray-900 dark:text-white">
-                        {revenue.client.name}
+                        {revenue.client?.name || "Cliente não informado"}
                       </div>
                       <div className="text-sm text-gray-500 dark:text-gray-400">
-                        ID: {revenue.client.id}
+                        ID: {revenue.client?.id || revenue.clientId}
                       </div>
                     </div>
                   </TableCell>
@@ -171,7 +181,7 @@ export function FinanceTable({
                   <TableCell>
                     <div>
                       <div className="font-medium text-gray-900 dark:text-white">
-                        {revenue.entryModel.name}
+                        {revenue.entryModel?.name || "Modelo não informado"}
                       </div>
                       <div className="text-sm text-gray-500 dark:text-gray-400">
                         {revenue.type}
@@ -199,33 +209,64 @@ export function FinanceTable({
                   </TableCell>
 
                   <TableCell>
-                    {revenue.nextDueDate ? (
-                      <div className="text-sm text-gray-900 dark:text-white">
-                        {dayjs(revenue.nextDueDate).format("DD/MM/YYYY")}
-                      </div>
-                    ) : (
-                      <span className="text-sm text-gray-500 dark:text-gray-400">
-                        -
-                      </span>
-                    )}
+                    {(() => {
+                      // Buscar a próxima parcela não paga
+                      const nextInstallment = revenue.installments?.find(
+                        (inst) =>
+                          inst.status === "A_VENCER" ||
+                          inst.status === "VENCIDA"
+                      );
+
+                      return nextInstallment ? (
+                        <div className="text-sm text-gray-900 dark:text-white">
+                          {dayjs(nextInstallment.dueDate).format("DD/MM/YYYY")}
+                        </div>
+                      ) : (
+                        <span className="text-sm text-gray-500 dark:text-gray-400">
+                          -
+                        </span>
+                      );
+                    })()}
                   </TableCell>
 
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end space-x-2">
+                      {onViewDetail && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onViewDetail(revenue.id);
+                          }}
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                      )}
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => onEditRevenue(revenue.id)}
-                      >
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onEditRevenue(revenue.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEditRevenue(revenue.id);
+                        }}
                       >
                         <Edit className="w-4 h-4" />
                       </Button>
+                      {onDeleteRevenue && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDeleteRevenue(revenue.id);
+                          }}
+                          disabled={isDeletingRevenue}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20 disabled:opacity-50"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>

@@ -26,7 +26,7 @@ import { ControlledInput } from "@/components/ControlledInput";
 import { ControlledSelect } from "@/components/ControlledSelect";
 import { X, Search, Plus, Upload, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import type { CreateRevenueForm } from "@/interfaces/finance";
+import type { CreateRevenueForm, EntryModelType } from "@/interfaces/finance";
 
 interface ReceitaDrawerProps {
   isOpen: boolean;
@@ -285,25 +285,17 @@ export function ReceitaDrawer({ isOpen, onClose, fairId }: ReceitaDrawerProps) {
 
     const formData: CreateRevenueForm = {
       fairId: fairId!,
-      clientId: selectedClient.id,
+      type: selectedEntryModel.type as EntryModelType, // Tipo do modelo (STAND ou PATROCINIO)
       entryModelId: selectedEntryModel.id,
+      clientId: selectedClient.id,
       baseValue: numericBaseValue,
-      contractValue: numericContractValue,
       discountCents: numericDiscountCents,
+      contractValue: numericContractValue,
       paymentMethod: "PIX", // Padrão por enquanto
-      condition: data.installmentsCount === "1" ? "avista" : "parcelado",
-      notes: data.notes,
+      numberOfInstallments: parseInt(data.installmentsCount), // Número de parcelas
       createdBy: user.id.toString(), // ID do usuário logado como string
-      installmentsConfig:
-        parseInt(data.installmentsCount) > 1
-          ? {
-              count: parseInt(data.installmentsCount),
-              firstDueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-                .toISOString()
-                .split("T")[0],
-              periodicity: "MENSAL" as const,
-            }
-          : undefined,
+      condition: data.installmentsCount === "1" ? "À vista" : "Parcelado", // Condição opcional
+      notes: data.notes, // Observações opcionais
     };
 
     createRevenueMutation.mutate(formData);

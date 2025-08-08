@@ -5,7 +5,13 @@ export type RevenueStatus =
   | "EM_ATRASO"
   | "PAGO"
   | "CANCELADO";
-export type PaymentMethod = "PIX" | "BOLETO" | "CARTAO" | "TED" | "DINHEIRO";
+export type PaymentMethod =
+  | "PIX"
+  | "BOLETO"
+  | "CARTAO"
+  | "TED"
+  | "DINHEIRO"
+  | "TRANSFERENCIA";
 export type InstallmentStatus = "A_VENCER" | "VENCIDA" | "PAGA" | "CANCELADA";
 
 export interface Client {
@@ -18,41 +24,27 @@ export interface Client {
 
 export interface EntryModel {
   id: string;
-  fairId: string;
+  fairId?: string;
   type: EntryModelType;
   name: string;
-  baseValue: number;
+  baseValue: number; // Obrigatório
   costCents?: number;
-  active: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface RevenueListItem {
-  id: string;
-  fairId: string;
-  type: EntryModelType;
-  status: RevenueStatus;
-  client: { id: string; name: string };
-  entryModel: { id: string; name: string };
-  baseValue: number | string;
-  discountCents: number | string;
-  contractValue: number | string;
-  paidCents?: number | string;
-  openCents?: number | string;
-  paymentMethod: PaymentMethod;
-  nextDueDate?: string;
-  createdAt: string;
+  active?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Installment {
   id: string;
-  n: number;
+  revenueId: string;
+  n: number; // Número da parcela
+  valueCents: number; // Valor em centavos
   dueDate: string;
-  valueCents: number;
+  paidAt?: string | null; // Data de pagamento (se paga)
   status: InstallmentStatus;
-  paidAt?: string;
-  proofUrl?: string;
+  proofUrl?: string | null; // URL do comprovante (se houver)
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Attachment {
@@ -63,12 +55,47 @@ export interface Attachment {
   sizeBytes: number;
 }
 
-export interface RevenueDetail
-  extends Omit<RevenueListItem, "paidCents" | "openCents" | "nextDueDate"> {
-  condition?: "avista" | "parcelado";
-  notes?: string;
+// Interface principal para receitas (tanto listagem quanto detalhamento)
+export interface RevenueListItem {
+  // Informações principais da receita
+  id: string;
+  fairId: string;
+  type: EntryModelType;
+  entryModelId: string;
+  clientId: string;
+
+  // Valores monetários (em centavos)
+  baseValue: number;
+  discountCents: number;
+  contractValue: number;
+
+  // Configurações de pagamento
+  paymentMethod: PaymentMethod;
+  numberOfInstallments: number;
+
+  // Status e informações adicionais
+  status: RevenueStatus;
+  condition?: string; // condições especiais (opcional)
+  notes?: string; // observações gerais (opcional)
+  createdBy: string;
+
+  // Timestamps
+  createdAt: string;
+  updatedAt: string;
+
+  // Relacionamentos (opcionais - dependem do include)
+  client?: Client;
+  entryModel?: EntryModel;
+  installments?: Installment[];
+}
+
+// Alias para detalhamento (mesmo formato)
+export interface RevenueDetail extends RevenueListItem {
+  // Garantir que estes campos estão presentes no detalhamento
+  client: Client;
+  entryModel: EntryModel;
   installments: Installment[];
-  attachments: Attachment[];
+  attachments?: Attachment[];
 }
 
 export interface PagedResponse<T> {
@@ -125,25 +152,18 @@ export interface RevenueFilters {
 
 // Form types
 export interface CreateRevenueForm {
-  fairId: string;
-  entryModelId: string;
-  clientId: string;
-  baseValue: number;
-  contractValue: number;
-  discountCents: number;
-  paymentMethod: PaymentMethod;
-  condition: "avista" | "parcelado";
-  notes?: string;
-  createdBy: string;
-  installmentsConfig?:
-    | {
-        count: number;
-        firstDueDate: string;
-        periodicity?: "MENSAL";
-      }
-    | {
-        customDates: Array<{ dueDate: string; valueCents: number }>;
-      };
+  fairId: string; // ✅ Obrigatório
+  type: EntryModelType; // ✅ Obrigatório - "STAND" ou "PATROCINIO"
+  entryModelId: string; // ✅ Obrigatório
+  clientId: string; // ✅ Obrigatório
+  baseValue: number; // ✅ Obrigatório - valor em centavos
+  discountCents: number; // ✅ Obrigatório - desconto em centavos
+  contractValue: number; // ✅ Obrigatório - valor final em centavos
+  paymentMethod: PaymentMethod; // ✅ Obrigatório
+  numberOfInstallments: number; // ✅ Obrigatório - número de parcelas (padrão: 1)
+  createdBy: string; // ✅ Obrigatório - ID do usuário criador
+  condition?: string; // ❌ Opcional - condições especiais
+  notes?: string; // ❌ Opcional - observações
 }
 
 export interface CreateClientForm {

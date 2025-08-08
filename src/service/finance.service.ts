@@ -6,7 +6,6 @@ import type {
   RevenueFilters,
   PagedResponse,
   Kpis,
-  BucketValue,
   TopEmpresa,
   CreateRevenueForm,
   EntryModel,
@@ -233,43 +232,6 @@ export const useFinanceService = () => {
     });
   };
 
-  // Analytics
-  const getContractsByPeriod = async (
-    fairId: string,
-    granularity: "month" | "day" | "week" = "month",
-    from?: string,
-    to?: string
-  ): Promise<BucketValue[] | undefined> => {
-    const params = new URLSearchParams({ fairId, granularity });
-    if (from) params.append("from", from);
-    if (to) params.append("to", to);
-
-    return handleRequest<BucketValue[]>({
-      request: () =>
-        api.get(
-          `${BASE_URL}/revenues/analytics/contratos-por-periodo?${params.toString()}`
-        ),
-    });
-  };
-
-  const getReceivedByPeriod = async (
-    fairId: string,
-    granularity: "month" | "day" | "week" = "month",
-    from?: string,
-    to?: string
-  ): Promise<BucketValue[] | undefined> => {
-    const params = new URLSearchParams({ fairId, granularity });
-    if (from) params.append("from", from);
-    if (to) params.append("to", to);
-
-    return handleRequest<BucketValue[]>({
-      request: () =>
-        api.get(
-          `${BASE_URL}/revenues/analytics/recebido-por-periodo?${params.toString()}`
-        ),
-    });
-  };
-
   const getTopCompanies = async (
     fairId: string,
     metric: "contratado" | "pago" = "contratado",
@@ -288,7 +250,7 @@ export const useFinanceService = () => {
     return handleRequest<TopEmpresa[]>({
       request: () =>
         api.get(
-          `${BASE_URL}/revenues/analytics/top-empresas?${params.toString()}`
+          `${BASE_URL}/revenues/analytics/top-companies?${params.toString()}`
         ),
     });
   };
@@ -304,7 +266,7 @@ export const useFinanceService = () => {
 
     return handleRequest<Array<{ tipo: string; totalContrato: number }>>({
       request: () =>
-        api.get(`${BASE_URL}/revenues/analytics/por-tipo?${params.toString()}`),
+        api.get(`${BASE_URL}/revenues/analytics/by-type?${params.toString()}`),
     });
   };
 
@@ -324,9 +286,7 @@ export const useFinanceService = () => {
       Array<{ modeloId: string; nome: string; totalContrato: number }>
     >({
       request: () =>
-        api.get(
-          `${BASE_URL}/revenues/analytics/por-modelo?${params.toString()}`
-        ),
+        api.get(`${BASE_URL}/revenues/analytics/by-model?${params.toString()}`),
     });
   };
 
@@ -334,7 +294,7 @@ export const useFinanceService = () => {
   const generateInstallments = async (revenueId: string): Promise<void> => {
     await handleRequest<{ success: boolean }>({
       request: () =>
-        api.post(`${BASE_URL}/revenues/${revenueId}/parcelas/generate`),
+        api.post(`${BASE_URL}/revenues/${revenueId}/installments/generate`),
       successMessage: "Parcelas geradas com sucesso!",
     });
   };
@@ -344,7 +304,7 @@ export const useFinanceService = () => {
     data: { dueDate?: string; valueCents?: number }
   ): Promise<Installment | undefined> => {
     return handleRequest<Installment>({
-      request: () => api.put(`${BASE_URL}/revenues/parcelas/${id}`, data),
+      request: () => api.put(`${BASE_URL}/revenues/installment/${id}`, data),
       successMessage: "Parcela atualizada com sucesso!",
     });
   };
@@ -355,9 +315,21 @@ export const useFinanceService = () => {
   ): Promise<Installment | undefined> => {
     return handleRequest<Installment>({
       request: () =>
-        api.patch(`${BASE_URL}/revenues/parcelas/${id}/baixa`, data),
+        api.patch(
+          `${BASE_URL}/revenues/installment/${id}/confirm-payment`,
+          data
+        ),
       successMessage: "Parcela baixada com sucesso!",
     });
+  };
+
+  // Alias para melhor clareza
+  const confirmInstallmentPayment = async (
+    installmentId: string,
+    paidAt: string,
+    proofUrl?: string
+  ): Promise<Installment | undefined> => {
+    return payInstallment(installmentId, { paidAt, proofUrl });
   };
 
   // Attachments
@@ -423,8 +395,6 @@ export const useFinanceService = () => {
     getKpis,
 
     // Analytics
-    getContractsByPeriod,
-    getReceivedByPeriod,
     getTopCompanies,
     getRevenuesByType,
     getRevenuesByModel,
@@ -433,6 +403,7 @@ export const useFinanceService = () => {
     generateInstallments,
     updateInstallment,
     payInstallment,
+    confirmInstallmentPayment,
 
     // Attachments
     uploadAttachment,

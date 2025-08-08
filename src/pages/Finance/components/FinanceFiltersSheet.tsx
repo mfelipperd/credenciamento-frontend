@@ -163,7 +163,8 @@ export function FinanceFiltersSheet({
                 onValueChange={(value) =>
                   setLocalFilters((prev) => ({
                     ...prev,
-                    status: value === "all" ? undefined : (value as RevenueStatus),
+                    status:
+                      value === "all" ? undefined : (value as RevenueStatus),
                   }))
                 }
               >
@@ -191,7 +192,8 @@ export function FinanceFiltersSheet({
                 onValueChange={(value) =>
                   setLocalFilters((prev) => ({
                     ...prev,
-                    type: value === "all" ? undefined : (value as EntryModelType),
+                    type:
+                      value === "all" ? undefined : (value as EntryModelType),
                   }))
                 }
               >
