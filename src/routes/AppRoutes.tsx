@@ -14,6 +14,8 @@ import { SucessFormTotem } from "@/pages/SucessTotem/page";
 import { ConsultantPage } from "@/pages/ConsultantPage";
 import { ErrorTestPage } from "@/pages/ErrorTestPage";
 import { MarketingPage } from "@/pages/Marketing/page";
+import { FinancePage } from "@/pages/Finance/page";
+import { AdminRouteGuard } from "@/components/AdminRouteGuard";
 
 export const AppRoutes = createBrowserRouter([
   {
@@ -81,6 +83,14 @@ export const AppRoutes = createBrowserRouter([
               { path: "/visitors-table", element: <TabeleVisitors /> },
               { path: "/visitor/:id", element: <Visitor /> },
               { path: "/marketing", element: <MarketingPage /> },
+              {
+                path: "/financeiro/receitas",
+                element: (
+                  <AdminRouteGuard>
+                    <FinancePage />
+                  </AdminRouteGuard>
+                ),
+              },
             ],
           },
         ],

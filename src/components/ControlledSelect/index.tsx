@@ -44,7 +44,7 @@ export function ControlledSelect<T extends FieldValues>({
           {label && (
             <label
               htmlFor={String(name)}
-              className="block mb-1 text-sm font-medium"
+              className="block mb-1 text-sm font-medium text-gray-900 dark:text-white"
             >
               {label}
             </label>

@@ -10,6 +10,7 @@ import {
   Settings,
   User2,
   Mail,
+  DollarSign,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
@@ -18,6 +19,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { CreateUserModal } from "./ModalCreateUser";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useCookie } from "@/hooks/useCookie";
+import { EUserRole } from "@/enums/user.enum";
 
 export const MainLayout: React.FC = () => {
   const { fairs, getFairs, loading } = useFairService();
@@ -232,6 +234,17 @@ export const MainLayout: React.FC = () => {
                 Marketing
               </span>
             </Link>
+            {auth?.user?.role === EUserRole.ADMIN && (
+              <Link
+                className="flex items-center gap-1.5 text-white/90 hover:text-white transition-colors px-2 py-1 rounded hover:bg-white/10"
+                to={{ pathname: "/financeiro/receitas", search }}
+              >
+                <DollarSign size={16} />
+                <span className="hidden sm:inline text-sm font-medium">
+                  Receitas
+                </span>
+              </Link>
+            )}
           </div>
         </div>
       </nav>

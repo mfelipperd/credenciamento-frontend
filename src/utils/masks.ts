@@ -45,3 +45,40 @@ export function maskEmail(value: string): string {
 export function unmaskString(value: string): string {
   return value.replace(/\D/g, "");
 }
+
+/**
+ * Mascarar valor monetário BRL no formato R$ 0.000,00
+ */
+export function maskCurrencyBRL(value: string): string {
+  const digits = value.replace(/\D/g, "");
+
+  if (!digits) return "";
+
+  const cents = parseInt(digits, 10);
+  const reais = cents / 100;
+
+  return new Intl.NumberFormat("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(reais);
+}
+
+/**
+ * Formatar valor em centavos para moeda BRL
+ */
+export function formatCurrencyFromCents(cents: number): string {
+  const reais = cents / 100;
+
+  return new Intl.NumberFormat("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(reais);
+}
+
+/**
+ * Remove máscara de moeda BRL e retorna valor em centavos
+ */
+export function unmaskCurrencyBRL(value: string): number {
+  const digits = value.replace(/\D/g, "");
+  return parseInt(digits, 10) || 0;
+}
