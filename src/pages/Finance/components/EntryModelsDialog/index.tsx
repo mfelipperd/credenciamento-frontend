@@ -135,12 +135,15 @@ export function EntryModelsDialog({
     },
     onError: (error: unknown) => {
       console.error("Erro detalhado ao deletar modelo:", error);
-      if (error && typeof error === 'object' && 'response' in error) {
-        const axiosError = error as { response?: { data?: unknown; status?: number } };
+      if (error && typeof error === "object" && "response" in error) {
+        const axiosError = error as {
+          response?: { data?: unknown; status?: number };
+        };
         console.error("Error response:", axiosError.response?.data);
         console.error("Error status:", axiosError.response?.status);
       }
-      const message = error instanceof Error ? error.message : "Erro interno do servidor";
+      const message =
+        error instanceof Error ? error.message : "Erro interno do servidor";
       toast.error(`Erro ao remover modelo: ${message}`);
     },
   });

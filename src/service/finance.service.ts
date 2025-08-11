@@ -65,9 +65,12 @@ export const useFinanceService = () => {
     });
   };
 
-  const deleteEntryModel = async (id: string, fairId?: string): Promise<void> => {
+  const deleteEntryModel = async (
+    id: string,
+    fairId?: string
+  ): Promise<void> => {
     console.log("Deleting entry model:", { id, fairId });
-    
+
     // Temporariamente removendo fairId para testar
     console.log("DELETE URL:", `${BASE_URL}/entry-models/${id}`);
 
