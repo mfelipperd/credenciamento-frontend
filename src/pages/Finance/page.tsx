@@ -72,13 +72,17 @@ export function FinancePage() {
     enabled: !!filters.fairId,
   });
 
-  // Query para KPIs
-  const { data: kpisData, isLoading: isLoadingKpis } = useQuery({
-    queryKey: ["finance-kpis", filters.fairId, filters.from, filters.to],
-    queryFn: () =>
-      financeService.getKpis(filters.fairId!, filters.from, filters.to),
-    enabled: !!filters.fairId,
-  });
+  // Query para KPIs - REMOVIDA: rota não existe no backend
+  // const { data: kpisData, isLoading: isLoadingKpis } = useQuery({
+  //   queryKey: ["finance-kpis", filters.fairId, filters.from, filters.to],
+  //   queryFn: () =>
+  //     financeService.getKpis(filters.fairId!, filters.from, filters.to),
+  //   enabled: !!filters.fairId,
+  // });
+
+  // Dados mockados temporariamente até implementação do backend
+  const kpisData = undefined;
+  const isLoadingKpis = false;
 
   // Query para estatísticas de stands
   const { data: standStats } = useQuery({

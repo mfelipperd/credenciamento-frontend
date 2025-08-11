@@ -68,11 +68,11 @@ export const useFinanceService = () => {
   const deleteEntryModel = async (id: string, fairId?: string): Promise<void> => {
     console.log("Deleting entry model:", { id, fairId });
     
-    const body = fairId ? { fairId } : {};
-    console.log("DELETE body:", body);
+    // Temporariamente removendo fairId para testar
+    console.log("DELETE URL:", `${BASE_URL}/entry-models/${id}`);
 
     await handleRequest<{ success: boolean }>({
-      request: () => api.delete(`${BASE_URL}/entry-models/${id}`, { data: body }),
+      request: () => api.delete(`${BASE_URL}/entry-models/${id}`),
       successMessage: "Modelo de entrada removido com sucesso!",
     });
   };
