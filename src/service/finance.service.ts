@@ -177,18 +177,34 @@ export const useFinanceService = () => {
   };
 
   const getRevenueDetail = async (
-    id: string
+    id: string,
+    fairId?: string
   ): Promise<RevenueDetail | undefined> => {
+    const params = new URLSearchParams();
+    if (fairId) params.append("fairId", fairId);
+
+    const url = `${BASE_URL}/revenues/${id}${
+      params.toString() ? `?${params.toString()}` : ""
+    }`;
+
     return handleRequest<RevenueDetail>({
-      request: () => api.get(`${BASE_URL}/revenues/${id}`),
+      request: () => api.get(url),
     });
   };
 
   const getRevenuesByClient = async (
-    clientId: string
+    clientId: string,
+    fairId?: string
   ): Promise<RevenueListItem[] | undefined> => {
+    const params = new URLSearchParams();
+    if (fairId) params.append("fairId", fairId);
+
+    const url = `${BASE_URL}/revenues/client/${clientId}${
+      params.toString() ? `?${params.toString()}` : ""
+    }`;
+
     return handleRequest<RevenueListItem[]>({
-      request: () => api.get(`${BASE_URL}/revenues/client/${clientId}`),
+      request: () => api.get(url),
     });
   };
 
@@ -203,24 +219,46 @@ export const useFinanceService = () => {
 
   const updateRevenue = async (
     id: string,
-    data: Partial<CreateRevenueForm>
+    data: Partial<CreateRevenueForm>,
+    fairId?: string
   ): Promise<RevenueDetail | undefined> => {
+    const params = new URLSearchParams();
+    if (fairId) params.append("fairId", fairId);
+
+    const url = `${BASE_URL}/revenues/${id}${
+      params.toString() ? `?${params.toString()}` : ""
+    }`;
+
     return handleRequest<RevenueDetail>({
-      request: () => api.patch(`${BASE_URL}/revenues/${id}`, data),
+      request: () => api.patch(url, data),
       successMessage: "Receita atualizada com sucesso!",
     });
   };
 
-  const deleteRevenue = async (id: string): Promise<void> => {
+  const deleteRevenue = async (id: string, fairId?: string): Promise<void> => {
+    const params = new URLSearchParams();
+    if (fairId) params.append("fairId", fairId);
+
+    const url = `${BASE_URL}/revenues/${id}${
+      params.toString() ? `?${params.toString()}` : ""
+    }`;
+
     await handleRequest<{ success: boolean }>({
-      request: () => api.delete(`${BASE_URL}/revenues/${id}`),
+      request: () => api.delete(url),
       successMessage: "Receita removida com sucesso!",
     });
   };
 
-  const cancelRevenue = async (id: string): Promise<void> => {
+  const cancelRevenue = async (id: string, fairId?: string): Promise<void> => {
+    const params = new URLSearchParams();
+    if (fairId) params.append("fairId", fairId);
+
+    const url = `${BASE_URL}/revenues/${id}/cancel${
+      params.toString() ? `?${params.toString()}` : ""
+    }`;
+
     await handleRequest<{ success: boolean }>({
-      request: () => api.patch(`${BASE_URL}/revenues/${id}/cancel`),
+      request: () => api.patch(url),
       successMessage: "Receita cancelada com sucesso!",
     });
   };

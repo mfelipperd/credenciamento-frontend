@@ -118,6 +118,7 @@ export interface RevenueListItem {
   type: EntryModelType;
   entryModelId: string;
   clientId: string;
+  standNumber: number; // Número do stand comprado
 
   // Valores monetários (em centavos)
   baseValue: number;
@@ -228,4 +229,5 @@ export interface CreateClientForm {
   cnpj?: string;
   email?: string;
   phone?: string;
+  fairId: string;
 }

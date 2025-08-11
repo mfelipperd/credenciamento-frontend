@@ -75,6 +75,7 @@ const createClientSchema = z.object({
   cnpj: z.string().optional(),
   email: z.string().email("Email inválido").optional().or(z.literal("")),
   phone: z.string().optional(),
+  fairId: z.string().min(1, "FairId é obrigatório"),
 });
 
 type RevenueFormData = z.infer<typeof revenueSchema>;
@@ -117,6 +118,39 @@ export function ReceitaDrawer({
   const standService = useStandService();
   const queryClient = useQueryClient();
 
+  // Se não há fairId, não renderiza o conteúdo principal
+  const hasValidFairId = fairId && fairId.trim() !== "";
+
+  if (!hasValidFairId && isOpen) {
+    return (
+      <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
+        <SheetContent className="w-full max-w-4xl min-w-[40rem] overflow-y-auto p-6">
+          <SheetHeader className="border-b border-gray-200/30 dark:border-gray-700/30 pb-4 mb-6">
+            <div className="flex items-center justify-between">
+              <SheetTitle className="text-xl font-semibold text-gray-900 dark:text-white">
+                Erro
+              </SheetTitle>
+              <Button variant="ghost" size="sm" onClick={onClose}>
+                <X className="w-4 h-4 text-gray-600 dark:text-white" />
+              </Button>
+            </div>
+          </SheetHeader>
+          <div className="p-6 text-center">
+            <p className="text-lg text-red-600 dark:text-red-400 mb-4">
+              É necessário selecionar uma feira para criar uma receita.
+            </p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+              Por favor, selecione uma feira válida no seletor do cabeçalho e tente novamente.
+            </p>
+            <Button onClick={onClose}>
+              Fechar
+            </Button>
+          </div>
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
   // Form principal
   const {
     register,
@@ -140,8 +174,12 @@ export function ReceitaDrawer({
     control: controlClient,
     handleSubmit: handleSubmitClient,
     reset: resetClient,
+    setValue: setValueClient,
   } = useForm<CreateClientData>({
     resolver: zodResolver(createClientSchema),
+    defaultValues: {
+      fairId: fairId || "",
+    },
   });
 
   const watchedValues = watch();
@@ -162,8 +200,12 @@ export function ReceitaDrawer({
 
   // Mutation para criar cliente
   const createClientMutation = useMutation({
-    mutationFn: (data: CreateClientData) => financeService.createClient(data),
+    mutationFn: (data: CreateClientData) => {
+      console.log("Mutation executando com dados:", data);
+      return financeService.createClient(data);
+    },
     onSuccess: (newClient) => {
+      console.log("Cliente criado com sucesso:", newClient);
       if (newClient) {
         toast.success("Cliente criado com sucesso!");
         setSelectedClient({ id: newClient.id, name: newClient.name });
@@ -171,10 +213,15 @@ export function ReceitaDrawer({
         setShowCreateClient(false);
         resetClient();
         queryClient.invalidateQueries({ queryKey: ["search-clients"] });
+      } else {
+        console.error("Resposta do servidor não contém dados do cliente");
+        toast.error("Erro: resposta inválida do servidor");
       }
     },
-    onError: (error: Error) => {
-      toast.error(`Erro ao criar cliente: ${error.message}`);
+    onError: (error: any) => {
+      console.error("Erro completo na criação do cliente:", error);
+      console.error("Error response:", error.response?.data);
+      toast.error(`Erro ao criar cliente: ${error.message || "Erro desconhecido"}`);
     },
   });
 
@@ -207,8 +254,16 @@ export function ReceitaDrawer({
       setClientSearch("");
       setShowCreateClient(false);
       setAttachedFile(null);
+      resetClient();
     }
-  }, [isOpen, reset]);
+  }, [isOpen, reset, resetClient]);
+
+  // Atualiza o fairId no formulário de cliente quando disponível
+  useEffect(() => {
+    if (fairId) {
+      setValueClient("fairId", fairId);
+    }
+  }, [fairId, setValueClient]);
 
   // Pré-seleciona o stand quando prefilledStandNumber está disponível
   useEffect(() => {
@@ -304,10 +359,21 @@ export function ReceitaDrawer({
   };
 
   const handleCreateClient = (data: CreateClientData) => {
+    if (!fairId) {
+      toast.error("FairId não encontrado");
+      return;
+    }
+
+    console.log("Dados do cliente sendo enviados:", data);
     createClientMutation.mutate(data);
   };
 
   const onSubmit = (data: RevenueFormData) => {
+    if (!fairId) {
+      toast.error("FairId não encontrado");
+      return;
+    }
+
     if (!selectedClient) {
       toast.error("Selecione um cliente");
       return;
@@ -353,7 +419,7 @@ export function ReceitaDrawer({
     });
 
     const formData: CreateRevenueForm = {
-      fairId: fairId!,
+      fairId: fairId,
       standNumber: selectedStand?.standNumber || 0, // ✅ NOVO CAMPO OBRIGATÓRIO
       type: selectedEntryModel.type as EntryModelType, // Tipo do modelo (STAND ou PATROCINIO)
       entryModelId: selectedEntryModel.id,

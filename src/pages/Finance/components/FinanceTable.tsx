@@ -145,9 +145,9 @@ export function FinanceTable({
               <TableHead>Cliente</TableHead>
               <TableHead>Tipo</TableHead>
               <TableHead>Valor</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Data Contrato</TableHead>
-              <TableHead>Próx. Vencimento</TableHead>
+              <TableHead className="hidden lg:table-cell">Status</TableHead>
+              <TableHead className="hidden lg:table-cell">Data Contrato</TableHead>
+              <TableHead className="hidden xl:table-cell">Próx. Vencimento</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
@@ -167,13 +167,13 @@ export function FinanceTable({
                   className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                   onClick={() => onViewDetail?.(revenue.id)}
                 >
-                  <TableCell>
+                                    <TableCell>
                     <div>
                       <div className="font-medium text-gray-900 dark:text-white">
                         {revenue.client?.name || "Cliente não informado"}
                       </div>
                       <div className="text-sm text-gray-500 dark:text-gray-400">
-                        ID: {revenue.client?.id || revenue.clientId}
+                        Stand #{revenue.standNumber}
                       </div>
                     </div>
                   </TableCell>
@@ -197,18 +197,25 @@ export function FinanceTable({
                       <div className="text-sm text-gray-500 dark:text-gray-400">
                         {revenue.paymentMethod}
                       </div>
+                      {/* Mostrar status e data em mobile */}
+                      <div className="flex gap-2 mt-1 lg:hidden">
+                        {getStatusBadge(revenue.status)}
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                          {dayjs(revenue.createdAt).format("DD/MM/YY")}
+                        </span>
+                      </div>
                     </div>
                   </TableCell>
 
-                  <TableCell>{getStatusBadge(revenue.status)}</TableCell>
+                  <TableCell className="hidden lg:table-cell">{getStatusBadge(revenue.status)}</TableCell>
 
-                  <TableCell>
+                  <TableCell className="hidden lg:table-cell">
                     <div className="text-sm text-gray-900 dark:text-white">
                       {dayjs(revenue.createdAt).format("DD/MM/YYYY")}
                     </div>
                   </TableCell>
 
-                  <TableCell>
+                  <TableCell className="hidden xl:table-cell">
                     {(() => {
                       // Buscar a próxima parcela não paga
                       const nextInstallment = revenue.installments?.find(

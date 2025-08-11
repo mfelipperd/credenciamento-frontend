@@ -93,7 +93,7 @@ export function FinancePage() {
 
   // Mutation para deletar receita
   const deleteRevenueMutation = useMutation({
-    mutationFn: financeService.deleteRevenue,
+    mutationFn: (revenueId: string) => financeService.deleteRevenue(revenueId, filters.fairId),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["finance-revenues"],
@@ -210,8 +210,8 @@ export function FinancePage() {
               variant="outline"
               className="text-gray-900 dark:text-white"
             >
-              <Settings className="w-4 h-4 mr-2" />
-              Configurar
+              <Plus className="w-4 h-4 mr-2" />
+              Criar Stands
             </Button>
             <Button
               onClick={handleCreateRevenue}
@@ -336,7 +336,7 @@ export function FinancePage() {
           isOpen={isDetailModalOpen}
           onClose={handleDetailModalClose}
           revenueId={selectedRevenueForDetail}
-          fairId={fairId || ""}
+          fairId={filters.fairId}
           onEditRevenue={handleEditRevenue}
         />
       </div>

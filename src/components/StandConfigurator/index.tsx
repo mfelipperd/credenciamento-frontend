@@ -131,7 +131,7 @@ export const StandConfigurator: React.FC<StandConfiguratorProps> = ({
         {isEditing ? (
           <>
             <Edit className="w-4 h-4" />
-            Editar ({currentStandCount} stands)
+            Editar quantidade de stands
           </>
         ) : (
           <>

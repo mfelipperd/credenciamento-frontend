@@ -256,11 +256,41 @@ export function RevenueDetailModal({
   const financeService = useFinanceService();
   const queryClient = useQueryClient();
 
+  // Verificar se fairId e revenueId estão disponíveis
+  const hasValidFairId = fairId && fairId.trim() !== "";
+  const hasValidRevenueId = revenueId && revenueId.trim() !== "";
+
+  if ((!hasValidFairId || !hasValidRevenueId) && isOpen) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-red-600">
+              Erro - Dados Insuficientes
+            </DialogTitle>
+          </DialogHeader>
+          <div className="p-4 text-center">
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
+              {!hasValidFairId && "É necessário selecionar uma feira válida."}
+              {!hasValidRevenueId && "ID da receita não foi fornecido."}
+            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-500 mb-6">
+              Por favor, selecione uma feira válida no cabeçalho e tente novamente.
+            </p>
+            <Button onClick={onClose}>
+              Fechar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   // Query para buscar detalhes da receita
   const { data: revenue, isLoading } = useQuery({
-    queryKey: ["revenue-detail", revenueId],
-    queryFn: () => financeService.getRevenueDetail(revenueId!),
-    enabled: !!revenueId && isOpen,
+    queryKey: ["revenue-detail", revenueId, fairId],
+    queryFn: () => financeService.getRevenueDetail(revenueId!, fairId),
+    enabled: !!revenueId && !!fairId && isOpen,
   });
 
   // Dados mockados para teste quando o backend não estiver disponível
