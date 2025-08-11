@@ -122,12 +122,18 @@ export function EntryModelsDialog({
 
   // Mutation para deletar entry model
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => financeService.deleteEntryModel(id),
+    mutationFn: (id: string) => {
+      if (!fairId) {
+        throw new Error("Fair ID é obrigatório para deletar modelo");
+      }
+      return financeService.deleteEntryModel(id, fairId);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["entry-models"] });
       toast.success("Modelo removido com sucesso!");
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Erro ao deletar modelo:", error);
       toast.error("Erro ao remover modelo");
     },
   });
@@ -190,14 +196,14 @@ export function EntryModelsDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto min-w-fit">
         <DialogHeader>
           <DialogTitle className="text-gray-900 dark:text-white">
-            Gerenciar Modelos de Entrada
+            Gerenciar Stands e Patrocínios
           </DialogTitle>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 w-[30rem]  gap-6">
           {/* Formulário */}
           <Card>
             <CardHeader>

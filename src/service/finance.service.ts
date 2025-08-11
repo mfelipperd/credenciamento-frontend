@@ -65,9 +65,17 @@ export const useFinanceService = () => {
     });
   };
 
-  const deleteEntryModel = async (id: string): Promise<void> => {
+  const deleteEntryModel = async (id: string, fairId?: string): Promise<void> => {
+    console.log("Deleting entry model:", { id, fairId });
+    
+    const params = new URLSearchParams();
+    if (fairId) params.append("fairId", fairId);
+
+    const url = `${BASE_URL}/revenues/${id}${params.toString() ? `?${params.toString()}` : ""}`;
+    console.log("DELETE URL:", url);
+
     await handleRequest<{ success: boolean }>({
-      request: () => api.delete(`${BASE_URL}/entry-models/${id}`),
+      request: () => api.delete(url),
       successMessage: "Modelo de entrada removido com sucesso!",
     });
   };
