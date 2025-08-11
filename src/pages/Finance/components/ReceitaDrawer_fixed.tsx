@@ -176,7 +176,7 @@ export function ReceitaDrawer({ isOpen, onClose, fairId }: ReceitaDrawerProps) {
       setShowCreateClient(false);
       setAttachedFile(null);
     }
-  }, [isOpen, reset]);
+  }, [isOpen]);
 
   // Helpers
   const formatCurrency = (cents: number) => {
@@ -296,6 +296,7 @@ export function ReceitaDrawer({ isOpen, onClose, fairId }: ReceitaDrawerProps) {
       createdBy: user.id.toString(), // ID do usuário logado como string
       condition: data.installmentsCount === "1" ? "À vista" : "Parcelado", // Condição opcional
       notes: data.notes, // Observações opcionais
+      standNumber: 0, // TODO: Implementar seleção de stand específico
     };
 
     createRevenueMutation.mutate(formData);

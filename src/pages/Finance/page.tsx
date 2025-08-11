@@ -2,16 +2,25 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import { useFinanceService } from "@/service/finance.service";
+import { useStandService } from "@/service/stands.service";
 import { FinanceFiltersSheet } from "./components/FinanceFiltersSheet";
 import { FinanceKpis } from "./components/FinanceKpis";
 import { FinanceTable } from "./components/FinanceTable";
 import { ReceitaDrawer } from "./components/ReceitaDrawer";
 import { EntryModelsDialog } from "./components/EntryModelsDialog";
 import { RevenueDetailModal } from "./components/RevenueDetailModal";
+import { StandMap } from "@/components/StandMap";
+import { StandConfigurator } from "@/components/StandConfigurator";
 import type { RevenueFilters } from "@/interfaces/finance";
-import { Card } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Settings, Filter } from "lucide-react";
+import { Plus, Settings, Filter, Grid } from "lucide-react";
 
 export function FinancePage() {
   const [searchParams] = useSearchParams();
@@ -44,8 +53,13 @@ export function FinancePage() {
   const [isConfigDialogOpen, setIsConfigDialogOpen] = useState(false);
   const [isFiltersSheetOpen, setIsFiltersSheetOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [standsRefreshKey, setStandsRefreshKey] = useState(0);
+  const [selectedStandNumber, setSelectedStandNumber] = useState<number | null>(
+    null
+  );
 
   const financeService = useFinanceService();
+  const standService = useStandService();
 
   // Query para buscar receitas
   const {
@@ -63,6 +77,13 @@ export function FinancePage() {
     queryKey: ["finance-kpis", filters.fairId, filters.from, filters.to],
     queryFn: () =>
       financeService.getKpis(filters.fairId!, filters.from, filters.to),
+    enabled: !!filters.fairId,
+  });
+
+  // Query para estatísticas de stands
+  const { data: standStats } = useQuery({
+    queryKey: ["stand-stats", filters.fairId, standsRefreshKey],
+    queryFn: () => standService.getStandStats(filters.fairId!),
     enabled: !!filters.fairId,
   });
 
@@ -89,6 +110,13 @@ export function FinancePage() {
 
   const handleCreateRevenue = () => {
     setSelectedRevenueId(null);
+    setSelectedStandNumber(null);
+    setIsDrawerOpen(true);
+  };
+
+  const handleCreateRevenueFromStand = (standNumber: number) => {
+    setSelectedRevenueId(null);
+    setSelectedStandNumber(standNumber);
     setIsDrawerOpen(true);
   };
 
@@ -115,12 +143,21 @@ export function FinancePage() {
   const handleDrawerClose = () => {
     setIsDrawerOpen(false);
     setSelectedRevenueId(null);
+    setSelectedStandNumber(null);
     refetchRevenues();
+    // Refresh stands quando uma receita é criada/editada (pode afetar ocupação)
+    setStandsRefreshKey((prev) => prev + 1);
   };
 
   const handleDetailModalClose = () => {
     setIsDetailModalOpen(false);
     setSelectedRevenueForDetail(null);
+  };
+
+  const getOccupancyColor = (rate: number) => {
+    if (rate >= 80) return "text-red-600";
+    if (rate >= 60) return "text-yellow-600";
+    return "text-green-600";
   };
 
   // Função para detectar se há filtros ativos
@@ -189,7 +226,68 @@ export function FinancePage() {
           <FinanceKpis data={kpisData} isLoading={isLoadingKpis} />
         )}
 
-        {/* Tabela de Receitas - Movida para cima */}
+        {/* Seção de Stands - Simplificada */}
+        {filters.fairId && (
+          <Card className="glass-card">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Grid className="h-5 w-5" />
+                    Stands da Feira
+                  </CardTitle>
+                  <CardDescription>
+                    Matriz visual dos stands - clique para gerenciar
+                  </CardDescription>
+                </div>
+                <div className="flex items-center gap-4">
+                  {standStats && (
+                    <div className="flex gap-6 text-sm">
+                      <div className="text-center">
+                        <div className="font-bold text-lg text-green-600">
+                          {standStats.available}
+                        </div>
+                        <div className="text-gray-600">Disponíveis</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="font-bold text-lg text-red-600">
+                          {standStats.occupied}
+                        </div>
+                        <div className="text-gray-600">Ocupados</div>
+                      </div>
+                      <div className="text-center">
+                        <div
+                          className={`font-bold text-lg ${getOccupancyColor(
+                            standStats.occupancyRate
+                          )}`}
+                        >
+                          {standStats.occupancyRate.toFixed(1)}%
+                        </div>
+                        <div className="text-gray-600">Ocupação</div>
+                      </div>
+                    </div>
+                  )}
+                  <StandConfigurator
+                    fairId={filters.fairId}
+                    currentStandCount={standStats?.total || 0}
+                    onConfigurationChange={() =>
+                      setStandsRefreshKey((prev) => prev + 1)
+                    }
+                  />
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <StandMap
+                fairId={filters.fairId}
+                key={standsRefreshKey}
+                onCreateRevenue={handleCreateRevenueFromStand}
+              />
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Tabela de Receitas */}
         {filters.fairId && (
           <Card className="glass-card">
             <FinanceTable
@@ -211,6 +309,7 @@ export function FinancePage() {
           onClose={handleDrawerClose}
           revenueId={selectedRevenueId}
           fairId={filters.fairId}
+          prefilledStandNumber={selectedStandNumber}
         />
 
         {/* Dialog para gerenciar modelos de entrada */}

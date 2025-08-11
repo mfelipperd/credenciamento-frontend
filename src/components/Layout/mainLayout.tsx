@@ -17,6 +17,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { SimpleFooter } from "../Footer";
 import { useAuth } from "@/hooks/useAuth";
 import { CreateUserModal } from "./ModalCreateUser";
+import { ModalCreateFair } from "./ModalCreateFair";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useCookie } from "@/hooks/useCookie";
 import { EUserRole } from "@/enums/user.enum";
@@ -188,6 +189,7 @@ export const MainLayout: React.FC = () => {
                   </PopoverTrigger>
                   <PopoverContent className="w-48 bg-white  ">
                     <div className="p-3 space-y-2">
+                      <ModalCreateFair />
                       <div
                         onClick={auth.signOut}
                         className="flex items-center gap-2 text-foreground hover:text-red-600 cursor-pointer transition-colors p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-950"

@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuth } from "@/hooks/useAuth";
 import { useFinanceService } from "@/service/finance.service";
+import { useStandService } from "@/service/stands.service";
 import {
   Sheet,
   SheetContent,
@@ -24,20 +25,33 @@ import {
 import { Card } from "@/components/ui/card";
 import { ControlledInput } from "@/components/ControlledInput";
 import { ControlledSelect } from "@/components/ControlledSelect";
+import { StandSelector } from "@/components/StandSelector";
 import { X, Search, Plus, Upload, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import type { CreateRevenueForm, EntryModelType } from "@/interfaces/finance";
+import type {
+  CreateRevenueForm,
+  EntryModelType,
+  Stand,
+} from "@/interfaces/finance";
 
 interface ReceitaDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   revenueId?: string | null;
   fairId?: string;
+  prefilledStandNumber?: number | null;
 }
 
 // Schema de validação completo com validações contextuais
 const revenueSchema = z.object({
   clientId: z.string().min(1, "Selecione um cliente"),
+  standNumber: z
+    .number({
+      required_error: "Selecione um stand",
+      invalid_type_error: "Stand deve ser um número válido",
+    })
+    .int("Stand deve ser um número inteiro")
+    .min(1, "Selecione um stand válido"),
   entryModelId: z.string().min(1, "Selecione um stand/patrocínio"),
   discountCents: z
     .number({
@@ -74,11 +88,20 @@ interface AttachedFile {
   preview?: string;
 }
 
-export function ReceitaDrawer({ isOpen, onClose, fairId }: ReceitaDrawerProps) {
+export function ReceitaDrawer({
+  isOpen,
+  onClose,
+  fairId,
+  prefilledStandNumber,
+}: ReceitaDrawerProps) {
   const [clientSearch, setClientSearch] = useState("");
   const [selectedClient, setSelectedClient] = useState<{
     id: string;
     name: string;
+  } | null>(null);
+  const [selectedStand, setSelectedStand] = useState<{
+    standNumber: number;
+    stand: Stand;
   } | null>(null);
   const [selectedEntryModel, setSelectedEntryModel] = useState<{
     id: string;
@@ -91,6 +114,7 @@ export function ReceitaDrawer({ isOpen, onClose, fairId }: ReceitaDrawerProps) {
 
   const { user } = useAuth();
   const financeService = useFinanceService();
+  const standService = useStandService();
   const queryClient = useQueryClient();
 
   // Form principal
@@ -178,12 +202,40 @@ export function ReceitaDrawer({ isOpen, onClose, fairId }: ReceitaDrawerProps) {
     if (!isOpen) {
       reset();
       setSelectedClient(null);
+      setSelectedStand(null);
       setSelectedEntryModel(null);
       setClientSearch("");
       setShowCreateClient(false);
       setAttachedFile(null);
     }
   }, [isOpen, reset]);
+
+  // Pré-seleciona o stand quando prefilledStandNumber está disponível
+  useEffect(() => {
+    const loadPrefilledStand = async () => {
+      if (prefilledStandNumber && isOpen && fairId) {
+        setValue("standNumber", prefilledStandNumber);
+
+        // Busca o stand completo para atualizar o selectedStand
+        try {
+          const availableStands = await standService.getAvailableStands(fairId);
+          if (availableStands) {
+            const stand = availableStands.find(
+              (s) => s.standNumber === prefilledStandNumber
+            );
+            if (stand) {
+              setSelectedStand({ standNumber: prefilledStandNumber, stand });
+            }
+          }
+        } catch (error) {
+          console.error("Erro ao buscar stand pré-selecionado:", error);
+        }
+      }
+    };
+
+    loadPrefilledStand();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prefilledStandNumber, isOpen, fairId]);
 
   // Helpers
   const formatCurrency = (cents: number) => {
@@ -206,8 +258,13 @@ export function ReceitaDrawer({ isOpen, onClose, fairId }: ReceitaDrawerProps) {
     setClientSearch("");
   };
 
-  const handleEntryModelSelect = (modelId: string) => {
-    const model = entryModels.find((m) => m.id === modelId);
+  const handleStandSelect = (standNumber: number, stand: Stand) => {
+    setSelectedStand({ standNumber, stand });
+    setValue("standNumber", standNumber);
+  };
+
+  const handleEntryModelSelect = (entryModelId: string) => {
+    const model = entryModels.find((m) => m.id === entryModelId);
     if (model) {
       setSelectedEntryModel({
         id: model.id,
@@ -256,6 +313,11 @@ export function ReceitaDrawer({ isOpen, onClose, fairId }: ReceitaDrawerProps) {
       return;
     }
 
+    if (!selectedStand) {
+      toast.error("Selecione um stand");
+      return;
+    }
+
     if (!selectedEntryModel) {
       toast.error("Selecione um stand/patrocínio");
       return;
@@ -292,6 +354,7 @@ export function ReceitaDrawer({ isOpen, onClose, fairId }: ReceitaDrawerProps) {
 
     const formData: CreateRevenueForm = {
       fairId: fairId!,
+      standNumber: selectedStand?.standNumber || 0, // ✅ NOVO CAMPO OBRIGATÓRIO
       type: selectedEntryModel.type as EntryModelType, // Tipo do modelo (STAND ou PATROCINIO)
       entryModelId: selectedEntryModel.id,
       clientId: selectedClient.id,
@@ -465,8 +528,18 @@ export function ReceitaDrawer({ isOpen, onClose, fairId }: ReceitaDrawerProps) {
           {/* Seção 2: Tipo e Valores */}
           <div className="space-y-4">
             <h3 className="text-lg font-medium text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
-              2. Tipo e Valores
+              2. Seleção de Stand e Valores
             </h3>
+
+            {/* Seletor de Stand */}
+            {fairId && (
+              <StandSelector
+                fairId={fairId}
+                value={watchedValues.standNumber || selectedStand?.standNumber}
+                onChange={handleStandSelect}
+                error={errors.standNumber?.message}
+              />
+            )}
 
             {/* Modelo */}
             <div className="space-y-2">

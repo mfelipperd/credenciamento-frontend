@@ -14,6 +14,61 @@ export type PaymentMethod =
   | "TRANSFERENCIA";
 export type InstallmentStatus = "A_VENCER" | "VENCIDA" | "PAGA" | "CANCELADA";
 
+// Stand interfaces
+export interface Stand {
+  id: string;
+  standNumber: number;
+  fairId: string;
+  price?: number;
+  isAvailable: boolean;
+  revenueId?: string | null;
+  revenue?: RevenueDetail | null;
+  createdAt: string;
+  updatedAt: string;
+
+  // Dados do cliente (quando stand está ocupado)
+  clientName?: string;
+  clientEmail?: string;
+  clientPhone?: string;
+  clientCnpj?: string;
+
+  // Dados da receita (quando stand está ocupado)
+  revenueStatus?: RevenueStatus;
+  paymentMethod?: PaymentMethod;
+  contractValue?: number; // Valor em centavos
+  numberOfInstallments?: number;
+  condition?: string;
+  notes?: string;
+  revenueCreatedAt?: string;
+
+  // Dados do entry model
+  entryModelName?: string;
+  entryModelBaseValue?: number; // Valor em centavos
+}
+
+export interface StandStats {
+  fairId: string;
+  total: number;
+  available: number;
+  occupied: number;
+  occupancyRate: number;
+  totalRevenue: number;
+  averagePrice: number;
+}
+
+export interface ConfigureStandsForm {
+  fairId: string;
+  totalStands: number;
+  price: number;
+}
+
+export interface ConfigureStandsResponse {
+  message: string;
+  fairId: string;
+  totalStands: number;
+  price: number;
+}
+
 export interface Client {
   id: string;
   name: string;
@@ -94,6 +149,7 @@ export interface RevenueDetail extends RevenueListItem {
   // Garantir que estes campos estão presentes no detalhamento
   client: Client;
   entryModel: EntryModel;
+  stand?: Stand; // ✅ NOVO CAMPO para dados do stand vinculado
   installments: Installment[];
   attachments?: Attachment[];
 }
@@ -153,6 +209,7 @@ export interface RevenueFilters {
 // Form types
 export interface CreateRevenueForm {
   fairId: string; // ✅ Obrigatório
+  standNumber: number; // ✅ NOVO CAMPO OBRIGATÓRIO
   type: EntryModelType; // ✅ Obrigatório - "STAND" ou "PATROCINIO"
   entryModelId: string; // ✅ Obrigatório
   clientId: string; // ✅ Obrigatório
