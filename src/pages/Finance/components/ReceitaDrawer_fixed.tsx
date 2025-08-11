@@ -55,6 +55,7 @@ const createClientSchema = z.object({
   cnpj: z.string().optional(),
   email: z.string().email("Email inválido").optional().or(z.literal("")),
   phone: z.string().optional(),
+  fairId: z.string().min(1, "FairId é obrigatório"),
 });
 
 type RevenueFormData = z.infer<typeof revenueSchema>;
@@ -111,6 +112,9 @@ export function ReceitaDrawer({ isOpen, onClose, fairId }: ReceitaDrawerProps) {
     reset: resetClient,
   } = useForm<CreateClientData>({
     resolver: zodResolver(createClientSchema),
+    defaultValues: {
+      fairId: fairId || "",
+    },
   });
 
   const watchedValues = watch();
@@ -240,7 +244,17 @@ export function ReceitaDrawer({ isOpen, onClose, fairId }: ReceitaDrawerProps) {
   };
 
   const handleCreateClient = (data: CreateClientData) => {
-    createClientMutation.mutate(data);
+    if (!fairId) {
+      toast.error("FairId não encontrado");
+      return;
+    }
+
+    const clientData: CreateClientData = {
+      ...data,
+      fairId: fairId,
+    };
+
+    createClientMutation.mutate(clientData);
   };
 
   const onSubmit = (data: RevenueFormData) => {

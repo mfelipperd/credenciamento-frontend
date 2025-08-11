@@ -20,7 +20,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Settings, Filter, Grid } from "lucide-react";
+import { Plus, Filter, Grid } from "lucide-react";
 
 export function FinancePage() {
   const [searchParams] = useSearchParams();
