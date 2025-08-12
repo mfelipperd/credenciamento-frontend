@@ -22,7 +22,14 @@ export const useAxiosPublic = (): AxiosInstance => {
     inst.interceptors.request.use(
       (request) => {
         // Aplica estratégias de compatibilidade para rotas protegidas
-        if (needsMiddlewareHeaders(request.url || '')) {
+        const needsAuth = needsMiddlewareHeaders(request.url || '');
+        console.log('🚀 Request interceptor:', {
+          url: request.url,
+          needsAuth,
+          method: request.method
+        });
+        
+        if (needsAuth) {
           request = enhanceRequestForBackendMiddleware(request);
         }
         return request;

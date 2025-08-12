@@ -11,10 +11,20 @@ export function generateFrontendAuthHash(): string {
   const timestamp = Date.now().toString();
   const message = `frontend-${timestamp}`;
   
+  console.log('🔑 Gerando hash:', {
+    message,
+    timestamp,
+    secretKey: SECRET_KEY.substring(0, 10) + '...',
+    secretKeyLength: SECRET_KEY.length
+  });
+  
   const hash = CryptoJS.HmacSHA256(message, SECRET_KEY).toString();
+  const fullHash = `${hash}-${timestamp}`;
+  
+  console.log('✅ Hash gerado:', fullHash.substring(0, 20) + '...');
   
   // Retorna o hash com timestamp para validação no backend
-  return `${hash}-${timestamp}`;
+  return fullHash;
 }
 
 /**
