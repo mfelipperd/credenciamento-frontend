@@ -1,5 +1,5 @@
 import { handleRequest } from "@/utils/handleRequest";
-import { useAxios } from "@/hooks/useAxio";
+import { useAxio } from "@/hooks/useAxio";
 
 export interface SendMarketingEmailRequest {
   subject: string;
@@ -21,7 +21,7 @@ export interface SendMarketingEmailResponse {
 }
 
 export const useMarketingService = () => {
-  const api = useAxios();
+  const api = useAxio();
 
   const sendMarketingEmailToAbsentVisitors = async (
     data: SendMarketingEmailRequest

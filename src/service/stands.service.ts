@@ -1,5 +1,5 @@
 import { handleRequest } from "@/utils/handleRequest";
-import { useAxios } from "@/hooks/useAxio";
+import { useAxio } from "@/hooks/useAxio";
 import type {
   Stand,
   StandStats,
@@ -11,7 +11,7 @@ const BASE_URL = "/finance";
 
 // Hook personalizado para o serviço de stands
 export const useStandService = () => {
-  const api = useAxios();
+  const api = useAxio();
 
   // Configurar stands em lote para uma feira
   const configureStands = async (

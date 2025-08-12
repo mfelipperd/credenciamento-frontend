@@ -1,5 +1,5 @@
 import { handleRequest } from "@/utils/handleRequest";
-import { useAxios } from "@/hooks/useAxio";
+import { useAxio } from "@/hooks/useAxio";
 import type {
   RevenueListItem,
   RevenueDetail,
@@ -19,7 +19,7 @@ const BASE_URL = "/finance";
 
 // Hook personalizado para o serviço financeiro
 export const useFinanceService = () => {
-  const api = useAxios();
+  const api = useAxio();
 
   // Entry Models
   const getEntryModels = async (
