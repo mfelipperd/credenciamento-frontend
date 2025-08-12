@@ -21,14 +21,20 @@ export const useAxio = (): AxiosInstance => {
 
     inst.interceptors.request.use(
       (request) => {
+        console.log('🔒 useAxio interceptor - URL:', request.url);
+        
         // Adiciona token de autorização se disponível
         if (token) {
           request.headers.set("Authorization", `Bearer ${token}`);
+          console.log('🎫 Token adicionado');
         }
         
         // Aplica estratégias de compatibilidade para rotas protegidas
         if (needsMiddlewareHeaders(request.url || '')) {
+          console.log('🛡️ Rota protegida detectada, aplicando middleware compat');
           request = enhanceRequestForBackendMiddleware(request);
+        } else {
+          console.log('🔓 Rota não protegida, sem middleware');
         }
         
         return request;

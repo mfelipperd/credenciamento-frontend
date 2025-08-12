@@ -1,44 +1,29 @@
-import { generateFrontendAuthHash } from './cryptoAuth';
+import { getSecurityHeaders } from './cryptoAuth';
 
 /**
- * Utilitário para autenticação SEM USAR HEADERS CUSTOMIZADOS
- * Usa apenas query string e body para evitar problemas de CORS
+ * Utilitário para autenticação usando headers corretos (como backend espera)
+ * Backend FrontendOriginGuard espera x-frontend-auth header
  */
 
 /**
- * Adiciona autenticação via query string e body (ZERO CORS necessário)
+ * Adiciona autenticação via header x-frontend-auth (como backend espera)
  */
 export function enhanceRequestForBackendMiddleware(config: any) {
-  const authHash = generateFrontendAuthHash();
+  const securityHeaders = getSecurityHeaders();
   
-  console.log('🔐 Gerando autenticação frontend:', {
+  console.log('🔐 Aplicando autenticação para rota protegida:', {
     url: config.url,
     method: config.method,
-    authHash: authHash,
-    secretKey: import.meta.env.VITE_FRONTEND_SECRET_KEY ? 'Configurado' : 'Usando fallback'
+    headers: Object.keys(securityHeaders)
   });
   
-  // Estratégia 1: Query string (sempre funciona, sem CORS)
-  if (config.url) {
-    const separator = config.url.includes('?') ? '&' : '?';
-    const newUrl = config.url + `${separator}frontend-client=true&app-type=frontend&auth-hash=${encodeURIComponent(authHash)}`;
-    console.log('📡 URL com autenticação:', newUrl);
-    config.url = newUrl;
-  }
-
-  // Estratégia 2: Body parameters para POST/PUT (sem CORS)
-  if (config.data && typeof config.data === 'object' && config.method?.toLowerCase() !== 'get') {
-    config.data = {
-      ...config.data,
-      __frontendClient: true,
-      __appType: 'frontend',
-      __authHash: authHash,
-    };
-    console.log('📦 Body com autenticação:', config.data);
-  }
-
-  // REMOVIDO: Todos os headers customizados que causam CORS
-  // Usando apenas Content-Type e Authorization que já funcionam
+  // Aplicar headers de segurança (x-frontend-auth)
+  config.headers = {
+    ...config.headers,
+    ...securityHeaders
+  };
+  
+  console.log('� Headers de autenticação aplicados');
 
   return config;
 }

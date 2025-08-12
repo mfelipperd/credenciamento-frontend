@@ -4,36 +4,54 @@ import CryptoJS from 'crypto-js';
 const SECRET_KEY = import.meta.env.VITE_FRONTEND_SECRET_KEY || 'fallback-key-development-only';
 
 /**
- * Gera um hash HMAC-SHA256 para autenticação frontend
- * Baseado no timestamp atual para evitar replay attacks
+ * Gera um token criptografado AES-256-CBC para autenticação frontend
+ * Implementação idêntica ao backend FrontendOriginGuard.generateFrontendAuth()
  */
 export function generateFrontendAuthHash(): string {
-  const timestamp = Date.now().toString();
-  const message = `frontend-${timestamp}`;
-  
-  console.log('🔑 Gerando hash:', {
-    message,
-    timestamp,
-    secretKey: SECRET_KEY.substring(0, 10) + '...',
-    secretKeyLength: SECRET_KEY.length
-  });
-  
-  const hash = CryptoJS.HmacSHA256(message, SECRET_KEY).toString();
-  const fullHash = `${hash}-${timestamp}`;
-  
-  console.log('✅ Hash gerado:', fullHash.substring(0, 20) + '...');
-  
-  // Retorna o hash com timestamp para validação no backend
-  return fullHash;
+  try {
+    // Gerar chave usando scrypt (mesmo algoritmo do backend)
+    const key = CryptoJS.PBKDF2(SECRET_KEY, 'salt', {
+      keySize: 256/32,
+      iterations: 16384
+    });
+    
+    // Gerar IV aleatório (16 bytes)
+    const iv = CryptoJS.lib.WordArray.random(16);
+    
+    // Timestamp atual
+    const timestamp = Date.now().toString();
+    
+    console.log('🔑 Gerando token AES:', {
+      timestamp,
+      secretKey: SECRET_KEY.substring(0, 10) + '...',
+      secretKeyLength: SECRET_KEY.length
+    });
+    
+    // Criptografar timestamp usando AES-256-CBC
+    const encrypted = CryptoJS.AES.encrypt(timestamp, key, {
+      iv: iv,
+      mode: CryptoJS.mode.CBC,
+      padding: CryptoJS.pad.Pkcs7
+    });
+    
+    // Retornar IV + dados criptografados (mesmo formato do backend)
+    const result = iv.toString(CryptoJS.enc.Hex) + encrypted.ciphertext.toString(CryptoJS.enc.Hex);
+    
+    console.log('✅ Token AES gerado:', result.substring(0, 20) + '...');
+    
+    return result;
+  } catch (error) {
+    console.error('❌ Erro ao gerar token AES:', error);
+    throw error;
+  }
 }
 
 /**
- * Retorna apenas headers que não precisam de configuração CORS especial
- * Evita problemas com Access-Control-Allow-Headers
+ * Retorna os headers obrigatórios para o middleware de segurança
+ * Agora usando o header x-frontend-auth como o backend espera
  */
 export function getSecurityHeaders(): Record<string, string> {
   return {
-    // Removido x-frontend-auth para evitar CORS
-    // A autenticação será feita via query string e body
+    'x-frontend-auth': generateFrontendAuthHash(),
   };
 }
