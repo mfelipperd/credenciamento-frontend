@@ -82,8 +82,8 @@ export const StandSelector: React.FC<StandSelectorProps> = ({
   if (loading) {
     return (
       <div className="space-y-2">
-        <Label>Stand</Label>
-        <div className="h-10 bg-gray-100 rounded-md animate-pulse"></div>
+        <Label className="text-gray-900 dark:text-gray-100">Stand</Label>
+        <div className="h-10 bg-gray-100 dark:bg-gray-800 rounded-md animate-pulse"></div>
       </div>
     );
   }
@@ -91,8 +91,8 @@ export const StandSelector: React.FC<StandSelectorProps> = ({
   if (availableStands.length === 0) {
     return (
       <div className="space-y-2">
-        <Label>Stand</Label>
-        <Card className="p-4 text-center text-gray-500">
+        <Label className="text-gray-900 dark:text-gray-100">Stand</Label>
+        <Card className="p-4 text-center text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
           <p>Nenhum stand disponível nesta feira.</p>
           <p className="text-sm mt-1">
             Configure stands primeiro ou verifique se todos não estão ocupados.
@@ -105,7 +105,9 @@ export const StandSelector: React.FC<StandSelectorProps> = ({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <Label htmlFor="stand">Stand *</Label>
+        <Label htmlFor="stand" className="text-gray-900 dark:text-gray-100">
+          Stand *
+        </Label>
         <div className="flex gap-2">
           <Button
             type="button"
@@ -139,9 +141,11 @@ export const StandSelector: React.FC<StandSelectorProps> = ({
               {availableStands.map((stand) => (
                 <SelectItem key={stand.id} value={stand.standNumber.toString()}>
                   <div className="flex items-center justify-between w-full">
-                    <span>Stand {stand.standNumber}</span>
+                    <span className="text-gray-900 dark:text-gray-100">
+                      Stand {stand.standNumber}
+                    </span>
                     {stand.price && (
-                      <span className="ml-2 text-green-600 font-medium">
+                      <span className="ml-2 text-green-600 dark:text-green-400 font-medium">
                         R$ {formatCurrencyFromCents(stand.price * 100)}
                       </span>
                     )}
@@ -152,14 +156,14 @@ export const StandSelector: React.FC<StandSelectorProps> = ({
           </Select>
 
           {selectedStand && (
-            <Card className="p-3 bg-green-50 border-green-200">
+            <Card className="p-3 bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="font-medium">
+                  <div className="font-medium text-gray-900 dark:text-gray-100">
                     Stand {selectedStand.standNumber}
                   </div>
                   {selectedStand.price && (
-                    <div className="text-sm text-gray-600">
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
                       Preço: R${" "}
                       {formatCurrencyFromCents(selectedStand.price * 100)}
                     </div>
@@ -167,7 +171,7 @@ export const StandSelector: React.FC<StandSelectorProps> = ({
                 </div>
                 <Badge
                   variant="secondary"
-                  className="bg-green-100 text-green-800"
+                  className="bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200"
                 >
                   Selecionado
                 </Badge>
@@ -184,14 +188,14 @@ export const StandSelector: React.FC<StandSelectorProps> = ({
             onStandSelect={handleStandSelect}
           />
           {selectedStand && (
-            <Card className="mt-4 p-3 bg-green-50 border-green-200">
+            <Card className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="font-medium">
+                  <div className="font-medium text-gray-900 dark:text-gray-100">
                     Stand {selectedStand.standNumber} Selecionado
                   </div>
                   {selectedStand.price && (
-                    <div className="text-sm text-gray-600">
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
                       Preço: R${" "}
                       {formatCurrencyFromCents(selectedStand.price * 100)}
                     </div>
@@ -199,7 +203,7 @@ export const StandSelector: React.FC<StandSelectorProps> = ({
                 </div>
                 <Badge
                   variant="secondary"
-                  className="bg-green-100 text-green-800"
+                  className="bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200"
                 >
                   Selecionado
                 </Badge>
@@ -209,9 +213,9 @@ export const StandSelector: React.FC<StandSelectorProps> = ({
         </div>
       )}
 
-      {error && <div className="text-sm text-red-600 mt-1">{error}</div>}
+      {error && <div className="text-sm text-red-600 dark:text-red-400 mt-1">{error}</div>}
 
-      <div className="text-sm text-gray-500">
+      <div className="text-sm text-gray-500 dark:text-gray-400">
         {availableStands.length} stand(s) disponível(is) nesta feira
       </div>
     </div>

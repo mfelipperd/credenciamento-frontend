@@ -4,7 +4,7 @@ import { useCheckinId } from "@/hooks/useCheckinId";
 import { useCheckinSocket } from "@/service/checkin.socket";
 import { useVisitorsService } from "@/service/visitors.service";
 import { useCallback, useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "@/hooks/useSearchParams";
 
 function isMobileDevice(): boolean {
   return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
@@ -12,9 +12,7 @@ function isMobileDevice(): boolean {
 
 export const Visitor = () => {
   const checkinId = useCheckinId();
-  const [params] = useSearchParams();
-  const fairId = params.get("fairId");
-
+  const [, , fairId] = useSearchParams();
   const { getVisitorById, visitor, checkinVisitor, setVisitor } =
     useVisitorsService();
   const [isMobile, setIsMobile] = useState(false);

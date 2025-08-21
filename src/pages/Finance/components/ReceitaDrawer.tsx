@@ -53,13 +53,13 @@ const revenueSchema = z.object({
     .int("Stand deve ser um número inteiro")
     .min(1, "Selecione um stand válido"),
   entryModelId: z.string().min(1, "Selecione um stand/patrocínio"),
-  discountCents: z
+  contractValueCents: z
     .number({
-      required_error: "Desconto é obrigatório",
-      invalid_type_error: "Desconto deve ser um número válido",
+      required_error: "Valor do contrato é obrigatório",
+      invalid_type_error: "Valor do contrato deve ser um número válido",
     })
-    .int("Desconto deve ser um número inteiro")
-    .min(0, "Desconto não pode ser negativo"),
+    .int("Valor do contrato deve ser um número inteiro")
+    .min(0, "Valor do contrato não pode ser negativo"),
   paymentMethod: z.enum(
     ["PIX", "BOLETO", "CARTAO", "TED", "DINHEIRO", "TRANSFERENCIA"],
     {
@@ -164,7 +164,7 @@ export function ReceitaDrawer({
     resolver: zodResolver(revenueSchema),
     defaultValues: {
       installmentsCount: "1",
-      discountCents: 0,
+      contractValueCents: 0,
       paymentMethod: "PIX", // Valor padrão
     },
   });
@@ -300,10 +300,16 @@ export function ReceitaDrawer({
     }).format(cents / 100);
   };
 
+  const calculateDiscount = () => {
+    if (!selectedEntryModel) return 0;
+    const contractValue =
+      watchedValues.contractValueCents || selectedEntryModel.baseValue;
+    return Math.max(0, selectedEntryModel.baseValue - contractValue);
+  };
+
   const calculateContractValue = () => {
     if (!selectedEntryModel) return 0;
-    const discount = watchedValues.discountCents || 0;
-    return Math.max(0, selectedEntryModel.baseValue - discount);
+    return watchedValues.contractValueCents || selectedEntryModel.baseValue;
   };
 
   // Handlers
@@ -327,8 +333,7 @@ export function ReceitaDrawer({
         baseValue: model.baseValue,
         type: model.type,
       });
-      setValue("entryModelId", model.id);
-      setValue("discountCents", 0); // Zerar desconto ao trocar modelo
+      setValue("contractValueCents", model.baseValue); // Definir valor do contrato como padrão
     }
   };
 
@@ -394,20 +399,21 @@ export function ReceitaDrawer({
       return;
     }
 
-    // Validação contextual do desconto em relação ao valor base
-    if (data.discountCents > selectedEntryModel.baseValue) {
-      toast.error("Desconto não pode ser maior que o valor base");
+    // Validação contextual do valor do contrato em relação ao valor base
+    if (data.contractValueCents > selectedEntryModel.baseValue) {
+      toast.error("Valor do contrato não pode ser maior que o valor base");
       return;
     }
 
     // Calcular os valores obrigatórios
     const baseValue = selectedEntryModel.baseValue; // já está em centavos
-    const contractValue = baseValue - data.discountCents; // baseValue - desconto
+    const contractValue = data.contractValueCents; // valor do contrato informado
+    const discountCents = baseValue - contractValue; // desconto calculado automaticamente
 
     // Garantir que os valores são números válidos
     const numericBaseValue = Number(baseValue);
     const numericContractValue = Number(contractValue);
-    const numericDiscountCents = Number(data.discountCents);
+    const numericDiscountCents = Number(discountCents);
 
     console.log("Valores sendo enviados:", {
       baseValue: numericBaseValue,
@@ -451,248 +457,236 @@ export function ReceitaDrawer({
           </div>
         </SheetHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-          {/* Seção 1: Informações do Cliente */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
-              1. Informações do Cliente
-            </h3>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {/* Cliente */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Label className="text-base font-medium text-gray-900 dark:text-gray-100">
+                Cliente *
+              </Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setShowCreateClient(!showCreateClient)}
+              >
+                <Plus className="w-4 h-4 text-gray-600 dark:text-gray-300" />
+              </Button>
+            </div>
 
-            {/* Cliente */}
-            <div className="space-y-3">
+            {selectedClient ? (
               <div className="flex items-center gap-2">
-                <Label className="text-base font-medium text-gray-900 dark:text-white">
-                  Cliente *
-                </Label>
+                <div className="flex-1 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded">
+                  <span className="text-sm font-medium text-green-800 dark:text-green-200">
+                    {selectedClient.name}
+                  </span>
+                </div>
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
-                  onClick={() => setShowCreateClient(!showCreateClient)}
+                  onClick={() => setSelectedClient(null)}
                 >
-                  <Plus className="w-4 h-4 text-gray-600 dark:text-white" />
+                  <X className="w-4 h-4 text-gray-600 dark:text-gray-300" />
                 </Button>
               </div>
-
-              {selectedClient ? (
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded">
-                    <span className="text-sm font-medium text-green-800 dark:text-green-200">
-                      {selectedClient.name}
-                    </span>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSelectedClient(null)}
-                  >
-                    <X className="w-4 h-4 text-gray-600 dark:text-white" />
+            ) : (
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Buscar cliente por nome..."
+                    value={clientSearch}
+                    onChange={(e) => setClientSearch(e.target.value)}
+                    className="flex-1"
+                  />
+                  <Button type="button" variant="outline" size="sm">
+                    <Search className="w-4 h-4 text-gray-600 dark:text-gray-300" />
                   </Button>
                 </div>
-              ) : (
-                <div className="space-y-2">
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="Buscar cliente por nome..."
-                      value={clientSearch}
-                      onChange={(e) => setClientSearch(e.target.value)}
-                      className="flex-1"
-                    />
-                    <Button type="button" variant="outline" size="sm">
-                      <Search className="w-4 h-4 text-gray-600 dark:text-white" />
-                    </Button>
+
+                {isLoadingClients && (
+                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                    Buscando clientes...
                   </div>
+                )}
 
-                  {isLoadingClients && (
-                    <div className="text-sm text-gray-500 dark:text-gray-400">
-                      Buscando clientes...
-                    </div>
-                  )}
+                {clients.length > 0 && (
+                  <div className="max-h-32 overflow-y-auto border rounded p-2 space-y-1 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                    {clients.map((client) => (
+                      <button
+                        key={client.id}
+                        type="button"
+                        className="w-full text-left p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-sm text-gray-900 dark:text-gray-100 transition-colors"
+                        onClick={() => handleClientSelect(client)}
+                      >
+                        {client.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
-                  {clients.length > 0 && (
-                    <div className="max-h-32 overflow-y-auto border rounded p-2 space-y-1 bg-white dark:bg-gray-800">
-                      {clients.map((client) => (
-                        <button
-                          key={client.id}
-                          type="button"
-                          className="w-full text-left p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-sm text-gray-900 dark:text-white"
-                          onClick={() => handleClientSelect(client)}
-                        >
-                          {client.name}
-                        </button>
-                      ))}
-                    </div>
-                  )}
+            {errors.clientId && (
+              <span className="text-sm text-red-500 dark:text-red-400">
+                {errors.clientId.message}
+              </span>
+            )}
+
+            {/* Mini form criar cliente */}
+            {showCreateClient && (
+              <Card className="p-4 bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+                <h4 className="font-medium mb-3 text-gray-900 dark:text-gray-100">
+                  Criar novo cliente
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <ControlledInput
+                    control={controlClient}
+                    name="name"
+                    label="Nome *"
+                    placeholder="Nome do cliente"
+                  />
+                  <ControlledInput
+                    control={controlClient}
+                    name="cnpj"
+                    label="CNPJ"
+                    placeholder="00.000.000/0000-00"
+                  />
+                  <ControlledInput
+                    control={controlClient}
+                    name="email"
+                    label="Email"
+                    type="email"
+                    placeholder="email@exemplo.com"
+                  />
+                  <ControlledInput
+                    control={controlClient}
+                    name="phone"
+                    label="Telefone"
+                    placeholder="(11) 99999-9999"
+                  />
                 </div>
-              )}
-
-              {errors.clientId && (
-                <span className="text-sm text-red-500">
-                  {errors.clientId.message}
-                </span>
-              )}
-
-              {/* Mini form criar cliente */}
-              {showCreateClient && (
-                <Card className="p-4 bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
-                  <h4 className="font-medium mb-3 text-gray-900 dark:text-white">
-                    Criar novo cliente
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <ControlledInput
-                      control={controlClient}
-                      name="name"
-                      label="Nome *"
-                      placeholder="Nome do cliente"
-                    />
-                    <ControlledInput
-                      control={controlClient}
-                      name="cnpj"
-                      label="CNPJ"
-                      placeholder="00.000.000/0000-00"
-                    />
-                    <ControlledInput
-                      control={controlClient}
-                      name="email"
-                      label="Email"
-                      type="email"
-                      placeholder="email@exemplo.com"
-                    />
-                    <ControlledInput
-                      control={controlClient}
-                      name="phone"
-                      label="Telefone"
-                      placeholder="(11) 99999-9999"
-                    />
-                  </div>
-                  <div className="flex gap-2 mt-3">
-                    <Button
-                      type="button"
-                      size="sm"
-                      onClick={handleSubmitClient(handleCreateClient)}
-                      disabled={createClientMutation.isPending}
-                    >
-                      {createClientMutation.isPending
-                        ? "Salvando..."
-                        : "Salvar Cliente"}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowCreateClient(false)}
-                    >
-                      Cancelar
-                    </Button>
-                  </div>
-                </Card>
-              )}
-            </div>
+                <div className="flex gap-2 mt-3">
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={handleSubmitClient(handleCreateClient)}
+                    disabled={createClientMutation.isPending}
+                  >
+                    {createClientMutation.isPending
+                      ? "Salvando..."
+                      : "Salvar Cliente"}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowCreateClient(false)}
+                  >
+                    Cancelar
+                  </Button>
+                </div>
+              </Card>
+            )}
           </div>
 
-          {/* Seção 2: Tipo e Valores */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
-              2. Seleção de Stand e Valores
-            </h3>
-
-            {/* Seletor de Stand */}
-            {fairId && (
+          {/* Seletor de Stand */}
+          {fairId && (
+            <div className="space-y-2">
               <StandSelector
                 fairId={fairId}
                 value={watchedValues.standNumber || selectedStand?.standNumber}
                 onChange={handleStandSelect}
                 error={errors.standNumber?.message}
               />
-            )}
-
-            {/* Modelo */}
-            <div className="space-y-2">
-              <Label className="text-base font-medium text-gray-900 dark:text-white">
-                Tipo / Modelo (Stand/Patrocínio) *
-              </Label>
-              <Select onValueChange={handleEntryModelSelect}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o stand ou patrocínio" />
-                </SelectTrigger>
-                <SelectContent>
-                  {entryModels.map((model) => (
-                    <SelectItem key={model.id} value={model.id}>
-                      {model.name} — {formatCurrency(model.baseValue)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.entryModelId && (
-                <span className="text-sm text-red-500">
-                  {errors.entryModelId.message}
-                </span>
-              )}
             </div>
+          )}
 
-            {/* Grid de valores */}
-            {selectedEntryModel && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Valor base */}
-                <div className="space-y-2">
-                  <Label className="text-base font-medium text-gray-900 dark:text-white">
-                    Valor Base
-                  </Label>
-                  <div className="p-3 bg-gray-100 dark:bg-gray-800 border rounded">
-                    <span className="text-lg font-semibold text-gray-900 dark:text-white">
-                      {formatCurrency(selectedEntryModel.baseValue)}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Desconto */}
-                <div className="space-y-2">
-                  <Label className="text-base font-medium text-gray-900 dark:text-white">
-                    Desconto (R$)
-                  </Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    max={(selectedEntryModel.baseValue / 100).toFixed(2)}
-                    placeholder="0,00"
-                    {...register("discountCents", {
-                      setValueAs: (value) => {
-                        const numValue = parseFloat(value || "0");
-                        const centValue = Math.round(numValue * 100);
-                        return isNaN(centValue) ? 0 : centValue;
-                      },
-                    })}
-                  />
-                  {errors.discountCents && (
-                    <span className="text-sm text-red-500">
-                      {errors.discountCents.message}
-                    </span>
-                  )}
-                </div>
-
-                {/* Valor do contrato */}
-                <div className="space-y-2">
-                  <Label className="text-base font-medium text-gray-900 dark:text-white">
-                    Valor do Contrato
-                  </Label>
-                  <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded">
-                    <span className="text-xl font-bold text-blue-800 dark:text-blue-200">
-                      {formatCurrency(calculateContractValue())}
-                    </span>
-                  </div>
-                </div>
-              </div>
+          {/* Modelo */}
+          <div className="space-y-2">
+            <Label className="text-base font-medium text-gray-900 dark:text-gray-100">
+              Tipo / Modelo (Stand/Patrocínio) *
+            </Label>
+            <Select onValueChange={handleEntryModelSelect}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o stand ou patrocínio" />
+              </SelectTrigger>
+              <SelectContent>
+                {entryModels.map((model) => (
+                  <SelectItem key={model.id} value={model.id}>
+                    {model.name} — {formatCurrency(model.baseValue)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.entryModelId && (
+              <span className="text-sm text-red-500 dark:text-red-400">
+                {errors.entryModelId.message}
+              </span>
             )}
           </div>
 
-          {/* Seção 3: Forma de Pagamento */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
-              3. Forma de Pagamento
-            </h3>
+          {/* Grid de valores */}
+          {selectedEntryModel && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Valor base */}
+              <div className="space-y-2">
+                <Label className="text-base font-medium text-gray-900 dark:text-gray-100">
+                  Valor Base
+                </Label>
+                <div className="p-3 bg-gray-100 dark:bg-gray-800 border rounded">
+                  <span className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    {formatCurrency(selectedEntryModel.baseValue)}
+                  </span>
+                </div>
+              </div>
 
+              {/* Desconto */}
+              <div className="space-y-2">
+                <Label className="text-base font-medium text-gray-900 dark:text-gray-100">
+                  Desconto (R$)
+                </Label>
+                <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded">
+                  <span className="text-lg font-semibold text-yellow-800 dark:text-yellow-200">
+                    {formatCurrency(calculateDiscount())}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-600 dark:text-gray-400">
+                  Calculado automaticamente
+                </p>
+              </div>
+
+              {/* Valor do contrato */}
+              <div className="space-y-2">
+                <Label className="text-base font-medium text-gray-900 dark:text-gray-100">
+                  Valor do Contrato (R$)
+                </Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max={(selectedEntryModel.baseValue / 100).toFixed(2)}
+                  placeholder="0,00"
+                  {...register("contractValueCents", {
+                    setValueAs: (value) => {
+                      const numValue = parseFloat(value || "0");
+                      const centValue = Math.round(numValue * 100);
+                      return isNaN(centValue) ? 0 : centValue;
+                    },
+                  })}
+                  className="text-lg font-semibold"
+                />
+                {errors.contractValueCents && (
+                  <span className="text-sm text-red-500 dark:text-red-400">
+                    {errors.contractValueCents.message}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Método de Pagamento e Parcelas */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Método de Pagamento */}
             <div className="space-y-2">
               <ControlledSelect
@@ -710,7 +704,7 @@ export function ReceitaDrawer({
                 ]}
               />
               {errors.paymentMethod && (
-                <span className="text-sm text-red-500">
+                <span className="text-sm text-red-500 dark:text-red-400">
                   {errors.paymentMethod.message}
                 </span>
               )}
@@ -733,7 +727,7 @@ export function ReceitaDrawer({
                 ]}
               />
               {errors.installmentsCount && (
-                <span className="text-sm text-red-500">
+                <span className="text-sm text-red-500 dark:text-red-400">
                   {errors.installmentsCount.message}
                 </span>
               )}
@@ -768,67 +762,60 @@ export function ReceitaDrawer({
             </div>
           </div>
 
-          {/* Seção 4: Documentos e Observações */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
-              4. Documentos e Observações
-            </h3>
-
-            {/* Comprovante */}
-            <div className="space-y-2">
-              <Label className="text-base font-medium text-gray-900 dark:text-white">
-                Anexar Comprovante (opcional)
-              </Label>
-              {!attachedFile ? (
-                <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center">
-                  <input
-                    type="file"
-                    accept=".pdf,.jpg,.jpeg"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                    id="file-upload"
-                  />
-                  <label htmlFor="file-upload" className="cursor-pointer">
-                    <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400 dark:text-gray-300" />
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Clique para anexar PDF ou JPG (máx. 10MB)
-                    </p>
-                  </label>
+          {/* Comprovante */}
+          <div className="space-y-2">
+            <Label className="text-base font-medium text-gray-900 dark:text-gray-100">
+              Anexar Comprovante (opcional)
+            </Label>
+            {!attachedFile ? (
+              <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
+                <input
+                  type="file"
+                  accept=".pdf,.jpg,.jpeg"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                  id="file-upload"
+                />
+                <label htmlFor="file-upload" className="cursor-pointer">
+                  <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400 dark:text-gray-300" />
+                  <p className="text-sm text-gray-600 dark:text-gray-300">
+                    Clique para anexar PDF ou JPG (máx. 10MB)
+                  </p>
+                </label>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded">
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-green-800 dark:text-green-200">
+                    {attachedFile.name}
+                  </p>
+                  <p className="text-xs text-green-600 dark:text-green-300">
+                    {(attachedFile.size / 1024 / 1024).toFixed(2)} MB
+                  </p>
                 </div>
-              ) : (
-                <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded">
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-green-800 dark:text-green-200">
-                      {attachedFile.name}
-                    </p>
-                    <p className="text-xs text-green-600 dark:text-green-300">
-                      {(attachedFile.size / 1024 / 1024).toFixed(2)} MB
-                    </p>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setAttachedFile(null)}
-                  >
-                    <Trash2 className="w-4 h-4 text-gray-600 dark:text-white" />
-                  </Button>
-                </div>
-              )}
-            </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setAttachedFile(null)}
+                >
+                  <Trash2 className="w-4 h-4 text-gray-600 dark:text-gray-300" />
+                </Button>
+              </div>
+            )}
+          </div>
 
-            {/* Observações */}
-            <div className="space-y-2">
-              <Label className="text-base font-medium text-gray-900 dark:text-white">
-                Observações (opcional)
-              </Label>
-              <textarea
-                {...register("notes")}
-                placeholder="Observações sobre a receita..."
-                rows={3}
-                className="w-full p-3 border border-gray-200 dark:border-gray-600 rounded resize-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400"
-              />
-            </div>
+          {/* Observações */}
+          <div className="space-y-2">
+            <Label className="text-base font-medium text-gray-900 dark:text-gray-100">
+              Observações (opcional)
+            </Label>
+            <textarea
+              {...register("notes")}
+              placeholder="Observações sobre a receita..."
+              rows={3}
+              className="w-full p-3 border border-gray-200 dark:border-gray-600 rounded resize-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
           </div>
 
           {/* Ações */}

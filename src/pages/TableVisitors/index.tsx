@@ -3,7 +3,7 @@ import { VisitorTable } from "./components/Table";
 import { useTableVisitorsController } from "./tableVisitors.controller";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "@/hooks/useSearchParams";
 import { ModalCreateFormPrivate } from "./components/ModalCreate";
 import { ExportModalPDF } from "./components/ModalPDF";
 import { Pagination } from "./components/Pagination";
@@ -11,8 +11,7 @@ import { TableSkeleton } from "@/components/ui/skeleton";
 
 export const TabeleVisitors = () => {
   const controller = useTableVisitorsController();
-  const [searchParams] = useSearchParams();
-  const fairId = searchParams.get("fairId");
+  const [, , fairId] = useSearchParams();
 
   const handleClick = () => {
     if (!fairId) {

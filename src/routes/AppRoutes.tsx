@@ -16,6 +16,7 @@ import { ErrorTestPage } from "@/pages/ErrorTestPage";
 import { MarketingPage } from "@/pages/Marketing/page";
 import { FinancePage } from "@/pages/Finance/page";
 import { AdminRouteGuard } from "@/components/AdminRouteGuard";
+import ExpensesPage from "@/pages/Expenses/page";
 
 export const AppRoutes = createBrowserRouter([
   {
@@ -58,6 +59,7 @@ export const AppRoutes = createBrowserRouter([
       </PublicLayout>
     ),
   },
+
   {
     element: (
       <AuthProvider>
@@ -88,6 +90,14 @@ export const AppRoutes = createBrowserRouter([
                 element: (
                   <AdminRouteGuard>
                     <FinancePage />
+                  </AdminRouteGuard>
+                ),
+              },
+              {
+                path: "/expenses",
+                element: (
+                  <AdminRouteGuard>
+                    <ExpensesPage />
                   </AdminRouteGuard>
                 ),
               },

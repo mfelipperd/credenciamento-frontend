@@ -35,10 +35,10 @@ import {
   CheckCircle,
   Clock,
   AlertCircle,
-  Edit,
   X,
   Loader2,
   Upload,
+  Edit,
 } from "lucide-react";
 import dayjs from "dayjs";
 import type { InstallmentStatus } from "@/interfaces/finance";
@@ -61,6 +61,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import type { CreateRevenueForm, PaymentMethod } from "@/interfaces/finance";
 
 // Schema e tipos para o dialog de confirmação
 const confirmPaymentSchema = z.object({
@@ -237,7 +238,6 @@ interface RevenueDetailModalProps {
   onClose: () => void;
   revenueId: string | null;
   fairId?: string; // fairId da feira ativa
-  onEditRevenue?: (revenueId: string) => void;
 }
 
 export function RevenueDetailModal({
@@ -252,6 +252,12 @@ export function RevenueDetailModal({
   const [isConfirmPaymentOpen, setIsConfirmPaymentOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    baseValue: 0,
+    discountCents: 0,
+    paymentMethod: "",
+    notes: "",
+  });
 
   const financeService = useFinanceService();
   const queryClient = useQueryClient();
@@ -404,27 +410,51 @@ export function RevenueDetailModal({
     },
   });
 
+  // Mutation para atualizar receita
+  const updateRevenueMutation = useMutation({
+    mutationFn: (data: Partial<CreateRevenueForm>) =>
+      financeService.updateRevenue(revenueId!, data, fairId),
+    onSuccess: () => {
+      toast.success("Receita atualizada com sucesso!");
+      queryClient.invalidateQueries({
+        predicate: (query) =>
+          query.queryKey[0] === "revenue-detail" ||
+          query.queryKey[0] === "finance-revenues" ||
+          query.queryKey[0] === "finance-kpis",
+      });
+      setIsEditing(false);
+    },
+    onError: (error) => {
+      console.error("Erro ao atualizar receita:", error);
+      toast.error("Erro ao atualizar receita. Tente novamente.");
+    },
+  });
+
+  // Validação: fairId é obrigatório
+  if (!fairId) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Erro</DialogTitle>
+          </DialogHeader>
+          <div className="text-center py-6">
+            <p className="text-red-600">
+              Feira não selecionada. Selecione uma feira para visualizar os
+              detalhes da receita.
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   const formatCurrency = (value: number | string) => {
     const numValue = typeof value === "string" ? parseFloat(value) : value;
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
       currency: "BRL",
     }).format(numValue / 100);
-  };
-
-  const getStatusBadge = (status: string) => {
-    const statusMap = {
-      PENDENTE: { label: "Pendente", variant: "secondary" as const },
-      EM_ANDAMENTO: { label: "Em Andamento", variant: "default" as const },
-      EM_ATRASO: { label: "Em Atraso", variant: "destructive" as const },
-      PAGO: { label: "Pago", variant: "success" as const },
-      CANCELADO: { label: "Cancelado", variant: "outline" as const },
-    };
-    const config = statusMap[status as keyof typeof statusMap] || {
-      label: status,
-      variant: "secondary" as const,
-    };
-    return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
   const getInstallmentStatusIcon = (status: InstallmentStatus) => {
@@ -478,10 +508,17 @@ export function RevenueDetailModal({
     }
   };
 
+  // Inicializa os dados do formulário quando entra no modo de edição
   const handleEditClick = () => {
-    if (!isEditing) {
+    if (!isEditing && revenueData) {
+      setEditFormData({
+        baseValue: Number(revenueData.baseValue) / 100,
+        discountCents: Number(revenueData.discountCents) / 100,
+        paymentMethod: revenueData.paymentMethod || "",
+        notes: revenueData.notes || "",
+      });
       setIsEditing(true);
-    } else {
+    } else if (isEditing) {
       // Salvar alterações
       handleSaveEdit();
     }
@@ -489,10 +526,16 @@ export function RevenueDetailModal({
 
   const handleSaveEdit = async () => {
     try {
-      console.log("Salvando alterações...");
-      // Aqui você implementaria a chamada para o backend
-      toast.success("Alterações salvas com sucesso!");
-      setIsEditing(false);
+      if (!revenueData || !fairId) return;
+
+      const updateData: Partial<CreateRevenueForm> = {
+        baseValue: Math.round(editFormData.baseValue * 100), // Converte para centavos
+        discountCents: Math.round(editFormData.discountCents * 100), // Converte para centavos
+        paymentMethod: editFormData.paymentMethod as PaymentMethod,
+        notes: editFormData.notes,
+      };
+
+      updateRevenueMutation.mutate(updateData);
     } catch (error) {
       console.error("Erro ao salvar:", error);
       toast.error("Erro ao salvar alterações");
@@ -501,6 +544,12 @@ export function RevenueDetailModal({
 
   const handleCancelEdit = () => {
     setIsEditing(false);
+    setEditFormData({
+      baseValue: 0,
+      discountCents: 0,
+      paymentMethod: "",
+      notes: "",
+    });
   };
 
   if (!revenueData && !isLoading) {
@@ -523,9 +572,13 @@ export function RevenueDetailModal({
                     size="sm"
                     onClick={handleEditClick}
                     className="flex items-center gap-2"
+                    disabled={updateRevenueMutation.isPending}
                   >
                     <Edit className="w-4 h-4" />
                     {isEditing ? "Salvar" : "Editar"}
+                    {isEditing && updateRevenueMutation.isPending && (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    )}
                   </Button>
                   {isEditing && (
                     <Button
@@ -538,7 +591,6 @@ export function RevenueDetailModal({
                       Cancelar
                     </Button>
                   )}
-                  {getStatusBadge(revenueData?.status || "EM_ANDAMENTO")}
                 </div>
               )}
             </div>
@@ -620,9 +672,13 @@ export function RevenueDetailModal({
                           type="number"
                           step="0.01"
                           placeholder="0.00"
-                          defaultValue={(
-                            Number(revenueData?.baseValue || 0) / 100
-                          ).toString()}
+                          value={editFormData.baseValue || 0}
+                          onChange={(e) =>
+                            setEditFormData({
+                              ...editFormData,
+                              baseValue: parseFloat(e.target.value) || 0,
+                            })
+                          }
                           className="mt-1"
                         />
                       </div>
@@ -634,9 +690,13 @@ export function RevenueDetailModal({
                           type="number"
                           step="0.01"
                           placeholder="0.00"
-                          defaultValue={(
-                            Number(revenueData?.discountCents || 0) / 100
-                          ).toString()}
+                          value={editFormData.discountCents || 0}
+                          onChange={(e) =>
+                            setEditFormData({
+                              ...editFormData,
+                              discountCents: parseFloat(e.target.value) || 0,
+                            })
+                          }
                           className="mt-1"
                         />
                       </div>
@@ -646,7 +706,13 @@ export function RevenueDetailModal({
                         </label>
                         <select
                           className="mt-1 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                          defaultValue={revenueData?.paymentMethod || ""}
+                          value={editFormData.paymentMethod}
+                          onChange={(e) =>
+                            setEditFormData({
+                              ...editFormData,
+                              paymentMethod: e.target.value,
+                            })
+                          }
                         >
                           <option value="">Selecione o método</option>
                           <option value="PIX">PIX</option>
@@ -663,7 +729,13 @@ export function RevenueDetailModal({
                         </label>
                         <Input
                           placeholder="Observações sobre a receita"
-                          defaultValue={revenueData?.notes || ""}
+                          value={editFormData.notes || ""}
+                          onChange={(e) =>
+                            setEditFormData({
+                              ...editFormData,
+                              notes: e.target.value,
+                            })
+                          }
                           className="mt-1"
                         />
                       </div>

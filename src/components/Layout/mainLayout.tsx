@@ -78,6 +78,20 @@ export const MainLayout: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fairs, searchParams]);
 
+  // Aguarda as feiras serem carregadas e o fairId ser definido antes de renderizar
+  if (fairs.length === 0 || !selectedId) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">
+            Carregando feiras...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       {/* Header Principal */}
@@ -244,6 +258,17 @@ export const MainLayout: React.FC = () => {
                 <DollarSign size={16} />
                 <span className="hidden sm:inline text-sm font-medium">
                   Receitas
+                </span>
+              </Link>
+            )}
+            {auth?.user?.role === EUserRole.ADMIN && (
+              <Link
+                className="flex items-center gap-1.5 text-white/90 hover:text-white transition-colors px-2 py-1 rounded hover:bg-white/10"
+                to={{ pathname: "/expenses", search }}
+              >
+                <DollarSign size={16} />
+                <span className="hidden sm:inline text-sm font-medium">
+                  Despesas
                 </span>
               </Link>
             )}

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "@/hooks/useSearchParams";
 import { useFinanceService } from "@/service/finance.service";
 import { useStandService } from "@/service/stands.service";
 import { FinanceFiltersSheet } from "./components/FinanceFiltersSheet";
@@ -23,8 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Filter, Grid } from "lucide-react";
 
 export function FinancePage() {
-  const [searchParams] = useSearchParams();
-  const fairId = searchParams.get("fairId");
+  const [, , fairId] = useSearchParams();
   const queryClient = useQueryClient();
 
   const [filters, setFilters] = useState<RevenueFilters>({
@@ -121,11 +120,6 @@ export function FinancePage() {
   const handleCreateRevenueFromStand = (standNumber: number) => {
     setSelectedRevenueId(null);
     setSelectedStandNumber(standNumber);
-    setIsDrawerOpen(true);
-  };
-
-  const handleEditRevenue = (revenueId: string) => {
-    setSelectedRevenueId(revenueId);
     setIsDrawerOpen(true);
   };
 
@@ -299,7 +293,6 @@ export function FinancePage() {
               isLoading={isLoadingRevenues}
               filters={filters}
               onFiltersChange={handleFiltersChange}
-              onEditRevenue={handleEditRevenue}
               onViewDetail={handleViewRevenueDetail}
               onDeleteRevenue={handleDeleteRevenue}
               isDeletingRevenue={deleteRevenueMutation.isPending}
@@ -336,8 +329,12 @@ export function FinancePage() {
           isOpen={isDetailModalOpen}
           onClose={handleDetailModalClose}
           revenueId={selectedRevenueForDetail}
+<<<<<<< Updated upstream
           fairId={filters.fairId}
           onEditRevenue={handleEditRevenue}
+=======
+          fairId={fairId}
+>>>>>>> Stashed changes
         />
       </div>
     </div>

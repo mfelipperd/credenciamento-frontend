@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "@/hooks/useSearchParams";
 import { CardRoot } from "@/components/Card";
 import {
   Table,
@@ -56,7 +56,7 @@ interface UserWithFairIds {
 }
 
 export const EnhancedTableConsultant = () => {
-  const { visitors, getVisitorsPaginated, loading, paginationMeta, error } =
+  const { getVisitorsPaginated, loading, visitors, paginationMeta } =
     useVisitorsService();
   const { fairs, getFairs } = useFairService();
   const { user } = useAuth();
@@ -859,12 +859,6 @@ export const EnhancedTableConsultant = () => {
                     Object.values(visibleColumns).filter(Boolean).length + 1
                   }
                 />
-              ) : error ? (
-                <TableRow>
-                  <TableCell colSpan={12} className="text-center py-8">
-                    <div className="text-red-500">{error}</div>
-                  </TableCell>
-                </TableRow>
               ) : visitors.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={12} className="text-center py-8">

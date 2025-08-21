@@ -8,7 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Edit, Eye, ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
+import { Eye, ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import dayjs from "dayjs";
 import type {
   PagedResponse,
@@ -22,7 +22,6 @@ interface FinanceTableProps {
   isLoading: boolean;
   filters: RevenueFilters;
   onFiltersChange: (filters: Partial<RevenueFilters>) => void;
-  onEditRevenue: (revenueId: string) => void;
   onViewDetail?: (revenueId: string) => void;
   onDeleteRevenue?: (revenueId: string) => void;
   isDeletingRevenue?: boolean;
@@ -62,7 +61,6 @@ export function FinanceTable({
   isLoading,
   filters,
   onFiltersChange,
-  onEditRevenue,
   onViewDetail,
   onDeleteRevenue,
   isDeletingRevenue,
@@ -250,16 +248,6 @@ export function FinanceTable({
                           <Eye className="w-4 h-4" />
                         </Button>
                       )}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onEditRevenue(revenue.id);
-                        }}
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
                       {onDeleteRevenue && (
                         <Button
                           variant="ghost"

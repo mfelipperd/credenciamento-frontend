@@ -17,7 +17,7 @@ interface HandleRequestOptions<T> {
  * Generic helper to handle axios requests with loading, error handling and success toasts.
  * @returns The response data of type T, or an empty object of type T if no data was returned, or `undefined` on error.
  */
-export async function handleRequest<T extends object>(
+export async function handleRequest<T>(
   options: HandleRequestOptions<T>
 ): Promise<T | undefined> {
   const { request, setLoading, successMessage } = options;
@@ -36,14 +36,18 @@ export async function handleRequest<T extends object>(
       toast.success(successMessage);
     }
 
-    // If data is null, undefined or empty string (but not boolean false), return an empty object of type T
+    // If data is null, undefined or empty string (but not boolean false), return appropriate default value
     if (
       (data === null ||
         data === undefined ||
         (typeof data === "string" && data === "")) &&
       typeof data !== "boolean"
     ) {
-      return {} as T;
+      // For object types, return empty object; for primitive types, return appropriate default
+      if (typeof data === "object") {
+        return {} as T;
+      }
+      return data;
     }
 
     return data;

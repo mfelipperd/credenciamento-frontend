@@ -1,3 +1,5 @@
+import type { Fair } from "@/interfaces/visitors";
+
 export type EntryModelType = "STAND" | "PATROCINIO";
 export type RevenueStatus =
   | "PENDENTE"
@@ -230,4 +232,109 @@ export interface CreateClientForm {
   email?: string;
   phone?: string;
   fairId: string;
+}
+
+// Enums para tipos de conta
+export const AccountType = {
+  CORRENTE: "CORRENTE",
+  POUPANCA: "POUPANCA",
+  OUTRO: "OUTRO",
+} as const;
+
+export type AccountType = (typeof AccountType)[keyof typeof AccountType];
+
+// Interfaces para categorias financeiras
+export interface FinanceCategory {
+  id: string;
+  nome: string;
+  parentId?: string;
+  global: boolean;
+  fairId?: string;
+  parent?: FinanceCategory;
+  children?: FinanceCategory[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateFinanceCategoryForm {
+  nome: string;
+  parentId?: string;
+  global: boolean;
+  fairId?: string;
+}
+
+export interface UpdateFinanceCategoryForm
+  extends Partial<CreateFinanceCategoryForm> {}
+
+// Interfaces para contas bancárias
+export interface Account {
+  id: string;
+  nomeConta: string;
+  banco?: string;
+  tipo: AccountType;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateAccountForm {
+  nomeConta: string;
+  banco?: string;
+  tipo: AccountType;
+}
+
+export interface UpdateAccountForm extends Partial<CreateAccountForm> {}
+
+// Interfaces para despesas
+export interface Expense {
+  id: string;
+  fairId: string;
+  categoryId: string;
+  accountId: string;
+  descricao?: string;
+  valor: number;
+  data: string;
+  observacoes?: string;
+  createdAt: string;
+  updatedAt: string;
+
+  // Relacionamentos
+  fair?: Fair;
+  category?: FinanceCategory;
+  account?: Account;
+}
+
+export interface CreateExpenseForm {
+  fairId: string;
+  categoryId: string;
+  accountId: string;
+  descricao?: string;
+  valor: number;
+  data: string;
+  observacoes?: string;
+}
+
+export interface UpdateExpenseForm extends Partial<CreateExpenseForm> {}
+
+// Filtros para despesas
+export interface ExpenseFilters {
+  fairId: string;
+  categoryId?: string;
+  accountId?: string;
+  from?: string;
+  to?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+// Respostas de relatórios
+export interface ExpenseTotalByCategory {
+  categoryId: string;
+  categoryName: string;
+  total: number;
+}
+
+export interface ExpenseTotalByAccount {
+  accountId: string;
+  accountName: string;
+  total: number;
 }

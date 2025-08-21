@@ -1,9 +1,9 @@
 import { useVisitorsService } from "@/service/visitors.service";
 import { useEffect, useMemo, useState, useCallback } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "@/hooks/useSearchParams";
 
 export const useTableVisitorsController = () => {
-  const fairId = useSearchParams()[0].get("fairId") ?? "";
+  const [, , fairId] = useSearchParams();
   const [id, setId] = useState<string>("");
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [openCreateForm, setOpenCreateForm] = useState<boolean>(false);

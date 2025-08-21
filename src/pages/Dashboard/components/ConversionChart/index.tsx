@@ -137,6 +137,12 @@ export const ConversionChart: React.FC<{ fairId: string }> = ({ fairId }) => {
   });
 
   useEffect(() => {
+    // Só faz a chamada se fairId existe e é válido
+    if (!fairId || fairId.trim() === "") {
+      console.log("ConversionChart: fairId não disponível, pulando chamada");
+      return;
+    }
+
     (async () => {
       const data = await getConversionsByHowDidYouKnow(fairId);
       if (!data || !data.conversions || data.conversions.length === 0) return;

@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/card";
 import { useMarketingService } from "@/service/marketing.service";
 import type { SendMarketingEmailRequest } from "@/service/marketing.service";
-import { useURLSearchParams } from "@/hooks/useSearchParams";
+import { useSearchParams } from "@/hooks/useSearchParams";
 import { toast } from "sonner";
 import { Loader2, Mail, Send, Eye, Users } from "lucide-react";
 
@@ -90,8 +90,7 @@ const DEFAULT_EMAIL_TEMPLATE = `<html>
 
 export const MarketingPage: React.FC = () => {
   const { sendMarketingEmailToAbsentVisitors } = useMarketingService();
-  const searchParams = useURLSearchParams();
-  const fairId = searchParams.get("fairId") || "";
+  const [, , fairId] = useSearchParams();
 
   const [loading, setLoading] = useState(false);
   const [showPreview, setShowPreview] = useState(false);

@@ -183,12 +183,22 @@ export const useFinanceService = () => {
     const params = new URLSearchParams();
     if (fairId) params.append("fairId", fairId);
 
+<<<<<<< Updated upstream
     const url = `${BASE_URL}/revenues/${id}${
       params.toString() ? `?${params.toString()}` : ""
     }`;
 
     return handleRequest<RevenueDetail>({
       request: () => api.get(url),
+=======
+    return handleRequest<RevenueDetail>({
+      request: () =>
+        api.get(
+          `${BASE_URL}/revenues/${id}${
+            params.toString() ? `?${params.toString()}` : ""
+          }`
+        ),
+>>>>>>> Stashed changes
     });
   };
 
@@ -225,12 +235,23 @@ export const useFinanceService = () => {
     const params = new URLSearchParams();
     if (fairId) params.append("fairId", fairId);
 
+<<<<<<< Updated upstream
     const url = `${BASE_URL}/revenues/${id}${
       params.toString() ? `?${params.toString()}` : ""
     }`;
 
     return handleRequest<RevenueDetail>({
       request: () => api.patch(url, data),
+=======
+    return handleRequest<RevenueDetail>({
+      request: () =>
+        api.patch(
+          `${BASE_URL}/revenues/${id}${
+            params.toString() ? `?${params.toString()}` : ""
+          }`,
+          data
+        ),
+>>>>>>> Stashed changes
       successMessage: "Receita atualizada com sucesso!",
     });
   };

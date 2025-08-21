@@ -9,6 +9,21 @@ import { ConversionChart } from "./components/ConversionChart";
 
 export const Dashboard = () => {
   const controller = useDashboardController();
+
+  // Se não há fairId, mostra mensagem de carregamento
+  if (!controller.fairId) {
+    return (
+      <div className="w-full flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">
+            Carregando feira...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4">
       <CardTotals

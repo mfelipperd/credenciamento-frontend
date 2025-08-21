@@ -6,7 +6,7 @@ import { ControlledInput } from "@/components/ControlledInput";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "@/hooks/useSearchParams";
 import { usePublicFormService } from "@/service/publicform.service";
 import { Loader2, Save } from "lucide-react";
 import {
@@ -37,10 +37,9 @@ export const FormularioCredenciamento: React.FC = () => {
   const [isRep, setIsRep] = useState<boolean>(false);
   const [resgister, setRegistrationCode] = useState<IVisistor>();
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [searchParams] = useSearchParams();
+  const [, , fairId] = useSearchParams();
 
   const { getVisitorById, visitor, checkinVisitor } = useVisitorsService();
-  const fairId = searchParams.get("fairId") || "";
   const { create, loading } = usePublicFormService();
   const currentFairId = fairId;
   const [generatedUrl, setGeneratedUrl] = useState("");

@@ -117,6 +117,12 @@ export const OriginBarChart: React.FC<{ fairId: string }> = ({ fairId }) => {
   });
 
   useEffect(() => {
+    // Só faz a chamada se fairId existe e é válido
+    if (!fairId || fairId.trim() === "") {
+      console.log("OriginBarChart: fairId não disponível, pulando chamada");
+      return;
+    }
+
     (async () => {
       const data = await getVisitorsByOrigin(fairId);
       if (!data) return;
