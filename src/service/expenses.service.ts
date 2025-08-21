@@ -1,5 +1,5 @@
 import { handleRequest } from "@/utils/handleRequest";
-import { useAxios } from "@/hooks/useAxio";
+import { useAxio } from "@/hooks/useAxio";
 import type {
   Expense,
   CreateExpenseForm,
@@ -19,7 +19,7 @@ const BASE_URL = "";
 
 // Hook personalizado para o serviço de despesas
 export const useExpensesService = () => {
-  const api = useAxios();
+  const api = useAxio();
 
   // ===== DESPESAS =====
 
@@ -66,9 +66,10 @@ export const useExpensesService = () => {
       ...data,
       fairId,
     };
-    
+
     return handleRequest<Expense>({
-      request: () => api.post(`${BASE_URL}/fairs/${fairId}/expenses`, expenseData),
+      request: () =>
+        api.post(`${BASE_URL}/fairs/${fairId}/expenses`, expenseData),
       successMessage: "Despesa criada com sucesso!",
     });
   };

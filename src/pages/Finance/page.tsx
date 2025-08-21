@@ -92,7 +92,8 @@ export function FinancePage() {
 
   // Mutation para deletar receita
   const deleteRevenueMutation = useMutation({
-    mutationFn: (revenueId: string) => financeService.deleteRevenue(revenueId, filters.fairId),
+    mutationFn: (revenueId: string) =>
+      financeService.deleteRevenue(revenueId, filters.fairId),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["finance-revenues"],
@@ -329,12 +330,7 @@ export function FinancePage() {
           isOpen={isDetailModalOpen}
           onClose={handleDetailModalClose}
           revenueId={selectedRevenueForDetail}
-<<<<<<< Updated upstream
           fairId={filters.fairId}
-          onEditRevenue={handleEditRevenue}
-=======
-          fairId={fairId}
->>>>>>> Stashed changes
         />
       </div>
     </div>
