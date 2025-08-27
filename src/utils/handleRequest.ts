@@ -13,7 +13,7 @@ interface HandleRequestOptions<T> {
   successMessage?: string;
 }
 
-interface HandleFetchRequestOptions<T> {
+interface HandleFetchRequestOptions {
   /** Function that performs the fetch request */
   request: () => Promise<Response>;
   /** Optional React setter to toggle a loading state */
@@ -72,7 +72,7 @@ export async function handleRequest<T>(
  * @returns The response data of type T, or an empty object of type T if no data was returned, or `undefined` on error.
  */
 export async function handleFetchRequest<T>(
-  options: HandleFetchRequestOptions<T>
+  options: HandleFetchRequestOptions
 ): Promise<T | undefined> {
   const { request, setLoading, successMessage } = options;
   setLoading?.(true);
@@ -99,10 +99,7 @@ export async function handleFetchRequest<T>(
       data = await response.json();
     } catch {
       // If response is not JSON, return empty object for object types
-      if (typeof data === "object") {
-        return {} as T;
-      }
-      return data;
+      return {} as T;
     }
 
     // If data is null, undefined or empty string (but not boolean false), return appropriate default value

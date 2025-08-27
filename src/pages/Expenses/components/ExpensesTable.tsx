@@ -174,7 +174,7 @@ export function ExpensesTable({
               </TableCell>
               <TableCell>
                 <Badge variant="outline" className="text-xs">
-                  {expense.category?.nome || "N/A"}
+                  {expense.category?.name || "N/A"}
                 </Badge>
               </TableCell>
               <TableCell>

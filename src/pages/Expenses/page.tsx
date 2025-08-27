@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useSearchParams } from "@/hooks/useSearchParams";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useCookie } from "@/hooks/useCookie";
 import { toast } from "sonner";
 import { Plus, Filter, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -29,13 +29,27 @@ import type {
 } from "@/interfaces/finance";
 
 export default function ExpensesPage() {
-  const [, , fairId] = useSearchParams();
+  const [, , urlFairId] = useSearchParams();
+  const [savedFairId] = useCookie("selectedFairId", "", {
+    days: 30,
+  });
+  
+  // Determina o fairId baseado em: URL params > Cookie
+  const fairId = urlFairId || savedFairId;
+  
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [isChartsOpen, setIsChartsOpen] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
   const [expenseToDelete, setExpenseToDelete] = useState<Expense | null>(null);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+
+  // Debug logs
+  console.log('🔍 ExpensesPage - urlFairId:', urlFairId);
+  console.log('🔍 ExpensesPage - savedFairId:', savedFairId);
+  console.log('🔍 ExpensesPage - final fairId:', fairId);
+  console.log('🔍 ExpensesPage - fairId type:', typeof fairId);
+  console.log('🔍 ExpensesPage - fairId truthy:', !!fairId);
 
   const { data: expenses, isLoading } = useExpenses({ fairId: fairId! });
   const { data: categories } = useFinanceCategoriesByFair(fairId!);

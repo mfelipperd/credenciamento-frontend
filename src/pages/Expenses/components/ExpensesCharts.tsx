@@ -150,7 +150,7 @@ export function ExpensesCharts({ fairId }: ExpensesChartsProps) {
                 {/* Gráfico de pizza visual */}
                 <div className="flex items-center justify-center h-32">
                   <div className="relative w-24 h-24">
-                    {totalsByCategory.map((item, index) => {
+                    {totalsByCategory.map((item: ExpenseTotalByCategory, index: number) => {
                       const percentage = getPercentage(
                         item.total,
                         totalExpenses || 0
@@ -158,7 +158,7 @@ export function ExpensesCharts({ fairId }: ExpensesChartsProps) {
                       const rotation = totalsByCategory
                         .slice(0, index)
                         .reduce(
-                          (acc, prevItem) =>
+                          (acc: number, prevItem: ExpenseTotalByCategory) =>
                             acc + (prevItem.total / totalExpenses) * 360,
                           0
                         );
@@ -182,7 +182,7 @@ export function ExpensesCharts({ fairId }: ExpensesChartsProps) {
 
                 {/* Legenda */}
                 <div className="space-y-2">
-                  {totalsByCategory.map((item, index) => (
+                  {totalsByCategory.map((item: ExpenseTotalByCategory, index: number) => (
                     <div
                       key={item.categoryId}
                       className="flex items-center justify-between"
@@ -229,7 +229,7 @@ export function ExpensesCharts({ fairId }: ExpensesChartsProps) {
               <div className="space-y-4">
                 {/* Gráfico de barras visual */}
                 <div className="space-y-3">
-                  {totalsByAccount.map((item, index) => {
+                  {totalsByAccount.map((item: any, index: number) => {
                     const percentage = getPercentage(
                       item.total,
                       totalExpenses || 0
@@ -284,7 +284,7 @@ export function ExpensesCharts({ fairId }: ExpensesChartsProps) {
               <div className="text-center">
                 <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                   {formatCurrency(
-                    Math.max(...totalsByCategory.map((item) => item.total))
+                    Math.max(...totalsByCategory.map((item: ExpenseTotalByCategory) => item.total))
                   )}
                 </div>
                 <div className="text-sm text-gray-700 dark:text-gray-200">
@@ -294,7 +294,7 @@ export function ExpensesCharts({ fairId }: ExpensesChartsProps) {
               <div className="text-center">
                 <div className="text-2xl font-bold text-green-600 dark:text-green-400">
                   {formatCurrency(
-                    Math.min(...totalsByCategory.map((item) => item.total))
+                    Math.min(...totalsByCategory.map((item: ExpenseTotalByCategory) => item.total))
                   )}
                 </div>
                 <div className="text-sm text-gray-700 dark:text-gray-200">

@@ -128,7 +128,7 @@ export function ExpenseDetailModal({
               </CardHeader>
               <CardContent>
                 <Badge variant="outline" className="text-lg px-3 py-1">
-                  {expense.category?.nome || "N/A"}
+                  {expense.category?.name || "N/A"}
                 </Badge>
                 {expense.category?.global && (
                   <p className="text-sm text-gray-500 mt-1">Categoria Global</p>
@@ -227,7 +227,7 @@ export function ExpenseDetailModal({
                     Nome
                   </p>
                   <p className="font-medium text-gray-900 dark:text-white">
-                    {expense.category?.nome || "N/A"}
+                    {expense.category?.name || "N/A"}
                   </p>
                 </div>
                 <div>
@@ -248,7 +248,7 @@ export function ExpenseDetailModal({
                       Categoria Pai
                     </p>
                     <p className="font-medium text-gray-900 dark:text-white">
-                      {expense.category.parent.nome}
+                      {expense.category.parent.name}
                     </p>
                   </div>
                 )}

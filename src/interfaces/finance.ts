@@ -246,7 +246,7 @@ export type AccountType = (typeof AccountType)[keyof typeof AccountType];
 // Interfaces para categorias financeiras
 export interface FinanceCategory {
   id: string;
-  nome: string;
+  name: string;
   parentId?: string;
   global: boolean;
   fairId?: string;
@@ -257,7 +257,7 @@ export interface FinanceCategory {
 }
 
 export interface CreateFinanceCategoryForm {
-  nome: string;
+  name: string;
   parentId?: string;
   global: boolean;
   fairId?: string;

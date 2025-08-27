@@ -100,7 +100,7 @@ export function ExpenseFilters({
               <SelectItem value="">Todas as categorias</SelectItem>
               {categories.map((category) => (
                 <SelectItem key={category.id} value={category.id}>
-                  {category.nome}
+                  {category.name}
                   {category.global && (
                     <span className="text-xs text-gray-500 ml-2">(Global)</span>
                   )}
@@ -269,7 +269,7 @@ export function ExpenseFilters({
           {filters.categoryId && (
             <Badge variant="secondary" className="gap-1">
               Categoria:{" "}
-              {categories.find((c) => c.id === filters.categoryId)?.nome}
+              {categories.find((c) => c.id === filters.categoryId)?.name}
               <Button
                 variant="ghost"
                 size="sm"
