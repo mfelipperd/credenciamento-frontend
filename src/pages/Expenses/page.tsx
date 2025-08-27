@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useSearchParams } from "@/hooks/useSearchParams";
-import { useExpensesService } from "@/service/expenses.service";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Plus, Filter, BarChart3 } from "lucide-react";
@@ -14,6 +13,15 @@ import { ExpenseFilters } from "./components/ExpenseFilters";
 import { ExpensesCharts } from "./components/ExpensesCharts";
 import { ExpenseDetailModal } from "./components/ExpenseDetailModal";
 import { DeleteExpenseDialog } from "./components/DeleteExpenseDialog";
+import {
+  useExpenses,
+  useExpensesTotal,
+  useFinanceCategoriesByFair,
+  useAccounts,
+  useCreateExpense,
+  useUpdateExpense,
+  useDeleteExpense,
+} from "@/hooks/useExpenses";
 import type {
   Expense,
   CreateExpenseForm,
@@ -29,100 +37,63 @@ export default function ExpensesPage() {
   const [expenseToDelete, setExpenseToDelete] = useState<Expense | null>(null);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
 
-  const expensesService = useExpensesService();
-  const queryClient = useQueryClient();
+  const { data: expenses, isLoading } = useExpenses({ fairId: fairId! });
+  const { data: categories } = useFinanceCategoriesByFair(fairId!);
+  const { data: accounts } = useAccounts();
+  const { data: totalExpenses } = useExpensesTotal(fairId!);
 
-  // Query para buscar despesas
-  const { data: expenses, isLoading } = useQuery({
-    queryKey: ["expenses", fairId],
-    queryFn: () => expensesService.getExpenses({ fairId: fairId! }),
-    enabled: !!fairId,
-  });
-
-  // Query para buscar categorias da feira
-  const { data: categories } = useQuery({
-    queryKey: ["finance-categories", fairId],
-    queryFn: () => expensesService.getFinanceCategoriesByFair(fairId!),
-    enabled: !!fairId,
-  });
-
-  // Query para buscar contas
-  const { data: accounts } = useQuery({
-    queryKey: ["accounts"],
-    queryFn: () => expensesService.getAccounts(),
-  });
-
-  // Query para total de despesas
-  const { data: totalExpenses } = useQuery({
-    queryKey: ["expenses-total", fairId],
-    queryFn: () => expensesService.getExpensesTotal(fairId!),
-    enabled: !!fairId,
-  });
-
-  // Mutation para criar despesa
-  const createExpenseMutation = useMutation({
-    mutationFn: (data: CreateExpenseForm) =>
-      expensesService.createExpense(fairId!, data),
-    onSuccess: () => {
-      toast.success("Despesa criada com sucesso!");
-      queryClient.invalidateQueries({ queryKey: ["expenses", fairId] });
-      queryClient.invalidateQueries({ queryKey: ["expenses-total", fairId] });
-      setIsFormOpen(false);
-    },
-    onError: (error) => {
-      console.error("Erro ao criar despesa:", error);
-      toast.error("Erro ao criar despesa. Tente novamente.");
-    },
-  });
-
-  // Mutation para atualizar despesa
-  const updateExpenseMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateExpenseForm }) =>
-      expensesService.updateExpense(id, data, fairId),
-    onSuccess: () => {
-      toast.success("Despesa atualizada com sucesso!");
-      queryClient.invalidateQueries({ queryKey: ["expenses", fairId] });
-      queryClient.invalidateQueries({ queryKey: ["expenses-total", fairId] });
-      setEditingExpense(null);
-      setIsFormOpen(false);
-    },
-    onError: (error) => {
-      console.error("Erro ao atualizar despesa:", error);
-      toast.error("Erro ao atualizar despesa. Tente novamente.");
-    },
-  });
-
-  // Mutation para deletar despesa
-  const deleteExpenseMutation = useMutation({
-    mutationFn: (id: string) => expensesService.deleteExpense(id, fairId!),
-    onSuccess: () => {
-      toast.success("Despesa removida com sucesso!");
-      queryClient.invalidateQueries({ queryKey: ["expenses", fairId] });
-      queryClient.invalidateQueries({ queryKey: ["expenses-total", fairId] });
-      setExpenseToDelete(null);
-    },
-    onError: (error) => {
-      console.error("Erro ao remover despesa:", error);
-      toast.error("Erro ao remover despesa. Tente novamente.");
-    },
-  });
+  const createExpenseMutation = useCreateExpense();
+  const updateExpenseMutation = useUpdateExpense();
+  const deleteExpenseMutation = useDeleteExpense();
 
   // Handlers
   const handleCreateExpense = (data: CreateExpenseForm) => {
-    // Incluir fairId nos dados da despesa
-    const expenseData = {
-      ...data,
-      fairId: fairId!,
-    };
-    createExpenseMutation.mutate(expenseData);
+    createExpenseMutation.mutate(
+      { fairId: fairId!, data },
+      {
+        onSuccess: () => {
+          toast.success("Despesa criada com sucesso!");
+          setIsFormOpen(false);
+        },
+        onError: (error) => {
+          console.error("Erro ao criar despesa:", error);
+          toast.error("Erro ao criar despesa. Tente novamente.");
+        },
+      }
+    );
   };
 
-  const handleUpdateExpense = (id: string, data: UpdateExpenseForm) => {
-    updateExpenseMutation.mutate({ id, data });
+  const handleUpdateExpense = ({ id, data }: { id: string; data: UpdateExpenseForm }) => {
+    updateExpenseMutation.mutate(
+      { id, data, fairId: fairId! },
+      {
+        onSuccess: () => {
+          toast.success("Despesa atualizada com sucesso!");
+          setEditingExpense(null);
+          setIsFormOpen(false);
+        },
+        onError: (error) => {
+          console.error("Erro ao atualizar despesa:", error);
+          toast.error("Erro ao atualizar despesa. Tente novamente.");
+        },
+      }
+    );
   };
 
   const handleDeleteExpense = (id: string) => {
-    deleteExpenseMutation.mutate(id);
+    deleteExpenseMutation.mutate(
+      { id, fairId: fairId! },
+      {
+        onSuccess: () => {
+          toast.success("Despesa removida com sucesso!");
+          setExpenseToDelete(null);
+        },
+        onError: (error) => {
+          console.error("Erro ao remover despesa:", error);
+          toast.error("Erro ao remover despesa. Tente novamente.");
+        },
+      }
+    );
   };
 
   const handleEditExpense = (expense: Expense) => {
@@ -299,7 +270,7 @@ export default function ExpensesPage() {
         onClose={handleCloseForm}
         onSubmit={(data) => {
           if (editingExpense) {
-            handleUpdateExpense(editingExpense.id, data as UpdateExpenseForm);
+            handleUpdateExpense({ id: editingExpense.id, data });
           } else {
             handleCreateExpense(data as CreateExpenseForm);
           }
@@ -313,13 +284,13 @@ export default function ExpensesPage() {
         fairId={fairId}
         onCategoryCreated={() => {
           // Recarregar categorias quando uma nova for criada
-          queryClient.refetchQueries({
-            queryKey: ["finance-categories", fairId],
-          });
+          // queryClient.refetchQueries({
+          //   queryKey: ["finance-categories", fairId],
+          // });
         }}
         onAccountCreated={() => {
           // Recarregar contas quando uma nova for criada
-          queryClient.refetchQueries({ queryKey: ["accounts"] });
+          // queryClient.refetchQueries({ queryKey: ["accounts"] });
         }}
       />
 

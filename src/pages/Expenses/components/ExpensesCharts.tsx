@@ -1,5 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
-import { useExpensesService } from "@/service/expenses.service";
+import { useExpensesTotalByCategory, useExpensesTotalByAccount } from "@/hooks/useExpenses";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PieChart, BarChart3, TrendingUp, DollarSign } from "lucide-react";
@@ -10,21 +9,11 @@ interface ExpensesChartsProps {
 }
 
 export function ExpensesCharts({ fairId }: ExpensesChartsProps) {
-  const expensesService = useExpensesService();
-
   // Query para buscar totais por categoria
-  const { data: totalsByCategory, isLoading: loadingCategories } = useQuery({
-    queryKey: ["expenses-total-by-category", fairId],
-    queryFn: () => expensesService.getExpensesTotalByCategory(fairId),
-    enabled: !!fairId,
-  });
+  const { data: totalsByCategory, isLoading: loadingCategories } = useExpensesTotalByCategory(fairId);
 
   // Query para buscar totais por conta
-  const { data: totalsByAccount, isLoading: loadingAccounts } = useQuery({
-    queryKey: ["expenses-total-by-account", fairId],
-    queryFn: () => expensesService.getExpensesTotalByAccount(fairId),
-    enabled: !!fairId,
-  });
+  const { data: totalsByAccount, isLoading: loadingAccounts } = useExpensesTotalByAccount(fairId);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
