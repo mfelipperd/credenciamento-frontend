@@ -26,8 +26,10 @@ import { Card } from "@/components/ui/card";
 import { ControlledInput } from "@/components/ControlledInput";
 import { ControlledSelect } from "@/components/ControlledSelect";
 import { StandSelector } from "@/components/StandSelector";
-import { X, Search, Plus, Upload, Trash2 } from "lucide-react";
+import { X, Search, Plus, Upload, Trash2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
+import { maskCurrencyBRL } from "@/utils/masks";
+
 import type {
   CreateRevenueForm,
   EntryModelType,
@@ -45,21 +47,11 @@ interface ReceitaDrawerProps {
 // Schema de validação completo com validações contextuais
 const revenueSchema = z.object({
   clientId: z.string().min(1, "Selecione um cliente"),
-  standNumber: z
-    .number({
-      required_error: "Selecione um stand",
-      invalid_type_error: "Stand deve ser um número válido",
-    })
-    .int("Stand deve ser um número inteiro")
-    .min(1, "Selecione um stand válido"),
+  standNumber: z.number().optional(), // Stand é opcional para patrocínios
   entryModelId: z.string().min(1, "Selecione um stand/patrocínio"),
-  contractValueCents: z
-    .number({
-      required_error: "Valor do contrato é obrigatório",
-      invalid_type_error: "Valor do contrato deve ser um número válido",
-    })
-    .int("Valor do contrato deve ser um número inteiro")
-    .min(0, "Valor do contrato não pode ser negativo"),
+  baseValueCents: z.string().min(1, "Valor base é obrigatório"),
+  contractValueCents: z.string().min(1, "Valor do contrato é obrigatório"),
+  discountCents: z.string().min(1, "Desconto é obrigatório"),
   paymentMethod: z.enum(
     ["PIX", "BOLETO", "CARTAO", "TED", "DINHEIRO", "TRANSFERENCIA"],
     {
@@ -112,44 +104,12 @@ export function ReceitaDrawer({
   } | null>(null);
   const [showCreateClient, setShowCreateClient] = useState(false);
   const [attachedFile, setAttachedFile] = useState<AttachedFile | null>(null);
+  const [showStandConfirmation, setShowStandConfirmation] = useState(false);
 
   const { user } = useAuth();
   const financeService = useFinanceService();
   const standService = useStandService();
   const queryClient = useQueryClient();
-
-  // Se não há fairId, não renderiza o conteúdo principal
-  const hasValidFairId = fairId && fairId.trim() !== "";
-
-  if (!hasValidFairId && isOpen) {
-    return (
-      <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <SheetContent className="w-full max-w-4xl min-w-[40rem] overflow-y-auto p-6">
-          <SheetHeader className="border-b border-gray-200/30 dark:border-gray-700/30 pb-4 mb-6">
-            <div className="flex items-center justify-between">
-              <SheetTitle className="text-xl font-semibold text-gray-900 dark:text-white">
-                Erro
-              </SheetTitle>
-              <Button variant="ghost" size="sm" onClick={onClose}>
-                <X className="w-4 h-4 text-gray-600 dark:text-white" />
-              </Button>
-            </div>
-          </SheetHeader>
-          <div className="p-6 text-center">
-            <p className="text-lg text-red-600 dark:text-red-400 mb-4">
-              É necessário selecionar uma feira para criar uma receita.
-            </p>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
-              Por favor, selecione uma feira válida no seletor do cabeçalho e tente novamente.
-            </p>
-            <Button onClick={onClose}>
-              Fechar
-            </Button>
-          </div>
-        </SheetContent>
-      </Sheet>
-    );
-  }
 
   // Form principal
   const {
@@ -163,9 +123,15 @@ export function ReceitaDrawer({
   } = useForm<RevenueFormData>({
     resolver: zodResolver(revenueSchema),
     defaultValues: {
+      clientId: "",
+      standNumber: 0,
+      entryModelId: "",
+      baseValueCents: "R$ 0,00",
+      contractValueCents: "R$ 0,00",
+      discountCents: "R$ 0,00",
       installmentsCount: "1",
-      contractValueCents: 0,
       paymentMethod: "PIX", // Valor padrão
+      notes: "",
     },
   });
 
@@ -182,7 +148,10 @@ export function ReceitaDrawer({
     },
   });
 
-  const watchedValues = watch();
+  // Watch apenas os valores necessários para evitar re-renders excessivos
+  const contractValueCents = watch("contractValueCents");
+  const installmentsCount = watch("installmentsCount");
+  const standNumber = watch("standNumber");
 
   // Query para buscar clientes
   const { data: clients = [], isLoading: isLoadingClients } = useQuery({
@@ -218,10 +187,16 @@ export function ReceitaDrawer({
         toast.error("Erro: resposta inválida do servidor");
       }
     },
-    onError: (error: any) => {
+    onError: (
+      error: Error | { message?: string; response?: { data?: unknown } }
+    ) => {
       console.error("Erro completo na criação do cliente:", error);
-      console.error("Error response:", error.response?.data);
-      toast.error(`Erro ao criar cliente: ${error.message || "Erro desconhecido"}`);
+      if ("response" in error) {
+        console.error("Error response:", error.response?.data);
+      }
+      toast.error(
+        `Erro ao criar cliente: ${error.message || "Erro desconhecido"}`
+      );
     },
   });
 
@@ -256,14 +231,14 @@ export function ReceitaDrawer({
       setAttachedFile(null);
       resetClient();
     }
-  }, [isOpen, reset, resetClient]);
+  }, [isOpen]);
 
   // Atualiza o fairId no formulário de cliente quando disponível
   useEffect(() => {
     if (fairId) {
       setValueClient("fairId", fairId);
     }
-  }, [fairId, setValueClient]);
+  }, [fairId]);
 
   // Pré-seleciona o stand quando prefilledStandNumber está disponível
   useEffect(() => {
@@ -289,8 +264,79 @@ export function ReceitaDrawer({
     };
 
     loadPrefilledStand();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prefilledStandNumber, isOpen, fairId]);
+
+  // Calcula automaticamente o desconto quando o valor do contrato muda
+  useEffect(() => {
+    if (selectedEntryModel) {
+      const contractValue = parseMaskedCurrency(contractValueCents || "0");
+      const baseValue = selectedEntryModel.baseValue;
+      const discount = Math.max(0, baseValue - contractValue);
+
+      console.log("Calculando desconto:", {
+        contractValueCents,
+        contractValue,
+        baseValue,
+        discount,
+      });
+
+      // Converte o desconto para formato mascarado antes de definir
+      const discountFormatted = formatCurrency(discount);
+      setValue("discountCents", discountFormatted);
+    }
+  }, [contractValueCents, selectedEntryModel]);
+
+  // Garante que os valores sejam definidos corretamente quando o modelo for selecionado
+  useEffect(() => {
+    if (selectedEntryModel) {
+      console.log("Definindo valores do modelo:", selectedEntryModel);
+
+      // Converte o valor base para formato mascarado
+      const baseValueFormatted = formatCurrency(selectedEntryModel.baseValue);
+      setValue("baseValueCents", baseValueFormatted);
+      setValue("contractValueCents", baseValueFormatted);
+      setValue("discountCents", "R$ 0,00");
+      setValue("entryModelId", selectedEntryModel.id);
+
+      console.log("Valores definidos:", {
+        baseValue: selectedEntryModel.baseValue,
+        baseValueFormatted,
+        discountCents: "R$ 0,00",
+      });
+    }
+  }, [selectedEntryModel]);
+
+  // Se não há fairId, não renderiza o conteúdo principal
+  const hasValidFairId = fairId && fairId.trim() !== "";
+
+  if (!hasValidFairId && isOpen) {
+    return (
+      <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
+        <SheetContent className="w-full max-w-4xl min-w-[40rem] overflow-y-auto p-6">
+          <SheetHeader className="border-b border-gray-200/30 dark:border-gray-700/30 pb-4 mb-6">
+            <div className="flex items-center justify-between">
+              <SheetTitle className="text-xl font-semibold text-gray-900 dark:text-white">
+                Erro
+              </SheetTitle>
+              <Button variant="ghost" size="sm" onClick={onClose}>
+                <X className="w-4 h-4 text-gray-600 dark:text-white" />
+              </Button>
+            </div>
+          </SheetHeader>
+          <div className="p-6 text-center">
+            <p className="text-lg text-red-600 dark:text-red-400 mb-4">
+              É necessário selecionar uma feira para criar uma receita.
+            </p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+              Por favor, selecione uma feira válida no seletor do cabeçalho e
+              tente novamente.
+            </p>
+            <Button onClick={onClose}>Fechar</Button>
+          </div>
+        </SheetContent>
+      </Sheet>
+    );
+  }
 
   // Helpers
   const formatCurrency = (cents: number) => {
@@ -300,16 +346,44 @@ export function ReceitaDrawer({
     }).format(cents / 100);
   };
 
-  const calculateDiscount = () => {
-    if (!selectedEntryModel) return 0;
-    const contractValue =
-      watchedValues.contractValueCents || selectedEntryModel.baseValue;
-    return Math.max(0, selectedEntryModel.baseValue - contractValue);
+  // Converte valor mascarado (ex: "9.000,00") para número em centavos
+  const parseMaskedCurrency = (maskedValue: string): number => {
+    if (!maskedValue || maskedValue === "0") return 0;
+
+    // Remove todos os caracteres não numéricos exceto vírgula e ponto
+    const cleanValue = maskedValue.replace(/[^\d,.-]/g, "");
+
+    // Se não tem vírgula, é um valor inteiro
+    if (!cleanValue.includes(",")) {
+      return parseInt(cleanValue);
+    }
+
+    // Separa parte inteira e decimal
+    const parts = cleanValue.split(",");
+    const integerPart = parts[0].replace(/\./g, ""); // Remove pontos de milhares
+    const decimalPart = parts[1] || "00";
+
+    // Converte para centavos (multiplica por 100 para converter reais para centavos)
+    const totalCents =
+      parseInt(integerPart) * 100 + parseInt(decimalPart.padEnd(2, "0"));
+
+    console.log("parseMaskedCurrency:", {
+      maskedValue,
+      cleanValue,
+      integerPart,
+      decimalPart,
+      totalCents,
+    });
+
+    return totalCents;
   };
 
   const calculateContractValue = () => {
     if (!selectedEntryModel) return 0;
-    return watchedValues.contractValueCents || selectedEntryModel.baseValue;
+    return (
+      parseMaskedCurrency(contractValueCents || "0") ||
+      selectedEntryModel.baseValue
+    );
   };
 
   // Handlers
@@ -333,7 +407,16 @@ export function ReceitaDrawer({
         baseValue: model.baseValue,
         type: model.type,
       });
-      setValue("contractValueCents", model.baseValue); // Definir valor do contrato como padrão
+
+      // Define o entryModelId no formulário
+      setValue("entryModelId", entryModelId);
+
+      console.log("Entry model selecionado:", {
+        id: model.id,
+        name: model.name,
+        type: model.type,
+        entryModelId: entryModelId,
+      });
     }
   };
 
@@ -373,7 +456,25 @@ export function ReceitaDrawer({
     createClientMutation.mutate(data);
   };
 
-  const onSubmit = (data: RevenueFormData) => {
+  const handleConfirmWithoutStand = () => {
+    setShowStandConfirmation(false);
+    // Executa o submit novamente, agora sem validação de stand
+    handleSubmit(onSubmitWithoutStandValidation)();
+  };
+
+  const handleCancelWithoutStand = () => {
+    setShowStandConfirmation(false);
+  };
+
+  const onSubmitWithoutStandValidation = (data: RevenueFormData) => {
+    console.log("=== SUBMIT SEM VALIDAÇÃO DE STAND ===");
+    console.log("Dados do formulário:", data);
+    console.log("Modelo selecionado:", selectedEntryModel);
+    console.log("Cliente selecionado:", selectedClient);
+    console.log("Stand selecionado:", selectedStand);
+    console.log("FairId:", fairId);
+    console.log("User ID:", user?.id);
+
     if (!fairId) {
       toast.error("FairId não encontrado");
       return;
@@ -381,11 +482,6 @@ export function ReceitaDrawer({
 
     if (!selectedClient) {
       toast.error("Selecione um cliente");
-      return;
-    }
-
-    if (!selectedStand) {
-      toast.error("Selecione um stand");
       return;
     }
 
@@ -400,15 +496,19 @@ export function ReceitaDrawer({
     }
 
     // Validação contextual do valor do contrato em relação ao valor base
-    if (data.contractValueCents > selectedEntryModel.baseValue) {
+    const contractValueForValidation = parseMaskedCurrency(
+      data.contractValueCents
+    );
+    if (contractValueForValidation > selectedEntryModel.baseValue) {
       toast.error("Valor do contrato não pode ser maior que o valor base");
       return;
     }
 
-    // Calcular os valores obrigatórios
-    const baseValue = selectedEntryModel.baseValue; // já está em centavos
-    const contractValue = data.contractValueCents; // valor do contrato informado
-    const discountCents = baseValue - contractValue; // desconto calculado automaticamente
+    // Usar os valores do formulário (já calculados automaticamente)
+    const baseValue =
+      parseMaskedCurrency(data.baseValueCents) || selectedEntryModel.baseValue;
+    const contractValue = parseMaskedCurrency(data.contractValueCents);
+    const discountCents = parseMaskedCurrency(data.discountCents);
 
     // Garantir que os valores são números válidos
     const numericBaseValue = Number(baseValue);
@@ -426,7 +526,93 @@ export function ReceitaDrawer({
 
     const formData: CreateRevenueForm = {
       fairId: fairId,
-      standNumber: selectedStand?.standNumber || 0, // ✅ NOVO CAMPO OBRIGATÓRIO
+      standNumber: 0, // Sem stand (patrocínio)
+      type: selectedEntryModel.type as EntryModelType,
+      entryModelId: selectedEntryModel.id,
+      clientId: selectedClient.id,
+      baseValue: numericBaseValue,
+      discountCents: numericDiscountCents,
+      contractValue: numericContractValue,
+      paymentMethod: data.paymentMethod || "PIX",
+      numberOfInstallments: parseInt(data.installmentsCount),
+      createdBy: user.id.toString(),
+      condition: data.installmentsCount === "1" ? "À vista" : "Parcelado",
+      notes: data.notes,
+    };
+
+    createRevenueMutation.mutate(formData);
+  };
+
+  const onSubmit = (data: RevenueFormData) => {
+    console.log("=== SUBMIT INICIADO ===");
+    console.log("Dados do formulário:", data);
+    console.log("Modelo selecionado:", selectedEntryModel);
+    console.log("Cliente selecionado:", selectedClient);
+    console.log("Stand selecionado:", selectedStand);
+    console.log("FairId:", fairId);
+    console.log("User ID:", user?.id);
+
+    if (!fairId) {
+      toast.error("FairId não encontrado");
+      return;
+    }
+
+    if (!selectedClient) {
+      toast.error("Selecione um cliente");
+      return;
+    }
+
+    // Se não há stand selecionado, mostra modal de confirmação
+    if (!selectedStand) {
+      setShowStandConfirmation(true);
+      return;
+    }
+
+    if (!selectedEntryModel) {
+      toast.error("Selecione um stand/patrocínio");
+      return;
+    }
+
+    if (!user?.id) {
+      toast.error("Usuário não autenticado");
+      return;
+    }
+
+    // Validação contextual do valor do contrato em relação ao valor base
+    const contractValueForValidation = parseMaskedCurrency(
+      data.contractValueCents
+    );
+    if (contractValueForValidation > selectedEntryModel.baseValue) {
+      toast.error("Valor do contrato não pode ser maior que o valor base");
+      return;
+    }
+
+    // Usar os valores do formulário (já calculados automaticamente)
+    const baseValue =
+      parseMaskedCurrency(data.baseValueCents) || selectedEntryModel.baseValue;
+    const contractValue = parseMaskedCurrency(data.contractValueCents);
+    const discountCents = parseMaskedCurrency(data.discountCents);
+
+    // Garantir que os valores são números válidos
+    const numericBaseValue = Number(baseValue);
+    const numericContractValue = Number(contractValue);
+    const numericDiscountCents = Number(discountCents);
+
+    console.log("Valores sendo enviados:", {
+      baseValue: numericBaseValue,
+      contractValue: numericContractValue,
+      discountCents: numericDiscountCents,
+      typeof_baseValue: typeof numericBaseValue,
+      typeof_contractValue: typeof numericContractValue,
+      typeof_discountCents: typeof numericDiscountCents,
+    });
+
+    const formData: CreateRevenueForm = {
+      fairId: fairId,
+      standNumber:
+        selectedEntryModel?.type === "STAND"
+          ? selectedStand?.standNumber || 0
+          : 0, // Stand apenas para stands
       type: selectedEntryModel.type as EntryModelType, // Tipo do modelo (STAND ou PATROCINIO)
       entryModelId: selectedEntryModel.id,
       clientId: selectedClient.id,
@@ -457,7 +643,13 @@ export function ReceitaDrawer({
           </div>
         </SheetHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <form
+          onSubmit={handleSubmit(onSubmit, (errors) => {
+            console.log("=== ERROS DE VALIDAÇÃO ===");
+            console.log("Erros:", errors);
+          })}
+          className="space-y-6"
+        >
           {/* Cliente */}
           <div className="space-y-3">
             <div className="flex items-center gap-2">
@@ -595,7 +787,7 @@ export function ReceitaDrawer({
             <div className="space-y-2">
               <StandSelector
                 fairId={fairId}
-                value={watchedValues.standNumber || selectedStand?.standNumber}
+                value={standNumber || selectedStand?.standNumber}
                 onChange={handleStandSelect}
                 error={errors.standNumber?.message}
               />
@@ -631,26 +823,26 @@ export function ReceitaDrawer({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Valor base */}
               <div className="space-y-2">
-                <Label className="text-base font-medium text-gray-900 dark:text-gray-100">
-                  Valor Base
-                </Label>
-                <div className="p-3 bg-gray-100 dark:bg-gray-800 border rounded">
-                  <span className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                    {formatCurrency(selectedEntryModel.baseValue)}
-                  </span>
-                </div>
+                <ControlledInput
+                  control={control}
+                  name="baseValueCents"
+                  label="Valor Base (R$)"
+                  placeholder="0,00"
+                  mask={maskCurrencyBRL}
+                  disabled
+                />
               </div>
 
               {/* Desconto */}
               <div className="space-y-2">
-                <Label className="text-base font-medium text-gray-900 dark:text-gray-100">
-                  Desconto (R$)
-                </Label>
-                <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded">
-                  <span className="text-lg font-semibold text-yellow-800 dark:text-yellow-200">
-                    {formatCurrency(calculateDiscount())}
-                  </span>
-                </div>
+                <ControlledInput
+                  control={control}
+                  name="discountCents"
+                  label="Desconto (R$)"
+                  placeholder="0,00"
+                  mask={maskCurrencyBRL}
+                  disabled
+                />
                 <p className="text-xs text-gray-600 dark:text-gray-400">
                   Calculado automaticamente
                 </p>
@@ -658,29 +850,13 @@ export function ReceitaDrawer({
 
               {/* Valor do contrato */}
               <div className="space-y-2">
-                <Label className="text-base font-medium text-gray-900 dark:text-gray-100">
-                  Valor do Contrato (R$)
-                </Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  max={(selectedEntryModel.baseValue / 100).toFixed(2)}
+                <ControlledInput
+                  control={control}
+                  name="contractValueCents"
+                  label="Valor do Contrato (R$)"
                   placeholder="0,00"
-                  {...register("contractValueCents", {
-                    setValueAs: (value) => {
-                      const numValue = parseFloat(value || "0");
-                      const centValue = Math.round(numValue * 100);
-                      return isNaN(centValue) ? 0 : centValue;
-                    },
-                  })}
-                  className="text-lg font-semibold"
+                  mask={maskCurrencyBRL}
                 />
-                {errors.contractValueCents && (
-                  <span className="text-sm text-red-500 dark:text-red-400">
-                    {errors.contractValueCents.message}
-                  </span>
-                )}
               </div>
             </div>
           )}
@@ -733,32 +909,30 @@ export function ReceitaDrawer({
               )}
 
               {/* Prévia das parcelas */}
-              {parseInt(watchedValues.installmentsCount || "1") > 1 &&
-                selectedEntryModel && (
-                  <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded">
-                    <div className="text-sm text-yellow-800 dark:text-yellow-200">
-                      <strong>Prévia:</strong> {watchedValues.installmentsCount}
-                      x de{" "}
-                      {formatCurrency(
+              {parseInt(installmentsCount || "1") > 1 && selectedEntryModel && (
+                <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded">
+                  <div className="text-sm text-yellow-800 dark:text-yellow-200">
+                    <strong>Prévia:</strong> {installmentsCount}x de{" "}
+                    {formatCurrency(
+                      Math.floor(
+                        calculateContractValue() /
+                          parseInt(installmentsCount || "1")
+                      )
+                    )}
+                    {calculateContractValue() %
+                      parseInt(installmentsCount || "1") >
+                      0 &&
+                      ` (última: ${formatCurrency(
                         Math.floor(
                           calculateContractValue() /
-                            parseInt(watchedValues.installmentsCount)
-                        )
-                      )}
-                      {calculateContractValue() %
-                        parseInt(watchedValues.installmentsCount) >
-                        0 &&
-                        ` (última: ${formatCurrency(
-                          Math.floor(
-                            calculateContractValue() /
-                              parseInt(watchedValues.installmentsCount)
-                          ) +
-                            (calculateContractValue() %
-                              parseInt(watchedValues.installmentsCount))
-                        )})`}
-                    </div>
+                            parseInt(installmentsCount || "1")
+                        ) +
+                          (calculateContractValue() %
+                            parseInt(installmentsCount || "1"))
+                      )})`}
                   </div>
-                )}
+                </div>
+              )}
             </div>
           </div>
 
@@ -831,11 +1005,7 @@ export function ReceitaDrawer({
             <Button
               type="submit"
               className="bg-blue-600 hover:bg-blue-700"
-              disabled={
-                createRevenueMutation.isPending ||
-                !selectedClient ||
-                !selectedEntryModel
-              }
+              disabled={!selectedClient || !selectedEntryModel}
             >
               {createRevenueMutation.isPending
                 ? "Salvando..."
@@ -843,6 +1013,42 @@ export function ReceitaDrawer({
             </Button>
           </div>
         </form>
+
+        {/* Modal de confirmação para cadastro sem stand */}
+        {showStandConfirmation && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md mx-4">
+              <div className="flex items-center gap-3 mb-4">
+                <AlertTriangle className="w-6 h-6 text-yellow-500" />
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Confirmar cadastro sem stand
+                </h3>
+              </div>
+
+              <p className="text-gray-600 dark:text-gray-300 mb-6">
+                Você está tentando cadastrar uma receita sem selecionar um
+                stand. Isso indica que é um patrocínio ou serviço que não requer
+                localização física.
+              </p>
+
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+                <strong>Confirma que é um patrocínio?</strong>
+              </p>
+
+              <div className="flex gap-3 justify-end">
+                <Button variant="outline" onClick={handleCancelWithoutStand}>
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={handleConfirmWithoutStand}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  Sim, é um patrocínio
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </SheetContent>
     </Sheet>
   );

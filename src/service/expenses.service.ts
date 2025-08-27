@@ -127,25 +127,11 @@ export const useExpensesService = () => {
 
   // ===== CATEGORIAS FINANCEIRAS =====
 
-  const getFinanceCategories = async (): Promise<
-    FinanceCategory[] | undefined
-  > => {
-    const response = await handleRequest<FinanceCategory[]>({
-      request: () => api.get(`/categories`),
-    });
-
-    // Mapear campo 'name' do backend para 'nome' da interface
-    return response?.map((category) => ({
-      ...category,
-      nome: (category as any).name || category.nome || "Sem nome",
-    }));
-  };
-
   const getFinanceCategoriesByFair = async (
     fairId: string
   ): Promise<FinanceCategory[] | undefined> => {
     const response = await handleRequest<FinanceCategory[]>({
-      request: () => api.get(`/categories/${fairId}`),
+      request: () => api.get(`/categories/fair/${fairId}`),
     });
 
     // Mapear campo 'name' do backend para 'nome' da interface
@@ -156,11 +142,10 @@ export const useExpensesService = () => {
   };
 
   const getFinanceCategory = async (
-    id: string,
-    fairId: string
+    id: string
   ): Promise<FinanceCategory | undefined> => {
     return handleRequest<FinanceCategory>({
-      request: () => api.get(`/categories/${fairId}/${id}`),
+      request: () => api.get(`/categories/${id}`),
     });
   };
 
@@ -176,7 +161,7 @@ export const useExpensesService = () => {
     };
 
     return handleRequest<FinanceCategory>({
-      request: () => api.post(`/categories/${data.fairId}`, mappedData),
+      request: () => api.post(`/categories`, mappedData),
       successMessage: "Categoria criada com sucesso!",
     });
   };
@@ -194,17 +179,14 @@ export const useExpensesService = () => {
     };
 
     return handleRequest<FinanceCategory>({
-      request: () => api.patch(`/categories/${data.fairId}/${id}`, mappedData),
+      request: () => api.patch(`/categories/${id}`, mappedData),
       successMessage: "Categoria atualizada com sucesso!",
     });
   };
 
-  const deleteFinanceCategory = async (
-    id: string,
-    fairId: string
-  ): Promise<void> => {
+  const deleteFinanceCategory = async (id: string): Promise<void> => {
     await handleRequest<{ success: boolean }>({
-      request: () => api.delete(`/categories/${fairId}/${id}`),
+      request: () => api.delete(`/categories/${id}`),
       successMessage: "Categoria removida com sucesso!",
     });
   };
@@ -277,7 +259,6 @@ export const useExpensesService = () => {
     getExpensesTotalByAccount,
 
     // Categorias Financeiras
-    getFinanceCategories,
     getFinanceCategoriesByFair,
     getFinanceCategory,
     createFinanceCategory,

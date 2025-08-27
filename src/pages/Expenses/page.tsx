@@ -39,28 +39,10 @@ export default function ExpensesPage() {
     enabled: !!fairId,
   });
 
-  // Query para buscar categorias (incluindo globais e da feira específica)
+  // Query para buscar categorias da feira
   const { data: categories } = useQuery({
     queryKey: ["finance-categories", fairId],
-    queryFn: async () => {
-      const [globalCategories, fairCategories] = await Promise.all([
-        expensesService.getFinanceCategories(), // Categorias globais
-        expensesService.getFinanceCategoriesByFair(fairId!), // Categorias da feira
-      ]);
-
-      // Combina as categorias, removendo duplicatas
-      const allCategories = [
-        ...(globalCategories || []),
-        ...(fairCategories || []),
-      ];
-
-      // Remove duplicatas baseado no ID
-      const uniqueCategories = allCategories.filter(
-        (category, index, self) =>
-          index === self.findIndex((c) => c.id === category.id)
-      );
-      return uniqueCategories;
-    },
+    queryFn: () => expensesService.getFinanceCategoriesByFair(fairId!),
     enabled: !!fairId,
   });
 
