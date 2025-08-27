@@ -210,9 +210,9 @@ export function FinancePage() {
             </Button>
             <Button
               onClick={handleCreateRevenue}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              className="flex items-center gap-2 shadow-lg hover:shadow-xl transition-all duration-200 font-semibold px-6"
             >
-              <Plus className="w-4 h-4 mr-2" />
+              <Plus className="w-4 h-4" />
               Nova Receita
             </Button>
           </div>
