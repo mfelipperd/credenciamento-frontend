@@ -1,5 +1,4 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { expensesApi } from "@/service/expenses.service";
 import { queryKeys } from "@/lib/query-keys";
 import type {
   Expense,
@@ -13,6 +12,217 @@ import type {
   CreateAccountForm,
   UpdateAccountForm,
 } from "@/interfaces/finance";
+
+const BASE_URL = "";
+
+// Funções de API inline para despesas
+const expensesApi = {
+  getExpenses: async (filters: ExpenseFilters): Promise<Expense[]> => {
+    const { fairId, ...otherFilters } = filters;
+    const params = new URLSearchParams();
+
+    Object.entries(otherFilters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== "") {
+        params.append(key, value.toString());
+      }
+    });
+
+    const queryString = params.toString() ? `?${params.toString()}` : "";
+    const response = await fetch(`${BASE_URL}/fairs/${fairId}/expenses${queryString}`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return response.json();
+  },
+
+  getExpenseDetail: async (id: string, fairId: string): Promise<Expense> => {
+    if (!fairId) {
+      throw new Error("fairId é obrigatório para buscar detalhes da despesa");
+    }
+
+    const response = await fetch(`${BASE_URL}/fairs/${fairId}/expenses/${id}`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return response.json();
+  },
+
+  createExpense: async (fairId: string, data: CreateExpenseForm): Promise<Expense> => {
+    const expenseData = { ...data, fairId };
+    
+    const response = await fetch(`${BASE_URL}/fairs/${fairId}/expenses`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(expenseData),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return response.json();
+  },
+
+  updateExpense: async (id: string, data: UpdateExpenseForm, fairId: string): Promise<Expense> => {
+    if (!fairId) {
+      throw new Error("fairId é obrigatório para atualizar despesa");
+    }
+
+    const response = await fetch(`${BASE_URL}/fairs/${fairId}/expenses/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return response.json();
+  },
+
+  deleteExpense: async (id: string, fairId: string): Promise<void> => {
+    const response = await fetch(`${BASE_URL}/fairs/${fairId}/expenses/${id}`, {
+      method: 'DELETE',
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+  },
+
+  getExpensesTotal: async (fairId: string): Promise<number> => {
+    const response = await fetch(`${BASE_URL}/fairs/${fairId}/expenses/total`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return response.json();
+  },
+
+  getExpensesTotalByCategory: async (fairId: string): Promise<any[]> => {
+    const response = await fetch(`${BASE_URL}/fairs/${fairId}/expenses/total-by-category`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return response.json();
+  },
+
+  getExpensesTotalByAccount: async (fairId: string): Promise<any[]> => {
+    const response = await fetch(`${BASE_URL}/fairs/${fairId}/expenses/total-by-account`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return response.json();
+  },
+
+  getFinanceCategoriesByFair: async (fairId: string): Promise<FinanceCategory[]> => {
+    const response = await fetch(`${BASE_URL}/fairs/${fairId}/finance-categories`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return response.json();
+  },
+
+  createFinanceCategory: async (fairId: string, data: CreateFinanceCategoryForm): Promise<FinanceCategory> => {
+    const categoryData = { ...data, fairId };
+    
+    const response = await fetch(`${BASE_URL}/fairs/${fairId}/finance-categories`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(categoryData),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return response.json();
+  },
+
+  updateFinanceCategory: async (id: string, data: UpdateFinanceCategoryForm, fairId: string): Promise<FinanceCategory> => {
+    const response = await fetch(`${BASE_URL}/fairs/${fairId}/finance-categories/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return response.json();
+  },
+
+  deleteFinanceCategory: async (id: string, fairId: string): Promise<void> => {
+    const response = await fetch(`${BASE_URL}/fairs/${fairId}/finance-categories/${id}`, {
+      method: 'DELETE',
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+  },
+
+  getAccounts: async (): Promise<Account[]> => {
+    const response = await fetch(`${BASE_URL}/accounts`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return response.json();
+  },
+
+  createAccount: async (data: CreateAccountForm): Promise<Account> => {
+    const response = await fetch(`${BASE_URL}/accounts`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return response.json();
+  },
+
+  updateAccount: async (id: string, data: UpdateAccountForm): Promise<Account> => {
+    const response = await fetch(`${BASE_URL}/accounts/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return response.json();
+  },
+
+  deleteAccount: async (id: string): Promise<void> => {
+    const response = await fetch(`${BASE_URL}/accounts/${id}`, {
+      method: 'DELETE',
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+  },
+};
 
 // Hook para buscar despesas
 export const useExpenses = (filters: ExpenseFilters) => {
