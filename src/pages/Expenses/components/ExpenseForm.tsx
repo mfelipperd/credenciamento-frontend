@@ -5,7 +5,6 @@ import { z } from "zod";
 import {
   X,
   Calendar as CalendarIcon,
-  DollarSign,
   Tag,
   Building,
   Plus,
@@ -16,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { ControlledInput } from "@/components/ControlledInput";
 import {
   Dialog,
   DialogContent,
@@ -49,6 +49,7 @@ import { AccountType } from "@/interfaces/finance";
 import { useExpensesService } from "@/service/expenses.service";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { maskCurrencyBRL, unmaskCurrencyBRL } from "@/utils/masks";
 
 // Schema de validação
 const expenseSchema = z.object({
@@ -58,7 +59,7 @@ const expenseSchema = z.object({
     .string()
     .max(500, "Descrição deve ter no máximo 500 caracteres")
     .optional(),
-  valor: z.number().min(0.01, "Valor deve ser maior que zero"),
+  valorDisplay: z.string().min(1, "Valor é obrigatório"),
   data: z.string().min(1, "Data é obrigatória"),
   observacoes: z.string().optional(),
 });
@@ -105,7 +106,7 @@ export function ExpenseForm({
       categoryId: "",
       accountId: "",
       descricao: "",
-      valor: 0,
+      valorDisplay: "R$ 0,00",
       data: new Date().toISOString().split("T")[0],
       observacoes: "",
     },
@@ -118,7 +119,10 @@ export function ExpenseForm({
         categoryId: expense.categoryId,
         accountId: expense.accountId,
         descricao: expense.descricao || "",
-        valor: expense.valor,
+        valorDisplay: new Intl.NumberFormat("pt-BR", {
+          style: "currency",
+          currency: "BRL",
+        }).format(expense.valor),
         data: expense.data,
         observacoes: expense.observacoes || "",
       });
@@ -127,7 +131,7 @@ export function ExpenseForm({
         categoryId: "",
         accountId: "",
         descricao: "",
-        valor: 0,
+        valorDisplay: "R$ 0,00",
         data: new Date().toISOString().split("T")[0],
         observacoes: "",
       });
@@ -135,12 +139,20 @@ export function ExpenseForm({
   }, [expense, form]);
 
   const handleSubmit = (data: ExpenseFormData) => {
+    // Converter valor mascarado para número
+    const valor = unmaskCurrencyBRL(data.valorDisplay);
+    
+    const formData = {
+      ...data,
+      valor: valor,
+    };
+    
     if (expense) {
       // Atualizar despesa existente
-      onSubmit({ ...data } as UpdateExpenseForm);
+      onSubmit({ ...formData } as UpdateExpenseForm);
     } else {
       // Criar nova despesa
-      onSubmit(data);
+      onSubmit(formData);
     }
   };
 
@@ -149,12 +161,8 @@ export function ExpenseForm({
     onClose();
   };
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-    }).format(value);
-  };
+  // Watch do valor para o resumo
+  const valorDisplay = form.watch("valorDisplay");
 
   const getAccountTypeLabel = (type: AccountType) => {
     const labels = {
@@ -587,27 +595,16 @@ export function ExpenseForm({
           {/* Valor e Data */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label
-                htmlFor="valor"
-                className="text-gray-900 dark:text-gray-100"
-              >
-                Valor (R$) *
-              </Label>
-              <div className="relative">
-                <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
-                <Input
-                  id="valor"
-                  type="number"
-                  step="0.01"
-                  min="0.01"
-                  placeholder="0,00"
-                  {...form.register("valor", { valueAsNumber: true })}
-                  className="pl-10 text-gray-900 dark:text-gray-100"
-                />
-              </div>
-              {form.formState.errors.valor && (
+              <ControlledInput
+                control={form.control}
+                name="valorDisplay"
+                label="Valor (R$) *"
+                placeholder="0,00"
+                mask={maskCurrencyBRL}
+              />
+              {form.formState.errors.valorDisplay && (
                 <p className="text-sm text-red-600 dark:text-red-400">
-                  {form.formState.errors.valor.message}
+                  {form.formState.errors.valorDisplay.message}
                 </p>
               )}
             </div>
@@ -650,7 +647,6 @@ export function ExpenseForm({
                         setIsCalendarOpen(false);
                       }
                     }}
-                    disabled={(date) => date > new Date()}
                     initialFocus
                   />
                 </PopoverContent>
@@ -686,14 +682,14 @@ export function ExpenseForm({
           </div>
 
           {/* Resumo */}
-          {form.watch("valor") > 0 && (
+          {valorDisplay && valorDisplay !== "R$ 0,00" && (
             <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
               <h4 className="font-medium text-gray-900 dark:text-white mb-2">
                 Resumo da Despesa
               </h4>
               <div className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
                 <p>
-                  <strong>Valor:</strong> {formatCurrency(form.watch("valor"))}
+                  <strong>Valor:</strong> {valorDisplay}
                 </p>
                 <p>
                   <strong>Data:</strong>{" "}
