@@ -338,3 +338,10 @@ export interface ExpenseTotalByAccount {
   accountName: string;
   total: number;
 }
+
+// Interface para estatísticas de receitas
+export interface RevenueStats {
+  totalValue: number;
+  totalRevenues: number;
+  averagePerRevenue: number;
+}

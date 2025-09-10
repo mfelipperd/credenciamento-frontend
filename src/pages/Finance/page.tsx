@@ -9,6 +9,7 @@ import { FinanceTable } from "./components/FinanceTable";
 import { ReceitaDrawer } from "./components/ReceitaDrawer";
 import { EntryModelsDialog } from "./components/EntryModelsDialog";
 import { RevenueDetailModal } from "./components/RevenueDetailModal";
+import { RevenueStats } from "./components/RevenueStats";
 import { StandMap } from "@/components/StandMap";
 import { StandConfigurator } from "@/components/StandConfigurator";
 import type { RevenueFilters } from "@/interfaces/finance";
@@ -223,6 +224,11 @@ export function FinancePage() {
         {/* KPIs */}
         {filters.fairId && (
           <FinanceKpis data={kpisData} isLoading={isLoadingKpis} />
+        )}
+
+        {/* Estatísticas de Receitas */}
+        {filters.fairId && (
+          <RevenueStats fairId={filters.fairId} />
         )}
 
         {/* Seção de Stands - Simplificada */}
