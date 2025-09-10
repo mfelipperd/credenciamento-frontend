@@ -1,27 +1,33 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Trash2, Edit, Plus } from "lucide-react";
-import { ControlledInput } from "@/components/ControlledInput";
-import { ControlledSelect } from "@/components/ControlledSelect";
-import { useFinanceService } from "@/service/finance.service";
+import { Edit, Trash2, Plus } from "lucide-react";
+import { unmaskCurrencyBRL, formatCurrencyFromCents } from "@/utils/masks";
 import type { EntryModel, EntryModelType } from "@/interfaces/finance";
 import {
-  unmaskCurrencyBRL,
-  formatCurrencyFromCents,
-  maskCurrencyBRL,
-} from "@/utils/masks";
-import { toast } from "sonner";
+  useEntryModels,
+  useCreateEntryModel,
+  useUpdateEntryModel,
+  useDeleteEntryModel,
+} from "@/hooks/useFinance";
 
 // Schema de validação
 const entryModelSchema = z.object({
@@ -47,8 +53,10 @@ export function EntryModelsDialog({
   fairId,
 }: EntryModelsDialogProps) {
   const [editingModel, setEditingModel] = useState<EntryModel | null>(null);
-  const queryClient = useQueryClient();
-  const financeService = useFinanceService();
+  const { data: entryModels = [], isLoading } = useEntryModels(fairId);
+  const createMutation = useCreateEntryModel();
+  const updateMutation = useUpdateEntryModel();
+  const deleteMutation = useDeleteEntryModel();
 
   const form = useForm<EntryModelForm>({
     resolver: zodResolver(entryModelSchema),
@@ -60,22 +68,31 @@ export function EntryModelsDialog({
     },
   });
 
-  // Query para buscar entry models
-  const { data: entryModels = [], isLoading } = useQuery({
-    queryKey: ["entry-models", fairId],
-    queryFn: () => financeService.getEntryModels(fairId),
-    enabled: !!fairId && isOpen,
-  });
-
-  // Mutation para criar entry model
-  const createMutation = useMutation({
-    mutationFn: (data: EntryModelForm) => {
+  const onSubmit = (data: EntryModelForm) => {
+    if (editingModel) {
+      // Atualizar modelo existente
       const baseValueCents = unmaskCurrencyBRL(data.baseValueDisplay);
       const costValueCents = data.costCentsDisplay
         ? unmaskCurrencyBRL(data.costCentsDisplay)
         : undefined;
 
-      return financeService.createEntryModel({
+      updateMutation.mutate({
+        id: editingModel.id,
+        data: {
+          name: data.name,
+          type: data.type,
+          baseValue: baseValueCents,
+          costCents: costValueCents,
+        },
+      });
+    } else {
+      // Criar novo modelo
+      const baseValueCents = unmaskCurrencyBRL(data.baseValueDisplay);
+      const costValueCents = data.costCentsDisplay
+        ? unmaskCurrencyBRL(data.costCentsDisplay)
+        : undefined;
+
+      createMutation.mutate({
         name: data.name,
         type: data.type,
         baseValue: baseValueCents,
@@ -83,76 +100,6 @@ export function EntryModelsDialog({
         fairId: fairId!,
         active: true,
       });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["entry-models"] });
-      form.reset();
-      toast.success("Modelo criado com sucesso!");
-    },
-    onError: () => {
-      toast.error("Erro ao criar modelo");
-    },
-  });
-
-  // Mutation para atualizar entry model
-  const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: EntryModelForm }) => {
-      const baseValueCents = unmaskCurrencyBRL(data.baseValueDisplay);
-      const costValueCents = data.costCentsDisplay
-        ? unmaskCurrencyBRL(data.costCentsDisplay)
-        : undefined;
-
-      return financeService.updateEntryModel(id, {
-        name: data.name,
-        type: data.type,
-        baseValue: baseValueCents,
-        costCents: costValueCents,
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["entry-models"] });
-      setEditingModel(null);
-      form.reset();
-      toast.success("Modelo atualizado com sucesso!");
-    },
-    onError: () => {
-      toast.error("Erro ao atualizar modelo");
-    },
-  });
-
-  // Mutation para deletar entry model
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => {
-      console.log("Attempting to delete entry model:", { id, fairId });
-      if (!fairId) {
-        console.warn("Fair ID não fornecido, mas tentando deletar mesmo assim");
-      }
-      return financeService.deleteEntryModel(id, fairId);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["entry-models"] });
-      toast.success("Modelo removido com sucesso!");
-    },
-    onError: (error: unknown) => {
-      console.error("Erro detalhado ao deletar modelo:", error);
-      if (error && typeof error === "object" && "response" in error) {
-        const axiosError = error as {
-          response?: { data?: unknown; status?: number };
-        };
-        console.error("Error response:", axiosError.response?.data);
-        console.error("Error status:", axiosError.response?.status);
-      }
-      const message =
-        error instanceof Error ? error.message : "Erro interno do servidor";
-      toast.error(`Erro ao remover modelo: ${message}`);
-    },
-  });
-
-  const onSubmit = (data: EntryModelForm) => {
-    if (editingModel) {
-      updateMutation.mutate({ id: editingModel.id, data });
-    } else {
-      createMutation.mutate(data);
     }
   };
 
@@ -161,9 +108,9 @@ export function EntryModelsDialog({
     form.reset({
       name: model.name,
       type: model.type,
-      baseValueDisplay: formatCurrencyFromCents(model.baseValue),
+      baseValueDisplay: formatCurrencyFromCents(model.baseValue).toString(),
       costCentsDisplay: model.costCents
-        ? formatCurrencyFromCents(model.costCents)
+        ? formatCurrencyFromCents(model.costCents).toString()
         : "",
     });
   };
@@ -175,7 +122,7 @@ export function EntryModelsDialog({
   };
 
   const handleDelete = (id: string) => {
-    if (confirm("Tem certeza que deseja remover este modelo?")) {
+    if (confirm("Tem certeza que deseja excluir este modelo?")) {
       deleteMutation.mutate(id);
     }
   };
@@ -226,39 +173,48 @@ export function EntryModelsDialog({
                 onSubmit={form.handleSubmit(onSubmit)}
                 className="space-y-4"
               >
-                <ControlledInput
-                  control={form.control}
-                  name="name"
-                  label="Nome"
-                  placeholder="Ex: Stand Premium 6x3"
-                />
+                <div className="space-y-2">
+                  <Label htmlFor="name">Nome</Label>
+                  <Input
+                    id="name"
+                    {...form.register("name")}
+                    placeholder="Ex: Stand Premium 6x3"
+                  />
+                </div>
 
-                <ControlledSelect
-                  control={form.control}
-                  name="type"
-                  label="Tipo"
-                  placeholder="Selecione o tipo"
-                  options={[
-                    { label: "Stand", value: "STAND" },
-                    { label: "Patrocínio", value: "PATROCINIO" },
-                  ]}
-                />
+                <div className="space-y-2">
+                  <Label htmlFor="type">Tipo</Label>
+                  <Select
+                    value={form.watch("type")}
+                    onValueChange={(value) => form.setValue("type", value as EntryModelType)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="STAND">Stand</SelectItem>
+                      <SelectItem value="PATROCINIO">Patrocínio</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-                <ControlledInput
-                  control={form.control}
-                  name="baseValueDisplay"
-                  label="Valor Base (R$)"
-                  placeholder="0,00"
-                  mask={maskCurrencyBRL}
-                />
+                <div className="space-y-2">
+                  <Label htmlFor="baseValueDisplay">Valor Base (R$)</Label>
+                  <Input
+                    id="baseValueDisplay"
+                    {...form.register("baseValueDisplay")}
+                    placeholder="0,00"
+                  />
+                </div>
 
-                <ControlledInput
-                  control={form.control}
-                  name="costCentsDisplay"
-                  label="Custo (R$) - Opcional"
-                  placeholder="0,00"
-                  mask={maskCurrencyBRL}
-                />
+                <div className="space-y-2">
+                  <Label htmlFor="costCentsDisplay">Custo (R$) - Opcional</Label>
+                  <Input
+                    id="costCentsDisplay"
+                    {...form.register("costCentsDisplay")}
+                    placeholder="0,00"
+                  />
+                </div>
 
                 <div className="flex gap-2 pt-4">
                   <Button
@@ -303,7 +259,7 @@ export function EntryModelsDialog({
                 </p>
               ) : (
                 <div className="space-y-2 max-h-96 overflow-y-auto">
-                  {entryModels.map((model) => (
+                  {entryModels.map((model: EntryModel) => (
                     <div
                       key={model.id}
                       className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800"

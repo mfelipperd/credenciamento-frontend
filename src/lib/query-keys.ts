@@ -27,6 +27,16 @@ export const queryKeys = {
     kpis: () => [...queryKeys.finance.all, "kpis"] as const,
     kpisByFair: (fairId: string, from?: string, to?: string) => 
       [...queryKeys.finance.kpis(), fairId, from, to] as const,
+    topEmpresas: () => [...queryKeys.finance.all, "top-empresas"] as const,
+    topEmpresasByFair: (fairId: string, from?: string, to?: string) => 
+      [...queryKeys.finance.topEmpresas(), fairId, from, to] as const,
+    entryModels: () => [...queryKeys.finance.all, "entry-models"] as const,
+    entryModelsByFair: (fairId?: string, type?: string) => 
+      [...queryKeys.finance.entryModels(), fairId, type] as const,
+    entryModel: (id: string) => [...queryKeys.finance.entryModels(), "detail", id] as const,
+    clients: () => [...queryKeys.finance.all, "clients"] as const,
+    clientsByQuery: (q?: string) => [...queryKeys.finance.clients(), "query", q] as const,
+    client: (id: string) => [...queryKeys.finance.clients(), "detail", id] as const,
   },
 
   // Módulo de Feiras

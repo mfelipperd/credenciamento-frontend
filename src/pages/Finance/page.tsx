@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "@/hooks/useSearchParams";
-import { useFinanceService } from "@/service/finance.service";
+import { useCookie } from "@/hooks/useCookie";
 import { useStandService } from "@/service/stands.service";
 import { FinanceFiltersSheet } from "./components/FinanceFiltersSheet";
 import { FinanceKpis } from "./components/FinanceKpis";
@@ -21,10 +21,16 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Filter, Grid } from "lucide-react";
+import {
+  useRevenues,
+  useFinanceKpis,
+  useDeleteRevenue,
+} from "@/hooks/useFinance";
 
 export function FinancePage() {
-  const [, , fairId] = useSearchParams();
-  const queryClient = useQueryClient();
+  const [, , urlFairId] = useSearchParams();
+  const [savedFairId] = useCookie("selectedFairId");
+  const fairId = urlFairId || savedFairId;
 
   const [filters, setFilters] = useState<RevenueFilters>({
     page: 1,
@@ -57,7 +63,6 @@ export function FinancePage() {
     null
   );
 
-  const financeService = useFinanceService();
   const standService = useStandService();
 
   // Query para buscar receitas
@@ -65,23 +70,14 @@ export function FinancePage() {
     data: revenuesData,
     isLoading: isLoadingRevenues,
     refetch: refetchRevenues,
-  } = useQuery({
-    queryKey: ["finance-revenues", filters],
-    queryFn: () => financeService.getRevenues(filters),
-    enabled: !!filters.fairId,
-  });
+  } = useRevenues(filters);
 
-  // Query para KPIs - REMOVIDA: rota não existe no backend
-  // const { data: kpisData, isLoading: isLoadingKpis } = useQuery({
-  //   queryKey: ["finance-kpis", filters.fairId, filters.from, filters.to],
-  //   queryFn: () =>
-  //     financeService.getKpis(filters.fairId!, filters.from, filters.to),
-  //   enabled: !!filters.fairId,
-  // });
-
-  // Dados mockados temporariamente até implementação do backend
-  const kpisData = undefined;
-  const isLoadingKpis = false;
+  // Query para KPIs
+  const { data: kpisData, isLoading: isLoadingKpis } = useFinanceKpis(
+    filters.fairId!,
+    filters.from,
+    filters.to
+  );
 
   // Query para estatísticas de stands
   const { data: standStats } = useQuery({
@@ -91,18 +87,7 @@ export function FinancePage() {
   });
 
   // Mutation para deletar receita
-  const deleteRevenueMutation = useMutation({
-    mutationFn: (revenueId: string) =>
-      financeService.deleteRevenue(revenueId, filters.fairId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["finance-revenues"],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["finance-kpis"],
-      });
-    },
-  });
+  const deleteRevenueMutation = useDeleteRevenue();
 
   const handleFiltersChange = (newFilters: Partial<RevenueFilters>) => {
     setFilters((prev) => ({
