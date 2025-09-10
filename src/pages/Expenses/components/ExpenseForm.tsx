@@ -4,7 +4,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
   X,
-  Calendar as CalendarIcon,
   Tag,
   Building,
   Plus,
@@ -29,13 +28,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
 import type {
   Expense,
   CreateExpenseForm,
@@ -91,7 +83,6 @@ export function ExpenseForm({
   onCategoryCreated,
   onAccountCreated,
 }: ExpenseFormProps) {
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [showAccountForm, setShowAccountForm] = useState(false);
   const [isCreatingCategory, setIsCreatingCategory] = useState(false);
@@ -107,7 +98,7 @@ export function ExpenseForm({
       accountId: "",
       descricao: "",
       valorDisplay: "R$ 0,00",
-      data: new Date().toISOString().split("T")[0],
+      data: "",
       observacoes: "",
     },
   });
@@ -132,7 +123,7 @@ export function ExpenseForm({
         accountId: "",
         descricao: "",
         valorDisplay: "R$ 0,00",
-        data: new Date().toISOString().split("T")[0],
+        data: "",
         observacoes: "",
       });
     }
@@ -616,41 +607,16 @@ export function ExpenseForm({
               >
                 Data *
               </Label>
-              <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !form.watch("data") && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {form.watch("data") ? (
-                      new Date(form.watch("data")).toLocaleDateString("pt-BR")
-                    ) : (
-                      <span>Selecione uma data</span>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={
-                      form.watch("data")
-                        ? new Date(form.watch("data"))
-                        : undefined
-                    }
-                    onSelect={(date) => {
-                      if (date) {
-                        form.setValue("data", date.toISOString().split("T")[0]);
-                        setIsCalendarOpen(false);
-                      }
-                    }}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
+              <Input
+                id="data"
+                type="date"
+                {...form.register("data")}
+                className="text-gray-900 dark:text-gray-100"
+                onChange={(e) => {
+                  console.log("Data alterada:", e.target.value);
+                  form.setValue("data", e.target.value);
+                }}
+              />
               {form.formState.errors.data && (
                 <p className="text-sm text-red-600 dark:text-red-400">
                   {form.formState.errors.data.message}
