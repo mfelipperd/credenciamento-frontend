@@ -166,7 +166,7 @@ export function ExpenseForm({
 
   // Estados para os formulários inline
   const [categoryFormData, setCategoryFormData] = useState({
-    nome: "",
+    name: "",
     global: false,
   });
 
@@ -178,12 +178,12 @@ export function ExpenseForm({
 
   // Funções para criar categoria
   const handleCreateCategory = async () => {
-    if (!categoryFormData.nome.trim()) return;
+    if (!categoryFormData.name.trim()) return;
 
     setIsCreatingCategory(true);
     try {
       const categoryData: CreateFinanceCategoryForm = {
-        nome: categoryFormData.nome,
+        name: categoryFormData.name,
         global: categoryFormData.global,
         fairId: fairId, // Sempre incluir fairId quando disponível
       };
@@ -193,7 +193,7 @@ export function ExpenseForm({
       );
 
       // Reset do formulário
-      setCategoryFormData({ nome: "", global: false });
+      setCategoryFormData({ name: "", global: false });
       setShowCategoryForm(false);
 
       // Recarregar as categorias
@@ -310,7 +310,7 @@ export function ExpenseForm({
                     <SelectItem key={category.id} value={category.id}>
                       <div className="flex items-center gap-2">
                         <Tag className="w-4 h-4" />
-                        {category.nome}
+                        {category.name}
                         {category.global && (
                           <span className="text-xs text-gray-500">
                             (Global)
@@ -353,11 +353,11 @@ export function ExpenseForm({
                   <div className="space-y-2">
                     <Input
                       placeholder="Nome da categoria"
-                      value={categoryFormData.nome}
+                      value={categoryFormData.name}
                       onChange={(e) =>
                         setCategoryFormData({
                           ...categoryFormData,
-                          nome: e.target.value,
+                          name: e.target.value,
                         })
                       }
                       className="text-sm"
@@ -388,7 +388,7 @@ export function ExpenseForm({
                       type="button"
                       onClick={handleCreateCategory}
                       disabled={
-                        !categoryFormData.nome.trim() || isCreatingCategory
+                        !categoryFormData.name.trim() || isCreatingCategory
                       }
                       className="w-full h-8 text-xs"
                       size="sm"
@@ -668,7 +668,7 @@ export function ExpenseForm({
                     <strong>Categoria:</strong>{" "}
                     {
                       categories.find((c) => c.id === form.watch("categoryId"))
-                        ?.nome
+                        ?.name
                     }
                   </p>
                 )}

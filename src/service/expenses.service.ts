@@ -137,7 +137,7 @@ export const useExpensesService = () => {
     // Mapear campo 'name' do backend para 'nome' da interface
     return response?.map((category) => ({
       ...category,
-      nome: (category as any).name || category.nome || "Sem nome",
+      name: (category as any).name || category.name || "Sem nome",
     }));
   };
 
