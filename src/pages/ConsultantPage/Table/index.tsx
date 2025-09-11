@@ -35,7 +35,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { SlidersHorizontal, MessageCircle, MoreHorizontal } from "lucide-react";
 import { useVisitorsPaginated } from "@/hooks/useVisitors";
-import { useFairService } from "@/service/fair.service";
+import { useFairs } from "@/hooks/useFairs";
 import { useUserSession } from "@/hooks/useUserSession";
 import { Label } from "@/components/ui/label";
 import {
@@ -48,7 +48,7 @@ import { TableSkeleton } from "./TableSkeleton";
 
 
 export const EnhancedTableConsultant = () => {
-  const { fairs, getFairs } = useFairService();
+  const { data: fairs } = useFairs();
   const [searchParams, setSearchParams] = useSearchParams();
   
   // Hook personalizado para gerenciar sessão completa do usuário
@@ -114,7 +114,7 @@ export const EnhancedTableConsultant = () => {
       (shouldShowFairSelect || shouldShowFairSelector) &&
       !hasFairsFetchRef.current
     ) {
-      getFairs();
+      // Removido - o hook useFairs já faz o fetch automaticamente
       hasFairsFetchRef.current = true;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -122,13 +122,13 @@ export const EnhancedTableConsultant = () => {
 
   // Definir fairId inicial para não-consultants
   useEffect(() => {
-    if (shouldShowFairSelect && fairs.length > 0 && !currentFairId) {
+    if (shouldShowFairSelect && fairs && fairs.length > 0 && !currentFairId) {
       const fairFromUrl = searchParams.get("fairId");
-      if (fairFromUrl && fairs.some((f) => f.id === fairFromUrl)) {
+      if (fairFromUrl && fairs && fairs.some((f) => f.id === fairFromUrl)) {
         setSelectedFairId(fairFromUrl);
       } else {
         // Selecionar primeira feira por padrão
-        setSelectedFairId(fairs[0].id);
+        setSelectedFairId(fairs![0].id);
       }
     }
   }, [fairs, currentFairId, shouldShowFairSelect, searchParams, setSelectedFairId]);
@@ -377,7 +377,7 @@ export const EnhancedTableConsultant = () => {
                         <SelectValue placeholder="Selecione uma feira" />
                       </SelectTrigger>
                       <SelectContent className="bg-white">
-                        {fairs.map((fair) => (
+                        {(fairs || []).map((fair: any) => (
                           <SelectItem key={fair.id} value={fair.id}>
                             {fair.name}
                           </SelectItem>
@@ -403,10 +403,10 @@ export const EnhancedTableConsultant = () => {
                           // Se o usuário tem feiras associadas, filtrar apenas essas
                           // Senão, mostrar todas as feiras disponíveis
                           const availableFairs = availableFairIds.length > 0 
-                            ? fairs.filter(fair => availableFairIds.includes(fair.id))
-                            : fairs;
+                            ? (fairs || []).filter((fair: any) => availableFairIds.includes(fair.id))
+                            : (fairs || []);
                           
-                          return availableFairs.map((fair) => (
+                          return availableFairs.map((fair: any) => (
                             <SelectItem key={fair.id} value={fair.id}>
                               {fair.name}
                             </SelectItem>

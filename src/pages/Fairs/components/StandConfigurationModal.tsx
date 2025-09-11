@@ -2,10 +2,8 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
@@ -13,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -33,15 +32,20 @@ import {
 import type { StandConfiguration, UpdateStandConfigurationDto } from "@/interfaces/fairs";
 
 const updateStandConfigurationSchema = z.object({
-  name: z.string().min(1, "Nome é obrigatório").max(100, "Nome muito longo"),
-  width: z.number().min(0.1, "Largura deve ser maior que 0").max(20, "Largura máxima é 20m"),
-  height: z.number().min(0.1, "Altura deve ser maior que 0").max(20, "Altura máxima é 20m"),
-  quantity: z.number().min(1, "Quantidade deve ser pelo menos 1").max(1000, "Quantidade máxima é 1000"),
-  pricePerSquareMeter: z.number().min(0, "Preço não pode ser negativo"),
-  setupCostPerSquareMeter: z.number().min(0, "Custo não pode ser negativo"),
+  name: z.string().min(1, "Nome é obrigatório").max(100, "Nome muito longo").optional(),
+  width: z.number().min(0.1, "Largura deve ser maior que 0").max(20, "Largura máxima é 20m").optional(),
+  height: z.number().min(0.1, "Altura deve ser maior que 0").max(20, "Altura máxima é 20m").optional(),
+  quantity: z.number().min(1, "Quantidade deve ser pelo menos 1").max(1000, "Quantidade máxima é 1000").optional(),
+  pricePerSquareMeter: z.number().min(0, "Preço não pode ser negativo").optional(),
+  setupCostPerSquareMeter: z.number().min(0, "Custo não pode ser negativo").optional(),
   description: z.string().optional(),
-  isActive: z.boolean(),
-}).refine((data) => data.pricePerSquareMeter > data.setupCostPerSquareMeter, {
+  isActive: z.boolean().optional(),
+}).refine((data) => {
+  if (data.pricePerSquareMeter && data.setupCostPerSquareMeter) {
+    return data.pricePerSquareMeter > data.setupCostPerSquareMeter;
+  }
+  return true;
+}, {
   message: "Preço por m² deve ser maior que custo de montagem por m²",
   path: ["pricePerSquareMeter"],
 });
@@ -76,40 +80,48 @@ export function StandConfigurationModal({ config, onClose, onUpdate }: StandConf
     },
   });
 
-  const watchedValues = form.watch();
-
   // Calcular métricas automaticamente
   useEffect(() => {
-    const { width, height, quantity, pricePerSquareMeter, setupCostPerSquareMeter } = watchedValues;
-    
-    if (width && height && quantity && pricePerSquareMeter !== undefined && setupCostPerSquareMeter !== undefined) {
-      const area = width * height;
-      const totalPrice = area * pricePerSquareMeter;
-      const totalSetupCost = area * setupCostPerSquareMeter;
-      const profitPerStand = totalPrice - totalSetupCost;
-      const profitMargin = totalPrice > 0 ? (profitPerStand / totalPrice) * 100 : 0;
-      const efficiency = area > 0 ? profitPerStand / area : 0;
+    const subscription = form.watch((value) => {
+      const { width, height, quantity, pricePerSquareMeter, setupCostPerSquareMeter } = value;
+      
+      if (width && height && quantity && pricePerSquareMeter !== undefined && setupCostPerSquareMeter !== undefined) {
+        const area = width * height;
+        const totalPrice = area * pricePerSquareMeter;
+        const totalSetupCost = area * setupCostPerSquareMeter;
+        const profitPerStand = totalPrice - totalSetupCost;
+        const profitMargin = totalPrice > 0 ? (profitPerStand / totalPrice) * 100 : 0;
+        const efficiency = area > 0 ? profitPerStand / area : 0;
 
-      setCalculatedMetrics({
-        area,
-        totalPrice,
-        totalSetupCost,
-        profitPerStand,
-        profitMargin,
-        efficiency,
-      });
+        setCalculatedMetrics({
+          area,
+          totalPrice,
+          totalSetupCost,
+          profitPerStand,
+          profitMargin,
+          efficiency,
+        });
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [form]);
+
+  const formatCurrency = (value: number | undefined | null) => {
+    if (value === undefined || value === null || isNaN(value)) {
+      return 'R$ 0,00';
     }
-  }, [watchedValues]);
-
-  const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
       currency: "BRL",
-    }).format(value);
+    }).format(Number(value));
   };
 
-  const formatPercentage = (value: number) => {
-    return `${value.toFixed(1)}%`;
+  const formatPercentage = (value: number | undefined | null) => {
+    if (value === undefined || value === null || isNaN(value)) {
+      return '0.0%';
+    }
+    return `${Number(value).toFixed(1)}%`;
   };
 
   const handleSubmit = (data: UpdateStandConfigurationDto) => {
@@ -125,7 +137,7 @@ export function StandConfigurationModal({ config, onClose, onUpdate }: StandConf
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="min-w-[50vw] max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center">
             <Edit className="h-5 w-5 mr-2" />
@@ -423,7 +435,7 @@ export function StandConfigurationModal({ config, onClose, onUpdate }: StandConf
               </Card>
             )}
 
-            {calculatedMetrics.pricePerSquareMeter <= calculatedMetrics.totalSetupCost && (
+            {calculatedMetrics.totalPrice <= calculatedMetrics.totalSetupCost && (
               <Card className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20">
                 <CardContent className="p-4">
                   <div className="flex items-center text-red-800 dark:text-red-200">

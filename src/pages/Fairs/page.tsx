@@ -2,25 +2,24 @@ import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useCookie } from "@/hooks/useCookie";
 import { useFairs } from "@/hooks/useFairs";
-import { FairDashboard } from "./components/FairDashboard";
 import { FairList } from "./components/FairList";
-import { FairAnalysis } from "./components/FairAnalysis";
-import { StandConfigurations } from "./components/StandConfigurations";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   BarChart3, 
   Settings, 
-  TrendingUp, 
   Calendar,
   MapPin,
-  DollarSign,
+  TrendingUp,
   Target
 } from "lucide-react";
+import { FairAnalysis } from "./components/FairAnalysis";
+import { StandConfigurations } from "./components/StandConfigurations";
+import { FairDashboard } from "./components/FairDashboard";
 
 export function FairsPage() {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const [savedFairId] = useCookie("selectedFairId", "", { days: 30 });
   
   // Usar fairId da URL ou do cookie como fallback
@@ -170,20 +169,20 @@ export function FairsPage() {
 
         {/* Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="dashboard" className="flex items-center space-x-2">
+          <TabsList className="grid w-full grid-cols-4 bg-white dark:bg-gray-800">
+            <TabsTrigger value="dashboard" className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 data-[state=active]:bg-blue-500 data-[state=active]:text-white">
               <BarChart3 className="h-4 w-4" />
               <span className="hidden sm:inline">Dashboard</span>
             </TabsTrigger>
-            <TabsTrigger value="analysis" className="flex items-center space-x-2">
+            <TabsTrigger value="analysis" className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 data-[state=active]:bg-blue-500 data-[state=active]:text-white">
               <TrendingUp className="h-4 w-4" />
               <span className="hidden sm:inline">Análise</span>
             </TabsTrigger>
-            <TabsTrigger value="stands" className="flex items-center space-x-2">
+            <TabsTrigger value="stands" className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 data-[state=active]:bg-blue-500 data-[state=active]:text-white">
               <Settings className="h-4 w-4" />
               <span className="hidden sm:inline">Stands</span>
             </TabsTrigger>
-            <TabsTrigger value="config" className="flex items-center space-x-2">
+            <TabsTrigger value="config" className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 data-[state=active]:bg-blue-500 data-[state=active]:text-white">
               <Target className="h-4 w-4" />
               <span className="hidden sm:inline">Configurações</span>
             </TabsTrigger>

@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useFairAnalysis, useOptimizePricing } from "@/hooks/useFairs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { 
   TrendingUp, 
   DollarSign, 
@@ -15,7 +15,6 @@ import {
   CheckCircle,
   Lightbulb,
   ArrowUpRight,
-  ArrowDownRight,
   RefreshCw,
   Calculator
 } from "lucide-react";
@@ -31,15 +30,21 @@ export function FairAnalysis({ fairId }: FairAnalysisProps) {
   const { data: analysis, isLoading, error, refetch } = useFairAnalysis(fairId);
   const optimizePricingMutation = useOptimizePricing();
 
-  const formatCurrency = (value: number) => {
+  const formatCurrency = (value: number | undefined | null) => {
+    if (value === undefined || value === null || isNaN(value)) {
+      return 'R$ 0,00';
+    }
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
       currency: "BRL",
-    }).format(value);
+    }).format(Number(value));
   };
 
-  const formatPercentage = (value: number) => {
-    return `${value.toFixed(1)}%`;
+  const formatPercentage = (value: number | undefined | null) => {
+    if (value === undefined || value === null || isNaN(value)) {
+      return '0.0%';
+    }
+    return `${Number(value).toFixed(1)}%`;
   };
 
   const getRecommendationColor = (recommendation: string) => {

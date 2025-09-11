@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useCookie } from "@/hooks/useCookie";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,8 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Calendar, 
   MapPin, 
-  DollarSign, 
-  TrendingUp, 
   BarChart3,
   Plus,
   Eye,
@@ -21,7 +18,7 @@ interface FairListProps {
 }
 
 export function FairList({ fairs }: FairListProps) {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [, setSearchParams] = useSearchParams();
   const [, setSavedFairId] = useCookie("selectedFairId", "", { days: 30 });
 
   const handleSelectFair = (fairId: string) => {
@@ -29,11 +26,14 @@ export function FairList({ fairs }: FairListProps) {
     setSavedFairId(fairId);
   };
 
-  const formatCurrency = (value: number) => {
+  const formatCurrency = (value: number | undefined | null) => {
+    if (value === undefined || value === null || isNaN(value)) {
+      return 'R$ 0,00';
+    }
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
       currency: "BRL",
-    }).format(value);
+    }).format(Number(value));
   };
 
   const formatDate = (date: Date) => {

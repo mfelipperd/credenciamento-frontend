@@ -28,7 +28,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { EUserRole } from "@/enums/user.enum";
 import { useCreateUser, useUpdateUser } from "@/hooks/useUsers";
-import { useFairService } from "@/service/fair.service";
+import { useFairs } from "@/hooks/useFairs";
 import { toast } from "sonner";
 import { maskCPF, maskPhoneBR } from "@/utils/masks";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -97,7 +97,7 @@ export function UserFormModal({ user, isOpen, onClose }: UserFormModalProps) {
 
   const createUserMutation = useCreateUser();
   const updateUserMutation = useUpdateUser();
-  const { fairs, getFairs } = useFairService();
+  const { data: fairs } = useFairs();
 
   const form = useForm<UserFormData>({
     resolver: zodResolver(userSchema),
@@ -115,9 +115,9 @@ export function UserFormModal({ user, isOpen, onClose }: UserFormModalProps) {
   // Buscar feiras ao abrir o modal
   useEffect(() => {
     if (isOpen) {
-      getFairs();
+      // Removido - o hook useFairs já faz o fetch automaticamente
     }
-  }, [isOpen, getFairs]);
+  }, [isOpen]);
 
   // Preencher formulário quando editando
   useEffect(() => {
@@ -332,7 +332,7 @@ export function UserFormModal({ user, isOpen, onClose }: UserFormModalProps) {
                 <div className="space-y-2">
                   <FormLabel className="text-gray-300">Feiras Associadas *</FormLabel>
                   <div className="space-y-2 max-h-40 overflow-y-auto border border-gray-600 rounded-md p-3 bg-gray-700">
-                    {fairs.map((fair) => (
+                    {(fairs || []).map((fair: any) => (
                       <div key={fair.id} className="flex items-center space-x-2">
                         <Checkbox
                           id={`fair-${fair.id}`}

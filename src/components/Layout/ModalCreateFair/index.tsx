@@ -22,9 +22,9 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { CalendarDays, MapPin, Plus } from "lucide-react";
-import { useFairService } from "@/service/fair.service";
+import { useCreateFair } from "@/hooks/useFairs";
 import { toast } from "sonner";
-import type { ICreateFair } from "@/interfaces/fairs";
+import type { CreateFairDto } from "@/interfaces/fairs";
 
 // Schema de validação
 const createFairSchema = z.object({
@@ -59,14 +59,14 @@ type CreateFairFormData = z.infer<typeof createFairSchema>;
 
 export function ModalCreateFair() {
   const [open, setOpen] = useState(false);
-  const { createFair, loading } = useFairService();
+  const createFairMutation = useCreateFair();
 
   const form = useForm<CreateFairFormData>({
     resolver: zodResolver(createFairSchema),
     defaultValues: {
       name: "",
       location: "",
-      date: "",
+      date: new Date().toISOString().split('T')[0],
       address: "",
       city: "",
       state: "",
@@ -80,10 +80,13 @@ export function ModalCreateFair() {
   const onSubmit = async (data: CreateFairFormData) => {
     try {
       // Converter dados para o formato da API
-      const fairData: ICreateFair = {
+      const fairData: CreateFairDto = {
         name: data.name,
         location: data.location,
-        date: data.date,
+        date: new Date(data.date),
+        totalStands: 0,
+        costPerSquareMeter: 0,
+        setupCostPerSquareMeter: 0,
       };
 
       // Adicionar campos opcionais apenas se preenchidos
@@ -97,21 +100,15 @@ export function ModalCreateFair() {
 
       // Criar startDateTime e endDateTime se tiver data e horários
       if (data.date && data.startTime) {
-        fairData.startDateTime = `${data.date}T${data.startTime}:00.000Z`;
+        fairData.startDateTime = new Date(`${data.date}T${data.startTime}:00.000Z`);
       }
       if (data.date && data.endTime) {
-        fairData.endDateTime = `${data.date}T${data.endTime}:00.000Z`;
+        fairData.endDateTime = new Date(`${data.date}T${data.endTime}:00.000Z`);
       }
 
-      const result = await createFair(fairData);
-
-      if (result) {
-        toast.success("Feira criada com sucesso!");
-        form.reset();
-        setOpen(false);
-      } else {
-        toast.error("Erro ao criar feira");
-      }
+      await createFairMutation.mutateAsync(fairData);
+      form.reset();
+      setOpen(false);
     } catch (error) {
       console.error("Erro ao criar feira:", error);
       toast.error("Erro ao criar feira");
@@ -172,7 +169,12 @@ export function ModalCreateFair() {
                     <FormItem>
                       <FormLabel>Data *</FormLabel>
                       <FormControl>
-                        <Input type="date" {...field} />
+                        <Input 
+                          type="date" 
+                          {...field} 
+                          value={field.value ? new Date(field.value).toISOString().split('T')[0] : ''}
+                          onChange={(e) => field.onChange(e.target.value)}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -318,12 +320,12 @@ export function ModalCreateFair() {
                 type="button"
                 variant="outline"
                 onClick={() => setOpen(false)}
-                disabled={loading}
+                disabled={createFairMutation.isPending}
               >
                 Cancelar
               </Button>
-              <Button type="submit" disabled={loading}>
-                {loading ? "Criando..." : "Criar Feira"}
+              <Button type="submit" disabled={createFairMutation.isPending}>
+                {createFairMutation.isPending ? "Criando..." : "Criar Feira"}
               </Button>
             </DialogFooter>
           </form>

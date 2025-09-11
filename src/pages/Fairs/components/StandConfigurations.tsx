@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useStandConfigurations, useCreateStandConfiguration, useUpdateStandConfiguration, useDeleteStandConfiguration, useToggleStandConfiguration } from "@/hooks/useFairs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import { 
   Plus, 
   Edit, 
@@ -11,14 +11,12 @@ import {
   ToggleLeft, 
   ToggleRight,
   BarChart3,
-  DollarSign,
-  Target,
-  AlertCircle,
-  CheckCircle
+  AlertCircle
 } from "lucide-react";
+
+import type { StandConfiguration, CreateStandConfigurationDto, UpdateStandConfigurationDto } from "@/interfaces/fairs";
 import { StandConfigurationForm } from "./StandConfigurationForm";
 import { StandConfigurationModal } from "./StandConfigurationModal";
-import type { StandConfiguration, CreateStandConfigurationDto, UpdateStandConfigurationDto } from "@/interfaces/fairs";
 
 interface StandConfigurationsProps {
   fairId: string;
@@ -39,15 +37,21 @@ export function StandConfigurations({ fairId }: StandConfigurationsProps) {
   const deleteMutation = useDeleteStandConfiguration();
   const toggleMutation = useToggleStandConfiguration();
 
-  const formatCurrency = (value: number) => {
+  const formatCurrency = (value: number | undefined | null) => {
+    if (value === undefined || value === null || isNaN(value)) {
+      return 'R$ 0,00';
+    }
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
       currency: "BRL",
-    }).format(value);
+    }).format(Number(value));
   };
 
-  const formatPercentage = (value: number) => {
-    return `${value.toFixed(1)}%`;
+  const formatPercentage = (value: number | undefined | null) => {
+    if (value === undefined || value === null || isNaN(value)) {
+      return '0.0%';
+    }
+    return `${Number(value).toFixed(1)}%`;
   };
 
   const getRecommendationColor = (recommendation: string) => {

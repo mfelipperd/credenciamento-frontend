@@ -2,7 +2,6 @@ import { useFairAnalysis, useStandStatistics } from "@/hooks/useFairs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { 
   DollarSign, 
   TrendingUp, 
@@ -13,7 +12,6 @@ import {
   Info,
   Lightbulb,
   ArrowUpRight,
-  ArrowDownRight
 } from "lucide-react";
 
 interface FairDashboardProps {
@@ -24,15 +22,21 @@ export function FairDashboard({ fairId }: FairDashboardProps) {
   const { data: analysis, isLoading: isLoadingAnalysis, error: analysisError } = useFairAnalysis(fairId);
   const { data: statistics, isLoading: isLoadingStats } = useStandStatistics(fairId);
 
-  const formatCurrency = (value: number) => {
+  const formatCurrency = (value: number | undefined | null) => {
+    if (value === undefined || value === null || isNaN(value)) {
+      return 'R$ 0,00';
+    }
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
       currency: "BRL",
-    }).format(value);
+    }).format(Number(value));
   };
 
-  const formatPercentage = (value: number) => {
-    return `${value.toFixed(1)}%`;
+  const formatPercentage = (value: number | undefined | null) => {
+    if (value === undefined || value === null || isNaN(value)) {
+      return '0.0%';
+    }
+    return `${Number(value).toFixed(1)}%`;
   };
 
   const getInsightIcon = (type: string) => {

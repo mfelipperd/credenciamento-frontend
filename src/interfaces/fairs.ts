@@ -181,6 +181,8 @@ export interface CreateFairDto {
   endDate?: Date;
   startTime?: string;
   endTime?: string;
+  startDateTime?: Date;
+  endDateTime?: Date;
   totalStands: number;
   costPerSquareMeter: number;
   setupCostPerSquareMeter: number;

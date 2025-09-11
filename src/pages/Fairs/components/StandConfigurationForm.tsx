@@ -2,10 +2,8 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
@@ -13,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -76,40 +75,48 @@ export function StandConfigurationForm({ isOpen, onClose, onSubmit, title }: Sta
     },
   });
 
-  const watchedValues = form.watch();
-
   // Calcular métricas automaticamente
   useEffect(() => {
-    const { width, height, quantity, pricePerSquareMeter, setupCostPerSquareMeter } = watchedValues;
-    
-    if (width && height && quantity && pricePerSquareMeter !== undefined && setupCostPerSquareMeter !== undefined) {
-      const area = width * height;
-      const totalPrice = area * pricePerSquareMeter;
-      const totalSetupCost = area * setupCostPerSquareMeter;
-      const profitPerStand = totalPrice - totalSetupCost;
-      const profitMargin = totalPrice > 0 ? (profitPerStand / totalPrice) * 100 : 0;
-      const efficiency = area > 0 ? profitPerStand / area : 0;
+    const subscription = form.watch((value) => {
+      const { width, height, quantity, pricePerSquareMeter, setupCostPerSquareMeter } = value;
+      
+      if (width && height && quantity && pricePerSquareMeter !== undefined && setupCostPerSquareMeter !== undefined) {
+        const area = width * height;
+        const totalPrice = area * pricePerSquareMeter;
+        const totalSetupCost = area * setupCostPerSquareMeter;
+        const profitPerStand = totalPrice - totalSetupCost;
+        const profitMargin = totalPrice > 0 ? (profitPerStand / totalPrice) * 100 : 0;
+        const efficiency = area > 0 ? profitPerStand / area : 0;
 
-      setCalculatedMetrics({
-        area,
-        totalPrice,
-        totalSetupCost,
-        profitPerStand,
-        profitMargin,
-        efficiency,
-      });
+        setCalculatedMetrics({
+          area,
+          totalPrice,
+          totalSetupCost,
+          profitPerStand,
+          profitMargin,
+          efficiency,
+        });
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [form]);
+
+  const formatCurrency = (value: number | undefined | null) => {
+    if (value === undefined || value === null || isNaN(value)) {
+      return 'R$ 0,00';
     }
-  }, [watchedValues]);
-
-  const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
       currency: "BRL",
-    }).format(value);
+    }).format(Number(value));
   };
 
-  const formatPercentage = (value: number) => {
-    return `${value.toFixed(1)}%`;
+  const formatPercentage = (value: number | undefined | null) => {
+    if (value === undefined || value === null || isNaN(value)) {
+      return '0.0%';
+    }
+    return `${Number(value).toFixed(1)}%`;
   };
 
   const handleSubmit = (data: CreateStandConfigurationDto) => {
@@ -131,7 +138,7 @@ export function StandConfigurationForm({ isOpen, onClose, onSubmit, title }: Sta
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="min-w-[50vw] max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center">
             <BarChart3 className="h-5 w-5 mr-2" />
@@ -429,7 +436,7 @@ export function StandConfigurationForm({ isOpen, onClose, onSubmit, title }: Sta
               </Card>
             )}
 
-            {calculatedMetrics.pricePerSquareMeter <= calculatedMetrics.totalSetupCost && (
+            {calculatedMetrics.totalPrice <= calculatedMetrics.totalSetupCost && (
               <Card className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20">
                 <CardContent className="p-4">
                   <div className="flex items-center text-red-800 dark:text-red-200">

@@ -1,7 +1,6 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUsers } from "@/hooks/useUsers";
-import { useFairService } from "@/service/fair.service";
 import { EUserRole } from "@/enums/user.enum";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -43,7 +42,7 @@ interface User {
 
 export default function UserManagementPage() {
   const { user } = useAuth();
-  const { getFairs } = useFairService();
+  // const { data: fairs } = useFairs(); // Não usado neste componente
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -51,10 +50,7 @@ export default function UserManagementPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
 
-  // Buscar feiras ao carregar a página
-  React.useEffect(() => {
-    getFairs();
-  }, [getFairs]);
+  // Removido - o hook useFairs já faz o fetch automaticamente
 
   // Verificar se é admin
   if (user?.role !== EUserRole.ADMIN) {

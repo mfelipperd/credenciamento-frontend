@@ -167,7 +167,7 @@ export const MainLayout: React.FC = () => {
               {/* Data e Horário */}
               <div className="hidden md:flex items-center gap-1 flex-shrink-0 text-xs">
                 <Calendar className="h-3 w-3 text-blue-300" />
-                <span className="font-medium">{selectedFair?.date}</span>
+                <span className="font-medium">{selectedFair?.date ? new Date(selectedFair.date).toLocaleDateString('pt-BR') : ''}</span>
                 <span className="text-white/60">•</span>
                 <span className="text-white/80">13h-21h</span>
               </div>
