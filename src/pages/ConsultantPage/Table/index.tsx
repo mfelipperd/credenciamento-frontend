@@ -34,7 +34,7 @@ import {
 } from "@/components/ui/sheet";
 import { Checkbox } from "@/components/ui/checkbox";
 import { SlidersHorizontal, MessageCircle, MoreHorizontal } from "lucide-react";
-import { useVisitorsPaginated, useCheckinVisitor, useDeleteVisitor } from "@/hooks/useVisitors";
+import { useVisitorsPaginated } from "@/hooks/useVisitors";
 import { useFairService } from "@/service/fair.service";
 import { useUserSession } from "@/hooks/useUserSession";
 import { Label } from "@/components/ui/label";
