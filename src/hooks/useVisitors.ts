@@ -37,52 +37,79 @@ export const useVisitorsPaginated = (params: VisitorsParams) => {
   return useQuery({
     queryKey: ["visitors", "paginated", params],
     queryFn: async () => {
-      const queryParams: Record<string, string> = {};
+      try {
+        console.log("🚀 useVisitorsPaginated - iniciando busca:", params);
+        
+        const queryParams: Record<string, string> = {};
 
-      // Só adiciona parâmetros que têm valores válidos
-      if (params.fairId?.trim()) queryParams.fairId = params.fairId.trim();
-      if (params.search?.trim()) queryParams.search = params.search.trim();
-      if (params.searchField?.trim() && params.searchField !== "all")
-        queryParams.searchField = params.searchField.trim();
-      if (typeof params.page === "number" && params.page > 0)
-        queryParams.page = params.page.toString();
-      if (typeof params.limit === "number" && params.limit > 0)
-        queryParams.limit = params.limit.toString();
-      if (params.sortBy?.trim()) queryParams.sortBy = params.sortBy.trim();
-      if (params.sortOrder?.trim())
-        queryParams.sortOrder = params.sortOrder.trim();
+        // Só adiciona parâmetros que têm valores válidos
+        if (params.fairId?.trim()) queryParams.fairId = params.fairId.trim();
+        if (params.search?.trim()) queryParams.search = params.search.trim();
+        if (params.searchField?.trim() && params.searchField !== "all")
+          queryParams.searchField = params.searchField.trim();
+        if (typeof params.page === "number" && params.page > 0)
+          queryParams.page = params.page.toString();
+        if (typeof params.limit === "number" && params.limit > 0)
+          queryParams.limit = params.limit.toString();
+        if (params.sortBy?.trim()) queryParams.sortBy = params.sortBy.trim();
+        if (params.sortOrder?.trim())
+          queryParams.sortOrder = params.sortOrder.trim();
 
-      const result = await handleRequest({
-        request: () =>
-          api.get<PaginatedResponse<Visitor>>(VISITORS_BASE_URL, {
-            params: queryParams,
-          }),
-      });
+        console.log("📊 useVisitorsPaginated - parâmetros da query:", queryParams);
 
-      if (!result) return null;
+        const result = await handleRequest({
+          request: () =>
+            api.get<PaginatedResponse<Visitor>>(VISITORS_BASE_URL, {
+              params: queryParams,
+            }),
+        });
 
-      // Verificar se o backend retorna formato paginado ou array direto
-      if (Array.isArray(result)) {
-        // Backend retorna array direto (formato atual)
+        if (!result) {
+          console.log("⚠️ useVisitorsPaginated - resultado vazio, retornando null");
+          return null;
+        }
+
+        console.log("✅ useVisitorsPaginated - resultado recebido:", result);
+
+        // Verificar se o backend retorna formato paginado ou array direto
+        if (Array.isArray(result)) {
+          // Backend retorna array direto (formato atual)
+          return {
+            data: result,
+            meta: {
+              page: params.page || 1,
+              limit: params.limit || 50,
+              totalItems: result.length,
+              totalPages: 1,
+              hasNextPage: false,
+              hasPreviousPage: false,
+            },
+          };
+        } else {
+          // Backend retorna formato paginado
+          return result;
+        }
+      } catch (error) {
+        console.error("❌ useVisitorsPaginated - erro capturado:", error);
+        // Retorna dados vazios em caso de erro para evitar Promise rejeitada
         return {
-          data: result,
+          data: [],
           meta: {
             page: params.page || 1,
             limit: params.limit || 50,
-            totalItems: result.length,
+            totalItems: 0,
             totalPages: 1,
             hasNextPage: false,
             hasPreviousPage: false,
           },
         };
-      } else {
-        // Backend retorna formato paginado
-        return result;
       }
     },
     enabled: !!(params.fairId && params.fairId.trim()),
     staleTime: 30000, // 30 segundos
-    retry: 2,
+    retry: 1,
+    retryOnMount: false,
+    refetchOnWindowFocus: false,
   });
 };
 
