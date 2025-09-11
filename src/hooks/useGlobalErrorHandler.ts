@@ -33,31 +33,17 @@ export const useGlobalErrorHandler = () => {
       }
     };
 
-    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-      console.error("Promise rejeitada não tratada:", event.reason);
-
-      toast.error("Erro de conexão ou processamento. Tente novamente.");
-
-      // Previne o erro padrão do console
-      event.preventDefault();
-
-      // Em produção, você pode enviar para um serviço de monitoramento
-      if (process.env.NODE_ENV === "production") {
-        // Exemplo: sendErrorToService({ message: event.reason });
-      }
-    };
+    // Removido handleUnhandledRejection - React Query já trata erros adequadamente
+    // const handleUnhandledRejection = (event: PromiseRejectionEvent) => { ... };
 
     // Adiciona os listeners de erro
     window.addEventListener("error", handleError);
-    window.addEventListener("unhandledrejection", handleUnhandledRejection);
+    // Removido listener de unhandledrejection - React Query já trata erros
 
     // Cleanup
     return () => {
       window.removeEventListener("error", handleError);
-      window.removeEventListener(
-        "unhandledrejection",
-        handleUnhandledRejection
-      );
+      // Removido cleanup de unhandledrejection
     };
   }, []);
 };

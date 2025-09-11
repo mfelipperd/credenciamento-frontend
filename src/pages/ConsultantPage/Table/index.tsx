@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useSearchParams } from "@/hooks/useSearchParams";
 import { CardRoot } from "@/components/Card";
 import {
@@ -34,9 +34,9 @@ import {
 } from "@/components/ui/sheet";
 import { Checkbox } from "@/components/ui/checkbox";
 import { SlidersHorizontal, MessageCircle, MoreHorizontal } from "lucide-react";
-import { useVisitorsService } from "@/service/visitors.service";
-import { useFairService } from "@/service/fair.service";
-import { useAuth } from "@/hooks/useAuth";
+import { useVisitorsPaginated } from "@/hooks/useVisitors";
+import { useFairs } from "@/hooks/useFairs";
+import { useUserSession } from "@/hooks/useUserSession";
 import { Label } from "@/components/ui/label";
 import {
   HoverCard,
@@ -46,27 +46,42 @@ import {
 import type { Visitor } from "@/interfaces/visitors";
 import { TableSkeleton } from "./TableSkeleton";
 
-// Extend User interface to include fairIds
-interface UserWithFairIds {
-  id: number;
-  name: string;
-  email: string;
-  role: string;
-  fairIds?: string[];
-}
 
 export const EnhancedTableConsultant = () => {
-  const { getVisitorsPaginated, loading, visitors, paginationMeta } =
-    useVisitorsService();
-  const { fairs, getFairs } = useFairService();
-  const { user } = useAuth();
+  const { data: fairs } = useFairs();
   const [searchParams, setSearchParams] = useSearchParams();
+  
+  // Hook personalizado para gerenciar sessão completa do usuário
+  const {
+    user,
+    currentFairId,
+    shouldShowFairSelector,
+    fairStatus,
+    availableFairIds,
+    setSelectedFairId,
+    canAccessData,
+    sessionStatus,
+  } = useUserSession();
 
   // Estados da consulta
   const [search, setSearch] = useState(searchParams.get("search") ?? "");
   const [page, setPage] = useState(Number(searchParams.get("page")) || 1);
   const [limit, setLimit] = useState(Number(searchParams.get("limit")) || 50);
-  const [selectedFairId, setSelectedFairId] = useState<string>("");
+
+  // Hook React Query para visitantes paginados
+  const {
+    data: visitorsData,
+    isLoading: loading,
+  } = useVisitorsPaginated({
+    fairId: currentFairId,
+    search: search || undefined,
+    page,
+    limit,
+  });
+
+  // Extrair dados da resposta
+  const visitors = visitorsData?.data || [];
+  const paginationMeta = visitorsData?.meta || null;
 
   // Estados da UI
   const [visibleColumns, setVisibleColumns] = useState<
@@ -87,65 +102,36 @@ export const EnhancedTableConsultant = () => {
     fair_visitor: false,
   });
 
-  // Verificar se é consultant e definir fairId automaticamente
+  // Verificar se é consultant
   const isConsultant = user?.role === "consultant";
   const shouldShowFairSelect = !isConsultant;
 
-  // Para consultants, usar o primeiro fairId do usuário
-  // Para outros usuários, usar o selectedFairId do state
-  const currentFairId = useMemo(() => {
-    if (isConsultant) {
-      const userWithFairs = user as UserWithFairIds;
-      const userFairIds = userWithFairs?.fairIds || [];
-
-      // Se é consultant, usar o fairId selecionado se houver múltiplas feiras
-      // ou o primeiro fairId se houver apenas uma
-      if (userFairIds.length > 1) {
-        return selectedFairId || userFairIds[0];
-      } else if (userFairIds.length === 1) {
-        return userFairIds[0];
-      }
-      return "";
-    }
-    return selectedFairId;
-  }, [isConsultant, user, selectedFairId]);
-
-  // Para UI, calcular se deve mostrar select para consultant com múltiplas feiras
-  const shouldShowConsultantFairSelect = useMemo(() => {
-    if (!isConsultant) return false;
-    const userWithFairs = user as UserWithFairIds;
-    const userFairIds = userWithFairs?.fairIds || [];
-    return userFairIds.length > 1;
-  }, [isConsultant, user]);
-
-  // Estado para controlar fetch inicial
-  const [hasInitialFetch, setHasInitialFetch] = useState(false);
   const hasFairsFetchRef = useRef(false);
 
   // Buscar feiras quando necessário (para admins e consultants com múltiplas feiras)
   useEffect(() => {
     if (
-      (shouldShowFairSelect || shouldShowConsultantFairSelect) &&
+      (shouldShowFairSelect || shouldShowFairSelector) &&
       !hasFairsFetchRef.current
     ) {
-      getFairs();
+      // Removido - o hook useFairs já faz o fetch automaticamente
       hasFairsFetchRef.current = true;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shouldShowFairSelect, shouldShowConsultantFairSelect]);
+  }, [shouldShowFairSelect, shouldShowFairSelector]);
 
   // Definir fairId inicial para não-consultants
   useEffect(() => {
-    if (shouldShowFairSelect && fairs.length > 0 && !selectedFairId) {
+    if (shouldShowFairSelect && fairs && fairs.length > 0 && !currentFairId) {
       const fairFromUrl = searchParams.get("fairId");
-      if (fairFromUrl && fairs.some((f) => f.id === fairFromUrl)) {
+      if (fairFromUrl && fairs && fairs.some((f) => f.id === fairFromUrl)) {
         setSelectedFairId(fairFromUrl);
       } else {
         // Selecionar primeira feira por padrão
-        setSelectedFairId(fairs[0].id);
+        setSelectedFairId(fairs![0].id);
       }
     }
-  }, [fairs, selectedFairId, shouldShowFairSelect, searchParams]);
+  }, [fairs, currentFairId, shouldShowFairSelect, searchParams, setSelectedFairId]);
 
   // Atualizar URL com parâmetros
   useEffect(() => {
@@ -159,83 +145,14 @@ export const EnhancedTableConsultant = () => {
     setSearchParams(params, { replace: true });
   }, [search, page, limit, currentFairId, setSearchParams]);
 
-  // Fetch inicial e quando currentFairId mudar
+  // Debounce search - reset página quando search mudar
   useEffect(() => {
-    if (currentFairId && !hasInitialFetch) {
-      getVisitorsPaginated({
-        page: 1,
-        limit,
-        search: search || undefined,
-        fairId: currentFairId,
-      });
-      setHasInitialFetch(true);
-      setPage(1);
-    }
-  }, [currentFairId, hasInitialFetch, limit, search]);
-
-  // Reset hasInitialFetch quando fairId mudar
-  useEffect(() => {
-    if (currentFairId) {
-      setHasInitialFetch(false);
-    }
-  }, [currentFairId]);
-
-  // Função para fazer fetch dos dados (sem page nas dependências para evitar loops)
-  const fetchData = useCallback(
-    (targetPage: number, resetPage = false) => {
-      if (!currentFairId) return;
-
-      if (resetPage) setPage(1);
-
-      getVisitorsPaginated({
-        page: targetPage,
-        limit,
-        search: search || undefined,
-        fairId: currentFairId,
-      });
-    },
-    [currentFairId, limit, search]
-  );
-
-  // Fetch inicial e quando currentFairId mudar
-  useEffect(() => {
-    if (currentFairId && !hasInitialFetch) {
-      fetchData(1, true);
-      setHasInitialFetch(true);
-    }
-  }, [currentFairId, hasInitialFetch]);
-
-  // Reset hasInitialFetch quando fairId mudar
-  useEffect(() => {
-    if (currentFairId) {
-      setHasInitialFetch(false);
-    }
-  }, [currentFairId]);
-
-  // Debounce search
-  useEffect(() => {
-    if (!hasInitialFetch) return;
-
     const timer = setTimeout(() => {
-      fetchData(1, true);
+      setPage(1);
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [search, hasInitialFetch]);
-
-  // Fetch quando página mudar
-  useEffect(() => {
-    if (hasInitialFetch && currentFairId) {
-      fetchData(page, false);
-    }
-  }, [page, hasInitialFetch, currentFairId]);
-
-  // Fetch quando limite mudar
-  useEffect(() => {
-    if (hasInitialFetch) {
-      fetchData(1, true);
-    }
-  }, [limit, hasInitialFetch]);
+  }, [search]);
 
   // Category filter from URL
   const categoryFilter = useMemo(() => {
@@ -321,14 +238,11 @@ export const EnhancedTableConsultant = () => {
             {user?.email}
           </p>
           {(() => {
-            const userWithFairs = user as UserWithFairIds;
-            const userFairIds = userWithFairs?.fairIds || [];
-            if (userFairIds.length === 0) {
+            if (fairStatus.type === "no_fairs") {
               return (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                   <p className="text-red-700">
-                    ⚠️ Nenhuma feira associada. Entre em contato para adquirir
-                    seu acesso.
+                    ⚠️ {fairStatus.message}
                   </p>
                   <Button
                     asChild
@@ -345,12 +259,21 @@ export const EnhancedTableConsultant = () => {
                 </div>
               );
             }
+            
+            if (!currentFairId) {
+              return (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <p className="text-yellow-700">
+                    ⚠️ Selecione uma feira para acessar os dados.
+                  </p>
+                </div>
+              );
+            }
+            
             return (
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                 <p className="text-green-700">
-                  ✅ Acesso liberado para {userFairIds.length} feira(s)
-                  {userFairIds.length > 1 &&
-                    " - Use o filtro abaixo para alternar entre elas"}
+                  ✅ {fairStatus.message}
                 </p>
               </div>
             );
@@ -364,7 +287,7 @@ export const EnhancedTableConsultant = () => {
       >
         <>
           {/* Alerta Premium para quem não tem acesso */}
-          {!currentFairId && (
+          {!canAccessData && (
             <div className="mb-6 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-lg p-6">
               <div className="flex items-start gap-4">
                 <div className="flex-shrink-0">
@@ -377,9 +300,7 @@ export const EnhancedTableConsultant = () => {
                     🔒 Acesso Premium Necessário
                   </h3>
                   <p className="text-amber-700 mb-4">
-                    {isConsultant
-                      ? "Para acessar os dados completos dos visitantes, você precisa de uma feira associada ao seu perfil."
-                      : "Esta é uma área exclusiva para expositores. Adquira seu stand e tenha acesso a dados valiosos dos visitantes."}
+                    {sessionStatus.message}
                   </p>
                   <div className="flex gap-3">
                     <Button
@@ -437,7 +358,7 @@ export const EnhancedTableConsultant = () => {
 
             <div
               className={`w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 ${
-                !currentFairId ? "opacity-60 pointer-events-none" : ""
+                !canAccessData ? "opacity-60 pointer-events-none" : ""
               }`}
             >
               <div className="flex flex-col gap-2">
@@ -445,18 +366,18 @@ export const EnhancedTableConsultant = () => {
                   {/* Select de Feira para admins */}
                   {shouldShowFairSelect && (
                     <Select
-                      value={selectedFairId}
+                      value={currentFairId}
                       onValueChange={(value) => {
                         setSelectedFairId(value);
                         setPage(1); // Reset página ao trocar feira
                       }}
-                      disabled={!currentFairId}
+                      disabled={!canAccessData}
                     >
                       <SelectTrigger className="w-full sm:w-[200px] h-9 bg-white text-black">
                         <SelectValue placeholder="Selecione uma feira" />
                       </SelectTrigger>
                       <SelectContent className="bg-white">
-                        {fairs.map((fair) => (
+                        {(fairs || []).map((fair: any) => (
                           <SelectItem key={fair.id} value={fair.id}>
                             {fair.name}
                           </SelectItem>
@@ -466,9 +387,9 @@ export const EnhancedTableConsultant = () => {
                   )}
 
                   {/* Select de Feira para consultants com múltiplas feiras */}
-                  {shouldShowConsultantFairSelect && (
+                  {shouldShowFairSelector && (
                     <Select
-                      value={selectedFairId || currentFairId}
+                      value={currentFairId}
                       onValueChange={(value) => {
                         setSelectedFairId(value);
                         setPage(1); // Reset página ao trocar feira
@@ -479,16 +400,17 @@ export const EnhancedTableConsultant = () => {
                       </SelectTrigger>
                       <SelectContent className="bg-white text-black">
                         {(() => {
-                          const userWithFairs = user as UserWithFairIds;
-                          const userFairIds = userWithFairs?.fairIds || [];
-                          // Filtrar apenas as feiras que o consultant tem acesso
-                          return fairs
-                            .filter((fair) => userFairIds.includes(fair.id))
-                            .map((fair) => (
-                              <SelectItem key={fair.id} value={fair.id}>
-                                {fair.name}
-                              </SelectItem>
-                            ));
+                          // Se o usuário tem feiras associadas, filtrar apenas essas
+                          // Senão, mostrar todas as feiras disponíveis
+                          const availableFairs = availableFairIds.length > 0 
+                            ? (fairs || []).filter((fair: any) => availableFairIds.includes(fair.id))
+                            : (fairs || []);
+                          
+                          return availableFairs.map((fair: any) => (
+                            <SelectItem key={fair.id} value={fair.id}>
+                              {fair.name}
+                            </SelectItem>
+                          ));
                         })()}
                       </SelectContent>
                     </Select>
@@ -501,7 +423,7 @@ export const EnhancedTableConsultant = () => {
                       setSearch(e.target.value);
                     }}
                     className="flex-1 sm:max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm text-black"
-                    disabled={!currentFairId}
+                    disabled={!canAccessData}
                   />
                 </div>
 
@@ -548,7 +470,7 @@ export const EnhancedTableConsultant = () => {
                     setLimit(Number(val));
                     setPage(1);
                   }}
-                  disabled={!currentFairId}
+                  disabled={!canAccessData}
                 >
                   <SelectTrigger className="w-full sm:w-[120px] h-9 bg-white text-black">
                     <SelectValue placeholder="Qtd" />
@@ -568,7 +490,7 @@ export const EnhancedTableConsultant = () => {
                       variant="outline"
                       size="sm"
                       className="bg-white w-full sm:w-auto relative text-black"
-                      disabled={!currentFairId}
+                      disabled={!canAccessData}
                     >
                       📊 Colunas Personalizadas
                       {!currentFairId && (
@@ -625,7 +547,7 @@ export const EnhancedTableConsultant = () => {
                           ? "bg-purple-600 text-white"
                           : ""
                       }`}
-                      disabled={!currentFairId}
+                      disabled={!canAccessData}
                     >
                       <SlidersHorizontal className="mr-1" />
                       Filtros Avançados
@@ -863,8 +785,8 @@ export const EnhancedTableConsultant = () => {
                 <TableRow>
                   <TableCell colSpan={12} className="text-center py-8">
                     <div className="text-gray-500">
-                      {!currentFairId
-                        ? "Selecione uma feira para visualizar os visitantes"
+                      {!canAccessData
+                        ? "Acesso necessário para visualizar os visitantes"
                         : "Nenhum visitante encontrado"}
                     </div>
                   </TableCell>
@@ -946,7 +868,10 @@ export const EnhancedTableConsultant = () => {
           <div className="flex justify-between items-center mt-4">
             <Button
               disabled={page === 1 || loading}
-              onClick={() => setPage((p) => p - 1)}
+              onClick={() => {
+                console.log("🔍 Botão Anterior clicado - página atual:", page);
+                setPage((p) => p - 1);
+              }}
               className="relative"
             >
               {loading && page > 1 ? (
@@ -968,7 +893,10 @@ export const EnhancedTableConsultant = () => {
               disabled={
                 (paginationMeta && page >= paginationMeta.totalPages) || loading
               }
-              onClick={() => setPage((p) => p + 1)}
+              onClick={() => {
+                console.log("🔍 Botão Próxima clicado - página atual:", page);
+                setPage((p) => p + 1);
+              }}
               className="relative"
             >
               {loading && page < (paginationMeta?.totalPages || 1) ? (

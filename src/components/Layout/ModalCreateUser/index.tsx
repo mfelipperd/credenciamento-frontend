@@ -9,16 +9,15 @@ import { ControlledSelect } from "@/components/ControlledSelect";
 import { EUserRole } from "@/enums/user.enum";
 import { Button } from "@/components/ui/button";
 import { useUserService } from "@/service/user.service";
-import { useEffect, useState, useRef } from "react";
-import { useFairService } from "@/service/fair.service";
+import { useState } from "react";
+import { useFairs } from "@/hooks/useFairs";
 
 export const CreateUserModal = () => {
   const [open, onOpenChange] = useState(false);
   const { createUser, loading } = useUserService();
-  const { fairs, getFairs } = useFairService();
-  const hasFetchedRef = useRef(false);
+  const { data: fairs } = useFairs();
 
-  const fairsOptions = fairs.map((fair) => ({
+  const fairsOptions = (fairs || []).map((fair: any) => ({
     value: fair.id,
     label: fair.name,
   }));
@@ -34,13 +33,7 @@ export const CreateUserModal = () => {
     }
   };
 
-  useEffect(() => {
-    if (open && !hasFetchedRef.current) {
-      getFairs();
-      hasFetchedRef.current = true;
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+  // Removido - o hook useFairs já faz o fetch automaticamente
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

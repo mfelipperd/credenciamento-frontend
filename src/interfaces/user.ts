@@ -5,6 +5,12 @@ export interface User {
   name: string;
   email: string;
   role: EUserRole;
+  fairIds?: string[];
+  cpf?: string;
+  phone?: string;
+  isActive?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 /**

@@ -3,7 +3,7 @@ import { ControlledSelect } from "@/components/ControlledSelect";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import type { Visitor, VisitorEdit } from "@/interfaces/visitors";
-import { useFairService } from "@/service/fair.service";
+import { useFairs } from "@/hooks/useFairs";
 import { useVisitorsService } from "@/service/visitors.service";
 import { Loader2, PencilLine } from "lucide-react";
 import { useEffect } from "react";
@@ -17,7 +17,7 @@ export interface EditVisitorModalProps {
 }
 
 export const EditVisitorModal = ({ ...props }: EditVisitorModalProps) => {
-  const { fairs, getFairs } = useFairService();
+  const { data: fairs } = useFairs();
   const { updateVisitor, loading } = useVisitorsService();
   const form = useForm<Partial<VisitorEdit>>({
     defaultValues: {
@@ -43,7 +43,7 @@ export const EditVisitorModal = ({ ...props }: EditVisitorModalProps) => {
   };
 
   useEffect(() => {
-    getFairs();
+    // Removido - o hook useFairs já faz o fetch automaticamente
   }, []);
 
   useEffect(() => {
@@ -69,7 +69,7 @@ export const EditVisitorModal = ({ ...props }: EditVisitorModalProps) => {
           />
 
           <ControlledSelect
-            options={fairs.map((fair) => ({
+            options={(fairs || []).map((fair: any) => ({
               value: fair.id,
               label: fair.name,
             }))}

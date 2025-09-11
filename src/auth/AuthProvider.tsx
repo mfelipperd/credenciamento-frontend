@@ -11,6 +11,7 @@ import { AuthContext } from "./authContext";
 import type { AuthResponse } from "@/interfaces/auth";
 import type { User } from "@/interfaces/user";
 import { useAuth } from "@/hooks/useAuth";
+import { EUserRole } from "@/enums/user.enum";
 
 const STORAGE_USER_KEY = "app_user";
 const STORAGE_TOKEN_KEY = "app_token";
@@ -70,16 +71,44 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const isPublicForm = location.pathname.startsWith("/public-form");
     const isSucessPage = location.pathname.startsWith("/sucess");
-    if (user && user.role === "consultant") {
-      // Se o usuário é um consultor, redireciona para o dashboard
+    
+    if (user && user.role === EUserRole.CONSULTANT) {
+      // Debug: verificar dados do usuário
+      console.log("🔍 Debug AuthProvider - Usuário consultor:", {
+        user,
+        fairIds: user.fairIds,
+        fairIdsLength: user.fairIds?.length || 0,
+        location: location.pathname
+      });
+      
+      // Se o usuário é um consultor, verificar se tem feiras associadas
+      const userFairIds = user.fairIds || [];
+      
+      if (userFairIds.length === 0) {
+        console.log("❌ Usuário consultor sem feiras associadas");
+        // Se não tem feiras associadas, redirecionar para login com mensagem
+        navigate("/login", {
+          replace: true,
+          state: { 
+            from: location,
+            message: "Seu perfil não possui feiras associadas. Entre em contato para adquirir acesso."
+          },
+        });
+        return;
+      }
+      
+      console.log("✅ Usuário consultor com feiras associadas:", userFairIds);
+      // Se tem feiras associadas, redirecionar para o dashboard
       const state = location.state;
       if (state?.from) {
         const { pathname, search = "" } = state.from;
         navigate(`${pathname}${search}`, { replace: true });
+      } else {
+        navigate("/consultant-dashboard", { replace: true });
       }
-      navigate("/consultant-dashboard", { replace: true });
       return;
     }
+    
     if (
       !isAuthenticated &&
       !isPublicForm &&
@@ -90,15 +119,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         replace: true,
         state: { from: location },
       });
-    } else if (user?.role === "consultant") {
-      // Se veio de uma rota protegida (ex: /consultant-dashboard?fairId=...)
-      const state = location.state;
-      if (state?.from) {
-        const { pathname, search = "" } = state.from;
-        navigate(`${pathname}${search}`, { replace: true });
-      }
     }
-  }, [isAuthenticated, location]);
+  }, [isAuthenticated, user, location, navigate]);
 
   return (
     <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>

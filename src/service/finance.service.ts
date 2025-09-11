@@ -361,13 +361,14 @@ export const useFinanceService = () => {
 
   const payInstallment = async (
     id: string,
-    data: { paidAt: string; proofUrl?: string }
+    data: { paidAt: string; proofUrl?: string; fairId: string }
   ): Promise<Installment | undefined> => {
+    const { fairId, ...bodyData } = data;
     return handleRequest<Installment>({
       request: () =>
         api.patch(
-          `${BASE_URL}/revenues/installment/${id}/confirm-payment`,
-          data
+          `${BASE_URL}/revenues/installment/${id}/confirm-payment?fairId=${fairId}`,
+          bodyData
         ),
       successMessage: "Parcela baixada com sucesso!",
     });
@@ -377,9 +378,10 @@ export const useFinanceService = () => {
   const confirmInstallmentPayment = async (
     installmentId: string,
     paidAt: string,
+    fairId: string,
     proofUrl?: string
   ): Promise<Installment | undefined> => {
-    return payInstallment(installmentId, { paidAt, proofUrl });
+    return payInstallment(installmentId, { paidAt, proofUrl, fairId });
   };
 
   // Attachments

@@ -21,6 +21,7 @@ import PartnersPage from "@/pages/Partners/page";
 import { PartnerDashboard } from "@/pages/Partners/PartnerDashboard";
 import { WithdrawalsManagement } from "@/pages/Partners/WithdrawalsManagement";
 import UserManagementPage from "@/pages/UserManagement/page";
+import { FairsPage } from "@/pages/Fairs/page";
 
 export const AppRoutes = createBrowserRouter([
   {
@@ -130,6 +131,14 @@ export const AppRoutes = createBrowserRouter([
                 element: (
                   <AdminRouteGuard>
                     <UserManagementPage />
+                  </AdminRouteGuard>
+                ),
+              },
+              {
+                path: "/fairs",
+                element: (
+                  <AdminRouteGuard>
+                    <FairsPage />
                   </AdminRouteGuard>
                 ),
               },
