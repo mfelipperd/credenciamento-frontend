@@ -41,10 +41,12 @@ export function StandConfigurations({ fairId }: StandConfigurationsProps) {
     if (value === undefined || value === null || isNaN(value)) {
       return 'R$ 0,00';
     }
+    // Os valores dos stands já vêm em reais do backend
+    const valueInReais = Number(value);
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
       currency: "BRL",
-    }).format(Number(value));
+    }).format(valueInReais);
   };
 
   const formatPercentage = (value: number | undefined | null) => {
@@ -266,7 +268,7 @@ export function StandConfigurations({ fairId }: StandConfigurationsProps) {
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600 dark:text-gray-400">Área total:</span>
                     <span className="font-medium">
-                      {(config.width * config.height * config.quantity).toFixed(1)}m²
+                      {((config.width || 0) * (config.height || 0) * (config.quantity || 0)).toFixed(1)}m²
                     </span>
                   </div>
                 </div>
@@ -322,6 +324,7 @@ export function StandConfigurations({ fairId }: StandConfigurationsProps) {
         onClose={() => setIsFormOpen(false)}
         onSubmit={handleCreate}
         title="Nova Configuração de Stand"
+        fairId={fairId}
       />
 
       {/* Modal de Edição */}
@@ -330,6 +333,7 @@ export function StandConfigurations({ fairId }: StandConfigurationsProps) {
           config={editingConfig}
           onClose={() => setEditingConfig(null)}
           onUpdate={handleUpdate}
+          fairId={fairId}
         />
       )}
     </div>

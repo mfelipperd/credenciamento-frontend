@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useRequiredExpenses } from "@/hooks/useRequiredExpenses";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
@@ -49,9 +50,10 @@ interface StandConfigurationFormProps {
   onClose: () => void;
   onSubmit: (data: CreateStandConfigurationDto) => void;
   title: string;
+  fairId: string;
 }
 
-export function StandConfigurationForm({ isOpen, onClose, onSubmit, title }: StandConfigurationFormProps) {
+export function StandConfigurationForm({ isOpen, onClose, onSubmit, title, fairId }: StandConfigurationFormProps) {
   const [calculatedMetrics, setCalculatedMetrics] = useState({
     area: 0,
     totalPrice: 0,
@@ -59,7 +61,17 @@ export function StandConfigurationForm({ isOpen, onClose, onSubmit, title }: Sta
     profitPerStand: 0,
     profitMargin: 0,
     efficiency: 0,
+    requiredExpensesPerSquareMeter: 0,
+    totalRequiredExpenses: 0,
   });
+
+  // Buscar despesas das categorias obrigatórias
+  const { data: requiredExpenses, isLoading: isLoadingRequiredExpenses, error: requiredExpensesError } = useRequiredExpenses(fairId);
+  
+  // Debug: verificar os dados das despesas obrigatórias
+  console.log('StandConfigurationForm - requiredExpenses:', requiredExpenses);
+  console.log('StandConfigurationForm - isLoadingRequiredExpenses:', isLoadingRequiredExpenses);
+  console.log('StandConfigurationForm - requiredExpensesError:', requiredExpensesError);
 
   const form = useForm<CreateStandConfigurationDto>({
     resolver: zodResolver(standConfigurationSchema),
@@ -83,33 +95,72 @@ export function StandConfigurationForm({ isOpen, onClose, onSubmit, title }: Sta
       if (width && height && quantity && pricePerSquareMeter !== undefined && setupCostPerSquareMeter !== undefined) {
         const area = width * height;
         const totalPrice = area * pricePerSquareMeter;
+        
+        // Calcular despesas obrigatórias
+        const totalRequiredExpenses = requiredExpenses?.totalValue || 0;
+        const totalArea = requiredExpenses?.totalArea || 1; // Evitar divisão por zero
+        
+        // Dividir o total das despesas obrigatórias pela quantidade de stands e depois pelo m²
+        const requiredExpensesPerSquareMeter = totalRequiredExpenses / totalArea;
+        
+        // Calcular custo total (custo de montagem + despesas obrigatórias por m²)
         const totalSetupCost = area * setupCostPerSquareMeter;
-        const profitPerStand = totalPrice - totalSetupCost;
+        const totalRequiredExpensesForStand = area * (requiredExpensesPerSquareMeter / 100); // Converter de centavos para reais
+        const totalCostWithRequired = totalSetupCost + totalRequiredExpensesForStand;
+        
+        const profitPerStand = totalPrice - totalCostWithRequired;
         const profitMargin = totalPrice > 0 ? (profitPerStand / totalPrice) * 100 : 0;
         const efficiency = area > 0 ? profitPerStand / area : 0;
 
-        setCalculatedMetrics({
+        const metrics = {
           area,
           totalPrice,
-          totalSetupCost,
+          totalSetupCost: totalCostWithRequired,
           profitPerStand,
           profitMargin,
           efficiency,
+          requiredExpensesPerSquareMeter,
+          totalRequiredExpenses: totalRequiredExpensesForStand,
+        };
+
+        console.log('StandConfigurationForm - Calculated metrics:', metrics);
+        console.log('StandConfigurationForm - Required expenses data:', {
+          totalRequiredExpenses,
+          totalArea,
+          requiredExpensesPerSquareMeter,
+          totalRequiredExpensesForStand
         });
+
+        setCalculatedMetrics(metrics);
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [form]);
+  }, [form, requiredExpenses]);
 
   const formatCurrency = (value: number | undefined | null) => {
     if (value === undefined || value === null || isNaN(value)) {
       return 'R$ 0,00';
     }
+    // Para despesas obrigatórias, os valores já vêm em centavos do backend
+    // Para valores calculados no frontend (como preços), já estão em reais
+    const valueInReais = Number(value);
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
       currency: "BRL",
-    }).format(Number(value));
+    }).format(valueInReais);
+  };
+
+  const formatCurrencyFromCents = (value: number | undefined | null) => {
+    if (value === undefined || value === null || isNaN(value)) {
+      return 'R$ 0,00';
+    }
+    // Converter de centavos para reais
+    const valueInReais = Number(value) / 100;
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    }).format(valueInReais);
   };
 
   const formatPercentage = (value: number | undefined | null) => {
@@ -351,7 +402,7 @@ export function StandConfigurationForm({ isOpen, onClose, onSubmit, title }: Sta
                     </span>
                   </div>
                   <span className="text-lg font-bold text-blue-800 dark:text-blue-200">
-                    {calculatedMetrics.area.toFixed(1)}m²
+                    {(calculatedMetrics.area || 0).toFixed(1)}m²
                   </span>
                 </div>
 
@@ -368,12 +419,38 @@ export function StandConfigurationForm({ isOpen, onClose, onSubmit, title }: Sta
                   </span>
                 </div>
 
+                {/* Despesas Obrigatórias por m² */}
+                <div className="flex justify-between items-center p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                  <div className="flex items-center">
+                    <AlertCircle className="h-4 w-4 text-orange-600 dark:text-orange-400 mr-2" />
+                    <span className="text-sm font-medium text-orange-700 dark:text-orange-300">
+                      Despesas Obrigatórias/m²
+                    </span>
+                  </div>
+                  <span className="text-lg font-bold text-orange-800 dark:text-orange-200">
+                    {formatCurrencyFromCents(calculatedMetrics.requiredExpensesPerSquareMeter)}
+                  </span>
+                </div>
+
+                {/* Despesas Obrigatórias Total para o Stand */}
+                <div className="flex justify-between items-center p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                  <div className="flex items-center">
+                    <AlertCircle className="h-4 w-4 text-yellow-600 dark:text-yellow-400 mr-2" />
+                    <span className="text-sm font-medium text-yellow-700 dark:text-yellow-300">
+                      Despesas Obrigatórias Total
+                    </span>
+                  </div>
+                  <span className="text-lg font-bold text-yellow-800 dark:text-yellow-200">
+                    {formatCurrency(calculatedMetrics.totalRequiredExpenses)}
+                  </span>
+                </div>
+
                 {/* Custo Total */}
                 <div className="flex justify-between items-center p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
                   <div className="flex items-center">
                     <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400 mr-2" />
                     <span className="text-sm font-medium text-red-700 dark:text-red-300">
-                      Custo Total
+                      Custo Total (incl. obrigatórias)
                     </span>
                   </div>
                   <span className="text-lg font-bold text-red-800 dark:text-red-200">

@@ -34,10 +34,12 @@ export function FairAnalysis({ fairId }: FairAnalysisProps) {
     if (value === undefined || value === null || isNaN(value)) {
       return 'R$ 0,00';
     }
+    // Os valores já vêm em reais do backend
+    const valueInReais = Number(value);
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
       currency: "BRL",
-    }).format(Number(value));
+    }).format(valueInReais);
   };
 
   const formatPercentage = (value: number | undefined | null) => {

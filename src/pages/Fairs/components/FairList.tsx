@@ -30,10 +30,19 @@ export function FairList({ fairs }: FairListProps) {
     if (value === undefined || value === null || isNaN(value)) {
       return 'R$ 0,00';
     }
+    // Converter de centavos para reais
+    const valueInReais = Number(value) / 100;
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
       currency: "BRL",
-    }).format(Number(value));
+    }).format(valueInReais);
+  };
+
+  const formatPercentage = (value: number | undefined | null) => {
+    if (value === undefined || value === null || isNaN(value)) {
+      return '0.0%';
+    }
+    return `${Number(value).toFixed(1)}%`;
   };
 
   const formatDate = (date: Date) => {
@@ -125,7 +134,7 @@ export function FairList({ fairs }: FairListProps) {
                 </div>
                 <div className="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
                   <div className={`text-2xl font-bold ${getProfitMarginColor(fair.expectedProfitMargin)}`}>
-                    {fair.expectedProfitMargin.toFixed(1)}%
+                    {formatPercentage(fair.expectedProfitMargin)}
                   </div>
                   <div className="text-xs text-green-600 dark:text-green-400">
                     Margem Esperada

@@ -392,7 +392,7 @@ export function RevenueDetailModal({
       paidAt: string;
       proofUrl?: string;
     }) =>
-      financeService.confirmInstallmentPayment(installmentId, paidAt, proofUrl),
+      financeService.confirmInstallmentPayment(installmentId, paidAt, fairId!, proofUrl),
     onSuccess: () => {
       toast.success("Pagamento confirmado com sucesso!");
       queryClient.invalidateQueries({

@@ -1,4 +1,5 @@
-import { useFairAnalysis, useStandStatistics } from "@/hooks/useFairs";
+import { useFairAnalysis, useStandConfigurations } from "@/hooks/useFairs";
+import { useRevenueStats } from "@/hooks/useFinance";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -20,16 +21,19 @@ interface FairDashboardProps {
 
 export function FairDashboard({ fairId }: FairDashboardProps) {
   const { data: analysis, isLoading: isLoadingAnalysis, error: analysisError } = useFairAnalysis(fairId);
-  const { data: statistics, isLoading: isLoadingStats } = useStandStatistics(fairId);
+  const { data: standConfigurations, isLoading: isLoadingConfigs } = useStandConfigurations(fairId);
+  const { data: revenueStats, isLoading: isLoadingRevenue } = useRevenueStats(fairId);
 
   const formatCurrency = (value: number | undefined | null) => {
     if (value === undefined || value === null || isNaN(value)) {
       return 'R$ 0,00';
     }
+    // Converter de centavos para reais
+    const valueInReais = Number(value) / 100;
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
       currency: "BRL",
-    }).format(Number(value));
+    }).format(valueInReais);
   };
 
   const formatPercentage = (value: number | undefined | null) => {
@@ -38,6 +42,86 @@ export function FairDashboard({ fairId }: FairDashboardProps) {
     }
     return `${Number(value).toFixed(1)}%`;
   };
+
+  // Calcular dados reais das configurações de stands
+  const calculateStandMetrics = () => {
+    if (!standConfigurations || standConfigurations.length === 0) {
+      return {
+        totalConfigurations: 0,
+        averagePricePerSquareMeter: 0,
+        averageProfitMargin: 0,
+        totalStands: 0,
+        totalArea: 0,
+        totalRevenue: 0,
+        totalCosts: 0,
+        totalProfit: 0
+      };
+    }
+
+    const activeConfigs = standConfigurations.filter(config => config.isActive);
+    const totalConfigurations = activeConfigs.length;
+    
+    if (totalConfigurations === 0) {
+      return {
+        totalConfigurations: 0,
+        averagePricePerSquareMeter: 0,
+        averageProfitMargin: 0,
+        totalStands: 0,
+        totalArea: 0,
+        totalRevenue: 0,
+        totalCosts: 0,
+        totalProfit: 0
+      };
+    }
+
+    // Calcular médias
+    const totalPricePerSquareMeter = activeConfigs.reduce((sum, config) => sum + (config.pricePerSquareMeter || 0), 0);
+    const totalProfitMargin = activeConfigs.reduce((sum, config) => {
+      const area = (config.width || 0) * (config.height || 0);
+      const totalPrice = area * (config.pricePerSquareMeter || 0);
+      const totalCost = area * (config.setupCostPerSquareMeter || 0);
+      const profit = totalPrice - totalCost;
+      const margin = totalPrice > 0 ? (profit / totalPrice) * 100 : 0;
+      return sum + margin;
+    }, 0);
+
+    const averagePricePerSquareMeter = totalPricePerSquareMeter / totalConfigurations;
+    const averageProfitMargin = totalProfitMargin / totalConfigurations;
+
+    // Calcular totais
+    const totalStands = activeConfigs.reduce((sum, config) => sum + (config.quantity || 0), 0);
+    const totalArea = activeConfigs.reduce((sum, config) => {
+      const area = (config.width || 0) * (config.height || 0);
+      return sum + (area * (config.quantity || 0));
+    }, 0);
+
+    const totalRevenue = activeConfigs.reduce((sum, config) => {
+      const area = (config.width || 0) * (config.height || 0);
+      const totalPrice = area * (config.pricePerSquareMeter || 0);
+      return sum + (totalPrice * (config.quantity || 0));
+    }, 0);
+
+    const totalCosts = activeConfigs.reduce((sum, config) => {
+      const area = (config.width || 0) * (config.height || 0);
+      const totalCost = area * (config.setupCostPerSquareMeter || 0);
+      return sum + (totalCost * (config.quantity || 0));
+    }, 0);
+
+    const totalProfit = totalRevenue - totalCosts;
+
+    return {
+      totalConfigurations,
+      averagePricePerSquareMeter,
+      averageProfitMargin,
+      totalStands,
+      totalArea,
+      totalRevenue,
+      totalCosts,
+      totalProfit
+    };
+  };
+
+  const standMetrics = calculateStandMetrics();
 
   const getInsightIcon = (type: string) => {
     switch (type) {
@@ -80,7 +164,7 @@ export function FairDashboard({ fairId }: FairDashboardProps) {
     }
   };
 
-  if (isLoadingAnalysis || isLoadingStats) {
+  if (isLoadingAnalysis || isLoadingConfigs || isLoadingRevenue) {
     return (
       <div className="space-y-6">
         {/* KPIs Skeleton */}
@@ -161,10 +245,10 @@ export function FairDashboard({ fairId }: FairDashboardProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-800 dark:text-blue-200">
-              {analysis.totalStands}
+              {standMetrics.totalStands}
             </div>
             <p className="text-xs text-blue-600 dark:text-blue-400">
-              {analysis.totalArea}m² de área total
+              {standMetrics.totalArea.toFixed(1)}m² de área total
             </p>
           </CardContent>
         </Card>
@@ -178,10 +262,10 @@ export function FairDashboard({ fairId }: FairDashboardProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-800 dark:text-green-200">
-              {formatCurrency(analysis.totalRevenue)}
+              {formatCurrency(revenueStats?.totalValue || standMetrics.totalRevenue)}
             </div>
             <p className="text-xs text-green-600 dark:text-green-400">
-              Receita esperada
+              {revenueStats ? 'Receita real' : 'Receita esperada'}
             </p>
           </CardContent>
         </Card>
@@ -195,10 +279,10 @@ export function FairDashboard({ fairId }: FairDashboardProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-purple-800 dark:text-purple-200">
-              {formatCurrency(analysis.totalProfit)}
+              {formatCurrency(standMetrics.totalProfit)}
             </div>
             <p className="text-xs text-purple-600 dark:text-purple-400">
-              Lucro líquido
+              Lucro líquido esperado
             </p>
           </CardContent>
         </Card>
@@ -212,45 +296,45 @@ export function FairDashboard({ fairId }: FairDashboardProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-800 dark:text-orange-200">
-              {formatPercentage(analysis.profitMargin)}
+              {formatPercentage(standMetrics.averageProfitMargin)}
             </div>
             <p className="text-xs text-orange-600 dark:text-orange-400">
-              Margem média
+              Margem média das configurações
             </p>
           </CardContent>
         </Card>
       </div>
 
       {/* Estatísticas de Stands */}
-      {statistics && (
+      {standMetrics.totalConfigurations > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
               <BarChart3 className="h-5 w-5 mr-2" />
-              Estatísticas dos Stands
+              Estatísticas das Configurações de Stands
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {statistics.totalConfigurations}
+                  {standMetrics.totalConfigurations}
                 </div>
                 <div className="text-sm text-gray-600 dark:text-gray-400">
-                  Configurações
+                  Configurações Ativas
                 </div>
               </div>
               <div className="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {statistics.averagePricePerSquareMeter.toFixed(0)}/m²
+                  {formatCurrency(standMetrics.averagePricePerSquareMeter)}/m²
                 </div>
                 <div className="text-sm text-gray-600 dark:text-gray-400">
-                  Preço Médio
+                  Preço Médio por m²
                 </div>
               </div>
               <div className="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {formatPercentage(statistics.averageProfitMargin)}
+                  {formatPercentage(standMetrics.averageProfitMargin)}
                 </div>
                 <div className="text-sm text-gray-600 dark:text-gray-400">
                   Margem Média

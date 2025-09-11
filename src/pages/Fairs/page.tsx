@@ -12,11 +12,13 @@ import {
   Calendar,
   MapPin,
   TrendingUp,
-  Target
+  Target,
+  Tag
 } from "lucide-react";
 import { FairAnalysis } from "./components/FairAnalysis";
 import { StandConfigurations } from "./components/StandConfigurations";
 import { FairDashboard } from "./components/FairDashboard";
+import { CategoriesConfig } from "./components/CategoriesConfig";
 
 export function FairsPage() {
   const [searchParams] = useSearchParams();
@@ -169,7 +171,7 @@ export function FairsPage() {
 
         {/* Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 bg-white dark:bg-gray-800">
+          <TabsList className="grid w-full grid-cols-5 bg-white dark:bg-gray-800">
             <TabsTrigger value="dashboard" className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 data-[state=active]:bg-blue-500 data-[state=active]:text-white">
               <BarChart3 className="h-4 w-4" />
               <span className="hidden sm:inline">Dashboard</span>
@@ -181,6 +183,10 @@ export function FairsPage() {
             <TabsTrigger value="stands" className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 data-[state=active]:bg-blue-500 data-[state=active]:text-white">
               <Settings className="h-4 w-4" />
               <span className="hidden sm:inline">Stands</span>
+            </TabsTrigger>
+            <TabsTrigger value="categories" className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 data-[state=active]:bg-blue-500 data-[state=active]:text-white">
+              <Tag className="h-4 w-4" />
+              <span className="hidden sm:inline">Categorias</span>
             </TabsTrigger>
             <TabsTrigger value="config" className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 data-[state=active]:bg-blue-500 data-[state=active]:text-white">
               <Target className="h-4 w-4" />
@@ -198,6 +204,10 @@ export function FairsPage() {
 
           <TabsContent value="stands" className="space-y-6">
             <StandConfigurations fairId={fairId} />
+          </TabsContent>
+
+          <TabsContent value="categories" className="space-y-6">
+            <CategoriesConfig fairId={fairId} />
           </TabsContent>
 
           <TabsContent value="config" className="space-y-6">
