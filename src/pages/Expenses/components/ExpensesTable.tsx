@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Expense } from "@/interfaces/finance";
+import { getCategoryColor } from "@/utils/categoryColors";
 
 interface ExpensesTableProps {
   expenses: Expense[];
@@ -38,6 +39,7 @@ export function ExpensesTable({
 }: ExpensesTableProps) {
   const [sortField, setSortField] = useState<keyof Expense>("data");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+
 
   const handleSort = (field: keyof Expense) => {
     if (sortField === field) {
@@ -173,7 +175,7 @@ export function ExpensesTable({
                 {formatCurrency(expense.valor)}
               </TableCell>
               <TableCell>
-                <Badge variant="outline" className="text-xs">
+                <Badge className={`text-xs ${getCategoryColor(expense.category?.name || "")}`}>
                   {expense.category?.name || "N/A"}
                 </Badge>
               </TableCell>
