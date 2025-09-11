@@ -35,10 +35,12 @@ export function ExpenseDetailModal({
   if (!expense) return null;
 
   const formatCurrency = (value: number) => {
+    // O valor vem em centavos do backend, então dividimos por 100
+    const valueInReais = value / 100;
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
       currency: "BRL",
-    }).format(value);
+    }).format(valueInReais);
   };
 
   const formatDate = (dateString: string) => {
@@ -54,13 +56,16 @@ export function ExpenseDetailModal({
       CORRENTE: "Conta Corrente",
       POUPANCA: "Conta Poupança",
       OUTRO: "Outro",
+      corrente: "Conta Corrente", // Para compatibilidade com lowercase
+      poupanca: "Conta Poupança",
+      outro: "Outro",
     };
     return labels[type] || type;
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-6xl w-[95vw] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -90,7 +95,7 @@ export function ExpenseDetailModal({
 
         <div className="space-y-6">
           {/* Informações Principais */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg">
@@ -128,7 +133,7 @@ export function ExpenseDetailModal({
               </CardHeader>
               <CardContent>
                 <Badge variant="outline" className="text-lg px-3 py-1">
-                  {expense.category?.nome || "N/A"}
+                  {expense.category?.name || "N/A"}
                 </Badge>
                 {expense.category?.global && (
                   <p className="text-sm text-gray-500 mt-1">Categoria Global</p>
@@ -138,7 +143,7 @@ export function ExpenseDetailModal({
           </div>
 
           {/* Descrição e Observações */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {expense.descricao && (
               <Card>
                 <CardHeader>
@@ -148,7 +153,7 @@ export function ExpenseDetailModal({
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-700 dark:text-gray-300">
+                  <p className="text-gray-700 dark:text-gray-300 break-words">
                     {expense.descricao}
                   </p>
                 </CardContent>
@@ -164,7 +169,7 @@ export function ExpenseDetailModal({
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-700 dark:text-gray-300">
+                  <p className="text-gray-700 dark:text-gray-300 break-words">
                     {expense.observacoes}
                   </p>
                 </CardContent>
@@ -181,12 +186,12 @@ export function ExpenseDetailModal({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
                     Nome da Conta
                   </p>
-                  <p className="font-medium text-gray-900 dark:text-white">
+                  <p className="font-medium text-gray-900 dark:text-white break-words">
                     {expense.account?.nomeConta || "N/A"}
                   </p>
                 </div>
@@ -194,7 +199,7 @@ export function ExpenseDetailModal({
                   <p className="text-sm text-gray-600 dark:text-gray-400">
                     Banco
                   </p>
-                  <p className="font-medium text-gray-900 dark:text-white">
+                  <p className="font-medium text-gray-900 dark:text-white break-words">
                     {expense.account?.banco || "N/A"}
                   </p>
                 </div>
@@ -212,6 +217,36 @@ export function ExpenseDetailModal({
             </CardContent>
           </Card>
 
+          {/* Informações da Feira */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Building className="w-5 h-5" />
+                Informações da Feira
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Nome da Feira
+                  </p>
+                  <p className="font-medium text-gray-900 dark:text-white break-words">
+                    {expense.fair?.name || "N/A"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    ID da Feira
+                  </p>
+                  <p className="font-mono text-sm text-gray-500 dark:text-gray-400 break-all">
+                    {expense.fairId}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Informações da Categoria */}
           <Card>
             <CardHeader>
@@ -221,13 +256,13 @@ export function ExpenseDetailModal({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
                     Nome
                   </p>
                   <p className="font-medium text-gray-900 dark:text-white">
-                    {expense.category?.nome || "N/A"}
+                    {expense.category?.name || "N/A"}
                   </p>
                 </div>
                 <div>
@@ -243,15 +278,63 @@ export function ExpenseDetailModal({
                   </Badge>
                 </div>
                 {expense.category?.parent && (
-                  <div className="md:col-span-2">
+                  <div className="lg:col-span-2">
                     <p className="text-sm text-gray-600 dark:text-gray-400">
                       Categoria Pai
                     </p>
-                    <p className="font-medium text-gray-900 dark:text-white">
-                      {expense.category.parent.nome}
+                    <p className="font-medium text-gray-900 dark:text-white break-words">
+                      {expense.category.parent.name}
                     </p>
                   </div>
                 )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Separator />
+
+          {/* Informações de IDs */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="w-5 h-5" />
+                Identificadores
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    ID da Despesa
+                  </p>
+                  <p className="font-mono text-sm text-gray-500 dark:text-gray-400 break-all">
+                    {expense.id}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    ID da Categoria
+                  </p>
+                  <p className="font-mono text-sm text-gray-500 dark:text-gray-400 break-all">
+                    {expense.categoryId}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    ID da Conta
+                  </p>
+                  <p className="font-mono text-sm text-gray-500 dark:text-gray-400 break-all">
+                    {expense.accountId}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    ID da Feira
+                  </p>
+                  <p className="font-mono text-sm text-gray-500 dark:text-gray-400 break-all">
+                    {expense.fairId}
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>
