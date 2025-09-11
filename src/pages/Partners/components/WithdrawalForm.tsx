@@ -32,6 +32,8 @@ const withdrawalSchema = z.object({
 interface WithdrawalFormProps {
   isOpen: boolean;
   onClose: () => void;
+  partner?: any;
+  fairId?: string;
 }
 
 export function WithdrawalForm({ isOpen, onClose }: WithdrawalFormProps) {

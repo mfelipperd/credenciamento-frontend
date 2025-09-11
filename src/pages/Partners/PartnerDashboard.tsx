@@ -1,7 +1,7 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useFairPartnerFinancialSummary } from "@/hooks/useFairPartners";
-import { PartnerView } from "./components/PartnerView";
+import { MobilePartnerView } from "./components/MobilePartnerView";
 import { useAuth } from "@/hooks/useAuth";
 import { useSearchParams } from "react-router-dom";
 import { useCookie } from "@/hooks/useCookie";
@@ -85,7 +85,7 @@ export function PartnerDashboard() {
   };
   
   return (
-    <PartnerView
+    <MobilePartnerView
       partner={partnerData}
       fairId={fairId}
       isAdminView={false}
