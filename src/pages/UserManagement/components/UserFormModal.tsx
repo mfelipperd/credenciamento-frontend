@@ -148,16 +148,32 @@ export function UserFormModal({ user, isOpen, onClose }: UserFormModalProps) {
     }
   }, [user, isOpen, form]);
 
+  // Função para remover máscaras dos dados
+  const removeMasks = (data: UserFormData) => {
+    return {
+      ...data,
+      cpf: data.cpf ? data.cpf.replace(/\D/g, '') : undefined, // Remove tudo que não é dígito
+      phone: data.phone ? data.phone.replace(/\D/g, '') : undefined, // Remove tudo que não é dígito
+    };
+  };
+
   const onSubmit = async (data: UserFormData) => {
     try {
       setIsSubmitting(true);
 
       const { confirmPassword, ...dataWithoutConfirm } = data;
+      const cleanedData = removeMasks(dataWithoutConfirm);
+      
+      console.log("🔍 Dados originais:", dataWithoutConfirm);
+      console.log("🧹 Dados limpos (sem máscaras):", cleanedData);
+      
       const submitData = {
-        ...dataWithoutConfirm,
+        ...cleanedData,
         fairIds: selectedFairIds,
         password: data.password || undefined, // Só incluir senha se preenchida
       };
+      
+      console.log("📤 Payload final enviado:", submitData);
 
       if (isEditing && user) {
         // Editar usuário
