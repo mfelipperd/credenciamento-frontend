@@ -13,6 +13,17 @@ export function maskCNPJ(value: string): string {
 }
 
 /**
+ * Mascarar CPF no formato 000.000.000-00
+ */
+export function maskCPF(value: string): string {
+  const digits = value.replace(/\D/g, "").slice(0, 11);
+  return digits
+    .replace(/^(\d{3})(\d)/, "$1.$2")
+    .replace(/^(\d{3})\.(\d{3})(\d)/, "$1.$2.$3")
+    .replace(/^(\d{3}\.\d{3}\.\d{3})(\d)/, "$1-$2");
+}
+
+/**
  * Mascarar CEP no formato 00000-000
  */
 export function maskCEP(value: string): string {
