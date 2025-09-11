@@ -269,20 +269,20 @@ export interface UpdateFinanceCategoryForm
 // Interface para análise de fluxo de caixa
 export interface CashFlowAnalysis {
   fairId: string;
-  totalRevenue: number;
-  totalExpenses: number;
-  netProfit: number;
-  profitMargin: number;
+  totalRevenue: number | null;
+  totalExpenses: number | null;
+  netProfit: number | null;
+  profitMargin: number | null;
   isProfitable: boolean;
-  revenueCount: number;
-  expenseCount: number;
-  averageRevenue: number;
-  averageExpense: number;
-  largestRevenue: number;
-  largestExpense: number;
-  performance: "excellent" | "good" | "average" | "poor";
+  revenueCount: number | null;
+  expenseCount: number | null;
+  averageRevenue: number | null;
+  averageExpense: number | null;
+  largestRevenue: number | null;
+  largestExpense: number | null;
+  performance: "excellent" | "good" | "average" | "poor" | null;
   recommendations: string[];
-  summary: string;
+  summary: string | null;
 }
 
 // Interfaces para contas bancárias

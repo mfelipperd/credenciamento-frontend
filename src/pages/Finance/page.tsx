@@ -235,7 +235,10 @@ export function FinancePage() {
 
         {/* Estatísticas de Receitas */}
         {filters.fairId && (
-          <RevenueStats fairId={filters.fairId} />
+          <RevenueStats 
+            fairId={filters.fairId} 
+            onTotalRevenueClick={() => setShowCashFlowModal(true)}
+          />
         )}
 
         {/* Seção de Stands - Simplificada */}
