@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Outlet, useSearchParams } from "react-router-dom";
-import { useFairService } from "@/service/fair.service";
+import { useFairs } from "@/hooks/useFairs";
 import {
   Calendar,
   HomeIcon,
@@ -13,6 +13,7 @@ import {
   DollarSign,
   Users,
   CreditCard,
+  BarChart3,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
@@ -26,7 +27,7 @@ import { useCookie } from "@/hooks/useCookie";
 import { EUserRole } from "@/enums/user.enum";
 
 export const MainLayout: React.FC = () => {
-  const { fairs, getFairs, loading } = useFairService();
+  const { data: fairs, isLoading: loading } = useFairs();
   const [searchParams, setSearchParams] = useSearchParams();
   const { user, availableFairIds } = useUserSession();
   const { signOut } = useAuth();
@@ -38,14 +39,14 @@ export const MainLayout: React.FC = () => {
 
   // Filtrar feiras baseado no usuário
   const availableFairs = user?.role === EUserRole.ADMIN 
-    ? fairs 
-    : fairs.filter(fair => availableFairIds.length === 0 || availableFairIds.includes(fair.id));
+    ? (fairs || []) 
+    : (fairs || []).filter((fair: any) => availableFairIds.length === 0 || availableFairIds.includes(fair.id));
 
   // Determina o ID inicial baseado em: URL params > Cookie > Primeira feira disponível
   const getInitialFairId = () => {
     const urlFairId = searchParams.get("fairId");
-    if (urlFairId && availableFairs.find((f) => f.id === urlFairId)) return urlFairId;
-    if (savedFairId && availableFairs.find((f) => f.id === savedFairId))
+    if (urlFairId && availableFairs.find((f: any) => f.id === urlFairId)) return urlFairId;
+    if (savedFairId && availableFairs.find((f: any) => f.id === savedFairId))
       return savedFairId;
     return availableFairs[0]?.id ?? "";
   };
@@ -63,14 +64,11 @@ export const MainLayout: React.FC = () => {
     setSearchParams({ fairId: id });
   };
 
-  const selectedFair = availableFairs.find((f) => f.id === selectedId);
+  const selectedFair = availableFairs.find((f: any) => f.id === selectedId);
 
   const search = `?fairId=${selectedId}`;
 
-  useEffect(() => {
-    getFairs();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Executa apenas uma vez no mount
+  // Removido - o hook useFairs já faz o fetch automaticamente
 
   // Sincroniza o selectedId quando as feiras são carregadas ou os params mudam
   useEffect(() => {
@@ -138,7 +136,7 @@ export const MainLayout: React.FC = () => {
                   onChange={handleChange}
                   className="bg-transparent text-white text-xs font-semibold min-w-0 appearance-none focus:outline-none truncate pr-4"
                 >
-                  {availableFairs.map((fair) => (
+                  {availableFairs.map((fair: any) => (
                     <option
                       key={fair.id}
                       value={fair.id}
@@ -300,6 +298,17 @@ export const MainLayout: React.FC = () => {
                 <CreditCard size={16} />
                 <span className="hidden sm:inline text-sm font-medium">
                   Saques
+                </span>
+              </Link>
+            )}
+            {user?.role === EUserRole.ADMIN && (
+              <Link
+                className="flex items-center gap-1.5 text-white/90 hover:text-white transition-colors px-2 py-1 rounded hover:bg-white/10"
+                to={{ pathname: "/fairs", search }}
+              >
+                <BarChart3 size={16} />
+                <span className="hidden sm:inline text-sm font-medium">
+                  Feiras
                 </span>
               </Link>
             )}
