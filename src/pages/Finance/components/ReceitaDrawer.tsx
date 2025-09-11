@@ -1,10 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuth } from "@/hooks/useAuth";
-import { useFinanceService } from "@/service/finance.service";
 import { useStandService } from "@/service/stands.service";
 import { 
   useClients, 
@@ -113,9 +111,7 @@ export function ReceitaDrawer({
   const [showStandConfirmation, setShowStandConfirmation] = useState(false);
 
   const { user } = useAuth();
-  const financeService = useFinanceService();
   const standService = useStandService();
-  const queryClient = useQueryClient();
 
   // Form principal
   const {
@@ -217,7 +213,7 @@ export function ReceitaDrawer({
           const availableStands = await standService.getAvailableStands(fairId);
           if (availableStands) {
             const stand = availableStands.find(
-              (s) => s.standNumber === prefilledStandNumber
+              (s: any) => s.standNumber === prefilledStandNumber
             );
             if (stand) {
               setSelectedStand({ standNumber: prefilledStandNumber, stand });
@@ -365,7 +361,7 @@ export function ReceitaDrawer({
   };
 
   const handleEntryModelSelect = (entryModelId: string) => {
-    const model = entryModels.find((m) => m.id === entryModelId);
+    const model = entryModels.find((m: any) => m.id === entryModelId);
     if (model) {
       setSelectedEntryModel({
         id: model.id,
@@ -708,7 +704,7 @@ export function ReceitaDrawer({
 
                 {filteredClients.length > 0 && (
                   <div className="max-h-32 overflow-y-auto border rounded p-2 space-y-1 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-                    {filteredClients.map((client) => (
+                    {filteredClients.map((client: any) => (
                       <button
                         key={client.id}
                         type="button"
@@ -808,7 +804,7 @@ export function ReceitaDrawer({
                 <SelectValue placeholder="Selecione o stand ou patrocínio" />
               </SelectTrigger>
               <SelectContent>
-                {entryModels.map((model) => (
+                {entryModels.map((model: any) => (
                   <SelectItem key={model.id} value={model.id}>
                     {model.name} — {formatCurrency(model.baseValue)}
                   </SelectItem>

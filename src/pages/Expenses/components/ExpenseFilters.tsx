@@ -269,7 +269,7 @@ export function ExpenseFilters({
           {filters.categoryId && (
             <Badge variant="secondary" className="gap-1">
               Categoria:{" "}
-              {categories.find((c) => c.id === filters.categoryId)?.nome}
+              {categories.find((c) => c.id === filters.categoryId)?.name}
               <Button
                 variant="ghost"
                 size="sm"

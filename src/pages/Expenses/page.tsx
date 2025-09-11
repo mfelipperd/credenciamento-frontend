@@ -81,7 +81,7 @@ export default function ExpensesPage() {
 
   // Mutation para deletar despesa
   const deleteExpenseMutation = useMutation({
-    mutationFn: (id: string) => expensesService.deleteExpense(id, fairId!),
+    mutationFn: (id: string) => expensesService.deleteExpense(id),
     onSuccess: () => {
       toast.success("Despesa removida com sucesso!");
       queryClient.invalidateQueries({ queryKey: ["expenses", fairId] });

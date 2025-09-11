@@ -45,8 +45,7 @@ export const useExpensesService = () => {
   };
 
   const getExpenseDetail = async (
-    id: string,
-    fairId?: string
+    id: string
   ): Promise<Expense | undefined> => {
     return handleRequest<Expense>({
       request: () => api.get(`${BASE_URL}/expenses/${id}`),
@@ -72,8 +71,7 @@ export const useExpensesService = () => {
 
   const updateExpense = async (
     id: string,
-    data: UpdateExpenseForm,
-    fairId?: string
+    data: UpdateExpenseForm
   ): Promise<Expense | undefined> => {
     return handleRequest<Expense>({
       request: () => api.patch(`${BASE_URL}/expenses/${id}`, data),
@@ -81,7 +79,7 @@ export const useExpensesService = () => {
     });
   };
 
-  const deleteExpense = async (id: string, fairId: string): Promise<void> => {
+  const deleteExpense = async (id: string): Promise<void> => {
     await handleRequest<{ success: boolean }>({
       request: () => api.delete(`${BASE_URL}/expenses/${id}`),
       successMessage: "Despesa removida com sucesso!",
@@ -145,7 +143,7 @@ export const useExpensesService = () => {
   ): Promise<FinanceCategory | undefined> => {
     // Mapear campos para o formato esperado pelo backend
     const mappedData = {
-      name: data.nome, // Backend espera 'name' mas enviamos 'nome'
+      name: data.name,
       global: data.global,
       fairId: data.fairId, // Sempre incluir fairId quando disponível
       ...(data.parentId && { parentId: data.parentId }),
@@ -163,7 +161,7 @@ export const useExpensesService = () => {
   ): Promise<FinanceCategory | undefined> => {
     // Mapear campos para o formato esperado pelo backend
     const mappedData = {
-      ...(data.nome && { name: data.nome }),
+      ...(data.name && { name: data.name }),
       ...(data.global !== undefined && { global: data.global }),
       ...(data.fairId && { fairId: data.fairId }),
       ...(data.parentId && { parentId: data.parentId }),
