@@ -32,6 +32,7 @@ import { useFairService } from "@/service/fair.service";
 import { toast } from "sonner";
 import { maskCPF, maskPhoneBR } from "@/utils/masks";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Eye, EyeOff } from "lucide-react";
 
 const userSchema = z.object({
   name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
@@ -45,7 +46,25 @@ const userSchema = z.object({
   password: z.string().optional().refine((val) => !val || val.length >= 6, {
     message: "Senha deve ter pelo menos 6 caracteres"
   }),
+  confirmPassword: z.string().optional(),
   fairIds: z.array(z.string()).optional(),
+}).refine((data) => {
+  // Se há senha, deve ter confirmação
+  if (data.password && !data.confirmPassword) {
+    return false;
+  }
+  // Se há confirmação, deve ter senha
+  if (data.confirmPassword && !data.password) {
+    return false;
+  }
+  // Se ambos existem, devem ser iguais
+  if (data.password && data.confirmPassword) {
+    return data.password === data.confirmPassword;
+  }
+  return true;
+}, {
+  message: "Senhas não coincidem",
+  path: ["confirmPassword"],
 });
 
 type UserFormData = z.infer<typeof userSchema>;
@@ -72,6 +91,8 @@ interface UserFormModalProps {
 export function UserFormModal({ user, isOpen, onClose }: UserFormModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedFairIds, setSelectedFairIds] = useState<string[]>([]);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const isEditing = !!user;
 
   const createUserMutation = useCreateUser();
@@ -131,8 +152,9 @@ export function UserFormModal({ user, isOpen, onClose }: UserFormModalProps) {
     try {
       setIsSubmitting(true);
 
+      const { confirmPassword, ...dataWithoutConfirm } = data;
       const submitData = {
-        ...data,
+        ...dataWithoutConfirm,
         fairIds: selectedFairIds,
         password: data.password || undefined, // Só incluir senha se preenchida
       };
@@ -163,6 +185,8 @@ export function UserFormModal({ user, isOpen, onClose }: UserFormModalProps) {
   const handleClose = () => {
     form.reset();
     setSelectedFairIds([]);
+    setShowPassword(false);
+    setShowConfirmPassword(false);
     onClose();
   };
 
@@ -355,12 +379,52 @@ export function UserFormModal({ user, isOpen, onClose }: UserFormModalProps) {
                     Senha {isEditing ? "(deixe em branco para manter a atual)" : "*"}
                   </FormLabel>
                   <FormControl>
-                    <Input 
-                      type="password" 
-                      placeholder={isEditing ? "Nova senha (opcional)" : "Digite a senha"}
-                      className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
-                      {...field} 
-                    />
+                    <div className="relative">
+                      <Input 
+                        type={showPassword ? "text" : "password"}
+                        placeholder={isEditing ? "Nova senha (opcional)" : "Digite a senha"}
+                        className="bg-gray-700 border-gray-600 text-white placeholder-gray-400 pr-10"
+                        {...field} 
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300"
+                      >
+                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                      </button>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Confirmação de Senha */}
+            <FormField
+              control={form.control}
+              name="confirmPassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-gray-300">
+                    Confirmar Senha {isEditing ? "(opcional)" : "*"}
+                  </FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Input 
+                        type={showConfirmPassword ? "text" : "password"}
+                        placeholder="Confirme a senha"
+                        className="bg-gray-700 border-gray-600 text-white placeholder-gray-400 pr-10"
+                        {...field} 
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300"
+                      >
+                        {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                      </button>
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
