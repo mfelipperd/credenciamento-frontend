@@ -4,8 +4,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
   X,
-  Calendar as CalendarIcon,
-  DollarSign,
   Tag,
   Building,
   Plus,
@@ -16,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { ControlledInput } from "@/components/ControlledInput";
 import {
   Dialog,
   DialogContent,
@@ -29,13 +28,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
 import type {
   Expense,
   CreateExpenseForm,
@@ -49,6 +41,7 @@ import { AccountType } from "@/interfaces/finance";
 import { useExpensesService } from "@/service/expenses.service";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { maskCurrencyBRL, unmaskCurrencyBRL } from "@/utils/masks";
 
 // Schema de validação
 const expenseSchema = z.object({
@@ -58,7 +51,7 @@ const expenseSchema = z.object({
     .string()
     .max(500, "Descrição deve ter no máximo 500 caracteres")
     .optional(),
-  valor: z.number().min(0.01, "Valor deve ser maior que zero"),
+  valorDisplay: z.string().min(1, "Valor é obrigatório"),
   data: z.string().min(1, "Data é obrigatória"),
   observacoes: z.string().optional(),
 });
@@ -90,7 +83,6 @@ export function ExpenseForm({
   onCategoryCreated,
   onAccountCreated,
 }: ExpenseFormProps) {
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [showAccountForm, setShowAccountForm] = useState(false);
   const [isCreatingCategory, setIsCreatingCategory] = useState(false);
@@ -105,8 +97,8 @@ export function ExpenseForm({
       categoryId: "",
       accountId: "",
       descricao: "",
-      valor: 0,
-      data: new Date().toISOString().split("T")[0],
+      valorDisplay: "R$ 0,00",
+      data: "",
       observacoes: "",
     },
   });
@@ -118,7 +110,10 @@ export function ExpenseForm({
         categoryId: expense.categoryId,
         accountId: expense.accountId,
         descricao: expense.descricao || "",
-        valor: expense.valor,
+        valorDisplay: new Intl.NumberFormat("pt-BR", {
+          style: "currency",
+          currency: "BRL",
+        }).format(expense.valor),
         data: expense.data,
         observacoes: expense.observacoes || "",
       });
@@ -127,20 +122,41 @@ export function ExpenseForm({
         categoryId: "",
         accountId: "",
         descricao: "",
-        valor: 0,
-        data: new Date().toISOString().split("T")[0],
+        valorDisplay: "R$ 0,00",
+        data: "",
         observacoes: "",
       });
     }
   }, [expense, form]);
 
   const handleSubmit = (data: ExpenseFormData) => {
+    // Converter valor mascarado para número em reais (não centavos)
+    const valorEmCentavos = unmaskCurrencyBRL(data.valorDisplay);
+    const valorEmReais = valorEmCentavos / 100; // Converter centavos para reais
+    
+    // Garantir que a data esteja no formato ISO (YYYY-MM-DD)
+    const dataFormatada = data.data ? new Date(data.data).toISOString().split('T')[0] : data.data;
+    
+    const formData = {
+      ...data,
+      valor: valorEmReais,
+      data: dataFormatada,
+    };
+    
     if (expense) {
-      // Atualizar despesa existente
-      onSubmit({ ...data } as UpdateExpenseForm);
+      // Atualizar despesa existente - remover campos desnecessários
+      const updateData: UpdateExpenseForm = {
+        categoryId: formData.categoryId,
+        accountId: formData.accountId,
+        descricao: formData.descricao,
+        valor: formData.valor,
+        data: formData.data,
+        observacoes: formData.observacoes,
+      };
+      onSubmit(updateData);
     } else {
       // Criar nova despesa
-      onSubmit(data);
+      onSubmit(formData);
     }
   };
 
@@ -149,12 +165,8 @@ export function ExpenseForm({
     onClose();
   };
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-    }).format(value);
-  };
+  // Watch do valor para o resumo
+  const valorDisplay = form.watch("valorDisplay");
 
   const getAccountTypeLabel = (type: AccountType) => {
     const labels = {
@@ -167,7 +179,7 @@ export function ExpenseForm({
 
   // Estados para os formulários inline
   const [categoryFormData, setCategoryFormData] = useState({
-    nome: "",
+    name: "",
     global: false,
   });
 
@@ -179,12 +191,12 @@ export function ExpenseForm({
 
   // Funções para criar categoria
   const handleCreateCategory = async () => {
-    if (!categoryFormData.nome.trim()) return;
+    if (!categoryFormData.name.trim()) return;
 
     setIsCreatingCategory(true);
     try {
       const categoryData: CreateFinanceCategoryForm = {
-        nome: categoryFormData.nome,
+        name: categoryFormData.name,
         global: categoryFormData.global,
         fairId: fairId, // Sempre incluir fairId quando disponível
       };
@@ -194,7 +206,7 @@ export function ExpenseForm({
       );
 
       // Reset do formulário
-      setCategoryFormData({ nome: "", global: false });
+      setCategoryFormData({ name: "", global: false });
       setShowCategoryForm(false);
 
       // Recarregar as categorias
@@ -311,7 +323,7 @@ export function ExpenseForm({
                     <SelectItem key={category.id} value={category.id}>
                       <div className="flex items-center gap-2">
                         <Tag className="w-4 h-4" />
-                        {category.nome}
+                        {category.name}
                         {category.global && (
                           <span className="text-xs text-gray-500">
                             (Global)
@@ -354,11 +366,11 @@ export function ExpenseForm({
                   <div className="space-y-2">
                     <Input
                       placeholder="Nome da categoria"
-                      value={categoryFormData.nome}
+                      value={categoryFormData.name}
                       onChange={(e) =>
                         setCategoryFormData({
                           ...categoryFormData,
-                          nome: e.target.value,
+                          name: e.target.value,
                         })
                       }
                       className="text-sm"
@@ -389,7 +401,7 @@ export function ExpenseForm({
                       type="button"
                       onClick={handleCreateCategory}
                       disabled={
-                        !categoryFormData.nome.trim() || isCreatingCategory
+                        !categoryFormData.name.trim() || isCreatingCategory
                       }
                       className="w-full h-8 text-xs"
                       size="sm"
@@ -587,27 +599,16 @@ export function ExpenseForm({
           {/* Valor e Data */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label
-                htmlFor="valor"
-                className="text-gray-900 dark:text-gray-100"
-              >
-                Valor (R$) *
-              </Label>
-              <div className="relative">
-                <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
-                <Input
-                  id="valor"
-                  type="number"
-                  step="0.01"
-                  min="0.01"
-                  placeholder="0,00"
-                  {...form.register("valor", { valueAsNumber: true })}
-                  className="pl-10 text-gray-900 dark:text-gray-100"
-                />
-              </div>
-              {form.formState.errors.valor && (
+              <ControlledInput
+                control={form.control}
+                name="valorDisplay"
+                label="Valor (R$) *"
+                placeholder="0,00"
+                mask={maskCurrencyBRL}
+              />
+              {form.formState.errors.valorDisplay && (
                 <p className="text-sm text-red-600 dark:text-red-400">
-                  {form.formState.errors.valor.message}
+                  {form.formState.errors.valorDisplay.message}
                 </p>
               )}
             </div>
@@ -619,42 +620,16 @@ export function ExpenseForm({
               >
                 Data *
               </Label>
-              <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !form.watch("data") && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {form.watch("data") ? (
-                      new Date(form.watch("data")).toLocaleDateString("pt-BR")
-                    ) : (
-                      <span>Selecione uma data</span>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={
-                      form.watch("data")
-                        ? new Date(form.watch("data"))
-                        : undefined
-                    }
-                    onSelect={(date) => {
-                      if (date) {
-                        form.setValue("data", date.toISOString().split("T")[0]);
-                        setIsCalendarOpen(false);
-                      }
-                    }}
-                    disabled={(date) => date > new Date()}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
+              <Input
+                id="data"
+                type="date"
+                {...form.register("data")}
+                className="text-gray-900 dark:text-gray-100"
+                onChange={(e) => {
+                  console.log("Data alterada:", e.target.value);
+                  form.setValue("data", e.target.value);
+                }}
+              />
               {form.formState.errors.data && (
                 <p className="text-sm text-red-600 dark:text-red-400">
                   {form.formState.errors.data.message}
@@ -686,14 +661,14 @@ export function ExpenseForm({
           </div>
 
           {/* Resumo */}
-          {form.watch("valor") > 0 && (
+          {valorDisplay && valorDisplay !== "R$ 0,00" && (
             <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
               <h4 className="font-medium text-gray-900 dark:text-white mb-2">
                 Resumo da Despesa
               </h4>
               <div className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
                 <p>
-                  <strong>Valor:</strong> {formatCurrency(form.watch("valor"))}
+                  <strong>Valor:</strong> {valorDisplay}
                 </p>
                 <p>
                   <strong>Data:</strong>{" "}
@@ -706,7 +681,7 @@ export function ExpenseForm({
                     <strong>Categoria:</strong>{" "}
                     {
                       categories.find((c) => c.id === form.watch("categoryId"))
-                        ?.nome
+                        ?.name
                     }
                   </p>
                 )}

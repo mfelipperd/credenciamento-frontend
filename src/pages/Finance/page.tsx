@@ -9,6 +9,8 @@ import { FinanceTable } from "./components/FinanceTable";
 import { ReceitaDrawer } from "./components/ReceitaDrawer";
 import { EntryModelsDialog } from "./components/EntryModelsDialog";
 import { RevenueDetailModal } from "./components/RevenueDetailModal";
+import { RevenueStats } from "./components/RevenueStats";
+import { CashFlowModal } from "./components/CashFlowModal";
 import { StandMap } from "@/components/StandMap";
 import { StandConfigurator } from "@/components/StandConfigurator";
 import type { RevenueFilters } from "@/interfaces/finance";
@@ -45,6 +47,7 @@ export function FinancePage() {
   const [selectedRevenueId, setSelectedRevenueId] = useState<string | null>(
     null
   );
+  const [showCashFlowModal, setShowCashFlowModal] = useState(false);
   const [selectedRevenueForDetail, setSelectedRevenueForDetail] = useState<
     string | null
   >(null);
@@ -210,9 +213,9 @@ export function FinancePage() {
             </Button>
             <Button
               onClick={handleCreateRevenue}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              className="flex items-center gap-2 shadow-lg hover:shadow-xl transition-all duration-200 font-semibold px-6"
             >
-              <Plus className="w-4 h-4 mr-2" />
+              <Plus className="w-4 h-4" />
               Nova Receita
             </Button>
           </div>
@@ -222,7 +225,20 @@ export function FinancePage() {
 
         {/* KPIs */}
         {filters.fairId && (
-          <FinanceKpis data={kpisData} isLoading={isLoadingKpis} />
+          <FinanceKpis 
+            data={kpisData} 
+            isLoading={isLoadingKpis}
+            onTotalContractedClick={() => setShowCashFlowModal(true)}
+            onTotalReceivedClick={() => setShowCashFlowModal(true)}
+          />
+        )}
+
+        {/* Estatísticas de Receitas */}
+        {filters.fairId && (
+          <RevenueStats 
+            fairId={filters.fairId} 
+            onTotalRevenueClick={() => setShowCashFlowModal(true)}
+          />
         )}
 
         {/* Seção de Stands - Simplificada */}
@@ -332,6 +348,15 @@ export function FinancePage() {
           revenueId={selectedRevenueForDetail}
           fairId={filters.fairId}
         />
+
+        {/* Modal de fluxo de caixa */}
+        {filters.fairId && (
+          <CashFlowModal
+            isOpen={showCashFlowModal}
+            onClose={() => setShowCashFlowModal(false)}
+            fairId={filters.fairId}
+          />
+        )}
       </div>
     </div>
   );

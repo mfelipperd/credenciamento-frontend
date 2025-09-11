@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useSearchParams } from "@/hooks/useSearchParams";
 import { useExpensesService } from "@/service/expenses.service";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useUpdateExpense } from "@/hooks/useFinance";
 import { toast } from "sonner";
 import { Plus, Filter, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,7 @@ import { ExpenseFilters } from "./components/ExpenseFilters";
 import { ExpensesCharts } from "./components/ExpensesCharts";
 import { ExpenseDetailModal } from "./components/ExpenseDetailModal";
 import { DeleteExpenseDialog } from "./components/DeleteExpenseDialog";
+import { CashFlowModal } from "../Finance/components/CashFlowModal";
 import type {
   Expense,
   CreateExpenseForm,
@@ -28,6 +30,7 @@ export default function ExpensesPage() {
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
   const [expenseToDelete, setExpenseToDelete] = useState<Expense | null>(null);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+  const [showCashFlowModal, setShowCashFlowModal] = useState(false);
 
   const expensesService = useExpensesService();
   const queryClient = useQueryClient();
@@ -75,26 +78,12 @@ export default function ExpensesPage() {
     },
   });
 
-  // Mutation para atualizar despesa
-  const updateExpenseMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateExpenseForm }) =>
-      expensesService.updateExpense(id, data, fairId),
-    onSuccess: () => {
-      toast.success("Despesa atualizada com sucesso!");
-      queryClient.invalidateQueries({ queryKey: ["expenses", fairId] });
-      queryClient.invalidateQueries({ queryKey: ["expenses-total", fairId] });
-      setEditingExpense(null);
-      setIsFormOpen(false);
-    },
-    onError: (error) => {
-      console.error("Erro ao atualizar despesa:", error);
-      toast.error("Erro ao atualizar despesa. Tente novamente.");
-    },
-  });
+  // Mutation para atualizar despesa usando hook centralizado
+  const updateExpenseMutation = useUpdateExpense();
 
   // Mutation para deletar despesa
   const deleteExpenseMutation = useMutation({
-    mutationFn: (id: string) => expensesService.deleteExpense(id, fairId!),
+    mutationFn: (id: string) => expensesService.deleteExpense(id),
     onSuccess: () => {
       toast.success("Despesa removida com sucesso!");
       queryClient.invalidateQueries({ queryKey: ["expenses", fairId] });
@@ -118,7 +107,12 @@ export default function ExpensesPage() {
   };
 
   const handleUpdateExpense = (id: string, data: UpdateExpenseForm) => {
-    updateExpenseMutation.mutate({ id, data });
+    updateExpenseMutation.mutate({ id, data }, {
+      onSuccess: () => {
+        setEditingExpense(null);
+        setIsFormOpen(false);
+      },
+    });
   };
 
   const handleDeleteExpense = (id: string) => {
@@ -189,7 +183,7 @@ export default function ExpensesPage() {
           </Button>
           <Button
             onClick={() => setIsFormOpen(true)}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 shadow-lg hover:shadow-xl transition-all duration-200 font-semibold px-6"
           >
             <Plus className="w-4 h-4" />
             Nova Despesa
@@ -199,16 +193,25 @@ export default function ExpensesPage() {
 
       {/* KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card>
+        <Card 
+          className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-[1.02] relative group"
+          onClick={() => setShowCashFlowModal(true)}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
               Total de Despesas
             </CardTitle>
-            <Badge variant="secondary">Mês Atual</Badge>
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary">Mês Atual</Badge>
+              <BarChart3 className="h-4 w-4 text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+            </div>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600 dark:text-red-400">
               {totalExpenses ? formatCurrency(totalExpenses) : "R$ 0,00"}
+            </div>
+            <div className="mt-2 text-xs text-blue-600 dark:text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity">
+              Clique para ver fluxo de caixa
             </div>
           </CardContent>
         </Card>
@@ -343,6 +346,15 @@ export default function ExpensesPage() {
         }}
         isLoading={deleteExpenseMutation.isPending}
       />
+
+      {/* Modal de fluxo de caixa */}
+      {fairId && (
+        <CashFlowModal
+          isOpen={showCashFlowModal}
+          onClose={() => setShowCashFlowModal(false)}
+          fairId={fairId}
+        />
+      )}
     </div>
   );
 }

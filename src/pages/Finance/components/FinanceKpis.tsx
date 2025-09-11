@@ -13,6 +13,8 @@ import type { Kpis } from "@/interfaces/finance";
 interface FinanceKpisProps {
   data?: Kpis;
   isLoading: boolean;
+  onTotalContractedClick?: () => void;
+  onTotalReceivedClick?: () => void;
 }
 
 interface KpiCardProps {
@@ -22,11 +24,15 @@ interface KpiCardProps {
   trend?: number;
   icon: React.ReactNode;
   color: string;
+  onClick?: () => void;
 }
 
-function KpiCard({ title, value, subtitle, trend, icon, color }: KpiCardProps) {
+function KpiCard({ title, value, subtitle, trend, icon, color, onClick }: KpiCardProps) {
   return (
-    <Card className="glass-card p-6">
+    <Card 
+      className={`glass-card p-6 ${onClick ? 'cursor-pointer hover:shadow-lg transition-shadow' : ''}`}
+      onClick={onClick}
+    >
       <div className="flex items-center justify-between">
         <div className="space-y-2">
           <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
@@ -91,7 +97,7 @@ function KpiSkeleton() {
   );
 }
 
-export function FinanceKpis({ data, isLoading }: FinanceKpisProps) {
+export function FinanceKpis({ data, isLoading, onTotalContractedClick, onTotalReceivedClick }: FinanceKpisProps) {
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -126,6 +132,7 @@ export function FinanceKpis({ data, isLoading }: FinanceKpisProps) {
         trend={data.contractedGrowth}
         icon={<DollarSign className="w-6 h-6 text-white" />}
         color="bg-blue-500"
+        onClick={onTotalContractedClick}
       />
 
       <KpiCard
@@ -135,6 +142,7 @@ export function FinanceKpis({ data, isLoading }: FinanceKpisProps) {
         trend={data.receivedGrowth}
         icon={<CheckCircle className="w-6 h-6 text-white" />}
         color="bg-green-500"
+        onClick={onTotalReceivedClick}
       />
 
       <KpiCard

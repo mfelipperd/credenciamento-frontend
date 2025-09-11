@@ -246,7 +246,7 @@ export type AccountType = (typeof AccountType)[keyof typeof AccountType];
 // Interfaces para categorias financeiras
 export interface FinanceCategory {
   id: string;
-  nome: string;
+  name: string; // Mudou de 'nome' para 'name' para consistência com a API
   parentId?: string;
   global: boolean;
   fairId?: string;
@@ -257,7 +257,7 @@ export interface FinanceCategory {
 }
 
 export interface CreateFinanceCategoryForm {
-  nome: string;
+  name: string; // Mudou de 'nome' para 'name' para consistência com a API
   parentId?: string;
   global: boolean;
   fairId?: string;
@@ -265,6 +265,25 @@ export interface CreateFinanceCategoryForm {
 
 export interface UpdateFinanceCategoryForm
   extends Partial<CreateFinanceCategoryForm> {}
+
+// Interface para análise de fluxo de caixa
+export interface CashFlowAnalysis {
+  fairId: string;
+  totalRevenue: number | null;
+  totalExpenses: number | null;
+  netProfit: number | null;
+  profitMargin: number | null;
+  isProfitable: boolean;
+  revenueCount: number | null;
+  expenseCount: number | null;
+  averageRevenue: number | null;
+  averageExpense: number | null;
+  largestRevenue: number | null;
+  largestExpense: number | null;
+  performance: "excellent" | "good" | "average" | "poor" | null;
+  recommendations: string[];
+  summary: string | null;
+}
 
 // Interfaces para contas bancárias
 export interface Account {
@@ -337,4 +356,11 @@ export interface ExpenseTotalByAccount {
   accountId: string;
   accountName: string;
   total: number;
+}
+
+// Interface para estatísticas de receitas
+export interface RevenueStats {
+  totalValue: number;
+  totalRevenues: number;
+  averagePerRevenue: number;
 }

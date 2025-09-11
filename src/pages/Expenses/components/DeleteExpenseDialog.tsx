@@ -92,7 +92,7 @@ export function DeleteExpenseDialog({
                 Categoria:
               </span>
               <span className="font-medium text-gray-900 dark:text-white">
-                {expense.category?.nome || "N/A"}
+                {expense.category?.name || "N/A"}
               </span>
             </div>
           </div>

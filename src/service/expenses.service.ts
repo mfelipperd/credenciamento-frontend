@@ -40,20 +40,15 @@ export const useExpensesService = () => {
 
     return handleRequest<Expense[]>({
       request: () =>
-        api.get(`${BASE_URL}/fairs/${fairId}/expenses${queryString}`),
+        api.get(`${BASE_URL}/expenses/fairs/${fairId}/expenses${queryString}`),
     });
   };
 
   const getExpenseDetail = async (
-    id: string,
-    fairId?: string
+    id: string
   ): Promise<Expense | undefined> => {
-    if (!fairId) {
-      throw new Error("fairId é obrigatório para buscar detalhes da despesa");
-    }
-
     return handleRequest<Expense>({
-      request: () => api.get(`${BASE_URL}/fairs/${fairId}/expenses/${id}`),
+      request: () => api.get(`${BASE_URL}/expenses/${id}`),
     });
   };
 
@@ -69,30 +64,24 @@ export const useExpensesService = () => {
 
     return handleRequest<Expense>({
       request: () =>
-        api.post(`${BASE_URL}/fairs/${fairId}/expenses`, expenseData),
+        api.post(`${BASE_URL}/expenses/fairs/${fairId}/expenses`, expenseData),
       successMessage: "Despesa criada com sucesso!",
     });
   };
 
   const updateExpense = async (
     id: string,
-    data: UpdateExpenseForm,
-    fairId?: string
+    data: UpdateExpenseForm
   ): Promise<Expense | undefined> => {
-    if (!fairId) {
-      throw new Error("fairId é obrigatório para atualizar despesa");
-    }
-
     return handleRequest<Expense>({
-      request: () =>
-        api.patch(`${BASE_URL}/fairs/${fairId}/expenses/${id}`, data),
+      request: () => api.patch(`${BASE_URL}/expenses/${id}`, data),
       successMessage: "Despesa atualizada com sucesso!",
     });
   };
 
-  const deleteExpense = async (id: string, fairId: string): Promise<void> => {
+  const deleteExpense = async (id: string): Promise<void> => {
     await handleRequest<{ success: boolean }>({
-      request: () => api.delete(`${BASE_URL}/fairs/${fairId}/expenses/${id}`),
+      request: () => api.delete(`${BASE_URL}/expenses/${id}`),
       successMessage: "Despesa removida com sucesso!",
     });
   };
@@ -103,7 +92,7 @@ export const useExpensesService = () => {
     fairId: string
   ): Promise<number | undefined> => {
     return handleRequest<number>({
-      request: () => api.get(`${BASE_URL}/fairs/${fairId}/expenses/total`),
+      request: () => api.get(`${BASE_URL}/expenses/fairs/${fairId}/expenses/total`),
     });
   };
 
@@ -112,7 +101,7 @@ export const useExpensesService = () => {
   ): Promise<ExpenseTotalByCategory[] | undefined> => {
     return handleRequest<ExpenseTotalByCategory[]>({
       request: () =>
-        api.get(`${BASE_URL}/fairs/${fairId}/expenses/total-by-category`),
+        api.get(`${BASE_URL}/expenses/fairs/${fairId}/expenses/total-by-category`),
     });
   };
 
@@ -121,7 +110,7 @@ export const useExpensesService = () => {
   ): Promise<ExpenseTotalByAccount[] | undefined> => {
     return handleRequest<ExpenseTotalByAccount[]>({
       request: () =>
-        api.get(`${BASE_URL}/fairs/${fairId}/expenses/total-by-account`),
+        api.get(`${BASE_URL}/expenses/fairs/${fairId}/expenses/total-by-account`),
     });
   };
 
@@ -137,7 +126,7 @@ export const useExpensesService = () => {
     // Mapear campo 'name' do backend para 'nome' da interface
     return response?.map((category) => ({
       ...category,
-      nome: (category as any).name || category.nome || "Sem nome",
+      name: (category as any).name || category.name || "Sem nome",
     }));
   };
 
@@ -154,7 +143,7 @@ export const useExpensesService = () => {
   ): Promise<FinanceCategory | undefined> => {
     // Mapear campos para o formato esperado pelo backend
     const mappedData = {
-      name: data.nome, // Backend espera 'name' mas enviamos 'nome'
+      name: data.name,
       global: data.global,
       fairId: data.fairId, // Sempre incluir fairId quando disponível
       ...(data.parentId && { parentId: data.parentId }),
@@ -172,7 +161,7 @@ export const useExpensesService = () => {
   ): Promise<FinanceCategory | undefined> => {
     // Mapear campos para o formato esperado pelo backend
     const mappedData = {
-      ...(data.nome && { name: data.nome }),
+      ...(data.name && { name: data.name }),
       ...(data.global !== undefined && { global: data.global }),
       ...(data.fairId && { fairId: data.fairId }),
       ...(data.parentId && { parentId: data.parentId }),

@@ -1,11 +1,15 @@
-import { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuth } from "@/hooks/useAuth";
-import { useFinanceService } from "@/service/finance.service";
 import { useStandService } from "@/service/stands.service";
+import { 
+  useClients, 
+  useCreateClient, 
+  useEntryModels, 
+  useCreateRevenue 
+} from "@/hooks/useFinance";
 import {
   Sheet,
   SheetContent,
@@ -107,9 +111,7 @@ export function ReceitaDrawer({
   const [showStandConfirmation, setShowStandConfirmation] = useState(false);
 
   const { user } = useAuth();
-  const financeService = useFinanceService();
   const standService = useStandService();
-  const queryClient = useQueryClient();
 
   // Form principal
   const {
@@ -153,71 +155,31 @@ export function ReceitaDrawer({
   const installmentsCount = watch("installmentsCount");
   const standNumber = watch("standNumber");
 
-  // Query para buscar clientes
-  const { data: clients = [], isLoading: isLoadingClients } = useQuery({
-    queryKey: ["search-clients", clientSearch],
-    queryFn: () => financeService.searchClients(clientSearch),
-    enabled: clientSearch.length >= 2,
-  });
+  // Query para buscar todos os clientes quando o formulário abrir
+  const { data: allClients = [], isLoading: isLoadingClients } = useClients();
 
   // Query para buscar modelos de entrada
-  const { data: entryModels = [] } = useQuery({
-    queryKey: ["entry-models", fairId],
-    queryFn: () => financeService.getEntryModels(fairId!),
-    enabled: !!fairId,
-  });
+  const { data: entryModels = [] } = useEntryModels(fairId);
 
-  // Mutation para criar cliente
-  const createClientMutation = useMutation({
-    mutationFn: (data: CreateClientData) => {
-      console.log("Mutation executando com dados:", data);
-      return financeService.createClient(data);
-    },
-    onSuccess: (newClient) => {
-      console.log("Cliente criado com sucesso:", newClient);
-      if (newClient) {
-        toast.success("Cliente criado com sucesso!");
-        setSelectedClient({ id: newClient.id, name: newClient.name });
-        setValue("clientId", newClient.id);
-        setShowCreateClient(false);
-        resetClient();
-        queryClient.invalidateQueries({ queryKey: ["search-clients"] });
-      } else {
-        console.error("Resposta do servidor não contém dados do cliente");
-        toast.error("Erro: resposta inválida do servidor");
-      }
-    },
-    onError: (
-      error: Error | { message?: string; response?: { data?: unknown } }
-    ) => {
-      console.error("Erro completo na criação do cliente:", error);
-      if ("response" in error) {
-        console.error("Error response:", error.response?.data);
-      }
-      toast.error(
-        `Erro ao criar cliente: ${error.message || "Erro desconhecido"}`
-      );
-    },
-  });
+  // Filtro de clientes no frontend baseado no texto digitado
+  const filteredClients = useMemo(() => {
+    if (!clientSearch.trim()) {
+      return allClients;
+    }
+    
+    const searchTerm = clientSearch.toLowerCase().trim();
+    return allClients.filter((client: any) => 
+      client.name.toLowerCase().includes(searchTerm) ||
+      client.cnpj?.toLowerCase().includes(searchTerm) ||
+      client.email?.toLowerCase().includes(searchTerm)
+    );
+  }, [allClients, clientSearch]);
 
-  // Mutation para criar receita
-  const createRevenueMutation = useMutation({
-    mutationFn: (data: CreateRevenueForm) => financeService.createRevenue(data),
-    onSuccess: () => {
-      toast.success("Receita criada com sucesso!");
-      // Invalidar todas as queries relacionadas a receitas
-      queryClient.invalidateQueries({
-        predicate: (query) =>
-          query.queryKey[0] === "finance-revenues" ||
-          query.queryKey[0] === "finance-kpis" ||
-          query.queryKey[0] === "entry-models",
-      });
-      onClose();
-    },
-    onError: (error: Error) => {
-      toast.error(`Erro ao criar receita: ${error.message}`);
-    },
-  });
+  // Mutation para criar cliente usando hook centralizado
+  const createClientMutation = useCreateClient();
+
+  // Mutation para criar receita usando hook centralizado
+  const createRevenueMutation = useCreateRevenue();
 
   // Reset form quando drawer fecha
   useEffect(() => {
@@ -251,7 +213,7 @@ export function ReceitaDrawer({
           const availableStands = await standService.getAvailableStands(fairId);
           if (availableStands) {
             const stand = availableStands.find(
-              (s) => s.standNumber === prefilledStandNumber
+              (s: any) => s.standNumber === prefilledStandNumber
             );
             if (stand) {
               setSelectedStand({ standNumber: prefilledStandNumber, stand });
@@ -399,7 +361,7 @@ export function ReceitaDrawer({
   };
 
   const handleEntryModelSelect = (entryModelId: string) => {
-    const model = entryModels.find((m) => m.id === entryModelId);
+    const model = entryModels.find((m: any) => m.id === entryModelId);
     if (model) {
       setSelectedEntryModel({
         id: model.id,
@@ -453,7 +415,28 @@ export function ReceitaDrawer({
     }
 
     console.log("Dados do cliente sendo enviados:", data);
-    createClientMutation.mutate(data);
+    createClientMutation.mutate(data, {
+      onSuccess: (newClient) => {
+        console.log("Cliente criado com sucesso:", newClient);
+        if (newClient) {
+          toast.success("Cliente criado com sucesso!");
+          setSelectedClient({ id: newClient.id, name: newClient.name });
+          setValue("clientId", newClient.id);
+          setShowCreateClient(false);
+          resetClient();
+          // A lista de clientes será recarregada automaticamente pelo React Query
+        } else {
+          console.error("Resposta do servidor não contém dados do cliente");
+          toast.error("Erro: resposta inválida do servidor");
+        }
+      },
+      onError: (error: any) => {
+        console.error("Erro completo na criação do cliente:", error);
+        toast.error(
+          `Erro ao criar cliente: ${error.message || "Erro desconhecido"}`
+        );
+      },
+    });
   };
 
   const handleConfirmWithoutStand = () => {
@@ -626,7 +609,24 @@ export function ReceitaDrawer({
       notes: data.notes, // Observações opcionais
     };
 
-    createRevenueMutation.mutate(formData);
+    createRevenueMutation.mutate(formData, {
+      onSuccess: () => {
+        toast.success("Receita criada com sucesso!");
+        onClose();
+        reset();
+        setSelectedClient(null);
+        setSelectedStand(null);
+        setSelectedEntryModel(null);
+        setAttachedFile(null);
+        // As queries serão invalidadas automaticamente pelo hook centralizado
+      },
+      onError: (error: any) => {
+        console.error("Erro ao criar receita:", error);
+        toast.error(
+          `Erro ao criar receita: ${error.message || "Erro desconhecido"}`
+        );
+      },
+    });
   };
 
   return (
@@ -702,9 +702,9 @@ export function ReceitaDrawer({
                   </div>
                 )}
 
-                {clients.length > 0 && (
+                {filteredClients.length > 0 && (
                   <div className="max-h-32 overflow-y-auto border rounded p-2 space-y-1 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-                    {clients.map((client) => (
+                    {filteredClients.map((client: any) => (
                       <button
                         key={client.id}
                         type="button"
@@ -804,7 +804,7 @@ export function ReceitaDrawer({
                 <SelectValue placeholder="Selecione o stand ou patrocínio" />
               </SelectTrigger>
               <SelectContent>
-                {entryModels.map((model) => (
+                {entryModels.map((model: any) => (
                   <SelectItem key={model.id} value={model.id}>
                     {model.name} — {formatCurrency(model.baseValue)}
                   </SelectItem>
