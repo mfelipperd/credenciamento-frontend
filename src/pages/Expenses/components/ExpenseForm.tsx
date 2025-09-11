@@ -133,14 +133,26 @@ export function ExpenseForm({
     // Converter valor mascarado para número
     const valor = unmaskCurrencyBRL(data.valorDisplay);
     
+    // Garantir que a data esteja no formato ISO (YYYY-MM-DD)
+    const dataFormatada = data.data ? new Date(data.data).toISOString().split('T')[0] : data.data;
+    
     const formData = {
       ...data,
       valor: valor,
+      data: dataFormatada,
     };
     
     if (expense) {
-      // Atualizar despesa existente
-      onSubmit({ ...formData } as UpdateExpenseForm);
+      // Atualizar despesa existente - remover campos desnecessários
+      const updateData: UpdateExpenseForm = {
+        categoryId: formData.categoryId,
+        accountId: formData.accountId,
+        descricao: formData.descricao,
+        valor: formData.valor,
+        data: formData.data,
+        observacoes: formData.observacoes,
+      };
+      onSubmit(updateData);
     } else {
       // Criar nova despesa
       onSubmit(formData);

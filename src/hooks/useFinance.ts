@@ -367,3 +367,27 @@ export const useDeleteClient = () => {
     },
   });
 };
+
+// Hook para atualizar despesa
+export const useUpdateExpense = () => {
+  const queryClient = useQueryClient();
+  const api = useAxio();
+
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      const response = await api.patch(`/expenses/${id}`, data);
+      return response.data;
+    },
+    onSuccess: () => {
+      // Invalida queries relacionadas
+      queryClient.invalidateQueries({ queryKey: ["expenses"] });
+      queryClient.invalidateQueries({ queryKey: ["expenses-total"] });
+      queryClient.invalidateQueries({ queryKey: ["expenses-total-by-category"] });
+      queryClient.invalidateQueries({ queryKey: ["expenses-total-by-account"] });
+      toast.success("Despesa atualizada com sucesso!");
+    },
+    onError: (error) => {
+      toast.error("Erro ao atualizar despesa: " + error.message);
+    },
+  });
+};

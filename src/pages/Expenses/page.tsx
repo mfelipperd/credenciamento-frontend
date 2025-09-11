@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useSearchParams } from "@/hooks/useSearchParams";
 import { useExpensesService } from "@/service/expenses.service";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useUpdateExpense } from "@/hooks/useFinance";
 import { toast } from "sonner";
 import { Plus, Filter, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -75,22 +76,8 @@ export default function ExpensesPage() {
     },
   });
 
-  // Mutation para atualizar despesa
-  const updateExpenseMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateExpenseForm }) =>
-      expensesService.updateExpense(id, data, fairId),
-    onSuccess: () => {
-      toast.success("Despesa atualizada com sucesso!");
-      queryClient.invalidateQueries({ queryKey: ["expenses", fairId] });
-      queryClient.invalidateQueries({ queryKey: ["expenses-total", fairId] });
-      setEditingExpense(null);
-      setIsFormOpen(false);
-    },
-    onError: (error) => {
-      console.error("Erro ao atualizar despesa:", error);
-      toast.error("Erro ao atualizar despesa. Tente novamente.");
-    },
-  });
+  // Mutation para atualizar despesa usando hook centralizado
+  const updateExpenseMutation = useUpdateExpense();
 
   // Mutation para deletar despesa
   const deleteExpenseMutation = useMutation({
@@ -118,7 +105,12 @@ export default function ExpensesPage() {
   };
 
   const handleUpdateExpense = (id: string, data: UpdateExpenseForm) => {
-    updateExpenseMutation.mutate({ id, data });
+    updateExpenseMutation.mutate({ id, data }, {
+      onSuccess: () => {
+        setEditingExpense(null);
+        setIsFormOpen(false);
+      },
+    });
   };
 
   const handleDeleteExpense = (id: string) => {

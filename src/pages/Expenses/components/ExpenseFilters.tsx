@@ -32,8 +32,8 @@ export function ExpenseFilters({
   onApplyFilters,
 }: ExpenseFiltersProps) {
   const [filters, setFilters] = useState({
-    categoryId: "",
-    accountId: "",
+    categoryId: undefined as string | undefined,
+    accountId: undefined as string | undefined,
     from: "",
     to: "",
     minValue: "",
@@ -43,14 +43,14 @@ export function ExpenseFilters({
   const [isCalendarFromOpen, setIsCalendarFromOpen] = useState(false);
   const [isCalendarToOpen, setIsCalendarToOpen] = useState(false);
 
-  const handleFilterChange = (key: string, value: string) => {
+  const handleFilterChange = (key: string, value: string | undefined) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
   };
 
   const handleApplyFilters = () => {
     const activeFilters = Object.entries(filters).reduce(
       (acc, [key, value]) => {
-        if (value && value !== "") {
+        if (value && value !== "" && value !== undefined) {
           acc[key] = value;
         }
         return acc;
@@ -63,8 +63,8 @@ export function ExpenseFilters({
 
   const handleClearFilters = () => {
     setFilters({
-      categoryId: "",
-      accountId: "",
+      categoryId: undefined,
+      accountId: undefined,
       from: "",
       to: "",
       minValue: "",
@@ -74,7 +74,7 @@ export function ExpenseFilters({
   };
 
   const hasActiveFilters = Object.values(filters).some(
-    (value) => value && value !== ""
+    (value) => value && value !== "" && value !== undefined
   );
 
   return (
@@ -90,14 +90,14 @@ export function ExpenseFilters({
             Categoria
           </Label>
           <Select
-            value={filters.categoryId}
-            onValueChange={(value) => handleFilterChange("categoryId", value)}
+            value={filters.categoryId || ""}
+            onValueChange={(value) => handleFilterChange("categoryId", value === "clear" ? undefined : value)}
           >
             <SelectTrigger>
               <SelectValue placeholder="Todas as categorias" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todas as categorias</SelectItem>
+              <SelectItem value="clear">Todas as categorias</SelectItem>
               {categories.map((category) => (
                 <SelectItem key={category.id} value={category.id}>
                   {category.name}
@@ -119,14 +119,14 @@ export function ExpenseFilters({
             Conta Bancária
           </Label>
           <Select
-            value={filters.accountId}
-            onValueChange={(value) => handleFilterChange("accountId", value)}
+            value={filters.accountId || ""}
+            onValueChange={(value) => handleFilterChange("accountId", value === "clear" ? undefined : value)}
           >
             <SelectTrigger>
               <SelectValue placeholder="Todas as contas" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todas as contas</SelectItem>
+              <SelectItem value="clear">Todas as contas</SelectItem>
               {accounts.map((account) => (
                 <SelectItem key={account.id} value={account.id}>
                   {account.nomeConta}
@@ -274,7 +274,7 @@ export function ExpenseFilters({
                 variant="ghost"
                 size="sm"
                 className="h-4 w-4 p-0 ml-1"
-                onClick={() => handleFilterChange("categoryId", "")}
+                onClick={() => handleFilterChange("categoryId", undefined)}
               >
                 <X className="w-3 h-3" />
               </Button>
@@ -288,7 +288,7 @@ export function ExpenseFilters({
                 variant="ghost"
                 size="sm"
                 className="h-4 w-4 p-0 ml-1"
-                onClick={() => handleFilterChange("accountId", "")}
+                onClick={() => handleFilterChange("accountId", undefined)}
               >
                 <X className="w-3 h-3" />
               </Button>

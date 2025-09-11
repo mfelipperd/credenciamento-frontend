@@ -40,7 +40,7 @@ export const useExpensesService = () => {
 
     return handleRequest<Expense[]>({
       request: () =>
-        api.get(`${BASE_URL}/fairs/${fairId}/expenses${queryString}`),
+        api.get(`${BASE_URL}/expenses/fairs/${fairId}/expenses${queryString}`),
     });
   };
 
@@ -48,12 +48,8 @@ export const useExpensesService = () => {
     id: string,
     fairId?: string
   ): Promise<Expense | undefined> => {
-    if (!fairId) {
-      throw new Error("fairId é obrigatório para buscar detalhes da despesa");
-    }
-
     return handleRequest<Expense>({
-      request: () => api.get(`${BASE_URL}/fairs/${fairId}/expenses/${id}`),
+      request: () => api.get(`${BASE_URL}/expenses/${id}`),
     });
   };
 
@@ -69,7 +65,7 @@ export const useExpensesService = () => {
 
     return handleRequest<Expense>({
       request: () =>
-        api.post(`${BASE_URL}/fairs/${fairId}/expenses`, expenseData),
+        api.post(`${BASE_URL}/expenses/fairs/${fairId}/expenses`, expenseData),
       successMessage: "Despesa criada com sucesso!",
     });
   };
@@ -79,20 +75,15 @@ export const useExpensesService = () => {
     data: UpdateExpenseForm,
     fairId?: string
   ): Promise<Expense | undefined> => {
-    if (!fairId) {
-      throw new Error("fairId é obrigatório para atualizar despesa");
-    }
-
     return handleRequest<Expense>({
-      request: () =>
-        api.patch(`${BASE_URL}/fairs/${fairId}/expenses/${id}`, data),
+      request: () => api.patch(`${BASE_URL}/expenses/${id}`, data),
       successMessage: "Despesa atualizada com sucesso!",
     });
   };
 
   const deleteExpense = async (id: string, fairId: string): Promise<void> => {
     await handleRequest<{ success: boolean }>({
-      request: () => api.delete(`${BASE_URL}/fairs/${fairId}/expenses/${id}`),
+      request: () => api.delete(`${BASE_URL}/expenses/${id}`),
       successMessage: "Despesa removida com sucesso!",
     });
   };
@@ -103,7 +94,7 @@ export const useExpensesService = () => {
     fairId: string
   ): Promise<number | undefined> => {
     return handleRequest<number>({
-      request: () => api.get(`${BASE_URL}/fairs/${fairId}/expenses/total`),
+      request: () => api.get(`${BASE_URL}/expenses/fairs/${fairId}/expenses/total`),
     });
   };
 
@@ -112,7 +103,7 @@ export const useExpensesService = () => {
   ): Promise<ExpenseTotalByCategory[] | undefined> => {
     return handleRequest<ExpenseTotalByCategory[]>({
       request: () =>
-        api.get(`${BASE_URL}/fairs/${fairId}/expenses/total-by-category`),
+        api.get(`${BASE_URL}/expenses/fairs/${fairId}/expenses/total-by-category`),
     });
   };
 
@@ -121,7 +112,7 @@ export const useExpensesService = () => {
   ): Promise<ExpenseTotalByAccount[] | undefined> => {
     return handleRequest<ExpenseTotalByAccount[]>({
       request: () =>
-        api.get(`${BASE_URL}/fairs/${fairId}/expenses/total-by-account`),
+        api.get(`${BASE_URL}/expenses/fairs/${fairId}/expenses/total-by-account`),
     });
   };
 
