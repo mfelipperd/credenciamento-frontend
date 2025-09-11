@@ -17,6 +17,10 @@ import { MarketingPage } from "@/pages/Marketing/page";
 import { FinancePage } from "@/pages/Finance/page";
 import { AdminRouteGuard } from "@/components/AdminRouteGuard";
 import ExpensesPage from "@/pages/Expenses/page";
+import PartnersPage from "@/pages/Partners/page";
+import { PartnerDashboard } from "@/pages/Partners/PartnerDashboard";
+import { WithdrawalsManagement } from "@/pages/Partners/WithdrawalsManagement";
+import UserManagementPage from "@/pages/UserManagement/page";
 
 export const AppRoutes = createBrowserRouter([
   {
@@ -98,6 +102,34 @@ export const AppRoutes = createBrowserRouter([
                 element: (
                   <AdminRouteGuard>
                     <ExpensesPage />
+                  </AdminRouteGuard>
+                ),
+              },
+              {
+                path: "/partners",
+                element: (
+                  <AdminRouteGuard>
+                    <PartnersPage />
+                  </AdminRouteGuard>
+                ),
+              },
+              {
+                path: "/partners/withdrawals",
+                element: (
+                  <AdminRouteGuard>
+                    <WithdrawalsManagement />
+                  </AdminRouteGuard>
+                ),
+              },
+              {
+                path: "/partner-dashboard",
+                element: <PartnerDashboard />,
+              },
+              {
+                path: "/user-management",
+                element: (
+                  <AdminRouteGuard>
+                    <UserManagementPage />
                   </AdminRouteGuard>
                 ),
               },
