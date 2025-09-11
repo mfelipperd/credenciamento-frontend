@@ -34,7 +34,9 @@ export const useGlobalErrorHandler = () => {
     };
 
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-      console.error("Promise rejeitada não tratada:", event.reason);
+      console.error("❌ Promise rejeitada não tratada:", event.reason);
+      console.error("❌ Stack trace:", event.reason?.stack);
+      console.error("❌ Event details:", event);
 
       toast.error("Erro de conexão ou processamento. Tente novamente.");
 

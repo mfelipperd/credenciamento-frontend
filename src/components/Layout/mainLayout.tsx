@@ -17,6 +17,7 @@ import {
 import { Link } from "react-router-dom";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { SimpleFooter } from "../Footer";
+import { useUserSession } from "@/hooks/useUserSession";
 import { useAuth } from "@/hooks/useAuth";
 import { CreateUserModal } from "./ModalCreateUser";
 import { ModalCreateFair } from "./ModalCreateFair";
@@ -27,20 +28,26 @@ import { EUserRole } from "@/enums/user.enum";
 export const MainLayout: React.FC = () => {
   const { fairs, getFairs, loading } = useFairService();
   const [searchParams, setSearchParams] = useSearchParams();
-  const auth = useAuth();
+  const { user, availableFairIds } = useUserSession();
+  const { signOut } = useAuth();
 
   // Hook para gerenciar o cookie da feira selecionada
   const [savedFairId, setSavedFairId] = useCookie("selectedFairId", "", {
     days: 30,
   });
 
+  // Filtrar feiras baseado no usuário
+  const availableFairs = user?.role === EUserRole.ADMIN 
+    ? fairs 
+    : fairs.filter(fair => availableFairIds.length === 0 || availableFairIds.includes(fair.id));
+
   // Determina o ID inicial baseado em: URL params > Cookie > Primeira feira disponível
   const getInitialFairId = () => {
     const urlFairId = searchParams.get("fairId");
-    if (urlFairId) return urlFairId;
-    if (savedFairId && fairs.find((f) => f.id === savedFairId))
+    if (urlFairId && availableFairs.find((f) => f.id === urlFairId)) return urlFairId;
+    if (savedFairId && availableFairs.find((f) => f.id === savedFairId))
       return savedFairId;
-    return fairs[0]?.id ?? "";
+    return availableFairs[0]?.id ?? "";
   };
 
   const [selectedId, setSelectedId] = useState(getInitialFairId);
@@ -56,7 +63,7 @@ export const MainLayout: React.FC = () => {
     setSearchParams({ fairId: id });
   };
 
-  const selectedFair = fairs.find((f) => f.id === selectedId);
+  const selectedFair = availableFairs.find((f) => f.id === selectedId);
 
   const search = `?fairId=${selectedId}`;
 
@@ -67,7 +74,7 @@ export const MainLayout: React.FC = () => {
 
   // Sincroniza o selectedId quando as feiras são carregadas ou os params mudam
   useEffect(() => {
-    if (fairs.length > 0) {
+    if (availableFairs.length > 0) {
       const newId = getInitialFairId();
       if (newId && newId !== selectedId) {
         setSelectedId(newId);
@@ -78,16 +85,16 @@ export const MainLayout: React.FC = () => {
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fairs, searchParams]);
+  }, [availableFairs, searchParams]);
 
   // Aguarda as feiras serem carregadas e o fairId ser definido antes de renderizar
-  if (fairs.length === 0 || !selectedId) {
+  if (availableFairs.length === 0 || !selectedId) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600 dark:text-gray-400">
-            Carregando feiras...
+            {availableFairs.length === 0 ? "Nenhuma feira disponível" : "Carregando feiras..."}
           </p>
         </div>
       </div>
@@ -131,7 +138,7 @@ export const MainLayout: React.FC = () => {
                   onChange={handleChange}
                   className="bg-transparent text-white text-xs font-semibold min-w-0 appearance-none focus:outline-none truncate pr-4"
                 >
-                  {fairs.map((fair) => (
+                  {availableFairs.map((fair) => (
                     <option
                       key={fair.id}
                       value={fair.id}
@@ -183,7 +190,7 @@ export const MainLayout: React.FC = () => {
               <div className="hidden sm:flex items-center gap-1 flex-shrink-0">
                 <div className="w-1.5 h-1.5 bg-green-400 rounded-full"></div>
                 <span className="text-xs font-medium truncate max-w-32">
-                  {auth.user?.email}
+                  {user?.email}
                 </span>
               </div>
 
@@ -207,7 +214,7 @@ export const MainLayout: React.FC = () => {
                     <div className="p-3 space-y-2">
                       <ModalCreateFair />
                       <div
-                        onClick={auth.signOut}
+                        onClick={signOut}
                         className="flex items-center gap-2 text-foreground hover:text-red-600 cursor-pointer transition-colors p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-950"
                       >
                         <LogOut size={14} />
@@ -252,7 +259,7 @@ export const MainLayout: React.FC = () => {
                 Marketing
               </span>
             </Link>
-            {auth?.user?.role === EUserRole.ADMIN && (
+            {user?.role === EUserRole.ADMIN && (
               <Link
                 className="flex items-center gap-1.5 text-white/90 hover:text-white transition-colors px-2 py-1 rounded hover:bg-white/10"
                 to={{ pathname: "/financeiro/receitas", search }}
@@ -263,7 +270,7 @@ export const MainLayout: React.FC = () => {
                 </span>
               </Link>
             )}
-            {auth?.user?.role === EUserRole.ADMIN && (
+            {user?.role === EUserRole.ADMIN && (
               <Link
                 className="flex items-center gap-1.5 text-white/90 hover:text-white transition-colors px-2 py-1 rounded hover:bg-white/10"
                 to={{ pathname: "/expenses", search }}
@@ -274,18 +281,18 @@ export const MainLayout: React.FC = () => {
                 </span>
               </Link>
             )}
-            {(auth?.user?.role === EUserRole.ADMIN || auth?.user?.role === EUserRole.PARTNER) && (
+            {(user?.role === EUserRole.ADMIN || user?.role === EUserRole.PARTNER) && (
               <Link
                 className="flex items-center gap-1.5 text-white/90 hover:text-white transition-colors px-2 py-1 rounded hover:bg-white/10"
-                to={{ pathname: auth?.user?.role === EUserRole.ADMIN ? "/partners" : "/partner-dashboard", search: auth?.user?.role === EUserRole.ADMIN ? search : undefined }}
+                to={{ pathname: user?.role === EUserRole.ADMIN ? "/partners" : "/partner-dashboard", search: user?.role === EUserRole.ADMIN ? search : undefined }}
               >
                 <Users size={16} />
                 <span className="hidden sm:inline text-sm font-medium">
-                  {auth?.user?.role === EUserRole.ADMIN ? "Sócios" : "Meu Painel"}
+                  {user?.role === EUserRole.ADMIN ? "Sócios" : "Meu Painel"}
                 </span>
               </Link>
             )}
-            {auth?.user?.role === EUserRole.ADMIN && (
+            {user?.role === EUserRole.ADMIN && (
               <Link
                 className="flex items-center gap-1.5 text-white/90 hover:text-white transition-colors px-2 py-1 rounded hover:bg-white/10"
                 to={{ pathname: "/partners/withdrawals", search }}
@@ -296,7 +303,7 @@ export const MainLayout: React.FC = () => {
                 </span>
               </Link>
             )}
-            {auth?.user?.role === EUserRole.ADMIN && (
+            {user?.role === EUserRole.ADMIN && (
               <Link
                 className="flex items-center gap-1.5 text-white/90 hover:text-white transition-colors px-2 py-1 rounded hover:bg-white/10"
                 to={{ pathname: "/user-management", search }}
