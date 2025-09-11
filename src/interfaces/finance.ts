@@ -266,6 +266,25 @@ export interface CreateFinanceCategoryForm {
 export interface UpdateFinanceCategoryForm
   extends Partial<CreateFinanceCategoryForm> {}
 
+// Interface para análise de fluxo de caixa
+export interface CashFlowAnalysis {
+  fairId: string;
+  totalRevenue: number;
+  totalExpenses: number;
+  netProfit: number;
+  profitMargin: number;
+  isProfitable: boolean;
+  revenueCount: number;
+  expenseCount: number;
+  averageRevenue: number;
+  averageExpense: number;
+  largestRevenue: number;
+  largestExpense: number;
+  performance: "excellent" | "good" | "average" | "poor";
+  recommendations: string[];
+  summary: string;
+}
+
 // Interfaces para contas bancárias
 export interface Account {
   id: string;

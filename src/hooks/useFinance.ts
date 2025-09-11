@@ -391,3 +391,17 @@ export const useUpdateExpense = () => {
     },
   });
 };
+
+// Hook para análise de fluxo de caixa
+export const useCashFlowAnalysis = (fairId: string) => {
+  const api = useAxio();
+  
+  return useQuery({
+    queryKey: ["cash-flow-analysis", fairId],
+    queryFn: async () => {
+      const response = await api.get(`/cash-flow/analysis/fair/${fairId}`);
+      return response.data;
+    },
+    enabled: !!fairId,
+  });
+};

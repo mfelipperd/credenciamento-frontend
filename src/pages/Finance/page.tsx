@@ -10,6 +10,7 @@ import { ReceitaDrawer } from "./components/ReceitaDrawer";
 import { EntryModelsDialog } from "./components/EntryModelsDialog";
 import { RevenueDetailModal } from "./components/RevenueDetailModal";
 import { RevenueStats } from "./components/RevenueStats";
+import { CashFlowModal } from "./components/CashFlowModal";
 import { StandMap } from "@/components/StandMap";
 import { StandConfigurator } from "@/components/StandConfigurator";
 import type { RevenueFilters } from "@/interfaces/finance";
@@ -46,6 +47,7 @@ export function FinancePage() {
   const [selectedRevenueId, setSelectedRevenueId] = useState<string | null>(
     null
   );
+  const [showCashFlowModal, setShowCashFlowModal] = useState(false);
   const [selectedRevenueForDetail, setSelectedRevenueForDetail] = useState<
     string | null
   >(null);
@@ -223,7 +225,12 @@ export function FinancePage() {
 
         {/* KPIs */}
         {filters.fairId && (
-          <FinanceKpis data={kpisData} isLoading={isLoadingKpis} />
+          <FinanceKpis 
+            data={kpisData} 
+            isLoading={isLoadingKpis}
+            onTotalContractedClick={() => setShowCashFlowModal(true)}
+            onTotalReceivedClick={() => setShowCashFlowModal(true)}
+          />
         )}
 
         {/* Estatísticas de Receitas */}
@@ -338,6 +345,15 @@ export function FinancePage() {
           revenueId={selectedRevenueForDetail}
           fairId={filters.fairId}
         />
+
+        {/* Modal de fluxo de caixa */}
+        {filters.fairId && (
+          <CashFlowModal
+            isOpen={showCashFlowModal}
+            onClose={() => setShowCashFlowModal(false)}
+            fairId={filters.fairId}
+          />
+        )}
       </div>
     </div>
   );

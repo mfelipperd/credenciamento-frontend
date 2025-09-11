@@ -13,6 +13,7 @@ import type {
   CreateClientForm,
   Installment,
   EntryModelType,
+  CashFlowAnalysis,
 } from "@/interfaces/finance";
 
 const BASE_URL = "/finance";
@@ -413,6 +414,13 @@ export const useFinanceService = () => {
     });
   };
 
+  // Cash Flow Analysis
+  const getCashFlowAnalysis = async (fairId: string): Promise<CashFlowAnalysis | undefined> => {
+    return handleRequest<CashFlowAnalysis>({
+      request: () => api.get(`/cash-flow/analysis/fair/${fairId}`),
+    });
+  };
+
   return {
     // Entry Models
     getEntryModels,
@@ -457,5 +465,8 @@ export const useFinanceService = () => {
     // Attachments
     uploadAttachment,
     deleteAttachment,
+
+    // Cash Flow Analysis
+    getCashFlowAnalysis,
   };
 };
