@@ -5,11 +5,9 @@ import {
   TrendingUp,
   TrendingDown,
   DollarSign,
-  Receipt,
   AlertCircle,
   CheckCircle,
   BarChart3,
-  Target,
   Lightbulb,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -23,7 +21,6 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCashFlowAnalysis } from "@/hooks/useFinance";
-import type { CashFlowAnalysis } from "@/interfaces/finance";
 
 interface CashFlowModalProps {
   isOpen: boolean;
@@ -368,7 +365,7 @@ export function CashFlowModal({ isOpen, onClose, fairId }: CashFlowModalProps) {
               </CardHeader>
               <CardContent>
                 <ul className="space-y-4">
-                  {cashFlowData.recommendations.map((recommendation, index) => (
+                  {cashFlowData.recommendations.map((recommendation: string, index: number) => (
                     <li key={index} className="flex items-start gap-3">
                       <div className="w-3 h-3 bg-yellow-500 rounded-full mt-2 flex-shrink-0" />
                       <p className="text-gray-700 dark:text-gray-300 text-base leading-relaxed break-words">

@@ -4,7 +4,7 @@ import { useExpensesService } from "@/service/expenses.service";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useUpdateExpense } from "@/hooks/useFinance";
 import { toast } from "sonner";
-import { Plus, Filter, BarChart3, TrendingDown } from "lucide-react";
+import { Plus, Filter, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
