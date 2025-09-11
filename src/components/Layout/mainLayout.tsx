@@ -11,6 +11,8 @@ import {
   User2,
   Mail,
   DollarSign,
+  Users,
+  CreditCard,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
@@ -269,6 +271,28 @@ export const MainLayout: React.FC = () => {
                 <DollarSign size={16} />
                 <span className="hidden sm:inline text-sm font-medium">
                   Despesas
+                </span>
+              </Link>
+            )}
+            {(auth?.user?.role === EUserRole.ADMIN || auth?.user?.role === EUserRole.PARTNER) && (
+              <Link
+                className="flex items-center gap-1.5 text-white/90 hover:text-white transition-colors px-2 py-1 rounded hover:bg-white/10"
+                to={{ pathname: auth?.user?.role === EUserRole.ADMIN ? "/partners" : "/partner-dashboard", search: auth?.user?.role === EUserRole.ADMIN ? search : undefined }}
+              >
+                <Users size={16} />
+                <span className="hidden sm:inline text-sm font-medium">
+                  {auth?.user?.role === EUserRole.ADMIN ? "Sócios" : "Meu Painel"}
+                </span>
+              </Link>
+            )}
+            {auth?.user?.role === EUserRole.ADMIN && (
+              <Link
+                className="flex items-center gap-1.5 text-white/90 hover:text-white transition-colors px-2 py-1 rounded hover:bg-white/10"
+                to={{ pathname: "/partners/withdrawals", search }}
+              >
+                <CreditCard size={16} />
+                <span className="hidden sm:inline text-sm font-medium">
+                  Saques
                 </span>
               </Link>
             )}
