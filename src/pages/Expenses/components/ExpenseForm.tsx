@@ -130,15 +130,16 @@ export function ExpenseForm({
   }, [expense, form]);
 
   const handleSubmit = (data: ExpenseFormData) => {
-    // Converter valor mascarado para número
-    const valor = unmaskCurrencyBRL(data.valorDisplay);
+    // Converter valor mascarado para número em reais (não centavos)
+    const valorEmCentavos = unmaskCurrencyBRL(data.valorDisplay);
+    const valorEmReais = valorEmCentavos / 100; // Converter centavos para reais
     
     // Garantir que a data esteja no formato ISO (YYYY-MM-DD)
     const dataFormatada = data.data ? new Date(data.data).toISOString().split('T')[0] : data.data;
     
     const formData = {
       ...data,
-      valor: valor,
+      valor: valorEmReais,
       data: dataFormatada,
     };
     
