@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, Wallet, Percent, Clock } from "lucide-react";
 import { usePartnerFinancialSummary } from "@/hooks/useWithdrawals";
+import { useCashFlowAnalysis } from "@/hooks/useFinance";
 import type { FairEarning } from "@/interfaces/withdrawals";
 
 interface FinancialSummaryProps {
@@ -12,6 +13,7 @@ interface FinancialSummaryProps {
 
 export const FinancialSummary: React.FC<FinancialSummaryProps> = ({ partnerId, fairId }) => {
   const { data: summary, isLoading, error } = usePartnerFinancialSummary(partnerId, fairId);
+  const { data: cashFlowData } = useCashFlowAnalysis(fairId);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
@@ -47,9 +49,11 @@ export const FinancialSummary: React.FC<FinancialSummaryProps> = ({ partnerId, f
 
   if (!summary) return null;
 
-  // Calcular lucro da feira específica que o usuário está visualizando
+  // Calcular lucro da feira específica usando dados do cash flow
+  const currentFairProfit = cashFlowData?.netProfit || 0;
+  
+  // Calcular porcentagem do sócio na feira atual
   const currentFairEarning = summary.fairEarnings?.find(fair => fair.fairId === fairId);
-  const currentFairProfit = currentFairEarning?.earnings || 0;
   const currentFairPercentage = currentFairEarning ? parseFloat(currentFairEarning.percentage) : 0;
 
   const cards = [
