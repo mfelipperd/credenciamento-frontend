@@ -361,6 +361,7 @@ export function MobilePartnerView({ partner: propPartner, fairId, isAdminView = 
       {/* Withdrawal Dialog */}
       <WithdrawalForm
         partnerId={partner.id}
+        fairId={fairId || ""}
         onSuccess={() => {}}
       />
     </div>

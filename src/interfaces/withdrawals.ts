@@ -14,6 +14,7 @@ export interface PartnerWithdrawal {
 }
 
 export interface CreateWithdrawalDto {
+  fairId: string;
   amount: number;
   reason?: string;
   bankDetails?: string;

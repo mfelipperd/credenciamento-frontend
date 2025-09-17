@@ -29,13 +29,23 @@ export const usePartnerWithdrawals = (partnerId: string, filters?: WithdrawalFil
   });
 };
 
-export const usePartnerFinancialSummary = (partnerId: string) => {
+export const usePartnerWithdrawalsByFair = (partnerId: string, fairId: string, filters?: WithdrawalFilters) => {
   const withdrawalsService = useWithdrawalsService();
 
   return useQuery({
-    queryKey: ["partner-financial-summary", partnerId],
-    queryFn: () => withdrawalsService.getPartnerFinancialSummary(partnerId),
-    enabled: !!partnerId,
+    queryKey: ["partner-withdrawals", partnerId, "fair", fairId, filters],
+    queryFn: () => withdrawalsService.getPartnerWithdrawalsByFair(partnerId, fairId, filters),
+    enabled: !!partnerId && !!fairId,
+  });
+};
+
+export const usePartnerFinancialSummary = (partnerId: string, fairId: string) => {
+  const withdrawalsService = useWithdrawalsService();
+
+  return useQuery({
+    queryKey: ["partner-financial-summary", partnerId, fairId],
+    queryFn: () => withdrawalsService.getPartnerFinancialSummary(partnerId, fairId),
+    enabled: !!partnerId && !!fairId,
   });
 };
 
@@ -63,11 +73,11 @@ export const useCreateWithdrawal = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ partnerId, data }: { partnerId: string; data: CreateWithdrawalDto }) =>
-      withdrawalsService.createWithdrawal(partnerId, data),
-    onSuccess: (_, { partnerId }) => {
+    mutationFn: ({ partnerId, fairId, data }: { partnerId: string; fairId: string; data: CreateWithdrawalDto }) =>
+      withdrawalsService.createWithdrawal(partnerId, fairId, data),
+    onSuccess: (_, { partnerId, fairId }) => {
       queryClient.invalidateQueries({ queryKey: ["partner-withdrawals", partnerId] });
-      queryClient.invalidateQueries({ queryKey: ["partner-financial-summary", partnerId] });
+      queryClient.invalidateQueries({ queryKey: ["partner-financial-summary", partnerId, fairId] });
       queryClient.invalidateQueries({ queryKey: ["withdrawals"] });
       toast.success("Solicitação de saque criada com sucesso!");
     },

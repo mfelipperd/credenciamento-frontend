@@ -1,16 +1,17 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, TrendingDown, Wallet, Percent } from "lucide-react";
+import { TrendingUp, Wallet, Percent, Clock } from "lucide-react";
 import { usePartnerFinancialSummary } from "@/hooks/useWithdrawals";
 import type { FairEarning } from "@/interfaces/withdrawals";
 
 interface FinancialSummaryProps {
   partnerId: string;
+  fairId: string;
 }
 
-export const FinancialSummary: React.FC<FinancialSummaryProps> = ({ partnerId }) => {
-  const { data: summary, isLoading, error } = usePartnerFinancialSummary(partnerId);
+export const FinancialSummary: React.FC<FinancialSummaryProps> = ({ partnerId, fairId }) => {
+  const { data: summary, isLoading, error } = usePartnerFinancialSummary(partnerId, fairId);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
@@ -46,20 +47,15 @@ export const FinancialSummary: React.FC<FinancialSummaryProps> = ({ partnerId })
 
   if (!summary) return null;
 
-  // Calcular lucro total das feiras e participação do sócio
-  const totalFairProfit = summary.fairEarnings?.reduce((total, fair) => {
-    return total + fair.earnings;
-  }, 0) || 0;
-
-  // Calcular porcentagem média do sócio
-  const averagePercentage = summary.fairEarnings?.length > 0 
-    ? summary.fairEarnings.reduce((sum, fair) => sum + parseFloat(fair.percentage), 0) / summary.fairEarnings.length
-    : 0;
+  // Calcular lucro da feira específica que o usuário está visualizando
+  const currentFairEarning = summary.fairEarnings?.find(fair => fair.fairId === fairId);
+  const currentFairProfit = currentFairEarning?.earnings || 0;
+  const currentFairPercentage = currentFairEarning ? parseFloat(currentFairEarning.percentage) : 0;
 
   const cards = [
     {
-      title: "Lucro Total das Feiras",
-      value: formatCurrency(totalFairProfit),
+      title: "Lucro da Feira Atual",
+      value: formatCurrency(currentFairProfit),
       icon: TrendingUp,
       color: "text-green-600",
       bgColor: "bg-green-50 dark:bg-green-950",
@@ -67,17 +63,17 @@ export const FinancialSummary: React.FC<FinancialSummaryProps> = ({ partnerId })
     {
       title: "Sua Participação",
       value: formatCurrency(summary.totalEarnings),
-      subtitle: `${averagePercentage.toFixed(1)}% do total`,
+      subtitle: `${currentFairPercentage.toFixed(1)}% desta feira`,
       icon: Percent,
       color: "text-blue-600",
       bgColor: "bg-blue-50 dark:bg-blue-950",
     },
     {
-      title: "Total Sacado",
-      value: formatCurrency(summary.totalWithdrawn),
-      icon: TrendingDown,
-      color: "text-red-600",
-      bgColor: "bg-red-50 dark:bg-red-950",
+      title: "Valor Pendente",
+      value: formatCurrency(summary.pendingWithdrawals),
+      icon: Clock,
+      color: "text-orange-600",
+      bgColor: "bg-orange-50 dark:bg-orange-950",
     },
     {
       title: "Saldo Disponível",
@@ -143,7 +139,7 @@ export const FinancialSummary: React.FC<FinancialSummaryProps> = ({ partnerId })
                 <span className="text-sm text-gray-600 dark:text-gray-400">
                   Porcentagem Média:
                 </span>
-                <span className="font-medium">{averagePercentage.toFixed(1)}%</span>
+                <span className="font-medium">{currentFairPercentage.toFixed(1)}%</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600 dark:text-gray-400">

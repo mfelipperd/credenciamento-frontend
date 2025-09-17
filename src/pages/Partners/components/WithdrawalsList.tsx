@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { usePartnerWithdrawals } from "@/hooks/useWithdrawals";
+import { usePartnerWithdrawalsByFair } from "@/hooks/useWithdrawals";
 import type { PartnerWithdrawal } from "@/interfaces/withdrawals";
 import { format } from "date-fns";
 import { 
@@ -23,18 +23,20 @@ import {
 
 interface WithdrawalsListProps {
   partnerId: string;
+  fairId: string;
   showPartnerColumn?: boolean;
 }
 
 export const WithdrawalsList: React.FC<WithdrawalsListProps> = ({ 
   partnerId, 
+  fairId,
   showPartnerColumn = false 
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedWithdrawal, setSelectedWithdrawal] = useState<PartnerWithdrawal | null>(null);
 
-  const { data: withdrawals, isLoading, error } = usePartnerWithdrawals(partnerId, {
+  const { data: withdrawals, isLoading, error } = usePartnerWithdrawalsByFair(partnerId, fairId, {
     status: statusFilter === "all" ? undefined : statusFilter as any,
   });
 

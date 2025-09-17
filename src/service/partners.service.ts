@@ -58,9 +58,9 @@ export const usePartnersService = () => {
   };
 
   // Controle Financeiro
-  const getPartnerFinancialSummary = async (id: string): Promise<FinancialSummary | undefined> => {
+  const getPartnerFinancialSummary = async (id: string, fairId: string): Promise<FinancialSummary | undefined> => {
     return handleRequest<FinancialSummary>({
-      request: () => api.get(`${BASE_URL}/${id}/financial-summary`),
+      request: () => api.get(`${BASE_URL}/${id}/financial-summary?fairId=${fairId}`),
     });
   };
 

@@ -6,10 +6,12 @@ import { WithdrawalsList } from "./components/WithdrawalsList";
 import { Wallet, DollarSign, History } from "lucide-react";
 import { useUserSession } from "@/hooks/useUserSession";
 import { usePartnerMe } from "@/hooks/usePartners";
+import { useSearchParams } from "@/hooks/useSearchParams";
 
 export const PartnerDashboard: React.FC = () => {
   const { user } = useUserSession();
   const { data: partner, isLoading, error } = usePartnerMe();
+  const [, , fairId] = useSearchParams();
 
   if (!user?.id) {
     return (
@@ -65,15 +67,15 @@ export const PartnerDashboard: React.FC = () => {
         </TabsList>
 
         <TabsContent value="summary">
-          <FinancialSummary partnerId={partner.id} />
+          <FinancialSummary partnerId={partner.id} fairId={fairId || ""} />
         </TabsContent>
 
         <TabsContent value="withdraw">
-          <WithdrawalForm partnerId={partner.id} />
+          <WithdrawalForm partnerId={partner.id} fairId={fairId || ""} />
         </TabsContent>
 
         <TabsContent value="history">
-          <WithdrawalsList partnerId={partner.id} />
+          <WithdrawalsList partnerId={partner.id} fairId={fairId || ""} />
         </TabsContent>
       </Tabs>
     </div>

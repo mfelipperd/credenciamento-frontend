@@ -8,6 +8,7 @@ export interface FairPartner {
   totalEarnings: number;
   totalWithdrawn: number;
   availableBalance: number;
+  pendingWithdrawals: number;
   isActive: boolean;
   notes?: string;
   createdAt: string;
@@ -54,6 +55,7 @@ export interface FairPartnerFinancialSummary {
   totalEarnings: number;
   totalWithdrawn: number;
   availableBalance: number;
+  pendingWithdrawals: number;
 }
 
 export interface AvailablePercentage {

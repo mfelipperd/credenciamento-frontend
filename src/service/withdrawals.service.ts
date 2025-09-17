@@ -22,9 +22,14 @@ export const useWithdrawalsService = () => {
   // Criar solicitação de saque
   const createWithdrawal = async (
     partnerId: string,
+    fairId: string,
     data: CreateWithdrawalDto
   ): Promise<PartnerWithdrawal> => {
-    const response = await api.post(`/partners/${partnerId}/withdrawals`, data);
+    const payload = {
+      ...data,
+      fairId,
+    };
+    const response = await api.post(`/partners/${partnerId}/withdrawals`, payload);
     return response.data;
   };
 
@@ -40,6 +45,24 @@ export const useWithdrawalsService = () => {
     
     const queryString = params.toString();
     const url = `/partners/${partnerId}/withdrawals${queryString ? `?${queryString}` : ''}`;
+    
+    const response = await api.get(url);
+    return response.data;
+  };
+
+  // Listar saques de um sócio por feira específica
+  const getPartnerWithdrawalsByFair = async (
+    partnerId: string,
+    fairId: string,
+    filters?: WithdrawalFilters
+  ): Promise<PartnerWithdrawal[]> => {
+    const params = new URLSearchParams();
+    if (filters?.status) params.append('status', filters.status);
+    if (filters?.startDate) params.append('startDate', filters.startDate);
+    if (filters?.endDate) params.append('endDate', filters.endDate);
+    
+    const queryString = params.toString();
+    const url = `/partners/${partnerId}/withdrawals/fair/${fairId}${queryString ? `?${queryString}` : ''}`;
     
     const response = await api.get(url);
     return response.data;
@@ -84,8 +107,8 @@ export const useWithdrawalsService = () => {
   };
 
   // Obter resumo financeiro de um sócio
-  const getPartnerFinancialSummary = async (partnerId: string): Promise<PartnerFinancialSummary> => {
-    const response = await api.get(`/partners/${partnerId}/financial-summary`);
+  const getPartnerFinancialSummary = async (partnerId: string, fairId: string): Promise<PartnerFinancialSummary> => {
+    const response = await api.get(`/partners/${partnerId}/financial-summary?fairId=${fairId}`);
     return response.data;
   };
 
@@ -128,5 +151,6 @@ export const useWithdrawalsService = () => {
     getWithdrawalById,
     updateWithdrawal,
     deleteWithdrawal,
+    getPartnerWithdrawalsByFair,
   };
 };

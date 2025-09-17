@@ -25,11 +25,12 @@ type WithdrawalFormData = z.infer<typeof withdrawalSchema>;
 
 interface WithdrawalFormProps {
   partnerId: string;
+  fairId: string;
   onSuccess?: () => void;
 }
 
-export const WithdrawalForm: React.FC<WithdrawalFormProps> = ({ partnerId, onSuccess }) => {
-  const { data: summary } = usePartnerFinancialSummary(partnerId);
+export const WithdrawalForm: React.FC<WithdrawalFormProps> = ({ partnerId, fairId, onSuccess }) => {
+  const { data: summary } = usePartnerFinancialSummary(partnerId, fairId);
   const createWithdrawalMutation = useCreateWithdrawal();
 
   const form = useForm<WithdrawalFormData>({
@@ -46,7 +47,11 @@ export const WithdrawalForm: React.FC<WithdrawalFormProps> = ({ partnerId, onSuc
     try {
       await createWithdrawalMutation.mutateAsync({
         partnerId,
-        data,
+        fairId,
+        data: {
+          ...data,
+          fairId,
+        },
       });
       form.reset();
       onSuccess?.();

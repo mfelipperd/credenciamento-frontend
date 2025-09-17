@@ -376,9 +376,9 @@ export function PartnerView({ partner: propPartner, fairId, isAdminView = false 
                 <h4 className="font-semibold text-gray-900 dark:text-white">Retiradas</h4>
                 <div className="space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Total Sacado</span>
-                    <span className="font-semibold text-blue-600 dark:text-blue-400">
-                      {formatCurrency(financialSummary.totalWithdrawn)}
+                    <span className="text-gray-600 dark:text-gray-400">Valor Pendente</span>
+                    <span className="font-semibold text-orange-600 dark:text-orange-400">
+                      {formatCurrency(financialSummary.pendingWithdrawals)}
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -398,6 +398,7 @@ export function PartnerView({ partner: propPartner, fairId, isAdminView = false 
       {!isAdminView && (
         <WithdrawalForm
           partnerId={partner.id}
+          fairId={fairId || ""}
           onSuccess={() => {}}
         />
       )}
