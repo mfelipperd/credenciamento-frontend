@@ -3,19 +3,12 @@ import { Outlet, useSearchParams } from "react-router-dom";
 import { useFairs } from "@/hooks/useFairs";
 import {
   Calendar,
-  HomeIcon,
   LogOut,
   MapPin,
   RefreshCcw,
   Settings,
-  User2,
-  Mail,
-  DollarSign,
-  Users,
-  CreditCard,
-  BarChart3,
+  Menu,
 } from "lucide-react";
-import { Link } from "react-router-dom";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { SimpleFooter } from "../Footer";
 import { useUserSession } from "@/hooks/useUserSession";
@@ -25,12 +18,14 @@ import { ModalCreateFair } from "./ModalCreateFair";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useCookie } from "@/hooks/useCookie";
 import { EUserRole } from "@/enums/user.enum";
+import { Sidebar } from "./Sidebar";
 
 export const MainLayout: React.FC = () => {
   const { data: fairs, isLoading: loading } = useFairs();
   const [searchParams, setSearchParams] = useSearchParams();
   const { user, availableFairIds } = useUserSession();
   const { signOut } = useAuth();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Hook para gerenciar o cookie da feira selecionada
   const [savedFairId, setSavedFairId] = useCookie("selectedFairId", "", {
@@ -100,9 +95,18 @@ export const MainLayout: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      {/* Header Principal */}
-      <header className="relative w-full bg-gradient-to-r from-blue-900 to-purple-800 shadow-lg">
+    <div className="min-h-screen flex bg-background">
+      {/* Sidebar */}
+      <Sidebar
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        search={search}
+      />
+      
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col">
+        {/* Header Principal */}
+        <header className="relative w-full bg-gradient-to-r from-blue-900 to-purple-800 shadow-lg">
         {/* Background Image com Overlay */}
         <div className="absolute inset-0">
           <img
@@ -116,8 +120,17 @@ export const MainLayout: React.FC = () => {
         {/* Conteúdo do Header - Organizado com Esquerda e Direita */}
         <div className="relative z-10 px-4 py-2">
           <div className="flex items-center justify-between text-white">
-            {/* Lado Esquerdo - Logo, Select, Data e Hora */}
+            {/* Lado Esquerdo - Menu Button, Logo, Select, Data e Hora */}
             <div className="flex items-center gap-3">
+              {/* Menu Button */}
+              <button
+                onClick={() => setIsSidebarOpen(true)}
+                className="p-2 rounded-lg hover:bg-white/10 transition-colors lg:hidden"
+                aria-label="Abrir menu"
+              >
+                <Menu className="h-5 w-5" />
+              </button>
+
               {/* Logo */}
               <img
                 src="/logo.png"
@@ -142,7 +155,7 @@ export const MainLayout: React.FC = () => {
                       value={fair.id}
                       className="text-black bg-white"
                     >
-                      {`${fair.name} ${new Date(fair.date).getFullYear()}`}
+                      {`${fair.name} ${fair.startDate ? new Date(fair.startDate).getFullYear() : 'N/A'}`}
                     </option>
                   ))}
                 </select>
@@ -167,7 +180,7 @@ export const MainLayout: React.FC = () => {
               {/* Data e Horário */}
               <div className="hidden md:flex items-center gap-1 flex-shrink-0 text-xs">
                 <Calendar className="h-3 w-3 text-blue-300" />
-                <span className="font-medium">{selectedFair?.date ? new Date(selectedFair.date).toLocaleDateString('pt-BR') : ''}</span>
+                <span className="font-medium">{selectedFair?.startDate ? new Date(selectedFair.startDate).toLocaleDateString('pt-BR') : ''}</span>
                 <span className="text-white/60">•</span>
                 <span className="text-white/80">13h-21h</span>
               </div>
@@ -197,6 +210,15 @@ export const MainLayout: React.FC = () => {
 
               {/* Controls */}
               <div className="flex items-center gap-2 flex-shrink-0">
+                {/* Desktop Menu Button */}
+                <button
+                  onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                  className="hidden lg:flex p-2 rounded-lg hover:bg-white/10 transition-colors"
+                  aria-label={isSidebarOpen ? "Fechar menu" : "Abrir menu"}
+                >
+                  <Menu className="h-4 w-4" />
+                </button>
+                
                 <ThemeToggle />
                 <RefreshCcw
                   onClick={() => window.location.reload()}
@@ -226,110 +248,13 @@ export const MainLayout: React.FC = () => {
             </div>
           </div>
         </div>
-      </header>
+        </header>
 
-      {/* Navigation Bar Compacta */}
-      <nav className="bg-gradient-to-r from-purple-600 to-purple-700">
-        <div className="px-4 py-2">
-          <div className="flex items-center justify-center gap-3 sm:gap-6">
-            <Link
-              className="flex items-center gap-1.5 text-white/90 hover:text-white transition-colors px-2 py-1 rounded hover:bg-white/10"
-              to={{ pathname: "/", search }}
-            >
-              <HomeIcon size={16} />
-              <span className="hidden sm:inline text-sm font-medium">Home</span>
-            </Link>
-            <Link
-              className="flex items-center gap-1.5 text-white/90 hover:text-white transition-colors px-2 py-1 rounded hover:bg-white/10"
-              to={{ pathname: "/visitors-table", search }}
-            >
-              <User2 size={16} />
-              <span className="hidden sm:inline text-sm font-medium">
-                Visitantes
-              </span>
-            </Link>
-            <Link
-              className="flex items-center gap-1.5 text-white/90 hover:text-white transition-colors px-2 py-1 rounded hover:bg-white/10"
-              to={{ pathname: "/marketing", search }}
-            >
-              <Mail size={16} />
-              <span className="hidden sm:inline text-sm font-medium">
-                Marketing
-              </span>
-            </Link>
-            {user?.role === EUserRole.ADMIN && (
-              <Link
-                className="flex items-center gap-1.5 text-white/90 hover:text-white transition-colors px-2 py-1 rounded hover:bg-white/10"
-                to={{ pathname: "/financeiro/receitas", search }}
-              >
-                <DollarSign size={16} />
-                <span className="hidden sm:inline text-sm font-medium">
-                  Receitas
-                </span>
-              </Link>
-            )}
-            {user?.role === EUserRole.ADMIN && (
-              <Link
-                className="flex items-center gap-1.5 text-white/90 hover:text-white transition-colors px-2 py-1 rounded hover:bg-white/10"
-                to={{ pathname: "/expenses", search }}
-              >
-                <DollarSign size={16} />
-                <span className="hidden sm:inline text-sm font-medium">
-                  Despesas
-                </span>
-              </Link>
-            )}
-            {(user?.role === EUserRole.ADMIN || user?.role === EUserRole.PARTNER) && (
-              <Link
-                className="flex items-center gap-1.5 text-white/90 hover:text-white transition-colors px-2 py-1 rounded hover:bg-white/10"
-                to={{ pathname: user?.role === EUserRole.ADMIN ? "/partners" : "/partner-dashboard", search: user?.role === EUserRole.ADMIN ? search : undefined }}
-              >
-                <Users size={16} />
-                <span className="hidden sm:inline text-sm font-medium">
-                  {user?.role === EUserRole.ADMIN ? "Sócios" : "Meu Painel"}
-                </span>
-              </Link>
-            )}
-            {user?.role === EUserRole.ADMIN && (
-              <Link
-                className="flex items-center gap-1.5 text-white/90 hover:text-white transition-colors px-2 py-1 rounded hover:bg-white/10"
-                to={{ pathname: "/partners/withdrawals", search }}
-              >
-                <CreditCard size={16} />
-                <span className="hidden sm:inline text-sm font-medium">
-                  Saques
-                </span>
-              </Link>
-            )}
-            {user?.role === EUserRole.ADMIN && (
-              <Link
-                className="flex items-center gap-1.5 text-white/90 hover:text-white transition-colors px-2 py-1 rounded hover:bg-white/10"
-                to={{ pathname: "/fairs", search }}
-              >
-                <BarChart3 size={16} />
-                <span className="hidden sm:inline text-sm font-medium">
-                  Feiras
-                </span>
-              </Link>
-            )}
-            {user?.role === EUserRole.ADMIN && (
-              <Link
-                className="flex items-center gap-1.5 text-white/90 hover:text-white transition-colors px-2 py-1 rounded hover:bg-white/10"
-                to={{ pathname: "/user-management", search }}
-              >
-                <Settings size={16} />
-                <span className="hidden sm:inline text-sm font-medium">
-                  Usuários
-                </span>
-              </Link>
-            )}
-          </div>
-        </div>
-      </nav>
-      <main className="flex-grow p-6 bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 dark:from-slate-900 dark:via-blue-950 dark:to-purple-950">
-        <Outlet />
-      </main>
-      <SimpleFooter />
+        <main className="flex-grow p-6 bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 dark:from-slate-900 dark:via-blue-950 dark:to-purple-950">
+          <Outlet />
+        </main>
+        <SimpleFooter />
+      </div>
     </div>
   );
 };

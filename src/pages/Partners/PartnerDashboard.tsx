@@ -1,94 +1,81 @@
-import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { useFairPartnerFinancialSummary } from "@/hooks/useFairPartners";
-import { MobilePartnerView } from "./components/MobilePartnerView";
-import { useAuth } from "@/hooks/useAuth";
-import { useSearchParams } from "react-router-dom";
-import { useCookie } from "@/hooks/useCookie";
+import React from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { FinancialSummary } from "./components/FinancialSummary";
+import { WithdrawalForm } from "./components/WithdrawalForm";
+import { WithdrawalsList } from "./components/WithdrawalsList";
+import { Wallet, DollarSign, History } from "lucide-react";
+import { useUserSession } from "@/hooks/useUserSession";
+import { usePartnerMe } from "@/hooks/usePartners";
 
-export function PartnerDashboard() {
-  const auth = useAuth();
-  const [searchParams] = useSearchParams();
-  const [savedFairId] = useCookie("selectedFairId", "", { days: 30 });
-  
-  // Usar fairId da URL ou do cookie como fallback
-  const fairId = searchParams.get("fairId") || savedFairId || "";
-  
-  // Debug
-  // Buscar dados financeiros do sócio na feira selecionada
-  const { data: financialSummary, isLoading: isLoadingFinancial } = useFairPartnerFinancialSummary(fairId, auth?.user?.id?.toString() || "");
+export const PartnerDashboard: React.FC = () => {
+  const { user } = useUserSession();
+  const { data: partner, isLoading, error } = usePartnerMe();
 
-  if (isLoadingFinancial) {
-    return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-10 w-32" />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Card key={i}>
-              <CardHeader className="pb-2">
-                <Skeleton className="h-4 w-24" />
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-8 w-20" />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (!fairId) {
+  if (!user?.id) {
     return (
       <div className="text-center py-8">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-          Nenhuma feira selecionada
-        </h2>
-        <p className="text-gray-600 dark:text-gray-400">
-          Selecione uma feira no header para visualizar seus dados.
-        </p>
+        <p className="text-red-500">Usuário não encontrado</p>
       </div>
     );
   }
 
-  if (!financialSummary) {
+  if (isLoading) {
     return (
       <div className="text-center py-8">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-          Não associado a esta feira
-        </h2>
-        <p className="text-gray-600 dark:text-gray-400">
-          Você não está associado à feira selecionada.
-        </p>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+        <p className="text-gray-600 dark:text-gray-400">Carregando dados do parceiro...</p>
       </div>
     );
   }
 
-  // Criar um objeto partner baseado nos dados financeiros e do usuário
-  const partnerData = {
-    id: `partner-${auth?.user?.id}`,
-    fairId: fairId,
-    partnerId: auth?.user?.id?.toString() || "",
-    percentage: financialSummary.percentage,
-    totalEarnings: financialSummary.totalEarnings,
-    totalWithdrawn: financialSummary.totalWithdrawn,
-    availableBalance: financialSummary.availableBalance,
-    isActive: true,
-    partnerName: auth?.user?.name || "Nome não disponível",
-    partnerEmail: auth?.user?.email || "Email não disponível",
-    partnerCpf: "CPF não disponível", // Pode ser adicionado ao user se necessário
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
-  
+  if (error || !partner) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-red-500">Erro ao carregar dados do parceiro</p>
+        <p className="text-sm text-gray-500 mt-2">Verifique se você tem um perfil de parceiro ativo</p>
+      </div>
+    );
+  }
+
   return (
-    <MobilePartnerView
-      partner={partnerData}
-      fairId={fairId}
-      isAdminView={false}
-    />
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          Meu Painel
+        </h1>
+        <p className="text-gray-600 dark:text-gray-400 mt-2">
+          Gerencie seus ganhos e solicite saques
+        </p>
+      </div>
+
+      <Tabs defaultValue="summary" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="summary" className="flex items-center gap-2">
+            <Wallet className="h-4 w-4" />
+            Resumo Financeiro
+          </TabsTrigger>
+          <TabsTrigger value="withdraw" className="flex items-center gap-2">
+            <DollarSign className="h-4 w-4" />
+            Solicitar Saque
+          </TabsTrigger>
+          <TabsTrigger value="history" className="flex items-center gap-2">
+            <History className="h-4 w-4" />
+            Histórico
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="summary">
+          <FinancialSummary partnerId={partner.id} />
+        </TabsContent>
+
+        <TabsContent value="withdraw">
+          <WithdrawalForm partnerId={partner.id} />
+        </TabsContent>
+
+        <TabsContent value="history">
+          <WithdrawalsList partnerId={partner.id} />
+        </TabsContent>
+      </Tabs>
+    </div>
   );
-}
+};

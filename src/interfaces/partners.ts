@@ -105,4 +105,5 @@ export interface WithdrawalFilters {
   pageSize?: number;
   status?: WithdrawalStatus;
   partnerId?: string;
+  fairId?: string;
 }

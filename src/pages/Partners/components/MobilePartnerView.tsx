@@ -26,7 +26,6 @@ interface MobilePartnerViewProps {
 }
 
 export function MobilePartnerView({ partner: propPartner, fairId, isAdminView = false }: MobilePartnerViewProps) {
-  const [isWithdrawalDialogOpen, setIsWithdrawalDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'insights' | 'withdrawals'>('overview');
   
   const partner = propPartner;
@@ -249,7 +248,7 @@ export function MobilePartnerView({ partner: propPartner, fairId, isAdminView = 
               </CardTitle>
               <div className="space-y-3">
                 <Button 
-                  onClick={() => setIsWithdrawalDialogOpen(true)}
+                  onClick={() => {}}
                   className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium"
                 >
                   <CreditCard className="h-5 w-5 mr-2" />
@@ -361,8 +360,8 @@ export function MobilePartnerView({ partner: propPartner, fairId, isAdminView = 
 
       {/* Withdrawal Dialog */}
       <WithdrawalForm
-        isOpen={isWithdrawalDialogOpen}
-        onClose={() => setIsWithdrawalDialogOpen(false)}
+        partnerId={partner.id}
+        onSuccess={() => {}}
       />
     </div>
   );

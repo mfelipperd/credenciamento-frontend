@@ -24,7 +24,7 @@ import { Input } from "@/components/ui/input";
 import { CalendarDays, MapPin, Plus } from "lucide-react";
 import { useCreateFair } from "@/hooks/useFairs";
 import { toast } from "sonner";
-import type { CreateFairDto } from "@/interfaces/fairs";
+import type { CreateFairForm } from "@/interfaces/fairs";
 
 // Schema de validação
 const createFairSchema = z.object({
@@ -80,10 +80,10 @@ export function ModalCreateFair() {
   const onSubmit = async (data: CreateFairFormData) => {
     try {
       // Converter dados para o formato da API
-      const fairData: CreateFairDto = {
+      const fairData: CreateFairForm = {
         name: data.name,
         location: data.location,
-        date: new Date(data.date),
+        startDate: data.date,
         totalStands: 0,
         costPerSquareMeter: 0,
         setupCostPerSquareMeter: 0,
@@ -97,14 +97,6 @@ export function ModalCreateFair() {
       if (data.country) fairData.country = data.country;
       if (data.startTime) fairData.startTime = data.startTime;
       if (data.endTime) fairData.endTime = data.endTime;
-
-      // Criar startDateTime e endDateTime se tiver data e horários
-      if (data.date && data.startTime) {
-        fairData.startDateTime = new Date(`${data.date}T${data.startTime}:00.000Z`);
-      }
-      if (data.date && data.endTime) {
-        fairData.endDateTime = new Date(`${data.date}T${data.endTime}:00.000Z`);
-      }
 
       await createFairMutation.mutateAsync(fairData);
       form.reset();
