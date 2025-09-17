@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { DollarSign, TrendingUp, Calendar, Lightbulb, Target, BarChart3, Users, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,7 +14,6 @@ interface PartnerViewProps {
 }
 
 export function PartnerView({ partner: propPartner, fairId, isAdminView = false }: PartnerViewProps) {
-  const [isWithdrawalDialogOpen, setIsWithdrawalDialogOpen] = useState(false);
   
   const partner = propPartner;
   
@@ -178,7 +176,7 @@ export function PartnerView({ partner: propPartner, fairId, isAdminView = false 
           </p>
         </div>
         {!isAdminView && (
-          <Button onClick={() => setIsWithdrawalDialogOpen(true)}>
+          <Button onClick={() => {}}>
             <CreditCard className="w-4 h-4 mr-2" />
             Solicitar Saque
           </Button>
@@ -378,9 +376,9 @@ export function PartnerView({ partner: propPartner, fairId, isAdminView = false 
                 <h4 className="font-semibold text-gray-900 dark:text-white">Retiradas</h4>
                 <div className="space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Total Sacado</span>
-                    <span className="font-semibold text-blue-600 dark:text-blue-400">
-                      {formatCurrency(financialSummary.totalWithdrawn)}
+                    <span className="text-gray-600 dark:text-gray-400">Valor Pendente</span>
+                    <span className="font-semibold text-orange-600 dark:text-orange-400">
+                      {formatCurrency(financialSummary.pendingWithdrawals)}
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -399,8 +397,9 @@ export function PartnerView({ partner: propPartner, fairId, isAdminView = false 
       {/* Formulário de Saque (apenas para o próprio sócio) */}
       {!isAdminView && (
         <WithdrawalForm
-          isOpen={isWithdrawalDialogOpen}
-          onClose={() => setIsWithdrawalDialogOpen(false)}
+          partnerId={partner.id}
+          fairId={fairId || ""}
+          onSuccess={() => {}}
         />
       )}
     </div>

@@ -1,46 +1,39 @@
+import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { useCreateWithdrawal, usePartnerMe } from "@/hooks/usePartners";
-import { toast } from "sonner";
-import type { CreateWithdrawalForm } from "@/interfaces/partners";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useCreateWithdrawal, usePartnerFinancialSummary } from "@/hooks/useWithdrawals";
+import { DollarSign, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const withdrawalSchema = z.object({
-  amount: z.number().min(0.01, "Valor deve ser maior que R$ 0,01"),
-  reason: z.string().min(5, "Motivo deve ter pelo menos 5 caracteres"),
-  bankDetails: z.string().min(10, "Dados bancários devem ter pelo menos 10 caracteres"),
+  amount: z
+    .number({ required_error: "Valor é obrigatório" })
+    .min(0.01, "Valor mínimo é R$ 0,01")
+    .max(999999.99, "Valor máximo é R$ 999.999,99"),
+  reason: z.string().optional(),
+  bankDetails: z.string().min(1, "Dados bancários são obrigatórios"),
   notes: z.string().optional(),
 });
 
+type WithdrawalFormData = z.infer<typeof withdrawalSchema>;
+
 interface WithdrawalFormProps {
-  isOpen: boolean;
-  onClose: () => void;
-  partner?: any;
-  fairId?: string;
+  partnerId: string;
+  fairId: string;
+  onSuccess?: () => void;
 }
 
-export function WithdrawalForm({ isOpen, onClose }: WithdrawalFormProps) {
-  const { data: partner } = usePartnerMe();
+export const WithdrawalForm: React.FC<WithdrawalFormProps> = ({ partnerId, fairId, onSuccess }) => {
+  const { data: summary } = usePartnerFinancialSummary(partnerId, fairId);
   const createWithdrawalMutation = useCreateWithdrawal();
 
-  const form = useForm<CreateWithdrawalForm>({
+  const form = useForm<WithdrawalFormData>({
     resolver: zodResolver(withdrawalSchema),
     defaultValues: {
       amount: 0,
@@ -50,171 +43,158 @@ export function WithdrawalForm({ isOpen, onClose }: WithdrawalFormProps) {
     },
   });
 
-  const onSubmit = async (data: CreateWithdrawalForm) => {
-    if (!partner) {
-      toast.error("Dados do sócio não encontrados");
-      return;
-    }
-
-    // Validar se o valor não excede o saldo disponível
-    if (data.amount > partner.availableBalance) {
-      toast.error("Valor solicitado excede o saldo disponível");
-      return;
-    }
-
+  const onSubmit = async (data: WithdrawalFormData) => {
     try {
       await createWithdrawalMutation.mutateAsync({
-        partnerId: partner.id,
-        data,
+        partnerId,
+        fairId,
+        data: {
+          ...data,
+          fairId,
+        },
       });
-      toast.success("Solicitação de saque enviada com sucesso");
       form.reset();
-      onClose();
+      onSuccess?.();
     } catch (error) {
-      toast.error("Erro ao solicitar saque");
+      // Error is handled by the mutation
     }
   };
 
-  const formatCurrency = (value: number | null | undefined) => {
-    if (value === null || value === undefined || isNaN(value)) {
-      return "R$ 0,00";
-    }
+  const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
       currency: "BRL",
-    }).format(Number(value));
+    }).format(value);
   };
 
-  const isLoading = createWithdrawalMutation.isPending;
+  const availableBalance = summary?.availableBalance || 0;
+  const maxAmount = Math.min(availableBalance, 999999.99);
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Solicitar Saque</DialogTitle>
-        </DialogHeader>
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <DollarSign className="h-5 w-5" />
+          Solicitar Saque
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          {/* Saldo Disponível */}
+          <div className="bg-blue-50 dark:bg-blue-950 p-4 rounded-lg">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                Saldo Disponível:
+              </span>
+              <span className="text-lg font-bold text-blue-900 dark:text-blue-100">
+                {formatCurrency(availableBalance)}
+              </span>
+            </div>
+          </div>
 
-        {/* Informações do Saldo */}
-        {partner && (
-          <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
-            <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
-              Saldo Disponível
-            </h4>
-            <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-              {formatCurrency(partner.availableBalance)}
-            </p>
-            <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
-              Porcentagem de participação: {partner.percentage ? Number(partner.percentage).toFixed(1) : "0.0"}%
+          {/* Valor do Saque */}
+          <div className="space-y-2">
+            <Label htmlFor="amount">Valor do Saque *</Label>
+            <Input
+              id="amount"
+              type="number"
+              step="0.01"
+              min="0.01"
+              max={maxAmount}
+              placeholder="0,00"
+              {...form.register("amount", { valueAsNumber: true })}
+              className={form.formState.errors.amount ? "border-red-500" : ""}
+            />
+            {form.formState.errors.amount && (
+              <p className="text-sm text-red-500">
+                {form.formState.errors.amount.message}
+              </p>
+            )}
+            <p className="text-xs text-gray-500">
+              Valor mínimo: R$ 0,01 | Valor máximo: {formatCurrency(maxAmount)}
             </p>
           </div>
-        )}
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <FormField
-              control={form.control}
-              name="amount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Valor do Saque</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      min="0.01"
-                      max={partner?.availableBalance || 0}
-                      placeholder="0.00"
-                      {...field}
-                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                    />
-                  </FormControl>
-                  <div className="text-sm text-gray-500">
-                    Máximo: {formatCurrency(partner?.availableBalance || 0)}
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
+          {/* Motivo do Saque */}
+          <div className="space-y-2">
+            <Label htmlFor="reason">Motivo do Saque (Opcional)</Label>
+            <Input
+              id="reason"
+              placeholder="Ex: Retirada mensal de lucros"
+              {...form.register("reason")}
             />
+          </div>
 
-            <FormField
-              control={form.control}
-              name="reason"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Motivo do Saque</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Ex: Retirada mensal de lucros, emergência, etc."
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+          {/* Dados Bancários */}
+          <div className="space-y-2">
+            <Label htmlFor="bankDetails">Dados Bancários *</Label>
+            <Textarea
+              id="bankDetails"
+              placeholder="Banco: 001, Agência: 1234, Conta: 56789-0, CPF: 123.456.789-00"
+              rows={3}
+              {...form.register("bankDetails")}
+              className={form.formState.errors.bankDetails ? "border-red-500" : ""}
             />
+            {form.formState.errors.bankDetails && (
+              <p className="text-sm text-red-500">
+                {form.formState.errors.bankDetails.message}
+              </p>
+            )}
+            <p className="text-xs text-gray-500">
+              Inclua banco, agência, conta e CPF para processamento
+            </p>
+          </div>
 
-            <FormField
-              control={form.control}
-              name="bankDetails"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Dados Bancários</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Banco: 001, Agência: 1234, Conta: 56789-0, Titular: João Silva Santos"
-                      className="resize-none"
-                      {...field}
-                    />
-                  </FormControl>
-                  <div className="text-sm text-gray-500">
-                    Inclua banco, agência, conta e nome do titular
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
+          {/* Observações */}
+          <div className="space-y-2">
+            <Label htmlFor="notes">Observações (Opcional)</Label>
+            <Textarea
+              id="notes"
+              placeholder="Informações adicionais sobre o saque"
+              rows={2}
+              {...form.register("notes")}
             />
+          </div>
 
-            <FormField
-              control={form.control}
-              name="notes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Observações (Opcional)</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Informações adicionais sobre o saque..."
-                      className="resize-none"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          {/* Alertas */}
+          {availableBalance === 0 && (
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Você não possui saldo disponível para saque. Aguarde a distribuição de lucros.
+              </AlertDescription>
+            </Alert>
+          )}
 
-            <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg">
-              <h4 className="font-semibold text-yellow-900 dark:text-yellow-100 mb-2">
-                ⚠️ Importante
-              </h4>
-              <ul className="text-sm text-yellow-800 dark:text-yellow-200 space-y-1">
-                <li>• O saque será analisado por um administrador</li>
-                <li>• Você receberá uma notificação quando aprovado ou rejeitado</li>
-                <li>• Verifique se os dados bancários estão corretos</li>
-                <li>• O processamento pode levar até 2 dias úteis</li>
-              </ul>
-            </div>
+          {availableBalance > 0 && availableBalance < 100 && (
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Seu saldo está baixo. Considere aguardar mais distribuições de lucro.
+              </AlertDescription>
+            </Alert>
+          )}
 
-            <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={onClose}>
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={isLoading || !partner}>
-                {isLoading ? "Enviando..." : "Solicitar Saque"}
-              </Button>
-            </div>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
+          {/* Botões */}
+          <div className="flex gap-3">
+            <Button
+              type="submit"
+              disabled={createWithdrawalMutation.isPending || availableBalance === 0}
+              className="flex-1"
+            >
+              {createWithdrawalMutation.isPending ? "Enviando..." : "Solicitar Saque"}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => form.reset()}
+              disabled={createWithdrawalMutation.isPending}
+            >
+              Limpar
+            </Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
   );
-}
+};

@@ -58,9 +58,9 @@ export const usePartnersService = () => {
   };
 
   // Controle Financeiro
-  const getPartnerFinancialSummary = async (id: string): Promise<FinancialSummary | undefined> => {
+  const getPartnerFinancialSummary = async (id: string, fairId: string): Promise<FinancialSummary | undefined> => {
     return handleRequest<FinancialSummary>({
-      request: () => api.get(`${BASE_URL}/${id}/financial-summary`),
+      request: () => api.get(`${BASE_URL}/${id}/financial-summary?fairId=${fairId}`),
     });
   };
 
@@ -84,8 +84,16 @@ export const usePartnersService = () => {
   };
 
   const getAllWithdrawals = async (filters?: WithdrawalFilters): Promise<Withdrawal[] | undefined> => {
+    if (!filters?.fairId) {
+      throw new Error('fairId é obrigatório para listar saques');
+    }
+
+    if (!filters?.partnerId) {
+      throw new Error('partnerId é obrigatório para listar saques');
+    }
+
     return handleRequest<Withdrawal[]>({
-      request: () => api.get(`${BASE_URL}/withdrawals`, { params: filters }),
+      request: () => api.get(`${BASE_URL}/${filters.partnerId}/withdrawals`, { params: { fairId: filters.fairId } }),
     });
   };
 

@@ -1,139 +1,119 @@
 import { useAxio } from "@/hooks/useAxio";
+import { handleRequest } from "@/utils/handleRequest";
 import type {
   Fair,
-  StandConfiguration,
-  StandStatistics,
-  FairAnalysis,
-  OptimizedPricing,
-  StandEfficiencyAnalysis,
-  ProfitAnalysis,
-  CreateStandConfigurationDto,
-  UpdateStandConfigurationDto,
-  CreateFairDto,
-  UpdateFairDto,
+  CreateFairForm,
+  UpdateFairForm,
+  FairFilters,
+  FairStats,
 } from "@/interfaces/fairs";
 
-const FAIR_BASE_URL = "/fairs";
-const STAND_CONFIG_BASE_URL = "/stand-configurations";
-const FAIR_ANALYSIS_BASE_URL = "/fair-analysis";
+const BASE_URL = "/fairs";
 
-// Hook para serviços de feiras
 export const useFairService = () => {
   const api = useAxio();
 
-  return {
-    // Listar todas as feiras
-    getAllFairs: async (): Promise<Fair[]> => {
-      const response = await api.get(FAIR_BASE_URL);
-      return response.data;
-    },
+  // Listar todas as feiras
+  const getFairs = async (filters?: FairFilters): Promise<Fair[] | undefined> => {
+    const params = new URLSearchParams();
+    
+    if (filters?.page) params.append("page", filters.page.toString());
+    if (filters?.pageSize) params.append("pageSize", filters.pageSize.toString());
+    if (filters?.search) params.append("search", filters.search);
+    if (filters?.isActive !== undefined) params.append("isActive", filters.isActive.toString());
+    if (filters?.city) params.append("city", filters.city);
+    if (filters?.state) params.append("state", filters.state);
+    if (filters?.startDate) params.append("startDate", filters.startDate);
+    if (filters?.endDate) params.append("endDate", filters.endDate);
 
-    // Obter feira por ID
-    getFairById: async (id: string): Promise<Fair> => {
-      const response = await api.get(`${FAIR_BASE_URL}/${id}`);
-      return response.data;
-    },
+    const queryString = params.toString();
+    const url = `${BASE_URL}${queryString ? `?${queryString}` : ""}`;
 
-    // Criar nova feira
-    createFair: async (data: CreateFairDto): Promise<Fair> => {
-      const response = await api.post(FAIR_BASE_URL, data);
-      return response.data;
-    },
-
-    // Atualizar feira
-    updateFair: async (id: string, data: UpdateFairDto): Promise<Fair> => {
-      const response = await api.patch(`${FAIR_BASE_URL}/${id}`, data);
-      return response.data;
-    },
-
-    // Deletar feira
-    deleteFair: async (id: string): Promise<void> => {
-      await api.delete(`${FAIR_BASE_URL}/${id}`);
-    },
-
-    // Ativar/Desativar feira
-    toggleFairStatus: async (id: string): Promise<Fair> => {
-      const response = await api.patch(`${FAIR_BASE_URL}/${id}/toggle-status`);
-      return response.data;
-    },
+    return handleRequest<Fair[]>({
+      request: () => api.get(url),
+    });
   };
-};
 
-// Hook para serviços de configurações de stands
-export const useStandConfigurationService = () => {
-  const api = useAxio();
-
-  return {
-    // Listar configurações de uma feira
-    getByFairId: async (fairId: string): Promise<StandConfiguration[]> => {
-      const response = await api.get(`${STAND_CONFIG_BASE_URL}/fair/${fairId}`);
-      return response.data;
-    },
-
-    // Obter estatísticas das configurações
-    getStatistics: async (fairId: string): Promise<StandStatistics> => {
-      const response = await api.get(`${STAND_CONFIG_BASE_URL}/fair/${fairId}/statistics`);
-      return response.data;
-    },
-
-    // Criar nova configuração
-    create: async (fairId: string, data: CreateStandConfigurationDto): Promise<StandConfiguration> => {
-      const response = await api.post(`${STAND_CONFIG_BASE_URL}/fair/${fairId}`, data);
-      return response.data;
-    },
-
-    // Atualizar configuração
-    update: async (id: string, data: UpdateStandConfigurationDto): Promise<StandConfiguration> => {
-      const response = await api.patch(`${STAND_CONFIG_BASE_URL}/${id}`, data);
-      return response.data;
-    },
-
-    // Ativar/Desativar configuração
-    toggleActive: async (id: string): Promise<StandConfiguration> => {
-      const response = await api.patch(`${STAND_CONFIG_BASE_URL}/${id}/toggle-active`);
-      return response.data;
-    },
-
-    // Deletar configuração
-    delete: async (id: string): Promise<void> => {
-      await api.delete(`${STAND_CONFIG_BASE_URL}/${id}`);
-    },
+  // Buscar feira específica
+  const getFairById = async (id: string): Promise<Fair | undefined> => {
+    return handleRequest<Fair>({
+      request: () => api.get(`${BASE_URL}/${id}`),
+    });
   };
-};
 
-// Hook para serviços de análise de feiras
-export const useFairAnalysisService = () => {
-  const api = useAxio();
+  // Criar nova feira
+  const createFair = async (data: CreateFairForm): Promise<Fair | undefined> => {
+    return handleRequest<Fair>({
+      request: () => api.post(BASE_URL, data),
+      successMessage: "Feira criada com sucesso!",
+    });
+  };
+
+  // Atualizar feira
+  const updateFair = async (id: string, data: UpdateFairForm): Promise<Fair | undefined> => {
+    return handleRequest<Fair>({
+      request: () => api.put(`${BASE_URL}/${id}`, data),
+      successMessage: "Feira atualizada com sucesso!",
+    });
+  };
+
+  // Excluir feira
+  const deleteFair = async (id: string): Promise<{ message: string } | undefined> => {
+    return handleRequest<{ message: string }>({
+      request: () => api.delete(`${BASE_URL}/${id}`),
+      successMessage: "Feira excluída com sucesso!",
+    });
+  };
+
+  // Ativar/desativar feira
+  const toggleFairActive = async (id: string): Promise<Fair | undefined> => {
+    return handleRequest<Fair>({
+      request: () => api.patch(`${BASE_URL}/${id}/toggle-active`),
+      successMessage: "Status da feira atualizado com sucesso!",
+    });
+  };
+
+  // Obter estatísticas das feiras (calculadas localmente)
+  const getFairStats = async (fairs: Fair[]): Promise<FairStats | undefined> => {
+    if (!fairs || fairs.length === 0) {
+      return {
+        totalFairs: 0,
+        activeFairs: 0,
+        inactiveFairs: 0,
+        totalExpectedRevenue: 0,
+        totalExpectedProfit: 0,
+        averageProfitMargin: 0,
+      };
+    }
+
+    const activeFairs = fairs.filter(fair => fair.isActive);
+    const inactiveFairs = fairs.filter(fair => !fair.isActive);
+    
+    const totalExpectedRevenue = fairs.reduce((sum, fair) => sum + (fair.expectedRevenue || 0), 0);
+    const totalExpectedProfit = fairs.reduce((sum, fair) => sum + (fair.expectedProfit || 0), 0);
+    
+    const fairsWithProfitMargin = fairs.filter(fair => fair.expectedProfitMargin && fair.expectedProfitMargin > 0);
+    const averageProfitMargin = fairsWithProfitMargin.length > 0 
+      ? fairsWithProfitMargin.reduce((sum, fair) => sum + (fair.expectedProfitMargin || 0), 0) / fairsWithProfitMargin.length
+      : 0;
+
+    return {
+      totalFairs: fairs.length,
+      activeFairs: activeFairs.length,
+      inactiveFairs: inactiveFairs.length,
+      totalExpectedRevenue,
+      totalExpectedProfit,
+      averageProfitMargin,
+    };
+  };
 
   return {
-    // Análise completa da feira
-    getFairAnalysis: async (fairId: string): Promise<FairAnalysis> => {
-      const response = await api.get(`${FAIR_ANALYSIS_BASE_URL}/fair/${fairId}`);
-      return response.data;
-    },
-
-    // Obter apenas insights
-    getInsights: async (fairId: string): Promise<{ fairId: string; insights: any[]; recommendations: string[] }> => {
-      const response = await api.get(`${FAIR_ANALYSIS_BASE_URL}/fair/${fairId}/insights`);
-      return response.data;
-    },
-
-    // Análise de eficiência dos stands
-    getStandEfficiency: async (fairId: string): Promise<StandEfficiencyAnalysis> => {
-      const response = await api.get(`${FAIR_ANALYSIS_BASE_URL}/fair/${fairId}/stand-efficiency`);
-      return response.data;
-    },
-
-    // Análise de lucratividade
-    getProfitAnalysis: async (fairId: string): Promise<ProfitAnalysis> => {
-      const response = await api.get(`${FAIR_ANALYSIS_BASE_URL}/fair/${fairId}/profit-analysis`);
-      return response.data;
-    },
-
-    // Otimizar precificação
-    optimizePricing: async (fairId: string, targetMargin: number): Promise<OptimizedPricing> => {
-      const response = await api.post(`${FAIR_ANALYSIS_BASE_URL}/fair/${fairId}/optimize-pricing?targetMargin=${targetMargin}`);
-      return response.data;
-    },
+    getFairs,
+    getFairById,
+    createFair,
+    updateFair,
+    deleteFair,
+    toggleFairActive,
+    getFairStats,
   };
 };

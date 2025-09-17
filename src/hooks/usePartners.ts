@@ -79,13 +79,13 @@ export const useDeletePartner = () => {
 };
 
 // Hooks para controle financeiro
-export const usePartnerFinancialSummary = (id: string) => {
+export const usePartnerFinancialSummary = (id: string, fairId: string) => {
   const partnersService = usePartnersService();
   
   return useQuery({
-    queryKey: ["partners", id, "financial-summary"],
-    queryFn: () => partnersService.getPartnerFinancialSummary(id),
-    enabled: !!id,
+    queryKey: ["partners", id, "financial-summary", fairId],
+    queryFn: () => partnersService.getPartnerFinancialSummary(id, fairId),
+    enabled: !!id && !!fairId,
   });
 };
 

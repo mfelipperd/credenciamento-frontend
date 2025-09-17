@@ -274,9 +274,9 @@ export default function PartnersPage() {
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Total Sacado</p>
-                      <p className="text-lg font-semibold text-blue-600 dark:text-blue-400">
-                        {formatCurrency(partner.totalWithdrawn)}
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Valor Pendente</p>
+                      <p className="text-lg font-semibold text-orange-600 dark:text-orange-400">
+                        {formatCurrency(partner.pendingWithdrawals)}
                       </p>
                     </div>
                     <div>

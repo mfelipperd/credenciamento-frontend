@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, X, Eye, Filter } from "lucide-react";
+import { Check, X, Eye, Filter, Edit, Trash2, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -24,20 +24,32 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useAllWithdrawals, useApproveWithdrawal, useRejectWithdrawal } from "@/hooks/usePartners";
+import { useWithdrawals, useApproveWithdrawal, useRejectWithdrawal, useUpdateWithdrawal, useDeleteWithdrawal } from "@/hooks/useWithdrawals";
+import { useSearchParams } from "@/hooks/useSearchParams";
 import { toast } from "sonner";
-import type { Withdrawal, WithdrawalStatus } from "@/interfaces/partners";
+import type { PartnerWithdrawal, WithdrawalFilters } from "@/interfaces/withdrawals";
 
 export function WithdrawalsManagement() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<WithdrawalStatus | "all">("all");
-  const [selectedWithdrawal, setSelectedWithdrawal] = useState<Withdrawal | null>(null);
+  const [statusFilter, setStatusFilter] = useState<PartnerWithdrawal['status'] | "all">("all");
+  const [selectedWithdrawal, setSelectedWithdrawal] = useState<PartnerWithdrawal | null>(null);
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
+  
+  // Obter fairId da URL
+  const [, , fairId] = useSearchParams();
+  
+  // Configurar filtros para o hook
+  const filters: WithdrawalFilters = {
+    fairId: fairId || undefined,
+    status: statusFilter !== "all" ? statusFilter : undefined,
+  };
 
-  const { data: withdrawals, isLoading } = useAllWithdrawals();
+  const { data: withdrawals, isLoading } = useWithdrawals(filters);
   const approveWithdrawalMutation = useApproveWithdrawal();
   const rejectWithdrawalMutation = useRejectWithdrawal();
+  const updateWithdrawalMutation = useUpdateWithdrawal();
+  const deleteWithdrawalMutation = useDeleteWithdrawal();
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
@@ -56,7 +68,7 @@ export function WithdrawalsManagement() {
     });
   };
 
-  const getStatusColor = (status: WithdrawalStatus) => {
+  const getStatusColor = (status: PartnerWithdrawal['status']) => {
     switch (status) {
       case "PENDING":
         return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300";
@@ -71,7 +83,7 @@ export function WithdrawalsManagement() {
     }
   };
 
-  const getStatusLabel = (status: WithdrawalStatus) => {
+  const getStatusLabel = (status: PartnerWithdrawal['status']) => {
     switch (status) {
       case "PENDING":
         return "Pendente";
@@ -88,8 +100,8 @@ export function WithdrawalsManagement() {
 
   const filteredWithdrawals = withdrawals?.filter(withdrawal => {
     const matchesSearch = 
-      withdrawal.reason.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      withdrawal.bankDetails.toLowerCase().includes(searchTerm.toLowerCase());
+      (withdrawal.reason?.toLowerCase().includes(searchTerm.toLowerCase()) || false) ||
+      (withdrawal.bankDetails?.toLowerCase().includes(searchTerm.toLowerCase()) || false);
     
     const matchesStatus = statusFilter === "all" || withdrawal.status === statusFilter;
     
@@ -98,7 +110,10 @@ export function WithdrawalsManagement() {
 
   const handleApproveWithdrawal = async (withdrawalId: string) => {
     try {
-      await approveWithdrawalMutation.mutateAsync(withdrawalId);
+      await approveWithdrawalMutation.mutateAsync({
+        withdrawalId,
+        data: { approvedBy: "admin" } // TODO: usar ID do usuário atual
+      });
       toast.success("Saque aprovado com sucesso");
     } catch (error) {
       toast.error("Erro ao aprovar saque");
@@ -125,10 +140,71 @@ export function WithdrawalsManagement() {
     }
   };
 
+  const handleUpdateWithdrawalStatus = async (withdrawalId: string, newStatus: PartnerWithdrawal['status']) => {
+    try {
+      await updateWithdrawalMutation.mutateAsync({
+        withdrawalId,
+        data: { status: newStatus },
+      });
+      toast.success(`Saque ${newStatus === 'PENDING' ? 'marcado como pendente' : 'atualizado'} com sucesso`);
+    } catch (error) {
+      toast.error("Erro ao atualizar saque");
+    }
+  };
+
+  const handleDeleteWithdrawal = async (withdrawalId: string) => {
+    if (window.confirm("Tem certeza que deseja excluir este saque? Esta ação não pode ser desfeita.")) {
+      try {
+        await deleteWithdrawalMutation.mutateAsync(withdrawalId);
+        toast.success("Saque excluído com sucesso");
+      } catch (error) {
+        toast.error("Erro ao excluir saque");
+      }
+    }
+  };
+
+  // Função auxiliar para calcular valor total de saques por status
+  const calculateAmountByStatus = (status: string) => {
+    return withdrawals?.filter(w => w.status === status).reduce((sum, w) => {
+      if (!w || w.amount === undefined || w.amount === null) return sum;
+      const amount = typeof w.amount === 'number' ? w.amount : parseFloat(String(w.amount));
+      return isNaN(amount) ? sum : sum + amount;
+    }, 0) || 0;
+  };
+
   const pendingCount = withdrawals?.filter(w => w.status === "PENDING").length || 0;
   const approvedCount = withdrawals?.filter(w => w.status === "APPROVED").length || 0;
   const rejectedCount = withdrawals?.filter(w => w.status === "REJECTED").length || 0;
-  const totalAmount = withdrawals?.reduce((sum, w) => sum + w.amount, 0) || 0;
+  
+  // Debug: verificar dados dos saques
+  console.log("Withdrawals data:", withdrawals);
+  console.log("First withdrawal:", withdrawals?.[0]);
+  
+  const totalAmount = withdrawals?.reduce((sum, w) => {
+    // Verificar se o withdrawal e amount existem
+    if (!w || w.amount === undefined || w.amount === null) {
+      console.log("Invalid withdrawal or amount:", w);
+      return sum;
+    }
+    
+    // Converter para número se necessário
+    const amount = typeof w.amount === 'number' ? w.amount : parseFloat(String(w.amount));
+    
+    // Verificar se é um número válido
+    if (isNaN(amount)) {
+      console.log("Invalid amount:", w.amount, "for withdrawal:", w.id);
+      return sum;
+    }
+    
+    console.log("Withdrawal amount:", w.amount, "Parsed:", amount);
+    return sum + amount;
+  }, 0) || 0;
+  
+  console.log("Total amount calculated:", totalAmount);
+
+  // Calcular valores por status
+  const approvedAmount = calculateAmountByStatus("APPROVED");
+  const rejectedAmount = calculateAmountByStatus("REJECTED");
 
   if (isLoading) {
     return (
@@ -226,8 +302,24 @@ export function WithdrawalsManagement() {
             <Filter className="h-4 w-4 text-gray-600 dark:text-gray-300" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-              {formatCurrency(totalAmount)}
+            <div className="space-y-2">
+              <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                {isNaN(totalAmount) ? "R$ 0,00" : formatCurrency(totalAmount)}
+              </div>
+              <div className="space-y-1 text-xs text-gray-600 dark:text-gray-400">
+                <div className="flex justify-between">
+                  <span>Aprovado:</span>
+                  <span className="font-medium text-green-600 dark:text-green-400">
+                    {formatCurrency(approvedAmount)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Rejeitado:</span>
+                  <span className="font-medium text-red-600 dark:text-red-400">
+                    {formatCurrency(rejectedAmount)}
+                  </span>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -248,7 +340,7 @@ export function WithdrawalsManagement() {
                 className="max-w-md"
               />
             </div>
-            <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as WithdrawalStatus | "all")}>
+            <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as PartnerWithdrawal['status'] | "all")}>
               <SelectTrigger className="w-48">
                 <SelectValue placeholder="Filtrar por status" />
               </SelectTrigger>
@@ -277,7 +369,7 @@ export function WithdrawalsManagement() {
                         {formatCurrency(withdrawal.amount)}
                       </h3>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {withdrawal.reason}
+                        {withdrawal.reason || "Sem motivo especificado"}
                       </p>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
                         {formatDate(withdrawal.createdAt)}
@@ -291,7 +383,7 @@ export function WithdrawalsManagement() {
                   <div className="mt-4">
                     <p className="text-sm text-gray-600 dark:text-gray-400">Dados Bancários</p>
                     <p className="text-sm font-medium text-gray-900 dark:text-white">
-                      {withdrawal.bankDetails}
+                      {withdrawal.bankDetails || "Dados bancários não informados"}
                     </p>
                     {withdrawal.notes && (
                       <>
@@ -309,38 +401,67 @@ export function WithdrawalsManagement() {
                     variant="ghost"
                     size="sm"
                     onClick={() => setSelectedWithdrawal(withdrawal)}
+                    title="Ver detalhes"
                   >
                     <Eye className="h-4 w-4" />
                   </Button>
                   
-                  {withdrawal.status === "PENDING" && (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <Filter className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm" title="Ações">
+                        <Filter className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      {withdrawal.status === "PENDING" && (
+                        <>
+                          <DropdownMenuItem 
+                            onClick={() => handleApproveWithdrawal(withdrawal.id)}
+                            className="text-green-600"
+                          >
+                            <Check className="h-4 w-4 mr-2" />
+                            Aprovar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => {
+                              setSelectedWithdrawal(withdrawal);
+                              setIsRejectDialogOpen(true);
+                            }}
+                            className="text-red-600"
+                          >
+                            <X className="h-4 w-4 mr-2" />
+                            Rejeitar
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                      
+                      {withdrawal.status !== "PENDING" && (
                         <DropdownMenuItem 
-                          onClick={() => handleApproveWithdrawal(withdrawal.id)}
-                          className="text-green-600"
+                          onClick={() => handleUpdateWithdrawalStatus(withdrawal.id, "PENDING")}
+                          className="text-yellow-600"
                         >
-                          <Check className="h-4 w-4 mr-2" />
-                          Aprovar
+                          <RotateCcw className="h-4 w-4 mr-2" />
+                          Voltar para Pendente
                         </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          onClick={() => {
-                            setSelectedWithdrawal(withdrawal);
-                            setIsRejectDialogOpen(true);
-                          }}
-                          className="text-red-600"
-                        >
-                          <X className="h-4 w-4 mr-2" />
-                          Rejeitar
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )}
+                      )}
+                      
+                      <DropdownMenuItem 
+                        onClick={() => setSelectedWithdrawal(withdrawal)}
+                        className="text-blue-600"
+                      >
+                        <Edit className="h-4 w-4 mr-2" />
+                        Editar
+                      </DropdownMenuItem>
+                      
+                      <DropdownMenuItem 
+                        onClick={() => handleDeleteWithdrawal(withdrawal.id)}
+                        className="text-red-600"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Excluir
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
             </CardContent>
