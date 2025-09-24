@@ -18,6 +18,7 @@ import { FinancePage } from "@/pages/Finance/page";
 import { AdminRouteGuard } from "@/components/AdminRouteGuard";
 import { AdminPartnerRouteGuard } from "@/components/AdminPartnerRouteGuard";
 import ExpensesPage from "@/pages/Expenses/page";
+import { FinanceiroPage } from "@/pages/Financeiro";
 import PartnersPage from "@/pages/Partners/page";
 import { PartnerDashboard } from "@/pages/Partners/PartnerDashboard";
 import { WithdrawalsManagement } from "@/pages/Partners/WithdrawalsManagement";
@@ -92,18 +93,10 @@ export const AppRoutes = createBrowserRouter([
               { path: "/visitor/:id", element: <Visitor /> },
               { path: "/marketing", element: <MarketingPage /> },
               {
-                path: "/financeiro/receitas",
+                path: "/financeiro",
                 element: (
                   <AdminPartnerRouteGuard>
-                    <FinancePage />
-                  </AdminPartnerRouteGuard>
-                ),
-              },
-              {
-                path: "/expenses",
-                element: (
-                  <AdminPartnerRouteGuard>
-                    <ExpensesPage />
+                    <FinanceiroPage />
                   </AdminPartnerRouteGuard>
                 ),
               },

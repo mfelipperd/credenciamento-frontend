@@ -41,14 +41,8 @@ const navigationItems = [
     roles: [EUserRole.ADMIN, EUserRole.PARTNER, EUserRole.CONSULTANT, EUserRole.RECEPTIONIST],
   },
   {
-    name: "Receitas",
-    href: "/financeiro/receitas",
-    icon: DollarSign,
-    roles: [EUserRole.ADMIN, EUserRole.PARTNER],
-  },
-  {
-    name: "Despesas",
-    href: "/expenses",
+    name: "Financeiro",
+    href: "/financeiro",
     icon: DollarSign,
     roles: [EUserRole.ADMIN, EUserRole.PARTNER],
   },
