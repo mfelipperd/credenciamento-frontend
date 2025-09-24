@@ -16,6 +16,7 @@ import { ErrorTestPage } from "@/pages/ErrorTestPage";
 import { MarketingPage } from "@/pages/Marketing/page";
 import { FinancePage } from "@/pages/Finance/page";
 import { AdminRouteGuard } from "@/components/AdminRouteGuard";
+import { AdminPartnerRouteGuard } from "@/components/AdminPartnerRouteGuard";
 import ExpensesPage from "@/pages/Expenses/page";
 import PartnersPage from "@/pages/Partners/page";
 import { PartnerDashboard } from "@/pages/Partners/PartnerDashboard";
@@ -93,17 +94,17 @@ export const AppRoutes = createBrowserRouter([
               {
                 path: "/financeiro/receitas",
                 element: (
-                  <AdminRouteGuard>
+                  <AdminPartnerRouteGuard>
                     <FinancePage />
-                  </AdminRouteGuard>
+                  </AdminPartnerRouteGuard>
                 ),
               },
               {
                 path: "/expenses",
                 element: (
-                  <AdminRouteGuard>
+                  <AdminPartnerRouteGuard>
                     <ExpensesPage />
-                  </AdminRouteGuard>
+                  </AdminPartnerRouteGuard>
                 ),
               },
               {
@@ -129,17 +130,17 @@ export const AppRoutes = createBrowserRouter([
               {
                 path: "/user-management",
                 element: (
-                  <AdminRouteGuard>
+                  <AdminPartnerRouteGuard>
                     <UserManagementPage />
-                  </AdminRouteGuard>
+                  </AdminPartnerRouteGuard>
                 ),
               },
               {
                 path: "/fairs",
                 element: (
-                  <AdminRouteGuard>
+                  <AdminPartnerRouteGuard>
                     <FairsPage />
-                  </AdminRouteGuard>
+                  </AdminPartnerRouteGuard>
                 ),
               },
             ],

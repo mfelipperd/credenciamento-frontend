@@ -25,6 +25,8 @@ import { CalendarDays, MapPin, Plus } from "lucide-react";
 import { useCreateFair } from "@/hooks/useFairs";
 import { toast } from "sonner";
 import type { CreateFairForm } from "@/interfaces/fairs";
+import { useAuth } from "@/hooks/useAuth";
+import { EUserRole } from "@/enums/user.enum";
 
 // Schema de validação
 const createFairSchema = z.object({
@@ -60,6 +62,7 @@ type CreateFairFormData = z.infer<typeof createFairSchema>;
 export function ModalCreateFair() {
   const [open, setOpen] = useState(false);
   const createFairMutation = useCreateFair();
+  const { user } = useAuth();
 
   const form = useForm<CreateFairFormData>({
     resolver: zodResolver(createFairSchema),
@@ -76,6 +79,14 @@ export function ModalCreateFair() {
       endTime: "",
     },
   });
+
+  // Verificar se o usuário é admin
+  const isAdmin = user?.role === EUserRole.ADMIN;
+
+  // Se não for admin, não renderiza o modal
+  if (!isAdmin) {
+    return null;
+  }
 
   const onSubmit = async (data: CreateFairFormData) => {
     try {

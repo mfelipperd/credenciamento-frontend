@@ -44,13 +44,13 @@ const navigationItems = [
     name: "Receitas",
     href: "/financeiro/receitas",
     icon: DollarSign,
-    roles: [EUserRole.ADMIN],
+    roles: [EUserRole.ADMIN, EUserRole.PARTNER],
   },
   {
     name: "Despesas",
     href: "/expenses",
     icon: DollarSign,
-    roles: [EUserRole.ADMIN],
+    roles: [EUserRole.ADMIN, EUserRole.PARTNER],
   },
   {
     name: "Sócios",
@@ -74,13 +74,13 @@ const navigationItems = [
     name: "Feiras",
     href: "/fairs",
     icon: BarChart3,
-    roles: [EUserRole.ADMIN],
+    roles: [EUserRole.ADMIN, EUserRole.PARTNER],
   },
   {
     name: "Usuários",
     href: "/user-management",
     icon: Settings,
-    roles: [EUserRole.ADMIN],
+    roles: [EUserRole.ADMIN, EUserRole.PARTNER],
   },
 ];
 

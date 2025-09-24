@@ -36,15 +36,21 @@ export const useUserFairs = () => {
   const hasAccessToCurrentFair = useMemo(() => {
     if (!currentFairId) return false;
     
+    // Usuários PARTNER e ADMIN sempre têm acesso a todas as feiras
+    if (user?.role === "partner" || user?.role === "admin") return true;
+    
     // Se não tem feiras associadas, tem acesso a todas
     if (userFairIds.length === 0) return true;
     
     // Se tem feiras associadas, verificar se a feira atual está na lista
     return userFairIds.includes(currentFairId);
-  }, [currentFairId, userFairIds]);
+  }, [currentFairId, userFairIds, user?.role]);
 
   // Verificar se deve mostrar seletor de feiras
   const shouldShowFairSelector = useMemo(() => {
+    // Usuários PARTNER e ADMIN sempre mostram seletor (acesso a todas as feiras)
+    if (user?.role === "partner" || user?.role === "admin") return true;
+    
     // Se não tem feiras associadas, sempre mostrar
     if (userFairIds.length === 0) return true;
     
@@ -53,7 +59,7 @@ export const useUserFairs = () => {
     
     // Se tem múltiplas feiras, mostrar
     return true;
-  }, [userFairIds]);
+  }, [userFairIds, user?.role]);
 
   // Feiras disponíveis para seleção
   const availableFairIds = useMemo(() => {

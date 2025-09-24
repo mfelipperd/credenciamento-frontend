@@ -33,7 +33,7 @@ export const MainLayout: React.FC = () => {
   });
 
   // Filtrar feiras baseado no usuário
-  const availableFairs = user?.role === EUserRole.ADMIN 
+  const availableFairs = user?.role === EUserRole.ADMIN || user?.role === EUserRole.PARTNER
     ? (fairs || []) 
     : (fairs || []).filter((fair: any) => availableFairIds.length === 0 || availableFairIds.includes(fair.id));
 
@@ -122,11 +122,11 @@ export const MainLayout: React.FC = () => {
           <div className="flex items-center justify-between text-white">
             {/* Lado Esquerdo - Menu Button, Logo, Select, Data e Hora */}
             <div className="flex items-center gap-3">
-              {/* Menu Button */}
+              {/* Menu Button - Mobile e Desktop */}
               <button
-                onClick={() => setIsSidebarOpen(true)}
-                className="p-2 rounded-lg hover:bg-white/10 transition-colors lg:hidden"
-                aria-label="Abrir menu"
+                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+                aria-label={isSidebarOpen ? "Fechar menu" : "Abrir menu"}
               >
                 <Menu className="h-5 w-5" />
               </button>
@@ -210,15 +210,6 @@ export const MainLayout: React.FC = () => {
 
               {/* Controls */}
               <div className="flex items-center gap-2 flex-shrink-0">
-                {/* Desktop Menu Button */}
-                <button
-                  onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                  className="hidden lg:flex p-2 rounded-lg hover:bg-white/10 transition-colors"
-                  aria-label={isSidebarOpen ? "Fechar menu" : "Abrir menu"}
-                >
-                  <Menu className="h-4 w-4" />
-                </button>
-                
                 <ThemeToggle />
                 <RefreshCcw
                   onClick={() => window.location.reload()}

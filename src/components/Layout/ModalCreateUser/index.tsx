@@ -11,20 +11,30 @@ import { Button } from "@/components/ui/button";
 import { useUserService } from "@/service/user.service";
 import { useState } from "react";
 import { useFairs } from "@/hooks/useFairs";
+import { useAuth } from "@/hooks/useAuth";
 
 export const CreateUserModal = () => {
   const [open, onOpenChange] = useState(false);
   const { createUser, loading } = useUserService();
   const { data: fairs } = useFairs();
+  const { user } = useAuth();
+
+  const form = useForm({
+    resolver: zodResolver(createUserSchema),
+  });
+
+  // Verificar se o usuário é admin
+  const isAdmin = user?.role === EUserRole.ADMIN;
+
+  // Se não for admin, não renderiza o modal
+  if (!isAdmin) {
+    return null;
+  }
 
   const fairsOptions = (fairs || []).map((fair: any) => ({
     value: fair.id,
     label: fair.name,
   }));
-
-  const form = useForm({
-    resolver: zodResolver(createUserSchema),
-  });
 
   const handleSubmit = async (data: CreateUserInput) => {
     const response = await createUser(data);
