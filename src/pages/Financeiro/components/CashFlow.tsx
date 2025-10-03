@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { useFinanceService } from "@/service/finance.service";
 import { useExpensesService } from "@/service/expenses.service";
 import {
@@ -30,6 +30,7 @@ interface CashFlowData {
 
 export function CashFlow() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const fairId = searchParams.get("fairId") || "";
   
   const financeService = useFinanceService();
@@ -286,7 +287,7 @@ export function CashFlow() {
               onClick={() => {
                 const newSearchParams = new URLSearchParams(searchParams);
                 newSearchParams.set("tab", "receitas");
-                window.location.href = `?${newSearchParams.toString()}`;
+                navigate(`?${newSearchParams.toString()}`, { replace: true });
               }}
             >
               <DollarSign className="h-4 w-4" />
@@ -298,7 +299,7 @@ export function CashFlow() {
               onClick={() => {
                 const newSearchParams = new URLSearchParams(searchParams);
                 newSearchParams.set("tab", "despesas");
-                window.location.href = `?${newSearchParams.toString()}`;
+                navigate(`?${newSearchParams.toString()}`, { replace: true });
               }}
             >
               <CreditCard className="h-4 w-4" />
