@@ -16,7 +16,7 @@ export function AdminPartnerRouteGuard({ children }: AdminPartnerRouteGuardProps
 
   // Se o usuário não é admin nem partner, redireciona para dashboard
   if (user.role !== EUserRole.ADMIN && user.role !== EUserRole.PARTNER) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/" replace />;
   }
 
   // Se é admin ou partner, renderiza o conteúdo
