@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import { useFinanceService } from "@/service/finance.service";
@@ -65,9 +64,9 @@ export function CashFlow() {
 
   // Calcular dados do fluxo de caixa
   const cashFlowData: CashFlowData = {
-    totalReceitas: revenuesData?.data?.reduce((sum: number, revenue: any) => 
+    totalReceitas: revenuesData?.items?.reduce((sum: number, revenue: any) => 
       sum + (revenue.amount || 0), 0) || 0,
-    totalDespesas: totalExpenses?.total || 0,
+    totalDespesas: totalExpenses || 0,
     saldo: 0,
     receitasPorPeriodo: [],
     despesasPorPeriodo: []
@@ -76,7 +75,7 @@ export function CashFlow() {
   cashFlowData.saldo = cashFlowData.totalReceitas - cashFlowData.totalDespesas;
 
   // Agrupar receitas por mês
-  const receitasPorMes = revenuesData?.data?.reduce((acc: any, revenue: any) => {
+  const receitasPorMes = revenuesData?.items?.reduce((acc: any, revenue: any) => {
     const month = new Date(revenue.createdAt).toLocaleDateString('pt-BR', { 
       month: 'short', 
       year: 'numeric' 
