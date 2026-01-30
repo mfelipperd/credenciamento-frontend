@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useCreateWithdrawal, usePartnerFinancialSummary } from "@/hooks/useWithdrawals";
+import { useCreateWithdrawal } from "@/hooks/useWithdrawals";
+import { usePartnerFinancialSummary } from "@/hooks/usePartners";
 import { DollarSign, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -47,11 +48,7 @@ export const WithdrawalForm: React.FC<WithdrawalFormProps> = ({ partnerId, fairI
     try {
       await createWithdrawalMutation.mutateAsync({
         partnerId,
-        fairId,
-        data: {
-          ...data,
-          fairId,
-        },
+        data: data as any, // Type assertion needed due to optional fields mismatch
       });
       form.reset();
       onSuccess?.();

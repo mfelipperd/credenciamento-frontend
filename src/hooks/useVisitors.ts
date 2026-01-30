@@ -1,8 +1,24 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/query-keys";
 import { useAxio } from "@/hooks/useAxio";
-import { handleRequest } from "@/utils/handleRequest";
 import { toast } from "sonner";
-import type { Visitor, CheckinPerHourResponse, VisitorEdit } from "@/interfaces/visitors";
+import { AppEndpoints } from "@/constants/AppEndpoints";
+import type {
+  Visitor,
+  VisitorEdit,
+  CheckinPerHourResponse,
+} from "@/interfaces/visitors";
+
+// Interface para parâmetros de busca
+export interface VisitorsFilters {
+  fairId?: string;
+  search?: string;
+  searchField?: string;
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+}
 
 // Interface para resposta paginada
 interface PaginatedResponse<T> {
@@ -17,204 +33,164 @@ interface PaginatedResponse<T> {
   };
 }
 
-// Interface para parâmetros de busca
-interface VisitorsParams {
-  fairId?: string;
-  search?: string;
-  searchField?: string;
-  page?: number;
-  limit?: number;
-  sortBy?: string;
-  sortOrder?: "asc" | "desc";
-}
+// ===== QUERIES =====
 
-const VISITORS_BASE_URL = "/visitors";
-
-// Hook para buscar visitantes paginados
-export const useVisitorsPaginated = (params: VisitorsParams) => {
+// Hook para buscar visitantes
+export const useVisitors = (filters: VisitorsFilters) => {
   const api = useAxio();
-
+  
   return useQuery({
-    queryKey: ["visitors", "paginated", params],
+    queryKey: queryKeys.visitors.list(filters),
     queryFn: async () => {
-      try {
-        const queryParams: Record<string, string> = {};
+      const params: Record<string, string> = {};
 
-        // Só adiciona parâmetros que têm valores válidos
-        if (params.fairId?.trim()) queryParams.fairId = params.fairId.trim();
-        if (params.search?.trim()) queryParams.search = params.search.trim();
-        if (params.searchField?.trim() && params.searchField !== "all")
-          queryParams.searchField = params.searchField.trim();
-        if (typeof params.page === "number" && params.page > 0)
-          queryParams.page = params.page.toString();
-        if (typeof params.limit === "number" && params.limit > 0)
-          queryParams.limit = params.limit.toString();
-        if (params.sortBy?.trim()) queryParams.sortBy = params.sortBy.trim();
-        if (params.sortOrder?.trim())
-          queryParams.sortOrder = params.sortOrder.trim();
+      // Só adiciona parâmetros que têm valores válidos
+      if (filters.fairId?.trim()) params.fairId = filters.fairId.trim();
+      if (filters.search?.trim()) params.search = filters.search.trim();
+      if (filters.searchField?.trim() && filters.searchField !== "all")
+        params.searchField = filters.searchField.trim();
+      if (typeof filters.page === "number" && filters.page > 0)
+        params.page = filters.page.toString();
+      if (typeof filters.limit === "number" && filters.limit > 0)
+        params.limit = filters.limit.toString();
+      if (filters.sortBy?.trim()) params.sortBy = filters.sortBy.trim();
+      if (filters.sortOrder?.trim()) params.sortOrder = filters.sortOrder.trim();
 
-        const result = await handleRequest({
-          request: () =>
-            api.get<PaginatedResponse<Visitor>>(VISITORS_BASE_URL, {
-              params: queryParams,
-            }),
-        });
+      const response = await api.get(AppEndpoints.VISITORS.BASE, { params });
 
-        if (!result) {
-          return null;
-        }
-
-        // Verificar se o backend retorna formato paginado ou array direto
-        if (Array.isArray(result)) {
-          // Backend retorna array direto (formato atual)
-          return {
-            data: result,
-            meta: {
-              page: params.page || 1,
-              limit: params.limit || 50,
-              totalItems: result.length,
-              totalPages: 1,
-              hasNextPage: false,
-              hasPreviousPage: false,
-            },
-          };
-        } else {
-          // Backend retorna formato paginado
-          return result;
-        }
-      } catch (error) {
-        console.error("❌ useVisitorsPaginated - erro capturado:", error);
-        // Retorna dados vazios em caso de erro para evitar Promise rejeitada
+      // Backend retorna formato diferente baseado nos parâmetros:
+      // - Sem page/limit: Array<Visitor> (compatibilidade)
+      // - Com page/limit: PaginatedResponse<Visitor>
+      if (Array.isArray(response.data)) {
         return {
-          data: [],
+          data: response.data as Visitor[],
           meta: {
-            page: params.page || 1,
-            limit: params.limit || 50,
-            totalItems: 0,
+            page: filters.page || 1,
+            limit: filters.limit || 50,
+            totalItems: response.data.length,
             totalPages: 1,
             hasNextPage: false,
             hasPreviousPage: false,
           },
         };
       }
+
+      return response.data as PaginatedResponse<Visitor>;
     },
-    enabled: !!(params.fairId && params.fairId.trim()),
-    staleTime: 30000, // 30 segundos
-    retry: 1,
-    retryOnMount: false,
-    refetchOnWindowFocus: false,
+    enabled: !!filters.fairId,
   });
 };
 
-// Hook para buscar visitante por ID
-export const useVisitorById = (visitorId?: string, fairId?: string) => {
+// Hook para buscar detalhes de um visitante
+export const useVisitor = (visitorId: string, fairId?: string) => {
   const api = useAxio();
-
+  
   return useQuery({
-    queryKey: ["visitor", visitorId, fairId],
+    queryKey: queryKeys.visitors.detail(visitorId),
     queryFn: async () => {
-      if (!visitorId || !fairId) return null;
-
-      return handleRequest({
-        request: () =>
-          api.get<Visitor>(`${VISITORS_BASE_URL}/${visitorId}`, {
-            params: { fairId },
-          }),
+      const response = await api.get(AppEndpoints.VISITORS.BY_ID(visitorId), {
+        params: { fairId },
       });
+      return response.data as Visitor;
     },
-    enabled: !!(visitorId && fairId),
+    enabled: !!visitorId,
   });
 };
 
-// Hook para check-in de visitante
-export const useCheckinVisitor = () => {
+// Hook para buscar checkins por hora
+export const useCheckinPerHour = (fairId: string, filterDay?: string) => {
   const api = useAxio();
+  
+  return useQuery({
+    queryKey: queryKeys.visitors.checkinsByFair(fairId),
+    queryFn: async () => {
+      const response = await api.get(AppEndpoints.CHECKINS.TODAY, {
+        params: { fairId, filterDay },
+      });
+      return response.data as CheckinPerHourResponse;
+    },
+    enabled: !!fairId,
+    refetchInterval: 30000, // Atualiza a cada 30 segundos
+  });
+};
+
+// ===== MUTATIONS =====
+
+// Hook para fazer checkin de visitante
+export const useCheckinVisitor = () => {
   const queryClient = useQueryClient();
+  const api = useAxio();
 
   return useMutation({
     mutationFn: async ({ visitorId, fairId }: { visitorId: string; fairId: string }) => {
-      return handleRequest({
-        request: () =>
-          api.post("/checkins", { registrationCode: visitorId, fairId }),
-        successMessage: "Check-in realizado com sucesso!",
+      const response = await api.post(AppEndpoints.CHECKINS.BASE, {
+        registrationCode: visitorId,
+        fairId: fairId,
       });
+      return response.data;
     },
-    onSuccess: () => {
-      // Invalida queries relacionadas para atualizar os dados
-      queryClient.invalidateQueries({ queryKey: ["visitors"] });
-      queryClient.invalidateQueries({ queryKey: ["checkinPerHour"] });
+    onSuccess: (_, { fairId }) => {
+      // Invalida queries relacionadas
+      queryClient.invalidateQueries({ queryKey: queryKeys.visitors.lists() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.visitors.checkinsByFair(fairId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.checkinsPerHour(fairId) });
+      toast.success("Check-in realizado com sucesso!");
     },
-    onError: () => {
-      toast.error("Erro ao fazer check-in do visitante");
+    onError: (error: any) => {
+      toast.error("Erro ao realizar check-in: " + (error.response?.data?.message || error.message));
     },
-  });
-};
-
-// Hook para buscar check-ins por hora
-export const useCheckinPerHour = (fairId?: string, filterDay?: string) => {
-  const api = useAxio();
-
-  return useQuery({
-    queryKey: ["checkinPerHour", fairId, filterDay],
-    queryFn: async () => {
-      if (!fairId) return null;
-
-      return handleRequest({
-        request: () =>
-          api.get<CheckinPerHourResponse>("checkins/today", {
-            params: { fairId, filterDay },
-          }),
-      });
-    },
-    enabled: !!fairId,
-    staleTime: 60000, // 1 minuto
   });
 };
 
 // Hook para atualizar visitante
 export const useUpdateVisitor = () => {
-  const api = useAxio();
   const queryClient = useQueryClient();
+  const api = useAxio();
 
   return useMutation({
     mutationFn: async (visitor: Partial<VisitorEdit>) => {
-      return handleRequest({
-        request: () =>
-          api.patch<VisitorEdit>(`${VISITORS_BASE_URL}/${visitor.registrationCode}`, {
-            name: visitor.name,
-            fairIds: visitor.fairIds,
-          }),
-        successMessage: "Visitante atualizado com sucesso!",
-      });
+      const response = await api.patch(
+        AppEndpoints.VISITORS.BY_ID(visitor.registrationCode || ""),
+        {
+          name: visitor.name,
+          fairIds: visitor.fairIds,
+        }
+      );
+      return response.data as VisitorEdit;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["visitors"] });
+    onSuccess: (data) => {
+      // Invalida queries relacionadas
+      queryClient.invalidateQueries({ queryKey: queryKeys.visitors.lists() });
+      if (data.registrationCode) {
+        queryClient.invalidateQueries({ 
+          queryKey: queryKeys.visitors.detail(data.registrationCode) 
+        });
+      }
+      toast.success("Visitante atualizado com sucesso!");
     },
-    onError: (error) => {
-      console.error("Erro ao atualizar visitante:", error);
-      toast.error("Erro ao atualizar visitante");
+    onError: (error: any) => {
+      toast.error("Erro ao atualizar visitante: " + (error.response?.data?.message || error.message));
     },
   });
 };
 
 // Hook para deletar visitante
 export const useDeleteVisitor = () => {
-  const api = useAxio();
   const queryClient = useQueryClient();
+  const api = useAxio();
 
   return useMutation({
     mutationFn: async (visitorId: string) => {
-      return handleRequest({
-        request: () => api.delete(`${VISITORS_BASE_URL}/${visitorId}`),
-        successMessage: "Visitante excluído com sucesso!",
-      });
+      const response = await api.delete(AppEndpoints.VISITORS.BY_ID(visitorId));
+      return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["visitors"] });
+      // Invalida queries relacionadas
+      queryClient.invalidateQueries({ queryKey: queryKeys.visitors.lists() });
+      toast.success("Visitante removido com sucesso!");
     },
-    onError: (error) => {
-      console.error("Erro ao excluir visitante:", error);
-      toast.error("Erro ao excluir visitante");
+    onError: (error: any) => {
+      toast.error("Erro ao remover visitante: " + (error.response?.data?.message || error.message));
     },
   });
 };

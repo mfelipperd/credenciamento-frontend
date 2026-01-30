@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useDistributeProfit } from "@/hooks/useWithdrawals";
+import { useDistributeProfit } from "@/hooks/useFairPartners";
 import { useFairs } from "@/hooks/useFairs";
 import { AlertCircle, DollarSign, TrendingUp, Users } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
