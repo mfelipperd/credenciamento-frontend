@@ -1,11 +1,66 @@
 import { useRevenueStats } from "@/hooks/useFinance";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { DollarSign, Receipt, TrendingUp, BarChart3 } from "lucide-react";
+import { DollarSign, Receipt, TrendingUp } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 interface RevenueStatsProps {
   fairId: string;
   onTotalRevenueClick?: () => void;
+}
+
+interface StatCardProps {
+  title: string;
+  value: string | number;
+  icon: LucideIcon;
+  color: string;
+  onClick?: () => void;
+  subtitle?: string;
+}
+
+function StatCard({ title, value, icon: Icon, color, onClick, subtitle }: StatCardProps) {
+  return (
+    <div
+      className={`group relative overflow-hidden h-32 bg-white/5 backdrop-blur-xl border border-white/10 rounded-[32px] p-6 transition-all duration-500 hover:scale-[1.02] hover:bg-white/10 shadow-2xl ${
+        onClick ? "cursor-pointer" : ""
+      }`}
+      onClick={onClick}
+    >
+      {/* Background Glow */}
+      <div 
+        className="absolute -right-4 -top-4 w-24 h-24 blur-3xl opacity-20 transition-opacity group-hover:opacity-40"
+        style={{ backgroundColor: color }}
+      />
+
+      <div className="relative z-10 h-full flex flex-col justify-between">
+        <div className="flex items-center justify-between">
+          <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.2em]">
+            {title}
+          </p>
+          <div 
+            className="p-2 rounded-xl bg-white/5 text-white/60 group-hover:scale-110 transition-transform duration-500"
+            style={{ color: color }}
+          >
+            <Icon size={18} />
+          </div>
+        </div>
+
+        <div className="flex flex-col">
+          <div className="flex items-baseline gap-2">
+            <p className="text-white text-3xl font-black tracking-tighter">
+              {value}
+            </p>
+            <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+          </div>
+          {subtitle && (
+            <p className="text-white/40 text-[10px] font-medium mt-1">
+              {subtitle}
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export function RevenueStats({ fairId, onTotalRevenueClick }: RevenueStatsProps) {
@@ -41,64 +96,29 @@ export function RevenueStats({ fairId, onTotalRevenueClick }: RevenueStatsProps)
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      {/* Total de Receitas */}
-      <Card 
-        className={onTotalRevenueClick ? 'cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-[1.02] relative group' : ''}
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <StatCard
+        title="Total de Receitas"
+        value={formatCurrency(stats.totalValue)}
+        icon={DollarSign}
+        color="#22c55e"
         onClick={onTotalRevenueClick}
-      >
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-200">
-            Total de Receitas
-          </CardTitle>
-          <div className="flex items-center gap-2">
-            <DollarSign className="h-4 w-4 text-gray-600 dark:text-gray-300" />
-            {onTotalRevenueClick && (
-              <BarChart3 className="h-4 w-4 text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-            )}
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-            {formatCurrency(stats.totalValue)}
-          </div>
-          {onTotalRevenueClick && (
-            <div className="mt-2 text-xs text-blue-600 dark:text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity">
-              Clique para ver fluxo de caixa
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        subtitle={onTotalRevenueClick ? "Clique para ver fluxo de caixa" : undefined}
+      />
 
-      {/* Quantidade de Receitas */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-200">
-            Quantidade de Receitas
-          </CardTitle>
-          <Receipt className="h-4 w-4 text-gray-600 dark:text-gray-300" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-            {stats.totalRevenues}
-          </div>
-        </CardContent>
-      </Card>
+      <StatCard
+        title="Quantidade de Receitas"
+        value={stats.totalRevenues}
+        icon={Receipt}
+        color="#00aacd"
+      />
 
-      {/* Média por Receita */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-200">
-            Média por Receita
-          </CardTitle>
-          <TrendingUp className="h-4 w-4 text-gray-600 dark:text-gray-300" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-            {formatCurrency(stats.averagePerRevenue)}
-          </div>
-        </CardContent>
-      </Card>
+      <StatCard
+        title="Média por Receita"
+        value={formatCurrency(stats.averagePerRevenue)}
+        icon={TrendingUp}
+        color="#a855f7"
+      />
     </div>
   );
 }

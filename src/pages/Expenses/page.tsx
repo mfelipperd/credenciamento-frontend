@@ -83,7 +83,7 @@ export default function ExpensesPage() {
 
   // Mutation para deletar despesa
   const deleteExpenseMutation = useMutation({
-    mutationFn: (id: string) => expensesService.deleteExpense(id),
+    mutationFn: (id: string) => expensesService.deleteExpense(fairId!, id),
     onSuccess: () => {
       toast.success("Despesa removida com sucesso!");
       queryClient.invalidateQueries({ queryKey: ["expenses", fairId] });
@@ -107,7 +107,7 @@ export default function ExpensesPage() {
   };
 
   const handleUpdateExpense = (id: string, data: UpdateExpenseForm) => {
-    updateExpenseMutation.mutate({ id, data }, {
+    updateExpenseMutation.mutate({ id, data, fairId: fairId! }, {
       onSuccess: () => {
         setEditingExpense(null);
         setIsFormOpen(false);

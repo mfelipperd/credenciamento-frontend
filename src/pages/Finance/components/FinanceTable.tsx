@@ -36,17 +36,15 @@ function Badge({
   variant: string;
 }) {
   const variantClasses = {
-    secondary: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
-    warning:
-      "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
-    success:
-      "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
-    destructive: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
+    secondary: "bg-slate-500/10 text-slate-400 border border-slate-500/20",
+    warning: "bg-orange-500/10 text-orange-500 border border-orange-500/20",
+    success: "bg-green-500/10 text-green-500 border border-green-500/20",
+    destructive: "bg-pink-500/10 text-pink-500 border border-pink-500/20",
   };
 
   return (
     <span
-      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+      className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider backdrop-blur-md shadow-sm ${
         variantClasses[variant as keyof typeof variantClasses] ||
         variantClasses.secondary
       }`}
@@ -122,23 +120,24 @@ export function FinanceTable({
   const currentPage = filters.page || 1;
 
   return (
-    <div className="space-y-4 p-6">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-4">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+          <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Visão Geral</p>
+          <h3 className="text-xl font-black text-white tracking-tighter">
             Receitas
           </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            {data?.total || 0} receitas encontradas
+          <p className="text-xs text-white/40">
+            {data?.total || 0} registros encontrados
           </p>
         </div>
       </div>
 
       {/* Tabela */}
-      <div className="rounded-md border border-gray-200 dark:border-gray-700">
+      <div className="rounded-[32px] overflow-hidden border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl">
         <Table>
-          <TableHeader>
+          <TableHeader className="bg-white/5">
             <TableRow>
               <TableHead>Cliente</TableHead>
               <TableHead>Tipo</TableHead>
@@ -162,58 +161,58 @@ export function FinanceTable({
               revenues.map((revenue: RevenueListItem) => (
                 <TableRow
                   key={revenue.id}
-                  className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                  className="group cursor-pointer border-white/5 hover:bg-white/5 transition-all duration-300"
                   onClick={() => onViewDetail?.(revenue.id)}
                 >
-                                    <TableCell>
+                  <TableCell className="py-4">
                     <div>
-                      <div className="font-medium text-gray-900 dark:text-white">
+                      <div className="font-bold text-white tracking-tight">
                         {revenue.client?.name || "Cliente não informado"}
                       </div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">
+                      <div className="text-[10px] text-white/40 font-black uppercase tracking-wider">
                         Stand #{revenue.standNumber}
                       </div>
                     </div>
                   </TableCell>
 
-                  <TableCell>
+                  <TableCell className="py-4">
                     <div>
-                      <div className="font-medium text-gray-900 dark:text-white">
+                      <div className="font-bold text-white tracking-tight">
                         {revenue.entryModel?.name || "Modelo não informado"}
                       </div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">
+                      <div className="text-[10px] text-white/40 font-black uppercase tracking-wider">
                         {revenue.type}
                       </div>
                     </div>
                   </TableCell>
 
-                  <TableCell>
+                  <TableCell className="py-4">
                     <div>
-                      <div className="font-medium text-gray-900 dark:text-white">
+                      <div className="font-bold text-white tracking-tight">
                         {formatCurrency(revenue.contractValue)}
                       </div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">
+                      <div className="text-[10px] text-white/40 font-black uppercase tracking-wider">
                         {revenue.paymentMethod}
                       </div>
                       {/* Mostrar status e data em mobile */}
                       <div className="flex gap-2 mt-1 lg:hidden">
                         {getStatusBadge(revenue.status)}
-                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                        <span className="text-xs text-white/40">
                           {dayjs(revenue.createdAt).format("DD/MM/YY")}
                         </span>
                       </div>
                     </div>
                   </TableCell>
 
-                  <TableCell className="hidden lg:table-cell">{getStatusBadge(revenue.status)}</TableCell>
+                  <TableCell className="hidden lg:table-cell py-4">{getStatusBadge(revenue.status)}</TableCell>
 
-                  <TableCell className="hidden lg:table-cell">
-                    <div className="text-sm text-gray-900 dark:text-white">
+                  <TableCell className="hidden lg:table-cell py-4">
+                    <div className="text-sm text-white/60">
                       {dayjs(revenue.createdAt).format("DD/MM/YYYY")}
                     </div>
                   </TableCell>
 
-                  <TableCell className="hidden xl:table-cell">
+                  <TableCell className="hidden xl:table-cell py-4">
                     {(() => {
                       // Buscar a próxima parcela não paga
                       const nextInstallment = revenue.installments?.find(
@@ -223,23 +222,24 @@ export function FinanceTable({
                       );
 
                       return nextInstallment ? (
-                        <div className="text-sm text-gray-900 dark:text-white">
+                        <div className="text-sm text-white font-bold">
                           {dayjs(nextInstallment.dueDate).format("DD/MM/YYYY")}
                         </div>
                       ) : (
-                        <span className="text-sm text-gray-500 dark:text-gray-400">
+                        <span className="text-sm text-white/20">
                           -
                         </span>
                       );
                     })()}
                   </TableCell>
 
-                  <TableCell className="text-right">
+                  <TableCell className="text-right py-4">
                     <div className="flex items-center justify-end space-x-2">
                       {onViewDetail && (
                         <Button
                           variant="ghost"
-                          size="sm"
+                          size="icon"
+                          className="h-8 w-8 text-white/40 hover:text-white hover:bg-white/10 rounded-full transition-all"
                           onClick={(e) => {
                             e.stopPropagation();
                             onViewDetail(revenue.id);
@@ -251,13 +251,13 @@ export function FinanceTable({
                       {onDeleteRevenue && (
                         <Button
                           variant="ghost"
-                          size="sm"
+                          size="icon"
                           onClick={(e) => {
                             e.stopPropagation();
                             onDeleteRevenue(revenue.id);
                           }}
                           disabled={isDeletingRevenue}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20 disabled:opacity-50"
+                          className="h-8 w-8 text-white/40 hover:text-red-500 hover:bg-red-500/10 rounded-full transition-all disabled:opacity-50"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>

@@ -13,7 +13,6 @@ import {
 import {
   Sheet,
   SheetContent,
-  SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -26,11 +25,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card } from "@/components/ui/card";
 import { ControlledInput } from "@/components/ControlledInput";
 import { ControlledSelect } from "@/components/ControlledSelect";
 import { StandSelector } from "@/components/StandSelector";
-import { X, Search, Plus, Upload, Trash2, AlertTriangle } from "lucide-react";
+import { X, Search, Plus, AlertTriangle, DollarSign, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { maskCurrencyBRL } from "@/utils/masks";
 
@@ -77,19 +75,13 @@ const createClientSchema = z.object({
 type RevenueFormData = z.infer<typeof revenueSchema>;
 type CreateClientData = z.infer<typeof createClientSchema>;
 
-interface AttachedFile {
-  file: File;
-  name: string;
-  size: number;
-  type: string;
-  preview?: string;
-}
 
 export function ReceitaDrawer({
   isOpen,
   onClose,
   fairId,
   prefilledStandNumber,
+  revenueId,
 }: ReceitaDrawerProps) {
   const [clientSearch, setClientSearch] = useState("");
   const [selectedClient, setSelectedClient] = useState<{
@@ -107,7 +99,6 @@ export function ReceitaDrawer({
     type: string;
   } | null>(null);
   const [showCreateClient, setShowCreateClient] = useState(false);
-  const [attachedFile, setAttachedFile] = useState<AttachedFile | null>(null);
   const [showStandConfirmation, setShowStandConfirmation] = useState(false);
 
   const { user } = useAuth();
@@ -190,7 +181,6 @@ export function ReceitaDrawer({
       setSelectedEntryModel(null);
       setClientSearch("");
       setShowCreateClient(false);
-      setAttachedFile(null);
       resetClient();
     }
   }, [isOpen]);
@@ -260,7 +250,7 @@ export function ReceitaDrawer({
     return (
       <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
         <SheetContent className="w-full max-w-4xl min-w-160 overflow-y-auto p-6">
-          <SheetHeader className="border-b border-gray-200/30 dark:border-gray-700/30 pb-4 mb-6">
+          <div className="border-b border-gray-200/30 dark:border-gray-700/30 pb-4 mb-6">
             <div className="flex items-center justify-between">
               <SheetTitle className="text-xl font-semibold text-gray-900 dark:text-white">
                 Erro
@@ -269,7 +259,7 @@ export function ReceitaDrawer({
                 <X className="w-4 h-4 text-gray-600 dark:text-white" />
               </Button>
             </div>
-          </SheetHeader>
+          </div>
           <div className="p-6 text-center">
             <p className="text-lg text-red-600 dark:text-red-400 mb-4">
               É necessário selecionar uma feira para criar uma receita.
@@ -359,31 +349,6 @@ export function ReceitaDrawer({
     }
   };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    // Validações do arquivo
-    const maxSize = 10 * 1024 * 1024; // 10MB
-    const allowedTypes = ["application/pdf", "image/jpeg", "image/jpg"];
-
-    if (file.size > maxSize) {
-      toast.error("Arquivo muito grande. Máximo 10MB.");
-      return;
-    }
-
-    if (!allowedTypes.includes(file.type)) {
-      toast.error("Tipo de arquivo não permitido. Use PDF ou JPG.");
-      return;
-    }
-
-    setAttachedFile({
-      file,
-      name: file.name,
-      size: file.size,
-      type: file.type,
-    });
-  };
 
   const handleCreateClient = (data: CreateClientData) => {
     if (!fairId) {
@@ -594,7 +559,6 @@ export function ReceitaDrawer({
         setSelectedClient(null);
         setSelectedStand(null);
         setSelectedEntryModel(null);
-        setAttachedFile(null);
         // As queries serão invalidadas automaticamente pelo hook centralizado
       },
       onError: (error: any) => {
@@ -608,26 +572,51 @@ export function ReceitaDrawer({
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent className="w-full max-w-4xl min-w-160 overflow-y-auto p-6">
-        <SheetHeader className="border-b border-gray-200/30 dark:border-gray-700/30 pb-4 mb-6">
-          <div className="flex items-center justify-between">
-            <SheetTitle className="text-xl font-semibold text-gray-900 dark:text-white">
-              Nova Receita
-            </SheetTitle>
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              <X className="w-4 h-4 text-gray-600 dark:text-white" />
+      <SheetContent className="w-full max-w-4xl min-w-160 overflow-y-auto p-0 border-none bg-white dark:bg-slate-950">
+        <div className="relative h-40 w-full flex items-end p-8 bg-linear-to-br from-[#00aacd] to-[#EB2970] overflow-hidden">
+          {/* Decorative elements */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3 blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/4 blur-2xl" />
+          
+          <div className="relative z-10 w-full flex items-center justify-between">
+            <div>
+              <p className="text-white/60 text-[10px] font-black uppercase tracking-[0.2em] mb-1">
+                Gestão Financeira
+              </p>
+              <SheetTitle className="text-3xl font-black text-white tracking-tighter">
+                {revenueId ? "Editar Receita" : "Nova Receita"}
+              </SheetTitle>
+            </div>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={onClose}
+              className="text-white/60 hover:text-white hover:bg-white/10 rounded-full h-12 w-12 transition-all duration-300"
+            >
+              <X className="w-8 h-8" />
             </Button>
           </div>
-        </SheetHeader>
+        </div>
+
+        <div className="p-8">
 
         <form
           onSubmit={handleSubmit(onSubmit, (errors) => {
             console.log("=== ERROS DE VALIDAÇÃO ===");
             console.log("Erros:", errors);
           })}
-          className="space-y-6"
+          className="space-y-8"
         >
-          {/* Cliente */}
+          {/* Sessão 1: Cliente */}
+          <div className="bg-slate-50 dark:bg-white/5 rounded-3xl p-6 border border-slate-100 dark:border-white/10 space-y-6">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 rounded-xl bg-[#00aacd]/10 text-[#00aacd]">
+                <Search className="w-5 h-5" />
+              </div>
+              <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">
+                Identificação do Cliente
+              </h3>
+            </div>
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <Label className="text-base font-medium text-gray-900 dark:text-gray-100">
@@ -704,21 +693,21 @@ export function ReceitaDrawer({
 
             {/* Mini form criar cliente */}
             {showCreateClient && (
-              <Card className="p-4 bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
-                <h4 className="font-medium mb-3 text-gray-900 dark:text-gray-100">
-                  Criar novo cliente
+              <div className="p-4 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl shadow-sm">
+                <h4 className="font-bold mb-3 text-slate-900 dark:text-white text-sm">
+                  Novo Cadastro
                 </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <ControlledInput
                     control={controlClient}
                     name="name"
                     label="Nome *"
-                    placeholder="Nome do cliente"
+                    placeholder="Nome completo ou Razão Social"
                   />
                   <ControlledInput
                     control={controlClient}
                     name="cnpj"
-                    label="CNPJ"
+                    label="CNPJ / CPF"
                     placeholder="00.000.000/0000-00"
                   />
                   <ControlledInput
@@ -726,306 +715,282 @@ export function ReceitaDrawer({
                     name="email"
                     label="Email"
                     type="email"
-                    placeholder="email@exemplo.com"
+                    placeholder="exemplo@empresa.com"
                   />
                   <ControlledInput
                     control={controlClient}
                     name="phone"
                     label="Telefone"
-                    placeholder="(11) 99999-9999"
+                    placeholder="(00) 00000-0000"
                   />
                 </div>
-                <div className="flex gap-2 mt-3">
+                <div className="flex gap-2 mt-4 justify-end">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowCreateClient(false)}
+                    className="text-slate-500"
+                  >
+                    Cancelar
+                  </Button>
                   <Button
                     type="button"
                     size="sm"
                     onClick={handleSubmitClient(handleCreateClient)}
                     disabled={createClientMutation.isPending}
+                    className="bg-[#00aacd] hover:bg-[#00aacd]/90 text-white font-bold rounded-lg px-4"
                   >
                     {createClientMutation.isPending
                       ? "Salvando..."
-                      : "Salvar Cliente"}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowCreateClient(false)}
-                  >
-                    Cancelar
+                      : "Confirmar"}
                   </Button>
                 </div>
-              </Card>
+              </div>
             )}
           </div>
+          </div>
 
-          {/* Seletor de Stand */}
-          {fairId && (
-            <div className="space-y-2">
-              <StandSelector
-                fairId={fairId}
-                value={standNumber || selectedStand?.standNumber}
-                onChange={handleStandSelect}
-                error={errors.standNumber?.message}
-              />
+          {/* Sessão 2: Stand */}
+          <div className="bg-slate-50 dark:bg-white/5 rounded-3xl p-6 border border-slate-100 dark:border-white/10 space-y-6">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 rounded-xl bg-[#F39B0C]/10 text-[#F39B0C]">
+                <Plus className="w-5 h-5" />
+              </div>
+              <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">
+                Configuração do Stand
+              </h3>
             </div>
-          )}
 
-          {/* Modelo */}
-          <div className="space-y-2">
-            <Label className="text-base font-medium text-gray-900 dark:text-gray-100">
-              Tipo / Modelo (Stand/Patrocínio) *
-            </Label>
-            <Select onValueChange={handleEntryModelSelect}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o stand ou patrocínio" />
-              </SelectTrigger>
-              <SelectContent>
-                {entryModels.map((model: any) => (
-                  <SelectItem key={model.id} value={model.id}>
-                    {model.name} — {formatCurrency(model.baseValue)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.entryModelId && (
-              <span className="text-sm text-red-500 dark:text-red-400">
-                {errors.entryModelId.message}
-              </span>
-            )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {fairId && (
+                <div className="space-y-2">
+                  <StandSelector
+                    fairId={fairId}
+                    value={standNumber || selectedStand?.standNumber}
+                    onChange={handleStandSelect}
+                    error={errors.standNumber?.message}
+                  />
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label className="text-sm font-bold text-slate-900 dark:text-white">
+                  Modelo / Patrocínio *
+                </Label>
+                <Select onValueChange={handleEntryModelSelect}>
+                  <SelectTrigger className="h-11 rounded-xl border-slate-200 dark:border-white/10 dark:bg-slate-900">
+                    <SelectValue placeholder="Selecione o tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {entryModels.map((model: any) => (
+                      <SelectItem key={model.id} value={model.id}>
+                        {model.name} — {formatCurrency(model.baseValue)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.entryModelId && (
+                  <span className="text-xs text-red-500 font-medium">
+                    {errors.entryModelId.message}
+                  </span>
+                )}
+              </div>
+            </div>
           </div>
 
-          {/* Grid de valores */}
-          {selectedEntryModel && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Valor base */}
-              <div className="space-y-2">
+          {/* Sessão 3: Valores */}
+          <div className="bg-slate-50 dark:bg-white/5 rounded-3xl p-6 border border-slate-100 dark:border-white/10 space-y-6">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 rounded-xl bg-[#22c55e]/10 text-[#22c55e]">
+                <DollarSign className="w-5 h-5" />
+              </div>
+              <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">
+                Valores e Pagamento
+              </h3>
+            </div>
+
+            {selectedEntryModel && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <ControlledInput
                   control={control}
                   name="baseValueCents"
-                  label="Valor Base (R$)"
+                  label="Valor Base"
                   placeholder="0,00"
                   mask={maskCurrencyBRL}
                   disabled
                 />
-              </div>
-
-              {/* Desconto */}
-              <div className="space-y-2">
-                <ControlledInput
-                  control={control}
-                  name="discountCents"
-                  label="Desconto (R$)"
-                  placeholder="0,00"
-                  mask={maskCurrencyBRL}
-                  disabled
-                />
-                <p className="text-xs text-gray-600 dark:text-gray-400">
-                  Calculado automaticamente
-                </p>
-              </div>
-
-              {/* Valor do contrato */}
-              <div className="space-y-2">
+                <div className="relative">
+                  <ControlledInput
+                    control={control}
+                    name="discountCents"
+                    label="Desconto"
+                    placeholder="0,00"
+                    mask={maskCurrencyBRL}
+                    disabled
+                  />
+                  <p className="text-[10px] text-[#EB2970] font-bold mt-1 uppercase tracking-wider">
+                    Automático
+                  </p>
+                </div>
                 <ControlledInput
                   control={control}
                   name="contractValueCents"
-                  label="Valor do Contrato (R$)"
+                  label="Valor Final *"
                   placeholder="0,00"
                   mask={maskCurrencyBRL}
                 />
               </div>
-            </div>
-          )}
-
-          {/* Método de Pagamento e Parcelas */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Método de Pagamento */}
-            <div className="space-y-2">
-              <ControlledSelect
-                control={control}
-                name="paymentMethod"
-                label="Método de Pagamento *"
-                placeholder="Selecione"
-                options={[
-                  { value: "PIX", label: "PIX" },
-                  { value: "BOLETO", label: "Boleto" },
-                  { value: "CARTAO", label: "Cartão" },
-                  { value: "TED", label: "TED" },
-                  { value: "DINHEIRO", label: "Dinheiro" },
-                  { value: "TRANSFERENCIA", label: "Transferência" },
-                ]}
-              />
-              {errors.paymentMethod && (
-                <span className="text-sm text-red-500 dark:text-red-400">
-                  {errors.paymentMethod.message}
-                </span>
-              )}
-            </div>
-
-            {/* Parcelas */}
-            <div className="space-y-2">
-              <ControlledSelect
-                control={control}
-                name="installmentsCount"
-                label="Parcelas"
-                placeholder="Selecione"
-                options={[
-                  { value: "1", label: "1 (à vista)" },
-                  { value: "2", label: "2 parcelas" },
-                  { value: "3", label: "3 parcelas" },
-                  { value: "4", label: "4 parcelas" },
-                  { value: "6", label: "6 parcelas" },
-                  { value: "12", label: "12 parcelas" },
-                ]}
-              />
-              {errors.installmentsCount && (
-                <span className="text-sm text-red-500 dark:text-red-400">
-                  {errors.installmentsCount.message}
-                </span>
-              )}
-
-              {/* Prévia das parcelas */}
-              {parseInt(installmentsCount || "1") > 1 && selectedEntryModel && (
-                <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded">
-                  <div className="text-sm text-yellow-800 dark:text-yellow-200">
-                    <strong>Prévia:</strong> {installmentsCount}x de{" "}
-                    {formatCurrency(
-                      Math.floor(
-                        calculateContractValue() /
-                          parseInt(installmentsCount || "1")
-                      )
-                    )}
-                    {calculateContractValue() %
-                      parseInt(installmentsCount || "1") >
-                      0 &&
-                      ` (última: ${formatCurrency(
-                        Math.floor(
-                          calculateContractValue() /
-                            parseInt(installmentsCount || "1")
-                        ) +
-                          (calculateContractValue() %
-                            parseInt(installmentsCount || "1"))
-                      )})`}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Comprovante */}
-          <div className="space-y-2">
-            <Label className="text-base font-medium text-gray-900 dark:text-gray-100">
-              Anexar Comprovante (opcional)
-            </Label>
-            {!attachedFile ? (
-              <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
-                <input
-                  type="file"
-                  accept=".pdf,.jpg,.jpeg"
-                  onChange={handleFileUpload}
-                  className="hidden"
-                  id="file-upload"
+            )}
+            {/* Método de Pagamento e Parcelas */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+              <div className="space-y-2">
+                <ControlledSelect
+                  control={control}
+                  name="paymentMethod"
+                  label="Método de Pagamento *"
+                  placeholder="Selecione"
+                  options={[
+                    { value: "PIX", label: "PIX" },
+                    { value: "BOLETO", label: "Boleto" },
+                    { value: "CARTAO", label: "Cartão" },
+                    { value: "TED", label: "TED" },
+                    { value: "DINHEIRO", label: "Dinheiro" },
+                    { value: "TRANSFERENCIA", label: "Transferência" },
+                  ]}
                 />
-                <label htmlFor="file-upload" className="cursor-pointer">
-                  <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400 dark:text-gray-300" />
-                  <p className="text-sm text-gray-600 dark:text-gray-300">
-                    Clique para anexar PDF ou JPG (máx. 10MB)
-                  </p>
-                </label>
+                {errors.paymentMethod && (
+                  <span className="text-xs text-red-500 font-medium">
+                    {errors.paymentMethod.message}
+                  </span>
+                )}
               </div>
-            ) : (
-              <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded">
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-green-800 dark:text-green-200">
-                    {attachedFile.name}
-                  </p>
-                  <p className="text-xs text-green-600 dark:text-green-300">
-                    {(attachedFile.size / 1024 / 1024).toFixed(2)} MB
-                  </p>
+
+              <div className="space-y-2">
+                <ControlledSelect
+                  control={control}
+                  name="installmentsCount"
+                  label="Parcelas"
+                  placeholder="Selecione"
+                  options={[
+                    { value: "1", label: "1 (à vista)" },
+                    { value: "2", label: "2 parcelas" },
+                    { value: "3", label: "3 parcelas" },
+                    { value: "4", label: "4 parcelas" },
+                    { value: "5", label: "5 parcelas" },
+                    { value: "6", label: "6 parcelas" },
+                    { value: "7", label: "7 parcelas" },
+                    { value: "8", label: "8 parcelas" },
+                    { value: "9", label: "9 parcelas" },
+                    { value: "10", label: "10 parcelas" },
+                    { value: "11", label: "11 parcelas" },
+                    { value: "12", label: "12 parcelas" },
+                  ]}
+                />
+                {errors.installmentsCount && (
+                  <span className="text-xs text-red-500 font-medium">
+                    {errors.installmentsCount.message}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Prévia das parcelas */}
+            {parseInt(installmentsCount || "1") > 1 && selectedEntryModel && (
+              <div className="p-4 bg-[#F39B0C]/5 border border-[#F39B0C]/20 rounded-2xl">
+                <div className="flex items-center gap-2 text-[#F39B0C] font-bold text-sm">
+                  <AlertTriangle className="w-4 h-4" />
+                  <span>Resumo das Parcelas: {installmentsCount}x de {formatCurrency(Math.floor(calculateContractValue() / parseInt(installmentsCount || "1")))}</span>
                 </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setAttachedFile(null)}
-                >
-                  <Trash2 className="w-4 h-4 text-gray-600 dark:text-gray-300" />
-                </Button>
               </div>
             )}
           </div>
 
-          {/* Observações */}
-          <div className="space-y-2">
-            <Label className="text-base font-medium text-gray-900 dark:text-gray-100">
-              Observações (opcional)
-            </Label>
-            <textarea
-              {...register("notes")}
-              placeholder="Observações sobre a receita..."
-              rows={3}
-              className="w-full p-3 border border-gray-200 dark:border-gray-600 rounded resize-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
+          {/* Sessão 4: Informações Adicionais */}
+          <div className="bg-slate-50 dark:bg-white/5 rounded-3xl p-6 border border-slate-100 dark:border-white/10 space-y-6">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 rounded-xl bg-slate-400/10 text-slate-400">
+                <FileText className="w-5 h-5" />
+              </div>
+              <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">
+                Informações Adicionais
+              </h3>
+            </div>
+
+
+            {/* Observações */}
+            <div className="space-y-3">
+              <Label className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                Observações
+              </Label>
+              <textarea
+                {...register("notes")}
+                placeholder="Detalhes adicionais..."
+                rows={4}
+                className="w-full p-4 border border-slate-200 dark:border-white/10 rounded-2xl resize-none bg-white dark:bg-slate-900 text-sm focus:ring-2 focus:ring-[#00aacd]/20 transition-all outline-none"
+              />
+            </div>
           </div>
 
           {/* Ações */}
-          <div className="flex gap-3 justify-end pt-6 border-t border-gray-200/30 dark:border-gray-700/30">
+          <div className="flex gap-3 justify-end pt-8">
             <Button
               type="button"
               variant="outline"
               onClick={onClose}
               disabled={createRevenueMutation.isPending}
+              className="rounded-xl font-bold h-12 px-8 border-slate-200 dark:border-white/10"
             >
               Cancelar
             </Button>
             <Button
               type="submit"
-              className="bg-blue-600 hover:bg-blue-700"
-              disabled={!selectedClient || !selectedEntryModel}
+              disabled={!selectedClient || !selectedEntryModel || createRevenueMutation.isPending}
+              className="bg-linear-to-br from-[#00aacd] to-[#EB2970] text-white rounded-xl h-12 px-10 font-black uppercase tracking-widest shadow-xl shadow-pink-500/20 hover:scale-[1.02] transform transition-all active:scale-95 disabled:opacity-50"
             >
               {createRevenueMutation.isPending
-                ? "Salvando..."
-                : "Salvar Receita"}
+                ? "Processando..."
+                : "Confirmar Cadastro"}
             </Button>
           </div>
         </form>
 
         {/* Modal de confirmação para cadastro sem stand */}
         {showStandConfirmation && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md mx-4">
-              <div className="flex items-center gap-3 mb-4">
-                <AlertTriangle className="w-6 h-6 text-yellow-500" />
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Confirmar cadastro sem stand
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-slate-900 rounded-[32px] p-8 max-w-md mx-4 border border-slate-200 dark:border-white/10 shadow-2xl animate-in zoom-in-95 duration-200">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="p-3 bg-yellow-500/10 rounded-2xl">
+                  <AlertTriangle className="w-8 h-8 text-yellow-500" />
+                </div>
+                <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tighter">
+                  Confirmar Patrocínio
                 </h3>
               </div>
 
-              <p className="text-gray-600 dark:text-gray-300 mb-6">
-                Você está tentando cadastrar uma receita sem selecionar um
-                stand. Isso indica que é um patrocínio ou serviço que não requer
-                localização física.
-              </p>
-
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-                <strong>Confirma que é um patrocínio?</strong>
+              <p className="text-slate-600 dark:text-slate-400 mb-8 leading-relaxed">
+                Você está cadastrando uma receita sem stand físico. Isso será tratado como um <strong>serviço ou patrocínio</strong>. Confirmar?
               </p>
 
               <div className="flex gap-3 justify-end">
-                <Button variant="outline" onClick={handleCancelWithoutStand}>
-                  Cancelar
+                <Button 
+                  variant="outline" 
+                  onClick={handleCancelWithoutStand}
+                  className="rounded-xl font-bold h-12 px-6 border-slate-200 dark:border-white/10"
+                >
+                  Voltar
                 </Button>
                 <Button
                   onClick={handleConfirmWithoutStand}
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className="bg-[#00aacd] hover:bg-[#00aacd]/90 text-white rounded-xl h-12 px-6 font-bold transition-all"
                 >
-                  Sim, é um patrocínio
+                  Sim, Confirmar
                 </Button>
               </div>
             </div>
           </div>
         )}
+        </div>
       </SheetContent>
     </Sheet>
   );

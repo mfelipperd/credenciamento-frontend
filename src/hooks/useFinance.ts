@@ -10,6 +10,8 @@ import type {
   RevenueStats,
 } from "@/interfaces/finance";
 
+import { AppEndpoints } from "@/constants/AppEndpoints";
+
 // Hook para buscar estatísticas de receitas
 export const useRevenueStats = (fairId: string) => {
   const api = useAxio();
@@ -17,7 +19,7 @@ export const useRevenueStats = (fairId: string) => {
   return useQuery({
     queryKey: ["finance", "revenue-stats", fairId],
     queryFn: async () => {
-      const response = await api.get(`/finance/revenues/stats/${fairId}`);
+      const response = await api.get(AppEndpoints.FINANCE.REVENUE_STATS(fairId));
       return response.data as RevenueStats;
     },
     enabled: !!fairId,
@@ -44,7 +46,7 @@ export const useRevenues = (filters: RevenueFilters) => {
       if (filters.to) params.append("to", filters.to);
       if (filters.dateField) params.append("dateField", filters.dateField);
 
-      const url = `/finance/revenues?${params.toString()}`;
+      const url = `${AppEndpoints.FINANCE.REVENUES}?${params.toString()}`;
       
       const response = await api.get(url);
       
@@ -73,7 +75,7 @@ export const useRevenueDetail = (id: string, fairId: string) => {
   return useQuery({
     queryKey: ["finance", "revenues", "detail", id],
     queryFn: async () => {
-      const response = await api.get(`/finance/revenues/${id}`);
+      const response = await api.get(AppEndpoints.FINANCE.REVENUE_BY_ID(id));
       return response.data;
     },
     enabled: !!id && !!fairId,
@@ -92,7 +94,7 @@ export const useFinanceKpis = (fairId: string, from?: string, to?: string) => {
       if (to) params.append("to", to);
       
       const queryString = params.toString() ? `?${params.toString()}` : "";
-      const response = await api.get(`/finance/kpis${queryString}`);
+      const response = await api.get(`${AppEndpoints.FINANCE.REVENUE_KPIS}${queryString}`);
       return response.data;
     },
     enabled: !!fairId,
@@ -111,7 +113,7 @@ export const useTopEmpresas = (fairId: string, from?: string, to?: string) => {
       if (to) params.append("to", to);
       
       const queryString = params.toString() ? `?${params.toString()}` : "";
-      const response = await api.get(`/finance/top-empresas${queryString}`);
+      const response = await api.get(`${AppEndpoints.FINANCE.REVENUE_TOP_COMPANIES}${queryString}`);
       return response.data;
     },
     enabled: !!fairId,
@@ -130,7 +132,7 @@ export const useEntryModels = (fairId?: string, type?: EntryModelType) => {
       if (type) params.append("type", type);
 
       const queryString = params.toString() ? `?${params.toString()}` : "";
-      const response = await api.get(`/finance/entry-models${queryString}`);
+      const response = await api.get(`${AppEndpoints.FINANCE.ENTRY_MODELS}${queryString}`);
       return response.data;
     },
   });
@@ -143,7 +145,7 @@ export const useEntryModel = (id: string) => {
   return useQuery({
     queryKey: ["finance", "entry-models", "detail", id],
     queryFn: async () => {
-      const response = await api.get(`/finance/entry-models/${id}`);
+      const response = await api.get(AppEndpoints.FINANCE.ENTRY_MODEL_BY_ID(id));
       return response.data;
     },
     enabled: !!id,
@@ -161,7 +163,7 @@ export const useClients = (q?: string) => {
       if (q) params.append("q", q);
 
       const queryString = params.toString() ? `?${params.toString()}` : "";
-      const response = await api.get(`/finance/clients${queryString}`);
+      const response = await api.get(`${AppEndpoints.FINANCE.CLIENTS}${queryString}`);
       return response.data;
     },
   });
@@ -174,7 +176,7 @@ export const useClient = (id: string) => {
   return useQuery({
     queryKey: ["finance", "clients", "detail", id],
     queryFn: async () => {
-      const response = await api.get(`/finance/clients/${id}`);
+      const response = await api.get(AppEndpoints.FINANCE.CLIENT_BY_ID(id));
       return response.data;
     },
     enabled: !!id,
@@ -188,7 +190,7 @@ export const useCreateRevenue = () => {
 
   return useMutation({
     mutationFn: async (data: CreateRevenueForm) => {
-      const response = await api.post(`/finance/revenues`, data);
+      const response = await api.post(AppEndpoints.FINANCE.REVENUES, data);
       return response.data;
     },
     onSuccess: () => {
@@ -197,6 +199,7 @@ export const useCreateRevenue = () => {
       queryClient.invalidateQueries({ queryKey: ["finance", "kpis"] });
       queryClient.invalidateQueries({ queryKey: ["finance", "top-empresas"] });
       queryClient.invalidateQueries({ queryKey: ["finance", "revenue-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["stand-stats"] }); // Atualiza estatísticas de stands
       toast.success("Receita criada com sucesso!");
     },
     onError: (error) => {
@@ -211,7 +214,7 @@ export const useUpdateRevenue = () => {
 
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<CreateRevenueForm> }) => {
-      const response = await api.patch(`/finance/revenues/${id}`, data);
+      const response = await api.patch(AppEndpoints.FINANCE.REVENUE_BY_ID(id), data);
       return response.data;
     },
     onSuccess: () => {
@@ -220,6 +223,7 @@ export const useUpdateRevenue = () => {
       queryClient.invalidateQueries({ queryKey: ["finance", "kpis"] });
       queryClient.invalidateQueries({ queryKey: ["finance", "top-empresas"] });
       queryClient.invalidateQueries({ queryKey: ["finance", "revenue-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["stand-stats"] }); // Atualiza estatísticas de stands
       toast.success("Receita atualizada com sucesso!");
     },
     onError: (error) => {
@@ -234,7 +238,7 @@ export const useDeleteRevenue = () => {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      await api.delete(`/finance/revenues/${id}`);
+      await api.delete(AppEndpoints.FINANCE.REVENUE_BY_ID(id));
     },
     onSuccess: () => {
       // Invalida queries relacionadas
@@ -256,7 +260,7 @@ export const useCreateEntryModel = () => {
 
   return useMutation({
     mutationFn: async (data: Omit<EntryModel, "id" | "createdAt" | "updatedAt">) => {
-      const response = await api.post(`/finance/entry-models`, data);
+      const response = await api.post(AppEndpoints.FINANCE.ENTRY_MODELS, data);
       return response.data;
     },
     onSuccess: () => {
@@ -276,7 +280,7 @@ export const useUpdateEntryModel = () => {
 
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<Omit<EntryModel, "id" | "createdAt" | "updatedAt">> }) => {
-      const response = await api.patch(`/finance/entry-models/${id}`, data);
+      const response = await api.patch(AppEndpoints.FINANCE.ENTRY_MODEL_BY_ID(id), data);
       return response.data;
     },
     onSuccess: () => {
@@ -296,7 +300,7 @@ export const useDeleteEntryModel = () => {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      await api.delete(`/finance/entry-models/${id}`);
+      await api.delete(AppEndpoints.FINANCE.ENTRY_MODEL_BY_ID(id));
     },
     onSuccess: () => {
       // Invalida queries de entry models
@@ -315,7 +319,7 @@ export const useCreateClient = () => {
 
   return useMutation({
     mutationFn: async (data: CreateClientForm) => {
-      const response = await api.post(`/finance/clients`, data);
+      const response = await api.post(AppEndpoints.FINANCE.CLIENTS, data);
       return response.data;
     },
     onSuccess: () => {
@@ -335,7 +339,7 @@ export const useUpdateClient = () => {
 
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<CreateClientForm> }) => {
-      const response = await api.patch(`/finance/clients/${id}`, data);
+      const response = await api.patch(AppEndpoints.FINANCE.CLIENT_BY_ID(id), data);
       return response.data;
     },
     onSuccess: () => {
@@ -355,7 +359,7 @@ export const useDeleteClient = () => {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      await api.delete(`/finance/clients/${id}`);
+      await api.delete(AppEndpoints.FINANCE.CLIENT_BY_ID(id));
     },
     onSuccess: () => {
       // Invalida queries de clientes
@@ -374,8 +378,8 @@ export const useUpdateExpense = () => {
   const api = useAxio();
 
   return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: any }) => {
-      const response = await api.patch(`/expenses/${id}`, data);
+    mutationFn: async ({ id, data, fairId }: { id: string; data: any; fairId: string }) => {
+      const response = await api.patch(AppEndpoints.FINANCE.EXPENSE_BY_ID(fairId, id), data);
       return response.data;
     },
     onSuccess: () => {
@@ -399,7 +403,7 @@ export const useCashFlowAnalysis = (fairId: string) => {
   return useQuery({
     queryKey: ["cash-flow-analysis", fairId],
     queryFn: async () => {
-      const response = await api.get(`/cash-flow/analysis/fair/${fairId}`);
+      const response = await api.get(AppEndpoints.FINANCE.CASH_FLOW_ANALYSIS(fairId));
       return response.data;
     },
     enabled: !!fairId,
