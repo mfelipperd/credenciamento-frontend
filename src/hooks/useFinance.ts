@@ -199,6 +199,7 @@ export const useCreateRevenue = () => {
       queryClient.invalidateQueries({ queryKey: ["finance", "kpis"] });
       queryClient.invalidateQueries({ queryKey: ["finance", "top-empresas"] });
       queryClient.invalidateQueries({ queryKey: ["finance", "revenue-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["stand-stats"] }); // Atualiza estatísticas de stands
       toast.success("Receita criada com sucesso!");
     },
     onError: (error) => {
@@ -222,6 +223,7 @@ export const useUpdateRevenue = () => {
       queryClient.invalidateQueries({ queryKey: ["finance", "kpis"] });
       queryClient.invalidateQueries({ queryKey: ["finance", "top-empresas"] });
       queryClient.invalidateQueries({ queryKey: ["finance", "revenue-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["stand-stats"] }); // Atualiza estatísticas de stands
       toast.success("Receita atualizada com sucesso!");
     },
     onError: (error) => {

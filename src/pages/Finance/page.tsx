@@ -67,7 +67,6 @@ export function FinancePage() {
   const {
     data: revenuesData,
     isLoading: isLoadingRevenues,
-    refetch: refetchRevenues,
   } = useQuery({
     queryKey: ["finance-revenues", filters],
     queryFn: () => financeService.getRevenues(filters),
@@ -146,9 +145,7 @@ export function FinancePage() {
     setIsDrawerOpen(false);
     setSelectedRevenueId(null);
     setSelectedStandNumber(null);
-    refetchRevenues();
-    // Refresh stands quando uma receita é criada/editada (pode afetar ocupação)
-    setStandsRefreshKey((prev) => prev + 1);
+    // Query invalidation is handled automatically by useCreateRevenue/useUpdateRevenue hooks
   };
 
   const handleDetailModalClose = () => {
@@ -213,6 +210,7 @@ export function FinancePage() {
               Configurar Entrada
             </Button>
             <Button
+              type="button"
               onClick={handleCreateRevenue}
               className="bg-linear-to-br from-[#00aacd] to-[#EB2970] text-white rounded-xl px-6 font-bold shadow-lg shadow-pink-500/20 transition-all hover:scale-105 active:scale-95"
             >
