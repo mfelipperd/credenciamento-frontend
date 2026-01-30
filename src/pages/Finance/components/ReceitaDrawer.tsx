@@ -361,7 +361,7 @@ export function ReceitaDrawer({
       onSuccess: (newClient) => {
         console.log("Cliente criado com sucesso:", newClient);
         if (newClient) {
-          toast.success("Cliente criado com sucesso!");
+          // toast.success removido - já está no hook
           setSelectedClient({ id: newClient.id, name: newClient.name });
           setValue("clientId", newClient.id);
           setShowCreateClient(false);
@@ -372,12 +372,7 @@ export function ReceitaDrawer({
           toast.error("Erro: resposta inválida do servidor");
         }
       },
-      onError: (error: any) => {
-        console.error("Erro completo na criação do cliente:", error);
-        toast.error(
-          `Erro ao criar cliente: ${error.message || "Erro desconhecido"}`
-        );
-      },
+      // onError removido - já está no hook
     });
   };
 
@@ -553,7 +548,7 @@ export function ReceitaDrawer({
 
     createRevenueMutation.mutate(formData, {
       onSuccess: () => {
-        toast.success("Receita criada com sucesso!");
+        // toast.success removido - já está no hook
         onClose();
         reset();
         setSelectedClient(null);
@@ -561,12 +556,7 @@ export function ReceitaDrawer({
         setSelectedEntryModel(null);
         // As queries serão invalidadas automaticamente pelo hook centralizado
       },
-      onError: (error: any) => {
-        console.error("Erro ao criar receita:", error);
-        toast.error(
-          `Erro ao criar receita: ${error.message || "Erro desconhecido"}`
-        );
-      },
+      // onError removido - já está no hook
     });
   };
 

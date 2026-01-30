@@ -23,7 +23,7 @@ import { useCreateFairPartner, useUpdateFairPartner, useAvailablePercentage } fr
 import { useUsers } from "@/hooks/useUsers";
 import { useAuth } from "@/hooks/useAuth";
 import { EUserRole } from "@/enums/user.enum";
-import { toast } from "sonner";
+
 import type { FairPartner, CreateFairPartnerForm } from "@/interfaces/fair-partners";
 
 const createFairPartnerSchema = z.object({
@@ -94,7 +94,7 @@ export function FairPartnerForm({ isOpen, onClose, partner, mode, fairId }: Fair
     try {
       if (mode === "create") {
         await createMutation.mutateAsync(data);
-        toast.success("Sócio associado à feira com sucesso!");
+        // toast.success removido - já está no hook
       } else if (partner) {
         await updateMutation.mutateAsync({
           id: partner.id,
@@ -104,11 +104,11 @@ export function FairPartnerForm({ isOpen, onClose, partner, mode, fairId }: Fair
             notes: data.notes,
           },
         });
-        toast.success("Associação atualizada com sucesso!");
+        // toast.success removido - já está no hook
       }
       onClose();
     } catch (error) {
-      toast.error("Erro ao salvar associação");
+      // toast.error removido - já está no hook
     }
   };
 
