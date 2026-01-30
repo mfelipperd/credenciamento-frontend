@@ -16,7 +16,7 @@ import type {
   CashFlowAnalysis,
 } from "@/interfaces/finance";
 
-const BASE_URL = "/finance";
+import { AppEndpoints } from "@/constants/AppEndpoints";
 
 // Hook personalizado para o serviço financeiro
 export const useFinanceService = () => {
@@ -34,7 +34,7 @@ export const useFinanceService = () => {
     return handleRequest<EntryModel[]>({
       request: () =>
         api.get(
-          `${BASE_URL}/entry-models${
+          `${AppEndpoints.FINANCE.ENTRY_MODELS}${
             params.toString() ? `?${params.toString()}` : ""
           }`
         ),
@@ -43,7 +43,7 @@ export const useFinanceService = () => {
 
   const getEntryModel = async (id: string): Promise<EntryModel | undefined> => {
     return handleRequest<EntryModel>({
-      request: () => api.get(`${BASE_URL}/entry-models/${id}`),
+      request: () => api.get(AppEndpoints.FINANCE.ENTRY_MODEL_BY_ID(id)),
     });
   };
 
@@ -51,7 +51,7 @@ export const useFinanceService = () => {
     data: Omit<EntryModel, "id" | "createdAt" | "updatedAt">
   ): Promise<EntryModel | undefined> => {
     return handleRequest<EntryModel>({
-      request: () => api.post(`${BASE_URL}/entry-models`, data),
+      request: () => api.post(AppEndpoints.FINANCE.ENTRY_MODELS, data),
       successMessage: "Modelo de entrada criado com sucesso!",
     });
   };
@@ -61,22 +61,17 @@ export const useFinanceService = () => {
     data: Partial<Omit<EntryModel, "id" | "createdAt" | "updatedAt">>
   ): Promise<EntryModel | undefined> => {
     return handleRequest<EntryModel>({
-      request: () => api.patch(`${BASE_URL}/entry-models/${id}`, data),
+      request: () => api.patch(AppEndpoints.FINANCE.ENTRY_MODEL_BY_ID(id), data),
       successMessage: "Modelo de entrada atualizado com sucesso!",
     });
   };
 
   const deleteEntryModel = async (
     id: string,
-    fairId?: string
+    _fairId?: string
   ): Promise<void> => {
-    console.log("Deleting entry model:", { id, fairId });
-
-    // Temporariamente removendo fairId para testar
-    console.log("DELETE URL:", `${BASE_URL}/entry-models/${id}`);
-
     await handleRequest<{ success: boolean }>({
-      request: () => api.delete(`${BASE_URL}/entry-models/${id}`),
+      request: () => api.delete(AppEndpoints.FINANCE.ENTRY_MODEL_BY_ID(id)),
       successMessage: "Modelo de entrada removido com sucesso!",
     });
   };
@@ -89,7 +84,7 @@ export const useFinanceService = () => {
     return handleRequest<Client[]>({
       request: () =>
         api.get(
-          `${BASE_URL}/clients${
+          `${AppEndpoints.FINANCE.CLIENTS}${
             params.toString() ? `?${params.toString()}` : ""
           }`
         ),
@@ -98,7 +93,7 @@ export const useFinanceService = () => {
 
   const getClient = async (id: string): Promise<Client | undefined> => {
     return handleRequest<Client>({
-      request: () => api.get(`${BASE_URL}/clients/${id}`),
+      request: () => api.get(AppEndpoints.FINANCE.CLIENT_BY_ID(id)),
     });
   };
 
@@ -106,13 +101,13 @@ export const useFinanceService = () => {
     email: string
   ): Promise<Client | undefined> => {
     return handleRequest<Client>({
-      request: () => api.get(`${BASE_URL}/clients/email/${email}`),
+      request: () => api.get(AppEndpoints.FINANCE.CLIENT_BY_EMAIL(email)),
     });
   };
 
   const getClientByCnpj = async (cnpj: string): Promise<Client | undefined> => {
     return handleRequest<Client>({
-      request: () => api.get(`${BASE_URL}/clients/cnpj/${cnpj}`),
+      request: () => api.get(AppEndpoints.FINANCE.CLIENT_BY_CNPJ(cnpj)),
     });
   };
 
@@ -124,7 +119,7 @@ export const useFinanceService = () => {
     data: CreateClientForm
   ): Promise<Client | undefined> => {
     return handleRequest<Client>({
-      request: () => api.post(`${BASE_URL}/clients`, data),
+      request: () => api.post(AppEndpoints.FINANCE.CLIENTS, data),
       successMessage: "Cliente criado com sucesso!",
     });
   };
@@ -134,14 +129,14 @@ export const useFinanceService = () => {
     data: Partial<CreateClientForm>
   ): Promise<Client | undefined> => {
     return handleRequest<Client>({
-      request: () => api.patch(`${BASE_URL}/clients/${id}`, data),
+      request: () => api.patch(AppEndpoints.FINANCE.CLIENT_BY_ID(id), data),
       successMessage: "Cliente atualizado com sucesso!",
     });
   };
 
   const deleteClient = async (id: string): Promise<void> => {
     await handleRequest<{ success: boolean }>({
-      request: () => api.delete(`${BASE_URL}/clients/${id}`),
+      request: () => api.delete(AppEndpoints.FINANCE.CLIENT_BY_ID(id)),
       successMessage: "Cliente removido com sucesso!",
     });
   };
@@ -161,7 +156,7 @@ export const useFinanceService = () => {
     const response = await handleRequest<
       PagedResponse<RevenueListItem> | RevenueListItem[]
     >({
-      request: () => api.get(`${BASE_URL}/revenues?${params.toString()}`),
+      request: () => api.get(`${AppEndpoints.FINANCE.REVENUES}?${params.toString()}`),
     });
 
     // Se a resposta for um array, convertemos para o formato PagedResponse
@@ -187,7 +182,7 @@ export const useFinanceService = () => {
     return handleRequest<RevenueDetail>({
       request: () =>
         api.get(
-          `${BASE_URL}/revenues/${id}${
+          `${AppEndpoints.FINANCE.REVENUE_BY_ID(id)}${
             params.toString() ? `?${params.toString()}` : ""
           }`
         ),
@@ -201,7 +196,7 @@ export const useFinanceService = () => {
     const params = new URLSearchParams();
     if (fairId) params.append("fairId", fairId);
 
-    const url = `${BASE_URL}/revenues/client/${clientId}${
+    const url = `${AppEndpoints.FINANCE.REVENUE_BY_CLIENT(clientId)}${
       params.toString() ? `?${params.toString()}` : ""
     }`;
 
@@ -214,7 +209,7 @@ export const useFinanceService = () => {
     data: CreateRevenueForm
   ): Promise<RevenueDetail | undefined> => {
     return handleRequest<RevenueDetail>({
-      request: () => api.post(`${BASE_URL}/revenues`, data),
+      request: () => api.post(AppEndpoints.FINANCE.REVENUES, data),
       successMessage: "Receita criada com sucesso!",
     });
   };
@@ -230,7 +225,7 @@ export const useFinanceService = () => {
     return handleRequest<RevenueDetail>({
       request: () =>
         api.patch(
-          `${BASE_URL}/revenues/${id}${
+          `${AppEndpoints.FINANCE.REVENUE_BY_ID(id)}${
             params.toString() ? `?${params.toString()}` : ""
           }`,
           data
@@ -243,7 +238,7 @@ export const useFinanceService = () => {
     const params = new URLSearchParams();
     if (fairId) params.append("fairId", fairId);
 
-    const url = `${BASE_URL}/revenues/${id}${
+    const url = `${AppEndpoints.FINANCE.REVENUES}/${id}${
       params.toString() ? `?${params.toString()}` : ""
     }`;
 
@@ -257,7 +252,7 @@ export const useFinanceService = () => {
     const params = new URLSearchParams();
     if (fairId) params.append("fairId", fairId);
 
-    const url = `${BASE_URL}/revenues/${id}/cancel${
+    const url = `${AppEndpoints.FINANCE.REVENUES}/${id}/cancel${
       params.toString() ? `?${params.toString()}` : ""
     }`;
 
@@ -278,7 +273,7 @@ export const useFinanceService = () => {
     if (to) params.append("to", to);
 
     return handleRequest<Kpis>({
-      request: () => api.get(`${BASE_URL}/revenues/kpis?${params.toString()}`),
+      request: () => api.get(`${AppEndpoints.FINANCE.REVENUE_KPIS}?${params.toString()}`),
     });
   };
 
@@ -300,7 +295,7 @@ export const useFinanceService = () => {
     return handleRequest<TopEmpresa[]>({
       request: () =>
         api.get(
-          `${BASE_URL}/revenues/analytics/top-companies?${params.toString()}`
+          `${AppEndpoints.FINANCE.REVENUE_TOP_COMPANIES}?${params.toString()}`
         ),
     });
   };
@@ -316,7 +311,7 @@ export const useFinanceService = () => {
 
     return handleRequest<Array<{ tipo: string; totalContrato: number }>>({
       request: () =>
-        api.get(`${BASE_URL}/revenues/analytics/by-type?${params.toString()}`),
+        api.get(`${AppEndpoints.FINANCE.REVENUE_BY_TYPE}?${params.toString()}`),
     });
   };
 
@@ -336,7 +331,7 @@ export const useFinanceService = () => {
       Array<{ modeloId: string; nome: string; totalContrato: number }>
     >({
       request: () =>
-        api.get(`${BASE_URL}/revenues/analytics/by-model?${params.toString()}`),
+        api.get(`${AppEndpoints.FINANCE.REVENUE_BY_MODEL}?${params.toString()}`),
     });
   };
 
@@ -344,7 +339,7 @@ export const useFinanceService = () => {
   const generateInstallments = async (revenueId: string): Promise<void> => {
     await handleRequest<{ success: boolean }>({
       request: () =>
-        api.post(`${BASE_URL}/revenues/${revenueId}/installments/generate`),
+        api.post(AppEndpoints.FINANCE.REVENUE_INSTALLMENTS_GENERATE(revenueId)),
       successMessage: "Parcelas geradas com sucesso!",
     });
   };
@@ -354,7 +349,7 @@ export const useFinanceService = () => {
     data: { dueDate?: string; valueCents?: number }
   ): Promise<Installment | undefined> => {
     return handleRequest<Installment>({
-      request: () => api.put(`${BASE_URL}/revenues/installment/${id}`, data),
+      request: () => api.put(AppEndpoints.FINANCE.REVENUE_INSTALLMENT_UPDATE(id), data),
       successMessage: "Parcela atualizada com sucesso!",
     });
   };
@@ -367,7 +362,7 @@ export const useFinanceService = () => {
     return handleRequest<Installment>({
       request: () =>
         api.patch(
-          `${BASE_URL}/revenues/installment/${id}/confirm-payment?fairId=${fairId}`,
+          `${AppEndpoints.FINANCE.REVENUE_INSTALLMENT_PAY(id)}?fairId=${fairId}`,
           bodyData
         ),
       successMessage: "Parcela baixada com sucesso!",
@@ -394,7 +389,7 @@ export const useFinanceService = () => {
 
     return handleRequest<{ id: string; url: string }>({
       request: () =>
-        api.post(`${BASE_URL}/revenues/${revenueId}/attachments`, formData, {
+        api.post(AppEndpoints.FINANCE.REVENUE_ATTACHMENTS(revenueId), formData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
@@ -410,7 +405,7 @@ export const useFinanceService = () => {
     await handleRequest<{ success: boolean }>({
       request: () =>
         api.delete(
-          `${BASE_URL}/revenues/${revenueId}/attachments/${attachmentId}`
+          AppEndpoints.FINANCE.REVENUE_ATTACHMENT_BY_ID(revenueId, attachmentId)
         ),
       successMessage: "Arquivo removido com sucesso!",
     });
@@ -419,7 +414,7 @@ export const useFinanceService = () => {
   // Cash Flow Analysis
   const getCashFlowAnalysis = async (fairId: string): Promise<CashFlowAnalysis | undefined> => {
     return handleRequest<CashFlowAnalysis>({
-      request: () => api.get(`/cash-flow/analysis/fair/${fairId}`),
+      request: () => api.get(AppEndpoints.FINANCE.CASH_FLOW_ANALYSIS(fairId)),
     });
   };
 

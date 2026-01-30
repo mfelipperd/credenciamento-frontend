@@ -10,6 +10,7 @@ import type {
   DashboardConversionResponse,
 } from "@/interfaces/dashboard";
 import { useState, useCallback } from "react";
+import { AppEndpoints } from "@/constants/AppEndpoints";
 
 export const useDashboardService = () => {
   const { api, loading, setLoading } = useBaseService();
@@ -27,7 +28,7 @@ export const useDashboardService = () => {
     async (fairId: string) => {
       const result = await handleRequest({
         request: () =>
-          api.get<DashboardOverviewReponse>(`/dashboard/overview`, {
+          api.get<DashboardOverviewReponse>(AppEndpoints.DASHBOARD.OVERVIEW, {
             params: { fairId },
           }),
         setLoading,
@@ -44,7 +45,7 @@ export const useDashboardService = () => {
       const result = await handleRequest({
         request: () =>
           api.get<DashboardCheckedInResponse>(
-            `/dashboard/visitors/checked-in`,
+            AppEndpoints.DASHBOARD.VISITORS_CHECKED_IN,
             {
               params: { fairId },
             }
@@ -62,7 +63,7 @@ export const useDashboardService = () => {
   const getVisitorsByCategory = async (fairId: string) => {
     const result = await handleRequest({
       request: () =>
-        api.get<DashboardByCategoryResponse>(`/dashboard/visitors/category`, {
+        api.get<DashboardByCategoryResponse>(AppEndpoints.DASHBOARD.VISITORS_CATEGORY, {
           params: { fairId },
         }),
       setLoading,
@@ -75,7 +76,7 @@ export const useDashboardService = () => {
   const getVisitorsByOrigin = async (fairId: string) => {
     const result = await handleRequest({
       request: () =>
-        api.get<DashboardByOriginResponse>(`/dashboard/visitors/origin`, {
+        api.get<DashboardByOriginResponse>(AppEndpoints.DASHBOARD.VISITORS_ORIGIN, {
           params: { fairId },
         }),
       setLoading,
@@ -88,7 +89,7 @@ export const useDashboardService = () => {
   const getVisitorsBySectors = async (fairId: string) => {
     const result = await handleRequest({
       request: () =>
-        api.get<DashboardBySectorsResponse>(`/dashboard/visitors/sectors`, {
+        api.get<DashboardBySectorsResponse>(AppEndpoints.DASHBOARD.VISITORS_SECTORS, {
           params: { fairId },
         }),
       setLoading,
@@ -102,7 +103,7 @@ export const useDashboardService = () => {
     const result = await handleRequest({
       request: () =>
         api.get<DashboardByabsentVisitorsResponse>(
-          `/dashboard/absent-visitors`,
+          AppEndpoints.DASHBOARD.ABSENT_VISITORS,
           {
             params: { fairId },
           }
@@ -118,7 +119,7 @@ export const useDashboardService = () => {
     const result = await handleRequest({
       request: () =>
         api.get<DashboardConversionResponse>(
-          `/dashboard/conversions/how-did-you-know`,
+          AppEndpoints.DASHBOARD.CONVERSIONS_HOW_DID_YOU_KNOW,
           {
             params: { fairId },
           }

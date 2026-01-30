@@ -7,7 +7,7 @@ import type {
   ConfigureStandsResponse,
 } from "@/interfaces/finance";
 
-const BASE_URL = "/finance";
+import { AppEndpoints } from "@/constants/AppEndpoints";
 
 // Hook personalizado para o serviço de stands
 export const useStandService = () => {
@@ -18,7 +18,7 @@ export const useStandService = () => {
     data: ConfigureStandsForm
   ): Promise<ConfigureStandsResponse | undefined> => {
     return handleRequest<ConfigureStandsResponse>({
-      request: () => api.post(`${BASE_URL}/stands/configure`, data),
+      request: () => api.post(AppEndpoints.STANDS.CONFIGURE, data),
     });
   };
 
@@ -26,7 +26,7 @@ export const useStandService = () => {
   const getStands = async (fairId: string): Promise<Stand[] | undefined> => {
     return handleRequest<Stand[]>({
       request: () =>
-        api.get(`${BASE_URL}/stands`, {
+        api.get(AppEndpoints.STANDS.BASE, {
           params: { fairId },
         }),
     });
@@ -38,7 +38,7 @@ export const useStandService = () => {
   ): Promise<Stand[] | undefined> => {
     return handleRequest<Stand[]>({
       request: () =>
-        api.get(`${BASE_URL}/stands/available`, {
+        api.get(AppEndpoints.STANDS.AVAILABLE, {
           params: { fairId },
         }),
     });
@@ -50,7 +50,7 @@ export const useStandService = () => {
   ): Promise<Stand[] | undefined> => {
     return handleRequest<Stand[]>({
       request: () =>
-        api.get(`${BASE_URL}/stands/occupied`, {
+        api.get(AppEndpoints.STANDS.OCCUPIED, {
           params: { fairId },
         }),
     });
@@ -62,7 +62,7 @@ export const useStandService = () => {
   ): Promise<StandStats | undefined> => {
     return handleRequest<StandStats>({
       request: () =>
-        api.get(`${BASE_URL}/stands/stats`, {
+        api.get(AppEndpoints.STANDS.STATS, {
           params: { fairId },
         }),
     });
@@ -71,7 +71,7 @@ export const useStandService = () => {
   // Buscar um stand específico por ID
   const getStandById = async (id: string): Promise<Stand | undefined> => {
     return handleRequest<Stand>({
-      request: () => api.get(`${BASE_URL}/stands/${id}`),
+      request: () => api.get(AppEndpoints.STANDS.BY_ID(id)),
     });
   };
 
@@ -82,7 +82,7 @@ export const useStandService = () => {
   ): Promise<Stand | undefined> => {
     return handleRequest<Stand>({
       request: () =>
-        api.patch(`${BASE_URL}/stands/${standId}/link-revenue`, {
+        api.patch(AppEndpoints.STANDS.LINK_REVENUE(standId), {
           revenueId,
         }),
     });
@@ -93,7 +93,7 @@ export const useStandService = () => {
     standId: string
   ): Promise<{ message: string; stand: Stand } | undefined> => {
     return handleRequest<{ message: string; stand: Stand }>({
-      request: () => api.patch(`${BASE_URL}/stands/${standId}/unlink-revenue`),
+      request: () => api.patch(AppEndpoints.STANDS.UNLINK_REVENUE(standId)),
     });
   };
 

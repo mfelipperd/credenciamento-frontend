@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "@/hooks/useSearchParams";
 import { CardRoot } from "@/components/Card";
 import {
@@ -65,8 +65,22 @@ export const EnhancedTableConsultant = () => {
 
   // Estados da consulta
   const [search, setSearch] = useState(searchParams.get("search") ?? "");
+  const [debouncedSearch, setDebouncedSearch] = useState(search);
   const [page, setPage] = useState(Number(searchParams.get("page")) || 1);
   const [limit, setLimit] = useState(Number(searchParams.get("limit")) || 50);
+
+  // Sincronizar estados locais com a URL (Navegação Voltar/Avançar)
+  useEffect(() => {
+    const urlSearch = searchParams.get("search") ?? "";
+    const urlPage = Number(searchParams.get("page")) || 1;
+    const urlLimit = Number(searchParams.get("limit")) || 50;
+    const urlFairId = searchParams.get("fairId");
+
+    if (urlSearch !== search) setSearch(urlSearch);
+    if (urlPage !== page) setPage(urlPage);
+    if (urlLimit !== limit) setLimit(urlLimit);
+    if (urlFairId && urlFairId !== currentFairId) setSelectedFairId(urlFairId);
+  }, [searchParams]);
 
   // Hook React Query para visitantes paginados
   const {
@@ -74,7 +88,7 @@ export const EnhancedTableConsultant = () => {
     isLoading: loading,
   } = useVisitorsPaginated({
     fairId: currentFairId,
-    search: search || undefined,
+    search: debouncedSearch || undefined,
     page,
     limit,
   });
@@ -102,23 +116,8 @@ export const EnhancedTableConsultant = () => {
     fair_visitor: false,
   });
 
-  // Verificar se é consultant
   const isConsultant = user?.role === "consultant";
   const shouldShowFairSelect = !isConsultant;
-
-  const hasFairsFetchRef = useRef(false);
-
-  // Buscar feiras quando necessário (para admins e consultants com múltiplas feiras)
-  useEffect(() => {
-    if (
-      (shouldShowFairSelect || shouldShowFairSelector) &&
-      !hasFairsFetchRef.current
-    ) {
-      // Removido - o hook useFairs já faz o fetch automaticamente
-      hasFairsFetchRef.current = true;
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shouldShowFairSelect, shouldShowFairSelector]);
 
   // Definir fairId inicial para não-consultants
   useEffect(() => {
@@ -145,11 +144,14 @@ export const EnhancedTableConsultant = () => {
     setSearchParams(params, { replace: true });
   }, [search, page, limit, currentFairId, setSearchParams]);
 
-  // Debounce search - reset página quando search mudar
+  // Debounce search - atualiza termo de busca e reseta página
   useEffect(() => {
     const timer = setTimeout(() => {
-      setPage(1);
-    }, 300);
+      setDebouncedSearch(search);
+      if (search !== (searchParams.get("search") ?? "")) {
+        setPage(1);
+      }
+    }, 500);
 
     return () => clearTimeout(timer);
   }, [search]);
@@ -179,7 +181,7 @@ export const EnhancedTableConsultant = () => {
   return (
     <div className="space-y-6">
       {/* Hero Section para Expositores */}
-      <div className="bg-gradient-to-r from-purple-600 via-purple-700 to-indigo-800 rounded-2xl p-8 text-white shadow-2xl">
+      <div className="bg-linear-to-r from-purple-600 via-purple-700 to-indigo-800 rounded-2xl p-8 text-white shadow-2xl">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
           <div className="flex-1">
             <h1 className="text-4xl font-bold mb-4">
@@ -218,7 +220,7 @@ export const EnhancedTableConsultant = () => {
               </Button>
             </div>
           </div>
-          <div className="flex-shrink-0">
+          <div className="shrink-0">
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
               <h3 className="text-2xl font-bold mb-2">+2.500</h3>
               <p className="text-purple-200">Visitantes Cadastrados</p>
@@ -288,9 +290,9 @@ export const EnhancedTableConsultant = () => {
         <>
           {/* Alerta Premium para quem não tem acesso */}
           {!canAccessData && (
-            <div className="mb-6 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-lg p-6">
+            <div className="mb-6 bg-linear-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-lg p-6">
               <div className="flex items-start gap-4">
-                <div className="flex-shrink-0">
+                <div className="shrink-0">
                   <div className="bg-amber-500 rounded-full p-2">
                     <SlidersHorizontal className="h-6 w-6 text-white" />
                   </div>
@@ -343,7 +345,7 @@ export const EnhancedTableConsultant = () => {
               {!currentFairId && (
                 <Button
                   asChild
-                  className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-2 rounded-full shadow-lg hover:shadow-xl transition-all"
+                  className="bg-linear-to-r from-purple-600 to-indigo-600 text-white px-6 py-2 rounded-full shadow-lg hover:shadow-xl transition-all"
                 >
                   <a
                     href="https://api.whatsapp.com/send?phone=91982836424&text=Quero%20liberar%20as%20ferramentas%20premium"

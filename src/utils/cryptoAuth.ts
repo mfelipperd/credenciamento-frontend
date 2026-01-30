@@ -21,12 +21,6 @@ export function generateFrontendAuthHash(): string {
     // Timestamp atual
     const timestamp = Date.now().toString();
     
-    console.log('🔑 Gerando token AES:', {
-      timestamp,
-      secretKey: SECRET_KEY.substring(0, 10) + '...',
-      secretKeyLength: SECRET_KEY.length
-    });
-    
     // Criptografar timestamp usando AES-256-CBC
     const encrypted = CryptoJS.AES.encrypt(timestamp, key, {
       iv: iv,
@@ -37,11 +31,8 @@ export function generateFrontendAuthHash(): string {
     // Retornar IV + dados criptografados (mesmo formato do backend)
     const result = iv.toString(CryptoJS.enc.Hex) + encrypted.ciphertext.toString(CryptoJS.enc.Hex);
     
-    console.log('✅ Token AES gerado:', result.substring(0, 20) + '...');
-    
     return result;
   } catch (error) {
-    console.error('❌ Erro ao gerar token AES:', error);
     throw error;
   }
 }

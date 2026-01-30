@@ -1,5 +1,6 @@
 import { handleRequest } from "@/utils/handleRequest";
 import { useAxio } from "@/hooks/useAxio";
+import { AppEndpoints } from "@/constants/AppEndpoints";
 
 export interface SendMarketingEmailRequest {
   subject: string;
@@ -27,7 +28,7 @@ export const useMarketingService = () => {
     data: SendMarketingEmailRequest
   ): Promise<SendMarketingEmailResponse | null> => {
     const response = await handleRequest({
-      request: () => api.post("/emails/marketing/absent-visitors", data),
+      request: () => api.post(AppEndpoints.MARKETING.EMAILS_ABSENT, data),
     });
     return response as SendMarketingEmailResponse | null;
   };

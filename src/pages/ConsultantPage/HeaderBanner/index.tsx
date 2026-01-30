@@ -23,16 +23,16 @@ export const HeaderBanner = () => {
           }
         `}
       </style>
-      <header className="fixed top-0 left-0 w-full bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700 shadow-xl z-[1000] min-h-[80px] sm:min-h-[100px] lg:min-h-[120px] xl:min-h-[140px]">
+      <header className="fixed top-0 left-0 w-full bg-linear-to-r from-blue-600 via-purple-600 to-indigo-700 shadow-xl z-1000 min-h-[80px] sm:min-h-[100px] lg:min-h-[120px] xl:min-h-[140px]">
         <div className="container mx-auto px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 h-full">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 lg:gap-6 h-full">
             
             {/* Seção Principal - Logo e Título */}
-            <div className="flex items-center gap-2 sm:gap-4 lg:gap-6 flex-shrink-0 min-w-0">
+            <div className="flex items-center gap-2 sm:gap-4 lg:gap-6 shrink-0 min-w-0">
               <img
                 src="/logo.png"
                 alt="Expo MultiMix Logo"
-                className="w-12 h-auto sm:w-16 lg:w-20 xl:w-24 drop-shadow-lg flex-shrink-0"
+                className="w-12 h-auto sm:w-16 lg:w-20 xl:w-24 drop-shadow-lg shrink-0"
               />
               <div className="text-white min-w-0 flex-1">
                 <h1 className="text-sm sm:text-lg lg:text-xl xl:text-2xl font-bold leading-tight text-shadow truncate">
@@ -60,7 +60,7 @@ export const HeaderBanner = () => {
                 <Button
                   asChild
                   size="sm"
-                  className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-full font-bold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 text-xs sm:text-sm"
+                  className="bg-linear-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-full font-bold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 text-xs sm:text-sm"
                 >
                   <a
                     href="https://api.whatsapp.com/send?phone=91982836424&text=🎪%20Olá!%20Quero%20informações%20sobre%20como%20ser%20expositor%20na%20ExpoMultiMix%202025"

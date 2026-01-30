@@ -4,6 +4,8 @@ import type { AuthResponse } from "@/interfaces/auth";
 import { useState } from "react";
 import { useAxiosPublic } from "@/hooks/useAxiosPublic";
 
+import { AppEndpoints } from "@/constants/AppEndpoints";
+
 export const useAuthService = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const api = useAxiosPublic();
@@ -11,7 +13,7 @@ export const useAuthService = () => {
     data: ILoginFormPost
   ): Promise<AuthResponse | undefined> => {
     const result = await handleRequest({
-      request: () => api.post<AuthResponse>("/auth/login", data),
+      request: () => api.post<AuthResponse>(AppEndpoints.AUTH.LOGIN, data),
       setLoading,
       successMessage: "Login realizado com sucesso!",
     });

@@ -9,13 +9,14 @@ import type {
   AvailablePercentage,
   WithdrawalFilters,
 } from "@/interfaces/withdrawals";
+import { AppEndpoints } from "@/constants/AppEndpoints";
 
 export const useWithdrawalsService = () => {
   const api = useAxio();
 
   // Distribuir lucros de uma feira
   const distributeProfit = async (fairId: string): Promise<ProfitDistribution> => {
-    const response = await api.post(`/cash-flow/distribute-profit/${fairId}`);
+    const response = await api.post(AppEndpoints.FINANCE.CASH_FLOW_DISTRIBUTE(fairId));
     return response.data;
   };
 
@@ -29,7 +30,7 @@ export const useWithdrawalsService = () => {
       ...data,
       fairId,
     };
-    const response = await api.post(`/partners/${partnerId}/withdrawals`, payload);
+    const response = await api.post(AppEndpoints.PARTNERS.WITHDRAWALS(partnerId), payload);
     return response.data;
   };
 
@@ -44,7 +45,7 @@ export const useWithdrawalsService = () => {
     if (filters?.endDate) params.append('endDate', filters.endDate);
     
     const queryString = params.toString();
-    const url = `/partners/${partnerId}/withdrawals${queryString ? `?${queryString}` : ''}`;
+    const url = `${AppEndpoints.PARTNERS.WITHDRAWALS(partnerId)}${queryString ? `?${queryString}` : ''}`;
     
     const response = await api.get(url);
     return response.data;
@@ -62,7 +63,7 @@ export const useWithdrawalsService = () => {
     if (filters?.endDate) params.append('endDate', filters.endDate);
     
     const queryString = params.toString();
-    const url = `/partners/${partnerId}/withdrawals/fair/${fairId}${queryString ? `?${queryString}` : ''}`;
+    const url = `${AppEndpoints.PARTNERS.WITHDRAWALS_BY_FAIR(partnerId, fairId)}${queryString ? `?${queryString}` : ''}`;
     
     const response = await api.get(url);
     return response.data;
@@ -81,7 +82,7 @@ export const useWithdrawalsService = () => {
     if (filters?.endDate) params.append('endDate', filters.endDate);
     
     const queryString = params.toString();
-    const url = `/partners/${filters.fairId}/withdrawals${queryString ? `?${queryString}` : ''}`;
+    const url = `${AppEndpoints.PARTNERS.WITHDRAWALS(filters.fairId)}${queryString ? `?${queryString}` : ''}`;
     
     const response = await api.get(url);
     return response.data;
@@ -93,7 +94,7 @@ export const useWithdrawalsService = () => {
     withdrawalId: string,
     data: ApproveWithdrawalDto
   ): Promise<PartnerWithdrawal> => {
-    const response = await api.post(`/partners/withdrawals/${withdrawalId}/approve`, data);
+    const response = await api.post(AppEndpoints.WITHDRAWALS.APPROVE(withdrawalId), data);
     return response.data;
   };
 
@@ -102,25 +103,25 @@ export const useWithdrawalsService = () => {
     withdrawalId: string,
     data: RejectWithdrawalDto
   ): Promise<PartnerWithdrawal> => {
-    const response = await api.post(`/partners/withdrawals/${withdrawalId}/reject`, data);
+    const response = await api.post(AppEndpoints.WITHDRAWALS.REJECT(withdrawalId), data);
     return response.data;
   };
 
   // Obter resumo financeiro de um sócio
   const getPartnerFinancialSummary = async (partnerId: string, fairId: string): Promise<PartnerFinancialSummary> => {
-    const response = await api.get(`/partners/${partnerId}/financial-summary?fairId=${fairId}`);
+    const response = await api.get(`${AppEndpoints.PARTNERS.FINANCIAL_SUMMARY(partnerId)}?fairId=${fairId}`);
     return response.data;
   };
 
   // Obter porcentagem disponível para novos sócios
   const getAvailablePercentage = async (): Promise<AvailablePercentage> => {
-    const response = await api.get('/partners/available-percentage');
+    const response = await api.get(AppEndpoints.PARTNERS.AVAILABLE_PERCENTAGE);
     return response.data;
   };
 
   // Obter detalhes de um saque específico
   const getWithdrawalById = async (withdrawalId: string): Promise<PartnerWithdrawal> => {
-    const response = await api.get(`/partners/withdrawals/${withdrawalId}`);
+    const response = await api.get(AppEndpoints.WITHDRAWALS.BY_ID(withdrawalId));
     return response.data;
   };
 
@@ -129,13 +130,13 @@ export const useWithdrawalsService = () => {
     withdrawalId: string,
     data: { status?: PartnerWithdrawal['status']; reason?: string; bankDetails?: string; notes?: string }
   ): Promise<PartnerWithdrawal> => {
-    const response = await api.patch(`/partners/withdrawals/${withdrawalId}`, data);
+    const response = await api.patch(AppEndpoints.WITHDRAWALS.BY_ID(withdrawalId), data);
     return response.data;
   };
 
   // Excluir um saque
   const deleteWithdrawal = async (withdrawalId: string): Promise<{ message: string }> => {
-    const response = await api.delete(`/partners/withdrawals/${withdrawalId}`);
+    const response = await api.delete(AppEndpoints.WITHDRAWALS.BY_ID(withdrawalId));
     return response.data;
   };
 
