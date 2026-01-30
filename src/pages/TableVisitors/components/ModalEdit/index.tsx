@@ -55,7 +55,7 @@ export const EditVisitorModal = ({ ...props }: EditVisitorModalProps) => {
 
   return (
     <Dialog {...props}>
-      <DialogContent className="">
+      <DialogContent className="w-[98vw] sm:min-w-[600px] sm:max-w-xl bg-brand-blue mx-auto rounded-[32px] border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] p-10 ring-1 ring-white/5">
         <form
           className="flex flex-col gap-4"
           onSubmit={form.handleSubmit(handleSubmitEdit)}

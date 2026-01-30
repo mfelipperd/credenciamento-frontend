@@ -11,11 +11,6 @@ import { getSecurityHeaders } from './cryptoAuth';
 export function enhanceRequestForBackendMiddleware(config: any) {
   const securityHeaders = getSecurityHeaders();
   
-  console.log('🔐 Aplicando autenticação para rota protegida:', {
-    url: config.url,
-    method: config.method,
-    headers: Object.keys(securityHeaders)
-  });
   
   // Aplicar headers de segurança (x-frontend-auth)
   config.headers = {

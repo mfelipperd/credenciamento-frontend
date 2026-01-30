@@ -41,15 +41,7 @@ export function ControlledInput<T extends FieldValues>({
           : field.value;
 
         return (
-          <div className="mb-4">
-            {label && (
-              <label
-                htmlFor={String(name)}
-                className="block mb-1 text-sm font-medium text-gray-900 dark:text-white"
-              >
-                {label}
-              </label>
-            )}
+          <>
             <Input
               {...inputProps}
               id={String(name)}
@@ -67,7 +59,7 @@ export function ControlledInput<T extends FieldValues>({
                 {fieldState.error.message}
               </p>
             )}
-          </div>
+          </>
         );
       }}
     />

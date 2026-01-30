@@ -24,20 +24,16 @@ export async function handleRequest<T>(
   setLoading?.(true);
 
   try {
-    console.log("🚀 handleRequest iniciado");
     const response = await request();
     const { status, data } = response;
     
-    console.log("📊 handleRequest response:", { status, data });
 
     if (!isSuccessfulRequest(status)) {
-      console.log("❌ handleRequest - status não é sucesso:", status);
       handleAxiosError(response);
       return;
     }
 
     if (successMessage) {
-      console.log("✅ handleRequest - exibindo mensagem de sucesso:", successMessage);
       toast.success(successMessage);
     }
 
@@ -48,7 +44,6 @@ export async function handleRequest<T>(
         (typeof data === "string" && data === "")) &&
       typeof data !== "boolean"
     ) {
-      console.log("⚠️ handleRequest - dados vazios, retornando valor padrão");
       // For object types, return empty object; for primitive types, return appropriate default
       if (typeof data === "object") {
         return {} as T;
@@ -56,10 +51,8 @@ export async function handleRequest<T>(
       return data;
     }
 
-    console.log("✅ handleRequest - retornando dados:", data);
     return data;
   } catch (error) {
-    console.log("❌ handleRequest - erro capturado:", error);
     handleAxiosError(error);
   } finally {
     setLoading?.(false);

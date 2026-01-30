@@ -17,8 +17,8 @@ interface ControlledSelectProps<T extends FieldValues> {
   name: FieldPath<T>;
   options: SelectOption[];
   placeholder?: string;
-  label?: string;
   className?: string;
+  label?: string;
 }
 
 export function ControlledNativeSelect<T extends FieldValues>({
@@ -26,20 +26,17 @@ export function ControlledNativeSelect<T extends FieldValues>({
   name,
   options,
   placeholder,
-  label,
   className,
+  label,
 }: ControlledSelectProps<T>) {
   return (
     <Controller
       control={control}
       name={name}
       render={({ field, fieldState }) => (
-        <div className="mb-4 relative">
+        <div className="relative space-y-1.5">
           {label && (
-            <label
-              htmlFor={String(name)}
-              className="block mb-1 text-sm font-medium"
-            >
+            <label className="text-white/30 font-black text-[9px] uppercase tracking-widest ml-1">
               {label}
             </label>
           )}
@@ -48,7 +45,7 @@ export function ControlledNativeSelect<T extends FieldValues>({
             <select
               id={String(name)}
               className={cn(
-                "w-full appearance-none border rounded-md px-3 py-2 text-sm pr-10 focus:outline-none focus:ring-2 focus:ring-black",
+                "w-full h-12 appearance-none bg-white/5 border border-white/10 rounded-xl px-4 text-base text-white pr-10 focus:outline-none focus:ring-4 focus:ring-brand-pink/20 transition-all font-bold placeholder:text-white/20 md:text-sm shadow-inner",
                 className
               )}
               value={field.value ?? ""}
@@ -73,7 +70,7 @@ export function ControlledNativeSelect<T extends FieldValues>({
               {fieldState.error.message as string}
             </p>
           )}
-        </div>
+          </div>
       )}
     />
   );

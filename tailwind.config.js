@@ -30,6 +30,16 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        brand: {
+          blue: "hsl(var(--brand-blue))",
+          pink: "hsl(var(--brand-pink))",
+          cyan: "hsl(var(--brand-cyan))",
+          orange: "hsl(var(--brand-orange))",
+        },
+        "brand-pink": "hsl(var(--brand-pink))",
+        "brand-blue": "hsl(var(--brand-blue))",
+        "brand-cyan": "hsl(var(--brand-cyan))",
+        "brand-orange": "hsl(var(--brand-orange))",
         lilas: {
           200: "#AC9FCC",
         },

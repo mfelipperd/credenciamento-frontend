@@ -1,134 +1,95 @@
 @import "tailwindcss";
 
-/* Fonte do iPhone - San Francisco */
+@theme {
+  --color-brand-blue: #0A1E3B;
+  --color-brand-pink: #E91E63;
+  --color-brand-cyan: #00BCD4;
+  --color-brand-orange: #FF7043;
+  --color-brand-white: #FFFFFF;
+
+  --background: var(--brand-blue);
+  --foreground: var(--brand-white);
+
+  --radius-xl: 1.5rem;
+  --radius-2xl: 2rem;
+}
 
 :root {
-  --radius: 0.5rem;
-  --background: 0 0% 100%;
-  --foreground: 224 71.4% 4.1%;
-  --card: 0 0% 100%;
-  --card-foreground: 224 71.4% 4.1%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 224 71.4% 4.1%;
-  --primary: 220.9 39.3% 11%;
-  --primary-foreground: 210 20% 98%;
-  --secondary: 220 14.3% 95.9%;
-  --secondary-foreground: 220.9 39.3% 11%;
-  --muted: 220 14.3% 95.9%;
-  --muted-foreground: 220 8.9% 46.1%;
-  --accent: 220 14.3% 95.9%;
-  --accent-foreground: 220.9 39.3% 11%;
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 210 20% 98%;
-  --border: 220 13% 91%;
-  --input: 220 13% 91%;
-  --ring: 224 71.4% 4.1%;
-  --chart-1: 12 76% 61%;
-  --chart-2: 173 58% 39%;
-  --chart-3: 197 37% 24%;
-  --chart-4: 43 74% 66%;
-  --chart-5: 27 87% 67%;
-  --sidebar: 210 20% 98%;
-  --sidebar-foreground: 224 71.4% 4.1%;
-  --sidebar-primary: 220.9 39.3% 11%;
-  --sidebar-primary-foreground: 210 20% 98%;
-  --sidebar-accent: 220 14.3% 95.9%;
-  --sidebar-accent-foreground: 220.9 39.3% 11%;
-  --sidebar-border: 220 13% 91%;
-  --sidebar-ring: 224 71.4% 4.1%;
+  --brand-blue: #0A1E3B;
+  --brand-pink: #E91E63;
+  --brand-cyan: #00BCD4;
+  --brand-orange: #FF7043;
+  --brand-white: #FFFFFF;
+  
+  --background: var(--brand-blue);
+  --foreground: var(--brand-white);
+  
+  /* Compatibilidade com Shadcn/UI */
+  --primary: 342 74% 47%;
+  --primary-foreground: 0 0% 100%;
+  --border: 223 45% 25%;
+  --input: 223 45% 20%;
+  --ring: 342 74% 47%;
 }
 
-.dark {
-  /* Hierarquia de fundos do mais escuro para o mais claro */
-  --background: 240 10% 3.9%; /* Fundo principal - mais escuro */
-  --foreground: 0 0% 98%; /* Texto principal - branco quase puro */
-
-  /* Cards e containers - um tom mais claro que o background */
-  --card: 240 10% 8%; /* Cards - mais claro que background */
-  --card-foreground: 0 0% 95%; /* Texto em cards */
-
-  /* Popovers e modais - ainda mais claro para destacar */
-  --popover: 240 10% 12%; /* Popovers - mais claros que cards */
-  --popover-foreground: 0 0% 95%; /* Texto em popovers */
-
-  /* Botões e elementos interativos */
-  --primary: 220 14.3% 95.9%; /* Botão primário - claro para contraste */
-  --primary-foreground: 240 10% 3.9%; /* Texto em botão primário - escuro */
-
-  /* Elementos secundários */
-  --secondary: 240 3.7% 15.9%; /* Elementos secundários */
-  --secondary-foreground: 0 0% 90%; /* Texto secundário */
-
-  /* Áreas sutis e desabilitadas */
-  --muted: 240 3.7% 15.9%; /* Áreas sutis */
-  --muted-foreground: 240 5% 64.9%; /* Texto sutil */
-
-  /* Elementos de destaque */
-  --accent: 240 3.7% 15.9%; /* Elementos de destaque */
-  --accent-foreground: 0 0% 90%; /* Texto de destaque */
-
-  /* Estados de erro */
-  --destructive: 0 84.2% 60.2%; /* Erro - vermelho vibrante */
-  --destructive-foreground: 0 0% 98%; /* Texto em erro */
-
-  /* Bordas e inputs */
-  --border: 240 3.7% 20%; /* Bordas - tom médio */
-  --input: 240 3.7% 15.9%; /* Inputs - similar ao muted */
-  --ring: 240 4.9% 83.9%; /* Focus ring - claro */
-
-  /* Cores dos gráficos - vibrantes para dark mode */
-  --chart-1: 220 70% 50%; /* Azul */
-  --chart-2: 160 84% 39%; /* Verde */
-  --chart-3: 30 80% 55%; /* Laranja */
-  --chart-4: 280 65% 60%; /* Roxo */
-  --chart-5: 340 75% 55%; /* Rosa */
-
-  /* Sidebar específica */
-  --sidebar: 240 10% 6%; /* Sidebar - entre background e card */
-  --sidebar-foreground: 0 0% 95%; /* Texto da sidebar */
-  --sidebar-primary: 220 70% 50%; /* Elementos primários da sidebar */
-  --sidebar-primary-foreground: 0 0% 98%; /* Texto primário da sidebar */
-  --sidebar-accent: 240 3.7% 15.9%; /* Elementos de destaque da sidebar */
-  --sidebar-accent-foreground: 0 0% 90%; /* Texto de destaque da sidebar */
-  --sidebar-border: 240 3.7% 20%; /* Bordas da sidebar */
-  --sidebar-ring: 240 4.9% 83.9%; /* Focus ring da sidebar */
+body {
+  background-color: var(--brand-blue) !important;
+  color: var(--brand-white) !important;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif;
+  overflow-x: hidden;
 }
 
-.scrollable-content {
-  overflow-y: hidden;
-  scrollbar-gutter: stable;
-  transition: overflow-y 0.3s ease;
+/* Glassmorphism Utilities */
+.glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.scrollable-content:hover {
-  overflow-y: auto;
+.glass-dark {
+  background: rgba(10, 30, 59, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+.glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.3s ease;
+}
+
+.glass-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transform: translateY(-5px);
+}
+
+/* Custom Scrollbar Ported from expo-mm-site */
 ::-webkit-scrollbar {
-  width: 5px;
-  opacity: 0;
-  transition: width 0.3s ease, opacity 0.3s ease;
-}
-
-.scrollable-content:hover ::-webkit-scrollbar {
-  opacity: 1;
-}
-
-::-webkit-scrollbar:hover {
-  width: 10px;
+  width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: hsl(var(--muted));
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: hsl(var(--muted-foreground) / 0.3);
-  border-radius: 5px;
+  background: linear-gradient(to bottom, var(--brand-cyan), var(--brand-pink));
+  border-radius: 20px;
+  border: 2px solid var(--brand-blue);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--muted-foreground) / 0.5);
+  background: linear-gradient(to bottom, var(--brand-orange), var(--brand-pink));
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--brand-cyan) transparent;
 }
 
 .no-edge-reveal::-ms-reveal,
@@ -174,47 +135,15 @@
     "Segoe UI", "Roboto", sans-serif;
 }
 
-/* Ajustar apenas textos base que estavam pretos para branco no tema escuro */
-.dark p,
-.dark span:not([class*="text-"]),
-.dark div:not([class*="text-"]):not([class*="bg-"]):not([class*="border-"]) {
-  color: hsl(var(--foreground));
-}
-
-/* Inputs e elementos de formulário */
-.dark input[type="text"],
-.dark input[type="email"],
-.dark input[type="password"],
-.dark input[type="number"],
-.dark textarea,
-.dark select {
-  color: hsl(var(--foreground));
-  background-color: hsl(var(--input));
-}
-
-/* Placeholders */
-.dark input::placeholder,
-.dark textarea::placeholder {
+/* Forçar contraste em inputs para evitar "invisibilidade" */
+input::placeholder,
+textarea::placeholder {
   color: hsl(var(--muted-foreground));
 }
 
-/* Labels de formulário */
-.dark label,
-.dark .form-label {
-  color: hsl(var(--foreground));
-}
-
-/* Textos em cards (usar variável específica) */
-.dark .card-title,
-.dark .card-content,
-.dark .card-header {
-  color: hsl(var(--card-foreground));
-}
-
-/* Textos em popovers e modais */
-.dark .popover-content,
-.dark .dialog-content {
-  color: hsl(var(--popover-foreground));
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: var(--muted-foreground);
 }
 
 /* Sombra de texto para melhor legibilidade */

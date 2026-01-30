@@ -59,24 +59,24 @@ const VisitorRow = memo(
     return (
       <TableRow
         onClick={handleRowClick}
-        className="cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors group border-b border-slate-200 dark:border-slate-700"
+        className="cursor-pointer hover:bg-white/5 transition-all group border-b border-white/5"
       >
-        <TableCell className="truncate text-nowrap max-w-[15rem] text-slate-900 dark:text-slate-100 font-medium">
+        <TableCell className="truncate text-nowrap max-w-60 text-white font-bold uppercase tracking-tight text-sm">
           {visitor.name}
         </TableCell>
-        <TableCell className="truncate text-nowrap max-w-[15rem] text-slate-700 dark:text-slate-300">
+        <TableCell className="truncate text-nowrap max-w-60 text-white/50 font-medium text-xs uppercase tracking-wider">
           {visitor.company}
         </TableCell>
-        <TableCell className="truncate max-w-[20rem] text-slate-700 dark:text-slate-300">
+        <TableCell className="truncate max-w-[20rem] text-brand-cyan/70 font-black text-[10px] uppercase">
           {visitor.email}
         </TableCell>
-        <TableCell className="text-center text-slate-700 dark:text-slate-300">
+        <TableCell className="text-center text-white/40 font-bold text-[10px]">
           {visitor.cnpj}
         </TableCell>
-        <TableCell className="text-center text-slate-700 dark:text-slate-300">
+        <TableCell className="text-center text-white/40 font-bold text-[10px]">
           {visitor.phone}
         </TableCell>
-        <TableCell className="text-center text-slate-700 dark:text-slate-300">
+        <TableCell className="text-center text-white/30 font-black text-[9px] uppercase tracking-widest">
           {new Date(visitor.registrationDate).toLocaleDateString("pt-BR", {
             day: "2-digit",
             month: "2-digit",
@@ -84,25 +84,23 @@ const VisitorRow = memo(
           })}
         </TableCell>
         <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
-          <div className="flex justify-center gap-1 sm:gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="flex justify-center gap-3 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0">
             {/* Botão Editar */}
             <button
               onClick={handleEditClick}
-              className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-md hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors min-w-[2rem] shadow-sm"
+              className="p-2 bg-brand-cyan/10 text-brand-cyan rounded-xl hover:bg-brand-cyan hover:text-white transition-all shadow-lg active:scale-90"
               title="Editar visitante"
             >
-              <PencilLine size={12} />
-              <span className="hidden md:inline">Editar</span>
+              <PencilLine size={16} />
             </button>
 
             {/* Botão Deletar */}
             <button
               onClick={handleDeleteClick}
-              className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-md hover:bg-red-200 dark:hover:bg-red-800 transition-colors min-w-[2rem] shadow-sm"
+              className="p-2 bg-red-500/10 text-red-400 rounded-xl hover:bg-red-500 hover:text-white transition-all shadow-lg active:scale-90"
               title="Deletar visitante"
             >
-              <Trash2 size={12} />
-              <span className="hidden md:inline">Deletar</span>
+              <Trash2 size={16} />
             </button>
           </div>
         </TableCell>
@@ -159,44 +157,30 @@ export const VisitorTable: React.FC<VisitorTableProps> = memo(
 
     return (
       <>
-        <div className="overflow-auto max-h-[50vh]">
+        <div className="overflow-auto max-h-[60vh] custom-scrollbar">
           <Table>
-            <TableHeader className="sticky top-0 z-10 bg-background">
-              <TableRow className="border-none">
+            <TableHeader className="sticky top-0 z-10">
+              <TableRow className="border-b border-white/10 hover:bg-transparent">
                 <TableHead>
-                  <div className="bg-slate-800 dark:bg-slate-700 text-white rounded-lg w-full flex justify-center items-center px-3 py-2 text-xs font-semibold shadow-lg backdrop-blur-sm">
-                    NOME
-                  </div>
+                  <div className="text-brand-pink font-black text-[10px] uppercase tracking-[0.2em] py-4">NOME</div>
                 </TableHead>
                 <TableHead>
-                  <div className="bg-slate-800 dark:bg-slate-700 text-white rounded-lg w-full flex justify-center items-center px-3 py-2 text-xs font-semibold shadow-lg backdrop-blur-sm">
-                    EMPRESA
-                  </div>
+                  <div className="text-white/40 font-black text-[10px] uppercase tracking-[0.2em] py-4">EMPRESA</div>
                 </TableHead>
                 <TableHead>
-                  <div className="bg-slate-800 dark:bg-slate-700 text-white rounded-lg w-full flex justify-center items-center px-3 py-2 text-xs font-semibold shadow-lg backdrop-blur-sm">
-                    EMAIL
-                  </div>
+                  <div className="text-white/40 font-black text-[10px] uppercase tracking-[0.2em] py-4">EMAIL</div>
                 </TableHead>
                 <TableHead>
-                  <div className="bg-slate-800 dark:bg-slate-700 text-white rounded-lg w-full flex justify-center items-center px-3 py-2 text-xs font-semibold shadow-lg backdrop-blur-sm">
-                    CNPJ
-                  </div>
+                  <div className="text-white/40 font-black text-[10px] uppercase tracking-[0.2em] py-4 text-center">CNPJ</div>
                 </TableHead>
                 <TableHead>
-                  <div className="bg-slate-800 dark:bg-slate-700 text-white rounded-lg w-full flex justify-center items-center px-3 py-2 text-xs font-semibold shadow-lg backdrop-blur-sm">
-                    TELEFONE
-                  </div>
+                  <div className="text-white/40 font-black text-[10px] uppercase tracking-[0.2em] py-4 text-center">TELEFONE</div>
                 </TableHead>
                 <TableHead>
-                  <div className="bg-slate-800 dark:bg-slate-700 text-white rounded-lg w-full flex justify-center items-center px-3 py-2 text-xs font-semibold shadow-lg backdrop-blur-sm">
-                    DATA
-                  </div>
+                  <div className="text-white/40 font-black text-[10px] uppercase tracking-[0.2em] py-4 text-center">DATA</div>
                 </TableHead>
-                <TableHead className="w-32">
-                  <div className="bg-slate-800 dark:bg-slate-700 text-white rounded-lg w-full flex justify-center items-center px-3 py-2 text-xs font-semibold shadow-lg backdrop-blur-sm">
-                    AÇÕES
-                  </div>
+                <TableHead className="w-40 text-center">
+                  <div className="text-white/40 font-black text-[10px] uppercase tracking-[0.2em] py-4">AÇÕES</div>
                 </TableHead>
               </TableRow>
             </TableHeader>

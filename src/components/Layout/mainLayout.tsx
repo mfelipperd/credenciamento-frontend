@@ -25,7 +25,7 @@ export const MainLayout: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { user, availableFairIds } = useUserSession();
   const { signOut } = useAuth();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   // Hook para gerenciar o cookie da feira selecionada
   const [savedFairId, setSavedFairId] = useCookie("selectedFairId", "", {
@@ -106,15 +106,16 @@ export const MainLayout: React.FC = () => {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col">
         {/* Header Principal */}
-        <header className="relative w-full bg-gradient-to-r from-blue-900 to-purple-800 shadow-lg">
+        <header className="relative w-full bg-brand-blue border-b border-white/5 shadow-2xl">
         {/* Background Image com Overlay */}
         <div className="absolute inset-0">
+          {/* Subtle brand gradient overlay instead of image if preferred, but keeping image with lower opacity for texture */}
           <img
             src="/bg.png"
             alt="Background"
-            className="w-full h-full object-cover opacity-20"
+            className="w-full h-full object-cover opacity-10"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-900/90 to-purple-800/90" />
+          <div className="absolute inset-0 bg-linear-to-r from-brand-blue/95 via-brand-blue/80 to-brand-blue/95" />
         </div>
 
         {/* Conteúdo do Header - Organizado com Esquerda e Direita */}
@@ -135,7 +136,7 @@ export const MainLayout: React.FC = () => {
               <img
                 src="/logo.png"
                 alt="Logo"
-                className="h-8 w-auto flex-shrink-0"
+                className="h-8 w-auto shrink-0"
               />
 
               {/* Separator */}
@@ -143,7 +144,7 @@ export const MainLayout: React.FC = () => {
 
               {/* Fair Selector */}
               <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded px-3 py-1">
-                <div className="bg-green-400 rounded-full h-2 w-2 flex-shrink-0"></div>
+                <div className="bg-green-400 rounded-full h-2 w-2 shrink-0"></div>
                 <select
                   value={selectedId}
                   onChange={handleChange}
@@ -160,7 +161,7 @@ export const MainLayout: React.FC = () => {
                   ))}
                 </select>
                 <svg
-                  className="h-3 w-3 text-white/70 flex-shrink-0"
+                  className="h-3 w-3 text-white/70 shrink-0"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -178,7 +179,7 @@ export const MainLayout: React.FC = () => {
               <div className="h-6 w-px bg-white/30 hidden md:block"></div>
 
               {/* Data e Horário */}
-              <div className="hidden md:flex items-center gap-1 flex-shrink-0 text-xs">
+              <div className="hidden md:flex items-center gap-1 shrink-0 text-xs">
                 <Calendar className="h-3 w-3 text-blue-300" />
                 <span className="font-medium">{selectedFair?.startDate ? new Date(selectedFair.startDate).toLocaleDateString('pt-BR') : ''}</span>
                 <span className="text-white/60">•</span>
@@ -189,16 +190,16 @@ export const MainLayout: React.FC = () => {
               <div className="h-6 w-px bg-white/30 hidden lg:block"></div>
 
               {/* Local */}
-              <div className="hidden lg:flex items-center gap-1 flex-shrink-0 text-xs">
-                <MapPin className="h-3 w-3 text-green-300" />
-                <span className="font-medium">Estação das Docas</span>
+              <div className="hidden lg:flex items-center gap-1 shrink-0 text-[10px] text-white/60">
+                <MapPin className="h-3 w-3 text-brand-cyan" />
+                <span className="font-bold uppercase tracking-wider">Estação das Docas</span>
               </div>
             </div>
 
             {/* Lado Direito - Email, Controls */}
             <div className="flex items-center gap-3">
               {/* User Email */}
-              <div className="hidden sm:flex items-center gap-1 flex-shrink-0">
+              <div className="hidden sm:flex items-center gap-1 shrink-0">
                 <div className="w-1.5 h-1.5 bg-green-400 rounded-full"></div>
                 <span className="text-xs font-medium truncate max-w-32">
                   {user?.email}
@@ -209,7 +210,7 @@ export const MainLayout: React.FC = () => {
               <div className="h-6 w-px bg-white/30 hidden sm:block"></div>
 
               {/* Controls */}
-              <div className="flex items-center gap-2 flex-shrink-0">
+              <div className="flex items-center gap-2 shrink-0">
                 {/* Desktop Menu Button */}
                 <button
                   onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -250,10 +251,18 @@ export const MainLayout: React.FC = () => {
         </div>
         </header>
 
-        <main className="flex-grow p-6 bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 dark:from-slate-900 dark:via-blue-950 dark:to-purple-950">
-          <Outlet />
+        <main className="grow p-6 bg-brand-blue relative overflow-hidden">
+          {/* Decorative background elements */}
+          <div className="absolute top-0 right-0 w-96 h-96 bg-brand-pink/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2" />
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-brand-cyan/5 blur-[120px] rounded-full translate-y-1/2 -translate-x-1/2" />
+          
+          <div className="relative z-10">
+            <Outlet />
+          </div>
         </main>
-        <SimpleFooter />
+        <div className="bg-brand-blue border-t border-white/5">
+          <SimpleFooter />
+        </div>
       </div>
     </div>
   );

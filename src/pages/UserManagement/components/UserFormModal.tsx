@@ -32,7 +32,7 @@ import { useFairs } from "@/hooks/useFairs";
 import { toast } from "sonner";
 import { maskCPF, maskPhoneBR } from "@/utils/masks";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 
 const userSchema = z.object({
   name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
@@ -208,27 +208,29 @@ export function UserFormModal({ user, isOpen, onClose }: UserFormModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl bg-gray-800 border-gray-700">
-        <DialogHeader>
-          <DialogTitle className="text-white">
-            {isEditing ? "Editar Usuário" : "Novo Usuário"}
-          </DialogTitle>
+      <DialogContent className="w-[98vw] sm:min-w-[80vw] sm:max-w-5xl bg-brand-blue mx-auto rounded-[40px] border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.8)] p-0 ring-1 ring-white/5">
+        <DialogHeader className="p-10 border-b border-white/5 bg-white/2">
+          <div className="flex flex-col gap-1">
+             <span className="text-brand-pink font-black text-[10px] uppercase tracking-[0.4em]">Gestão de Acessos</span>
+             <DialogTitle className="text-3xl font-black text-white uppercase tracking-tighter">
+               {isEditing ? `Editar: ${user?.name}` : "Novo Operador de Sistema"}
+             </DialogTitle>
+          </div>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="p-10 space-y-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {/* Nome */}
               <FormField
                 control={form.control}
                 name="name"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-gray-300">Nome Completo *</FormLabel>
+                  <FormItem className="space-y-2">
+                    <FormLabel className="text-white/30 font-black text-[9px] uppercase tracking-widest ml-1">Nome Completo</FormLabel>
                     <FormControl>
                       <Input 
                         placeholder="Digite o nome completo" 
-                        className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
                         {...field} 
                       />
                     </FormControl>
@@ -242,13 +244,12 @@ export function UserFormModal({ user, isOpen, onClose }: UserFormModalProps) {
                 control={form.control}
                 name="email"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-gray-300">Email *</FormLabel>
+                  <FormItem className="space-y-2">
+                    <FormLabel className="text-white/30 font-black text-[9px] uppercase tracking-widest ml-1">Email Corporativo</FormLabel>
                     <FormControl>
                       <Input 
                         type="email" 
                         placeholder="Digite o email" 
-                        className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
                         {...field} 
                       />
                     </FormControl>
@@ -262,12 +263,11 @@ export function UserFormModal({ user, isOpen, onClose }: UserFormModalProps) {
                 control={form.control}
                 name="cpf"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-gray-300">CPF</FormLabel>
+                  <FormItem className="space-y-2">
+                    <FormLabel className="text-white/30 font-black text-[9px] uppercase tracking-widest ml-1">Documento CPF</FormLabel>
                     <FormControl>
                       <Input 
                         placeholder="000.000.000-00"
-                        className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
                         {...field}
                         onChange={(e) => {
                           const masked = maskCPF(e.target.value);
@@ -285,12 +285,11 @@ export function UserFormModal({ user, isOpen, onClose }: UserFormModalProps) {
                 control={form.control}
                 name="phone"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-gray-300">Telefone</FormLabel>
+                  <FormItem className="space-y-2">
+                    <FormLabel className="text-white/30 font-black text-[9px] uppercase tracking-widest ml-1">WhatsApp</FormLabel>
                     <FormControl>
                       <Input 
                         placeholder="(00) 00000-0000"
-                        className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
                         {...field}
                         onChange={(e) => {
                           const masked = maskPhoneBR(e.target.value);
@@ -308,18 +307,18 @@ export function UserFormModal({ user, isOpen, onClose }: UserFormModalProps) {
                 control={form.control}
                 name="role"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-gray-300">Função *</FormLabel>
+                  <FormItem className="space-y-2">
+                    <FormLabel className="text-white/30 font-black text-[9px] uppercase tracking-widest ml-1">Função Hierárquica</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                        <SelectTrigger className="h-12 bg-white/5 border-white/10 rounded-xl text-white">
                           <SelectValue placeholder="Selecione a função" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent className="bg-gray-800 border-gray-700">
-                        <SelectItem value={EUserRole.ADMIN} className="text-white hover:bg-gray-700">Administrador</SelectItem>
-                        <SelectItem value={EUserRole.PARTNER} className="text-white hover:bg-gray-700">Sócio</SelectItem>
-                        <SelectItem value={EUserRole.CONSULTANT} className="text-white hover:bg-gray-700">Consultor</SelectItem>
+                      <SelectContent className="bg-brand-blue border-white/10 text-white">
+                        <SelectItem value={EUserRole.ADMIN} className="hover:bg-white/5">Administrador</SelectItem>
+                        <SelectItem value={EUserRole.PARTNER} className="hover:bg-white/5">Sócio</SelectItem>
+                        <SelectItem value={EUserRole.CONSULTANT} className="hover:bg-white/5">Consultor</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -327,57 +326,23 @@ export function UserFormModal({ user, isOpen, onClose }: UserFormModalProps) {
                 )}
               />
 
-              {/* Feiras (apenas para consultores) */}
-              {form.watch("role") === EUserRole.CONSULTANT && (
-                <div className="space-y-2">
-                  <FormLabel className="text-gray-300">Feiras Associadas *</FormLabel>
-                  <div className="space-y-2 max-h-40 overflow-y-auto border border-gray-600 rounded-md p-3 bg-gray-700">
-                    {(fairs || []).map((fair: any) => (
-                      <div key={fair.id} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`fair-${fair.id}`}
-                          checked={selectedFairIds.includes(fair.id)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setSelectedFairIds(prev => [...prev, fair.id]);
-                            } else {
-                              setSelectedFairIds(prev => prev.filter(id => id !== fair.id));
-                            }
-                          }}
-                        />
-                        <label
-                          htmlFor={`fair-${fair.id}`}
-                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-300"
-                        >
-                          {fair.name}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                  {selectedFairIds.length === 0 && (
-                    <p className="text-sm text-red-400">
-                      Selecione pelo menos uma feira para o consultor
-                    </p>
-                  )}
-                </div>
-              )}
-
               {/* Status */}
               <FormField
                 control={form.control}
                 name="isActive"
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border border-gray-600 p-4 bg-gray-700">
+                  <FormItem className="flex flex-row items-center justify-between rounded-2xl border border-white/5 p-5 bg-white/2">
                     <div className="space-y-0.5">
-                      <FormLabel className="text-base text-gray-300">Usuário Ativo</FormLabel>
-                      <div className="text-sm text-gray-400">
-                        Usuário pode fazer login no sistema
+                      <FormLabel className="text-xs font-black text-white uppercase tracking-widest">Status da Conta</FormLabel>
+                      <div className="text-[10px] text-white/30 uppercase tracking-tight font-bold">
+                        Acesso {field.value ? "Liberado" : "Bloqueado"}
                       </div>
                     </div>
                     <FormControl>
                       <Switch
                         checked={field.value}
                         onCheckedChange={field.onChange}
+                        className="data-[state=checked]:bg-brand-cyan"
                       />
                     </FormControl>
                   </FormItem>
@@ -385,83 +350,142 @@ export function UserFormModal({ user, isOpen, onClose }: UserFormModalProps) {
               />
             </div>
 
-            {/* Senha */}
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-gray-300">
-                    Senha {isEditing ? "(deixe em branco para manter a atual)" : "*"}
-                  </FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <Input 
-                        type={showPassword ? "text" : "password"}
-                        placeholder={isEditing ? "Nova senha (opcional)" : "Digite a senha"}
-                        className="bg-gray-700 border-gray-600 text-white placeholder-gray-400 pr-10"
-                        {...field} 
+            {/* Feiras (apenas para consultores) */}
+            {form.watch("role") === EUserRole.CONSULTANT && (
+              <div className="bg-black/20 p-8 rounded-3xl border border-white/5 space-y-6">
+                <div className="flex flex-col gap-1">
+                   <FormLabel className="text-white/40 font-black text-[10px] uppercase tracking-[0.3em]">Gestão de Permissões</FormLabel>
+                   <span className="text-[9px] text-white/20 uppercase tracking-widest font-bold">Vincule as feiras que este consultor poderá visualizar</span>
+                </div>
+                
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 max-h-48 overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-white/10">
+                  {(fairs || []).map((fair: any) => (
+                    <div key={fair.id} className="flex items-center space-x-3 p-4 bg-white/2 border border-white/5 rounded-xl hover:bg-white/5 transition-colors group cursor-pointer">
+                      <Checkbox
+                        id={`fair-${fair.id}`}
+                        checked={selectedFairIds.includes(fair.id)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedFairIds(prev => [...prev, fair.id]);
+                          } else {
+                            setSelectedFairIds(prev => prev.filter(id => id !== fair.id));
+                          }
+                        }}
+                        className="border-white/20 data-[state=checked]:bg-brand-cyan data-[state=checked]:border-brand-cyan"
                       />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300"
+                      <label
+                        htmlFor={`fair-${fair.id}`}
+                        className="text-[10px] font-bold text-white/50 group-hover:text-white uppercase tracking-wide cursor-pointer flex-1"
                       >
-                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                      </button>
+                        {fair.name}
+                      </label>
                     </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                  ))}
+                </div>
+                {selectedFairIds.length === 0 && (
+                  <p className="text-[10px] text-red-400 font-bold uppercase tracking-widest text-center animate-pulse">
+                     Atenção: Selecione pelo menos uma feira para o consultor
+                  </p>
+                )}
+              </div>
+            )}
 
-            {/* Confirmação de Senha */}
-            <FormField
-              control={form.control}
-              name="confirmPassword"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-gray-300">
-                    Confirmar Senha {isEditing ? "(opcional)" : "*"}
-                  </FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <Input 
-                        type={showConfirmPassword ? "text" : "password"}
-                        placeholder="Confirme a senha"
-                        className="bg-gray-700 border-gray-600 text-white placeholder-gray-400 pr-10"
-                        {...field} 
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300"
-                      >
-                        {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                      </button>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6 border-t border-white/5">
+              {/* Senha */}
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem className="space-y-2">
+                    <div className="flex justify-between items-center px-1">
+                       <FormLabel className="text-white/30 font-black text-[9px] uppercase tracking-widest">
+                         Chave de Acesso {isEditing && "(Opcional)"}
+                       </FormLabel>
+                       <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="text-[9px] text-brand-cyan font-black uppercase tracking-widest hover:text-white transition-colors"
+                        >
+                          {showPassword ? "Ocultar" : "Mostrar"}
+                        </button>
                     </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <FormControl>
+                      <div className="relative group">
+                        <Input 
+                          type={showPassword ? "text" : "password"}
+                          placeholder={isEditing ? "Manter atual (vazio)" : "Defina uma senha segura"}
+                          {...field} 
+                        />
+                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none opacity-20 group-focus-within:opacity-100 transition-opacity">
+                           {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </div>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Confirmação de Senha */}
+              <FormField
+                control={form.control}
+                name="confirmPassword"
+                render={({ field }) => (
+                  <FormItem className="space-y-2">
+                    <div className="flex justify-between items-center px-1">
+                       <FormLabel className="text-white/30 font-black text-[9px] uppercase tracking-widest">
+                         Confirmar Chave
+                       </FormLabel>
+                       <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          className="text-[9px] text-brand-cyan font-black uppercase tracking-widest hover:text-white transition-colors"
+                        >
+                          {showConfirmPassword ? "Ocultar" : "Mostrar"}
+                        </button>
+                    </div>
+                    <FormControl>
+                      <div className="relative group">
+                        <Input 
+                          type={showConfirmPassword ? "text" : "password"}
+                          placeholder="Repita a chave de acesso"
+                          {...field} 
+                        />
+                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none opacity-20 group-focus-within:opacity-100 transition-opacity">
+                           {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </div>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             {/* Ações */}
-            <div className="flex justify-end gap-2">
+            <div className="flex flex-col sm:flex-row justify-end gap-4 pt-10">
               <Button 
                 type="button" 
                 variant="outline" 
                 onClick={handleClose}
                 disabled={isSubmitting}
+                className="h-14 px-10 rounded-2xl border-white/10 bg-white/5 text-white/50 hover:bg-white/10 hover:text-white font-black uppercase tracking-[0.2em] transition-all"
               >
-                Cancelar
+                Descartar
               </Button>
               <Button 
                 type="submit" 
                 disabled={isSubmitting}
+                className="h-14 px-14 rounded-2xl bg-linear-to-r from-brand-pink to-brand-pink/80 hover:from-brand-pink hover:to-brand-pink text-white font-black uppercase tracking-[0.2em] shadow-xl shadow-brand-pink/20 transition-all active:scale-95"
               >
-                {isSubmitting ? "Salvando..." : isEditing ? "Atualizar" : "Criar"}
+                {isSubmitting ? (
+                   <span className="flex items-center gap-3">
+                     <Loader2 className="animate-spin" size={20} />
+                     Processando...
+                   </span>
+                ) : (
+                  isEditing ? "Salvar Alterações" : "Efetivar Cadastro"
+                )}
               </Button>
             </div>
           </form>

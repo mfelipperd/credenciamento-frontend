@@ -109,7 +109,7 @@ export const FormularioCredenciamento: React.FC = () => {
                       value={opt}
                       className={` rounded-full cursor-pointer text ${
                         field.value === opt
-                          ? "bg-pink-600 text-white"
+                          ? "bg-brand-pink text-white"
                           : "bg-white"
                       }`}
                     >
@@ -219,7 +219,7 @@ export const FormularioCredenciamento: React.FC = () => {
             href="https://www.expomultimix.com/politica-de-privacidade"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-pink-600 hover:underline"
+            className="text-brand-pink hover:underline"
           >
             termos e condições
           </a>
@@ -229,7 +229,7 @@ export const FormularioCredenciamento: React.FC = () => {
         <Button
           disabled={!checkbox}
           type="submit"
-          className="bg-pink-600 rounded-full w-[80%] hover:bg-pink-700 text-white"
+          className="bg-brand-pink rounded-full w-[80%] hover:bg-brand-pink/90 text-white"
         >
           {loading ? <Loader2 className="animate-spin" /> : <Save />}
           Enviar
