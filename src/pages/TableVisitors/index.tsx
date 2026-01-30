@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useSearchParams } from "@/hooks/useSearchParams";
 import { ModalCreateFormPrivate } from "./components/ModalCreate";
-import { ExportModalPDF } from "./components/ModalPDF";
 import { Pagination } from "./components/Pagination";
 import { TableSkeleton } from "@/components/ui/skeleton";
+
 export const TabeleVisitors = () => {
   const controller = useTableVisitorsController();
   const [, , fairId] = useSearchParams();
@@ -32,7 +32,6 @@ export const TabeleVisitors = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full lg:w-auto">
-              <ExportModalPDF data={controller.filteredData} />
               <Button
                 type="button"
                 onClick={handleClick}

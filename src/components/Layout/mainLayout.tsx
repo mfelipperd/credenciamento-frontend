@@ -180,19 +180,19 @@ export const MainLayout: React.FC = () => {
 
               {/* Data e Horário */}
               <div className="hidden md:flex items-center gap-1 shrink-0 text-xs">
-                <Calendar className="h-3 w-3 text-blue-300" />
-                <span className="font-medium">{selectedFair?.startDate ? new Date(selectedFair.startDate).toLocaleDateString('pt-BR') : ''}</span>
-                <span className="text-white/60">•</span>
-                <span className="text-white/80">13h-21h</span>
+                <Calendar className="h-3 w-3 text-brand-cyan" />
+                <span className="font-bold">{selectedFair?.startDate ? new Date(selectedFair.startDate).toLocaleDateString('pt-BR') : ''}</span>
+                <span className="text-white/50">•</span>
+                <span className="text-white/90">13h-21h</span>
               </div>
 
               {/* Separator */}
               <div className="h-6 w-px bg-white/30 hidden lg:block"></div>
 
               {/* Local */}
-              <div className="hidden lg:flex items-center gap-1 shrink-0 text-[10px] text-white/60">
+              <div className="hidden lg:flex items-center gap-1 shrink-0 text-[10px] text-white/80">
                 <MapPin className="h-3 w-3 text-brand-cyan" />
-                <span className="font-bold uppercase tracking-wider">Estação das Docas</span>
+                <span className="font-bold uppercase tracking-widest">Estação das Docas</span>
               </div>
             </div>
 

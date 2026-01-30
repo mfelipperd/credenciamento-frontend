@@ -120,10 +120,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, search }) => 
               className="h-8 w-auto"
             />
             <div>
-              <h2 className="text-lg font-black text-white uppercase tracking-tighter">
+              <h2 className="text-xl font-black text-white uppercase tracking-tighter">
                 Menu
               </h2>
-              <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest">
+              <p className="text-[11px] text-white/50 font-bold uppercase tracking-[0.2em] mt-0.5">
                 Navegação
               </p>
             </div>
@@ -149,24 +149,24 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, search }) => 
                   to={{ pathname: item.href, search: item.roles.includes(EUserRole.PARTNER) && item.href === "/partner-dashboard" ? undefined : search }}
                   onClick={onClose}
                   className={cn(
-                    "flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 group",
+                    "flex items-center gap-4 px-5 py-4 rounded-2xl text-xs font-extrabold uppercase tracking-wider transition-all duration-300 group mr-2",
                     isActive
-                      ? "bg-brand-pink text-white shadow-lg shadow-brand-pink/20 translate-x-1"
-                      : "text-white/60 hover:bg-white/5 hover:text-white"
+                      ? "bg-brand-pink text-white shadow-xl shadow-brand-pink/30 translate-x-2"
+                      : "text-white/50 hover:bg-white/5 hover:text-white"
                   )}
                 >
                   <Icon
                     className={cn(
-                      "h-4 w-4 transition-colors",
+                      "h-5 w-5 transition-colors",
                       isActive
                         ? "text-white"
-                        : "text-white/30 group-hover:text-white/60"
+                        : "text-white/20 group-hover:text-brand-cyan"
                     )}
                   />
                   <span>{item.name}</span>
                   {isActive && (
                     <div className="ml-auto">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+                      <div className="w-2 h-2 bg-brand-cyan rounded-full animate-pulse shadow-[0_0_10px_rgba(0,170,205,0.8)]" />
                     </div>
                   )}
                 </Link>
@@ -198,10 +198,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, search }) => 
               className="h-9 w-auto"
             />
             <div className={cn("transition-opacity duration-300", isOpen ? "opacity-100" : "opacity-0")}>
-              <h2 className="text-xl font-black text-white uppercase tracking-tighter leading-none">
+              <h2 className="text-2xl font-black text-white uppercase tracking-tighter leading-none">
                 Menu
               </h2>
-              <p className="text-[10px] text-white/40 font-black uppercase tracking-[0.2em] mt-1">
+              <p className="text-[11px] text-white/50 font-black uppercase tracking-[0.2em] mt-1.5">
                 Navegação
               </p>
             </div>
@@ -220,18 +220,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, search }) => 
                   key={item.name}
                   to={{ pathname: item.href, search: item.roles.includes(EUserRole.PARTNER) && item.href === "/partner-dashboard" ? undefined : search }}
                   className={cn(
-                    "flex items-center gap-3 px-4 py-4 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 group relative",
+                    "flex items-center gap-4 px-5 py-5 rounded-2xl text-xs font-extrabold uppercase tracking-wider transition-all duration-300 group relative",
                     isActive
-                      ? "bg-linear-to-r from-brand-pink to-brand-pink/80 text-white shadow-lg shadow-brand-pink/20 translate-x-2"
+                      ? "bg-linear-to-r from-brand-pink to-brand-pink/80 text-white shadow-xl shadow-brand-pink/30 translate-x-3"
                       : "text-white/50 hover:bg-white/5 hover:text-white"
                   )}
                 >
                   {isActive && (
-                    <div className="absolute inset-y-2 -left-4 w-1 bg-brand-cyan rounded-full" />
+                    <div className="absolute inset-y-3 -left-5 w-1.5 bg-brand-cyan rounded-full" />
                   )}
                   <Icon
                     className={cn(
-                      "h-4 w-4 transition-colors",
+                      "h-5 w-5 transition-colors",
                       isActive
                         ? "text-white"
                         : "text-white/20 group-hover:text-brand-cyan"
@@ -240,7 +240,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, search }) => 
                   <span>{item.name}</span>
                   {isActive && (
                     <div className="ml-auto">
-                      <div className="w-1.5 h-1.5 bg-brand-cyan rounded-full animate-pulse shadow-[0_0_10px_rgba(0,170,205,0.8)]" />
+                      <div className="w-2 h-2 bg-brand-cyan rounded-full animate-pulse shadow-[0_0_10px_rgba(0,170,205,0.8)]" />
                     </div>
                   )}
                 </Link>
@@ -251,9 +251,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, search }) => 
 
         {/* Footer */}
         <div className="p-7 border-t border-white/5 mt-auto">
-          <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
-            <div className="flex items-center gap-3 text-[10px] text-white/40 font-black uppercase tracking-widest break-all">
-              <div className="w-2 h-2 bg-green-400 rounded-full shadow-[0_0_8px_rgba(74,222,128,0.5)] animate-pulse" />
+          <div className="p-5 rounded-2xl bg-white/5 border border-white/5 backdrop-blur-sm">
+            <div className="flex items-center gap-3 text-[11px] text-white/50 font-black uppercase tracking-[0.15em] break-all">
+              <div className="w-2.5 h-2.5 bg-green-400 rounded-full shadow-[0_0_12px_rgba(74,222,128,0.6)] animate-pulse" />
               <span>{user?.email}</span>
             </div>
           </div>

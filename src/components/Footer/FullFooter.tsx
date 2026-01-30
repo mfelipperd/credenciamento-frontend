@@ -132,7 +132,7 @@ export const FullFooter = () => {
               © {new Date().getFullYear()} Sistema de Credenciamento. Todos os
               direitos reservados.
             </p>
-            <p>Expo Multimix • Desenvolvido por Marcos Felippe</p>
+            <p>Expo Multimix • Desenvolvido por Marcos Felippe • v{__APP_VERSION__}</p>
           </div>
           <div className="flex items-center gap-1 text-slate-500 text-sm">
             <span>Feito com</span>
