@@ -15,7 +15,7 @@ import type {
   ExpenseTotalByAccount,
 } from "@/interfaces/finance";
 
-const BASE_URL = "";
+import { AppEndpoints } from "@/constants/AppEndpoints";
 
 // Hook personalizado para o serviço de despesas
 export const useExpensesService = () => {
@@ -40,7 +40,7 @@ export const useExpensesService = () => {
 
     return handleRequest<Expense[]>({
       request: () =>
-        api.get(`${BASE_URL}/expenses/fairs/${fairId}/expenses${queryString}`),
+        api.get(`${AppEndpoints.FINANCE.EXPENSES_BY_FAIR(fairId)}${queryString}`),
     });
   };
 
@@ -48,7 +48,7 @@ export const useExpensesService = () => {
     id: string
   ): Promise<Expense | undefined> => {
     return handleRequest<Expense>({
-      request: () => api.get(`${BASE_URL}/expenses/${id}`),
+      request: () => api.get(`${AppEndpoints.FINANCE.EXPENSES}/${id}`),
     });
   };
 
@@ -64,7 +64,7 @@ export const useExpensesService = () => {
 
     return handleRequest<Expense>({
       request: () =>
-        api.post(`${BASE_URL}/expenses/fairs/${fairId}/expenses`, expenseData),
+        api.post(AppEndpoints.FINANCE.EXPENSES_BY_FAIR(fairId), expenseData),
       successMessage: "Despesa criada com sucesso!",
     });
   };
@@ -74,14 +74,14 @@ export const useExpensesService = () => {
     data: UpdateExpenseForm
   ): Promise<Expense | undefined> => {
     return handleRequest<Expense>({
-      request: () => api.patch(`${BASE_URL}/expenses/${id}`, data),
+      request: () => api.patch(`${AppEndpoints.FINANCE.EXPENSES}/${id}`, data),
       successMessage: "Despesa atualizada com sucesso!",
     });
   };
 
   const deleteExpense = async (id: string): Promise<void> => {
     await handleRequest<{ success: boolean }>({
-      request: () => api.delete(`${BASE_URL}/expenses/${id}`),
+      request: () => api.delete(`${AppEndpoints.FINANCE.EXPENSES}/${id}`),
       successMessage: "Despesa removida com sucesso!",
     });
   };
@@ -92,7 +92,7 @@ export const useExpensesService = () => {
     fairId: string
   ): Promise<number | undefined> => {
     return handleRequest<number>({
-      request: () => api.get(`${BASE_URL}/expenses/fairs/${fairId}/expenses/total`),
+      request: () => api.get(AppEndpoints.FINANCE.EXPENSES_TOTAL(fairId)),
     });
   };
 
@@ -101,7 +101,7 @@ export const useExpensesService = () => {
   ): Promise<ExpenseTotalByCategory[] | undefined> => {
     return handleRequest<ExpenseTotalByCategory[]>({
       request: () =>
-        api.get(`${BASE_URL}/expenses/fairs/${fairId}/expenses/total-by-category`),
+        api.get(AppEndpoints.FINANCE.EXPENSES_BY_CATEGORY(fairId)),
     });
   };
 
@@ -110,7 +110,7 @@ export const useExpensesService = () => {
   ): Promise<ExpenseTotalByAccount[] | undefined> => {
     return handleRequest<ExpenseTotalByAccount[]>({
       request: () =>
-        api.get(`${BASE_URL}/expenses/fairs/${fairId}/expenses/total-by-account`),
+        api.get(AppEndpoints.FINANCE.EXPENSES_BY_ACCOUNT(fairId)),
     });
   };
 

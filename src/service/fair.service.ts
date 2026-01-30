@@ -7,8 +7,7 @@ import type {
   FairFilters,
   FairStats,
 } from "@/interfaces/fairs";
-
-const BASE_URL = "/fairs";
+import { AppEndpoints } from "@/constants/AppEndpoints";
 
 export const useFairService = () => {
   const api = useAxio();
@@ -27,7 +26,7 @@ export const useFairService = () => {
     if (filters?.endDate) params.append("endDate", filters.endDate);
 
     const queryString = params.toString();
-    const url = `${BASE_URL}${queryString ? `?${queryString}` : ""}`;
+    const url = `${AppEndpoints.FAIRS.BASE}${queryString ? `?${queryString}` : ""}`;
 
     return handleRequest<Fair[]>({
       request: () => api.get(url),
@@ -37,14 +36,14 @@ export const useFairService = () => {
   // Buscar feira específica
   const getFairById = async (id: string): Promise<Fair | undefined> => {
     return handleRequest<Fair>({
-      request: () => api.get(`${BASE_URL}/${id}`),
+      request: () => api.get(AppEndpoints.FAIRS.BY_ID(id)),
     });
   };
 
   // Criar nova feira
   const createFair = async (data: CreateFairForm): Promise<Fair | undefined> => {
     return handleRequest<Fair>({
-      request: () => api.post(BASE_URL, data),
+      request: () => api.post(AppEndpoints.FAIRS.BASE, data),
       successMessage: "Feira criada com sucesso!",
     });
   };
@@ -52,7 +51,7 @@ export const useFairService = () => {
   // Atualizar feira
   const updateFair = async (id: string, data: UpdateFairForm): Promise<Fair | undefined> => {
     return handleRequest<Fair>({
-      request: () => api.put(`${BASE_URL}/${id}`, data),
+      request: () => api.put(AppEndpoints.FAIRS.BY_ID(id), data),
       successMessage: "Feira atualizada com sucesso!",
     });
   };
@@ -60,7 +59,7 @@ export const useFairService = () => {
   // Excluir feira
   const deleteFair = async (id: string): Promise<{ message: string } | undefined> => {
     return handleRequest<{ message: string }>({
-      request: () => api.delete(`${BASE_URL}/${id}`),
+      request: () => api.delete(AppEndpoints.FAIRS.BY_ID(id)),
       successMessage: "Feira excluída com sucesso!",
     });
   };
@@ -68,7 +67,7 @@ export const useFairService = () => {
   // Ativar/desativar feira
   const toggleFairActive = async (id: string): Promise<Fair | undefined> => {
     return handleRequest<Fair>({
-      request: () => api.patch(`${BASE_URL}/${id}/toggle-active`),
+      request: () => api.patch(AppEndpoints.FAIRS.TOGGLE_ACTIVE(id)),
       successMessage: "Status da feira atualizado com sucesso!",
     });
   };

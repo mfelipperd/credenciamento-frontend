@@ -6,6 +6,7 @@ import type {
   VisitorEdit,
 } from "@/interfaces/visitors";
 import { useState, useCallback } from "react";
+import { AppEndpoints } from "@/constants/AppEndpoints";
 
 // Interface para resposta paginada
 interface PaginatedResponse<T> {
@@ -63,7 +64,7 @@ export const useVisitorsService = () => {
         params.limit = limit.toString();
 
       const result = await handleRequest({
-        request: () => api.get("visitors", { params }),
+        request: () => api.get(AppEndpoints.VISITORS.BASE, { params }),
         setLoading,
       });
       if (!result) return;
@@ -107,7 +108,7 @@ export const useVisitorsService = () => {
       try {
         const result = await handleRequest({
           request: () =>
-            api.get<PaginatedResponse<Visitor>>("visitors", {
+            api.get<PaginatedResponse<Visitor>>(AppEndpoints.VISITORS.BASE, {
               params: queryParams,
             }),
           setLoading,
@@ -159,7 +160,7 @@ export const useVisitorsService = () => {
     async (visitorId?: string, params?: string) => {
       const result = await handleRequest({
         request: () =>
-          api.get<Visitor>(`visitors/${visitorId}`, {
+          api.get<Visitor>(AppEndpoints.VISITORS.BY_ID(visitorId || ""), {
             params: {
               fairId: params,
             },
@@ -175,7 +176,7 @@ export const useVisitorsService = () => {
   const checkinVisitor = async (visitorId: string, fairId: string) => {
     const result = await handleRequest({
       request: () =>
-        api.post(`/checkins`, { registrationCode: visitorId, fairId: fairId }),
+        api.post(AppEndpoints.CHECKINS.BASE, { registrationCode: visitorId, fairId: fairId }),
       setLoading,
       successMessage: "Check-in realizado com sucesso!",
     });
@@ -187,7 +188,7 @@ export const useVisitorsService = () => {
     async (fairId: string, filterDay?: string) => {
       const result = await handleRequest({
         request: () =>
-          api.get<CheckinPerHourResponse>(`checkins/today`, {
+          api.get<CheckinPerHourResponse>(AppEndpoints.CHECKINS.TODAY, {
             params: { fairId, filterDay },
           }),
         setLoading,
@@ -201,7 +202,7 @@ export const useVisitorsService = () => {
   const updateVisitor = async (visitor: Partial<VisitorEdit>) => {
     const result = await handleRequest({
       request: () =>
-        api.patch<VisitorEdit>(`visitors/${visitor.registrationCode}`, {
+        api.patch<VisitorEdit>(AppEndpoints.VISITORS.BY_ID(visitor.registrationCode || ""), {
           name: visitor.name,
           fairIds: visitor.fairIds,
         }),
@@ -215,7 +216,7 @@ export const useVisitorsService = () => {
   const deleteVisitor = useCallback(
     async (visitorId: string) => {
       const result = await handleRequest({
-        request: () => api.delete(`visitors/${visitorId}`),
+        request: () => api.delete(AppEndpoints.VISITORS.BY_ID(visitorId)),
         setLoading,
       });
       if (!result) return;

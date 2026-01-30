@@ -235,38 +235,23 @@ export function ReceitaDrawer({
       const baseValue = selectedEntryModel.baseValue;
       const discount = Math.max(0, baseValue - contractValue);
 
-      console.log("Calculando desconto:", {
-        contractValueCents,
-        contractValue,
-        baseValue,
-        discount,
-      });
-
       // Converte o desconto para formato mascarado antes de definir
       const discountFormatted = formatCurrency(discount);
       setValue("discountCents", discountFormatted);
     }
-  }, [contractValueCents, selectedEntryModel]);
+  }, [contractValueCents, selectedEntryModel, setValue]);
 
   // Garante que os valores sejam definidos corretamente quando o modelo for selecionado
   useEffect(() => {
     if (selectedEntryModel) {
-      console.log("Definindo valores do modelo:", selectedEntryModel);
-
       // Converte o valor base para formato mascarado
       const baseValueFormatted = formatCurrency(selectedEntryModel.baseValue);
       setValue("baseValueCents", baseValueFormatted);
       setValue("contractValueCents", baseValueFormatted);
       setValue("discountCents", "R$ 0,00");
       setValue("entryModelId", selectedEntryModel.id);
-
-      console.log("Valores definidos:", {
-        baseValue: selectedEntryModel.baseValue,
-        baseValueFormatted,
-        discountCents: "R$ 0,00",
-      });
     }
-  }, [selectedEntryModel]);
+  }, [selectedEntryModel, setValue]);
 
   // Se não há fairId, não renderiza o conteúdo principal
   const hasValidFairId = fairId && fairId.trim() !== "";
@@ -274,7 +259,7 @@ export function ReceitaDrawer({
   if (!hasValidFairId && isOpen) {
     return (
       <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <SheetContent className="w-full max-w-4xl min-w-[40rem] overflow-y-auto p-6">
+        <SheetContent className="w-full max-w-4xl min-w-160 overflow-y-auto p-6">
           <SheetHeader className="border-b border-gray-200/30 dark:border-gray-700/30 pb-4 mb-6">
             <div className="flex items-center justify-between">
               <SheetTitle className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -328,14 +313,6 @@ export function ReceitaDrawer({
     // Converte para centavos (multiplica por 100 para converter reais para centavos)
     const totalCents =
       parseInt(integerPart) * 100 + parseInt(decimalPart.padEnd(2, "0"));
-
-    console.log("parseMaskedCurrency:", {
-      maskedValue,
-      cleanValue,
-      integerPart,
-      decimalPart,
-      totalCents,
-    });
 
     return totalCents;
   };
@@ -631,7 +608,7 @@ export function ReceitaDrawer({
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent className="w-full max-w-4xl min-w-[40rem] overflow-y-auto p-6">
+      <SheetContent className="w-full max-w-4xl min-w-160 overflow-y-auto p-6">
         <SheetHeader className="border-b border-gray-200/30 dark:border-gray-700/30 pb-4 mb-6">
           <div className="flex items-center justify-between">
             <SheetTitle className="text-xl font-semibold text-gray-900 dark:text-white">

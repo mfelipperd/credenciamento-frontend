@@ -26,7 +26,6 @@ export function useCheckinSocket(
     });
 
     socket.on("checkinConfirmed", (visitorData: Visitor) => {
-      console.log("📨 Visitante recebido via socket:", visitorData);
       onVisitorReceived(visitorData);
     });
 

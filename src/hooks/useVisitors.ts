@@ -38,8 +38,6 @@ export const useVisitorsPaginated = (params: VisitorsParams) => {
     queryKey: ["visitors", "paginated", params],
     queryFn: async () => {
       try {
-        console.log("🚀 useVisitorsPaginated - iniciando busca:", params);
-        
         const queryParams: Record<string, string> = {};
 
         // Só adiciona parâmetros que têm valores válidos
@@ -55,8 +53,6 @@ export const useVisitorsPaginated = (params: VisitorsParams) => {
         if (params.sortOrder?.trim())
           queryParams.sortOrder = params.sortOrder.trim();
 
-        console.log("📊 useVisitorsPaginated - parâmetros da query:", queryParams);
-
         const result = await handleRequest({
           request: () =>
             api.get<PaginatedResponse<Visitor>>(VISITORS_BASE_URL, {
@@ -65,11 +61,8 @@ export const useVisitorsPaginated = (params: VisitorsParams) => {
         });
 
         if (!result) {
-          console.log("⚠️ useVisitorsPaginated - resultado vazio, retornando null");
           return null;
         }
-
-        console.log("✅ useVisitorsPaginated - resultado recebido:", result);
 
         // Verificar se o backend retorna formato paginado ou array direto
         if (Array.isArray(result)) {
@@ -151,8 +144,7 @@ export const useCheckinVisitor = () => {
       queryClient.invalidateQueries({ queryKey: ["visitors"] });
       queryClient.invalidateQueries({ queryKey: ["checkinPerHour"] });
     },
-    onError: (error) => {
-      console.error("Erro ao fazer check-in:", error);
+    onError: () => {
       toast.error("Erro ao fazer check-in do visitante");
     },
   });

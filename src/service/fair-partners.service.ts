@@ -12,8 +12,7 @@ import type {
   UpdatePartnerForm,
 } from "@/interfaces/fair-partners";
 
-const FAIR_PARTNERS_BASE_URL = "/fair-partners";
-const PARTNERS_BASE_URL = "/partners";
+import { AppEndpoints } from "@/constants/AppEndpoints";
 
 // Hook para gestão de sócios por feira
 export const useFairPartnersService = () => {
@@ -22,100 +21,100 @@ export const useFairPartnersService = () => {
   // Gestão de Associações Feira-Sócio
   const createFairPartner = async (data: CreateFairPartnerForm): Promise<FairPartner | undefined> => {
     return handleRequest<FairPartner>({
-      request: () => api.post(`${FAIR_PARTNERS_BASE_URL}`, data),
+      request: () => api.post(AppEndpoints.FAIR_PARTNERS.BASE, data),
     });
   };
 
   const getFairPartners = async (fairId: string): Promise<FairPartner[] | undefined> => {
     return handleRequest<FairPartner[]>({
-      request: () => api.get(`${FAIR_PARTNERS_BASE_URL}/fair/${fairId}`),
+      request: () => api.get(AppEndpoints.FAIR_PARTNERS.BY_FAIR(fairId)),
     });
   };
 
   const getPartnerFairs = async (partnerId: string): Promise<FairPartner[] | undefined> => {
     return handleRequest<FairPartner[]>({
-      request: () => api.get(`${FAIR_PARTNERS_BASE_URL}/partner/${partnerId}`),
+      request: () => api.get(AppEndpoints.FAIR_PARTNERS.BY_PARTNER(partnerId)),
     });
   };
 
   const getMyFairs = async (): Promise<FairPartner[] | undefined> => {
     return handleRequest<FairPartner[]>({
-      request: () => api.get(`${FAIR_PARTNERS_BASE_URL}/me/fairs`),
+      request: () => api.get(AppEndpoints.FAIR_PARTNERS.ME_FAIRS),
     });
   };
 
   const getFairPartnerById = async (id: string): Promise<FairPartner | undefined> => {
     return handleRequest<FairPartner>({
-      request: () => api.get(`${FAIR_PARTNERS_BASE_URL}/${id}`),
+      request: () => api.get(AppEndpoints.FAIR_PARTNERS.BY_ID(id)),
     });
   };
 
   const updateFairPartner = async (id: string, data: UpdateFairPartnerForm): Promise<FairPartner | undefined> => {
     return handleRequest<FairPartner>({
-      request: () => api.patch(`${FAIR_PARTNERS_BASE_URL}/${id}`, data),
+      request: () => api.patch(AppEndpoints.FAIR_PARTNERS.BY_ID(id), data),
     });
   };
 
   const deleteFairPartner = async (id: string): Promise<{ message: string } | undefined> => {
     return handleRequest<{ message: string }>({
-      request: () => api.delete(`${FAIR_PARTNERS_BASE_URL}/${id}`),
+      request: () => api.delete(AppEndpoints.FAIR_PARTNERS.BY_ID(id)),
     });
   };
 
   // Controle Financeiro por Feira
   const getFairPartnersSummary = async (fairId: string): Promise<FairPartnerSummary | undefined> => {
     return handleRequest<FairPartnerSummary>({
-      request: () => api.get(`${FAIR_PARTNERS_BASE_URL}/fair/${fairId}/summary`),
+      request: () => api.get(AppEndpoints.FAIR_PARTNERS.SUMMARY(fairId)),
     });
   };
 
   const getFairPartnerFinancialSummary = async (fairId: string, partnerId: string): Promise<FairPartnerFinancialSummary | undefined> => {
     return handleRequest<FairPartnerFinancialSummary>({
-      request: () => api.get(`${FAIR_PARTNERS_BASE_URL}/fair/${fairId}/partner/${partnerId}/financial-summary`),
+      request: () => api.get(AppEndpoints.FAIR_PARTNERS.FINANCIAL_SUMMARY(fairId, partnerId)),
     });
   };
 
   const getAvailablePercentage = async (fairId: string): Promise<AvailablePercentage | undefined> => {
     return handleRequest<AvailablePercentage>({
-      request: () => api.get(`${FAIR_PARTNERS_BASE_URL}/fair/${fairId}/available-percentage`),
+      request: () => api.get(AppEndpoints.FAIR_PARTNERS.AVAILABLE_PERCENTAGE(fairId)),
     });
   };
 
   // Gestão de Sócios (básicos)
   const createPartner = async (data: CreatePartnerForm): Promise<Partner | undefined> => {
     return handleRequest<Partner>({
-      request: () => api.post(`${PARTNERS_BASE_URL}`, data),
+      request: () => api.post(AppEndpoints.PARTNERS.BASE, data),
     });
   };
 
   const getPartners = async (filters?: { search?: string; isActive?: boolean }): Promise<Partner[] | undefined> => {
     return handleRequest<Partner[]>({
-      request: () => api.get(`${PARTNERS_BASE_URL}`, { params: filters }),
+      request: () => api.get(AppEndpoints.PARTNERS.BASE, { params: filters }),
     });
   };
 
   const getPartnerById = async (id: string): Promise<Partner | undefined> => {
     return handleRequest<Partner>({
-      request: () => api.get(`${PARTNERS_BASE_URL}/${id}`),
+      request: () => api.get(AppEndpoints.PARTNERS.BY_ID(id)),
     });
   };
 
   const updatePartner = async (id: string, data: UpdatePartnerForm): Promise<Partner | undefined> => {
     return handleRequest<Partner>({
-      request: () => api.patch(`${PARTNERS_BASE_URL}/${id}`, data),
+      request: () => api.patch(AppEndpoints.PARTNERS.BY_ID(id), data),
     });
   };
 
   const deletePartner = async (id: string): Promise<{ message: string } | undefined> => {
     return handleRequest<{ message: string }>({
-      request: () => api.delete(`${PARTNERS_BASE_URL}/${id}`),
+      request: () => api.delete(AppEndpoints.PARTNERS.BY_ID(id)),
     });
   };
 
   // Distribuição de Lucros
   const distributeProfit = async (fairId: string): Promise<any | undefined> => {
     return handleRequest<any>({
-      request: () => api.post(`/cash-flow/distribute-profit/${fairId}`),
+      request: () => api.post(AppEndpoints.FINANCE.CASH_FLOW_DISTRIBUTE(fairId)),
     });
   };
 
