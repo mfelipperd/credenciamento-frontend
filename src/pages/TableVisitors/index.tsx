@@ -8,7 +8,7 @@ import { ModalCreateFormPrivate } from "./components/ModalCreate";
 import { Pagination } from "./components/Pagination";
 import { TableSkeleton } from "@/components/ui/skeleton";
 
-export const TabeleVisitors = () => {
+export const TableVisitors = () => {
   const controller = useTableVisitorsController();
   const [, , fairId] = useSearchParams();
 

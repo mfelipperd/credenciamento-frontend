@@ -35,7 +35,6 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { SlidersHorizontal, MessageCircle, MoreHorizontal } from "lucide-react";
 import { useVisitorsPaginated } from "@/hooks/useVisitors";
-import { useFairs } from "@/hooks/useFairs";
 import { useUserSession } from "@/hooks/useUserSession";
 import { Label } from "@/components/ui/label";
 import {
@@ -48,19 +47,16 @@ import { TableSkeleton } from "./TableSkeleton";
 
 
 export const EnhancedTableConsultant = () => {
-  const { data: fairs } = useFairs();
   const [searchParams, setSearchParams] = useSearchParams();
   
   // Hook personalizado para gerenciar sessão completa do usuário
   const {
     user,
     currentFairId,
-    shouldShowFairSelector,
-    fairStatus,
-    availableFairIds,
     setSelectedFairId,
     canAccessData,
     sessionStatus,
+    fairStatus,
   } = useUserSession();
 
   // Estados da consulta
@@ -117,20 +113,6 @@ export const EnhancedTableConsultant = () => {
   });
 
   const isConsultant = user?.role === "consultant";
-  const shouldShowFairSelect = !isConsultant;
-
-  // Definir fairId inicial para não-consultants
-  useEffect(() => {
-    if (shouldShowFairSelect && fairs && fairs.length > 0 && !currentFairId) {
-      const fairFromUrl = searchParams.get("fairId");
-      if (fairFromUrl && fairs && fairs.some((f) => f.id === fairFromUrl)) {
-        setSelectedFairId(fairFromUrl);
-      } else {
-        // Selecionar primeira feira por padrão
-        setSelectedFairId(fairs![0].id);
-      }
-    }
-  }, [fairs, currentFairId, shouldShowFairSelect, searchParams, setSelectedFairId]);
 
   // Atualizar URL com parâmetros
   useEffect(() => {
@@ -365,59 +347,6 @@ export const EnhancedTableConsultant = () => {
             >
               <div className="flex flex-col gap-2">
                 <div className="flex flex-col sm:flex-row gap-2 w-full">
-                  {/* Select de Feira para admins */}
-                  {shouldShowFairSelect && (
-                    <Select
-                      value={currentFairId}
-                      onValueChange={(value) => {
-                        setSelectedFairId(value);
-                        setPage(1); // Reset página ao trocar feira
-                      }}
-                      disabled={!canAccessData}
-                    >
-                      <SelectTrigger className="w-full sm:w-[200px] h-9 bg-white text-black">
-                        <SelectValue placeholder="Selecione uma feira" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white">
-                        {(fairs || []).map((fair: any) => (
-                          <SelectItem key={fair.id} value={fair.id}>
-                            {fair.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-
-                  {/* Select de Feira para consultants com múltiplas feiras */}
-                  {shouldShowFairSelector && (
-                    <Select
-                      value={currentFairId}
-                      onValueChange={(value) => {
-                        setSelectedFairId(value);
-                        setPage(1); // Reset página ao trocar feira
-                      }}
-                    >
-                      <SelectTrigger className="w-full sm:w-[200px] h-9 bg-white text-black">
-                        <SelectValue placeholder="Selecione uma feira" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white text-black">
-                        {(() => {
-                          // Se o usuário tem feiras associadas, filtrar apenas essas
-                          // Senão, mostrar todas as feiras disponíveis
-                          const availableFairs = availableFairIds.length > 0 
-                            ? (fairs || []).filter((fair: any) => availableFairIds.includes(fair.id))
-                            : (fairs || []);
-                          
-                          return availableFairs.map((fair: any) => (
-                            <SelectItem key={fair.id} value={fair.id}>
-                              {fair.name}
-                            </SelectItem>
-                          ));
-                        })()}
-                      </SelectContent>
-                    </Select>
-                  )}
-
                   <Input
                     placeholder="🔍 Busca inteligente por nome, empresa, email..."
                     value={search}

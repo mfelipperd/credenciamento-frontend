@@ -1,6 +1,7 @@
 import { useDashboardService } from "@/service/dashboard.service";
 import React, { useEffect, useState } from "react";
 import ReactApexChart from "react-apexcharts";
+import { LogoLoading } from "@/components/LogoLoading";
 import type { ConversionByHowDidYouKnow } from "@/interfaces/dashboard";
 
 interface ConversionChartState {
@@ -172,7 +173,7 @@ export const ConversionByHowDidYouKnowChart: React.FC<{ fairId: string }> = ({
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <LogoLoading size={48} minimal />
       </div>
     );
   }

@@ -1,10 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Outlet, useSearchParams } from "react-router-dom";
 import { useFairs } from "@/hooks/useFairs";
 import {
-  Calendar,
   LogOut,
-  MapPin,
   RefreshCcw,
   Settings,
   Menu,
@@ -19,6 +17,14 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { useCookie } from "@/hooks/useCookie";
 import { EUserRole } from "@/enums/user.enum";
 import { Sidebar } from "./Sidebar";
+import { LogoLoading } from "../LogoLoading";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 
 export const MainLayout: React.FC = () => {
   const { data: fairs, isLoading: loading } = useFairs();
@@ -32,10 +38,13 @@ export const MainLayout: React.FC = () => {
     days: 30,
   });
 
-  // Filtrar feiras baseado no usuário
-  const availableFairs = user?.role === EUserRole.ADMIN 
-    ? (fairs || []) 
-    : (fairs || []).filter((fair: any) => availableFairIds.length === 0 || availableFairIds.includes(fair.id));
+  // Filtrar feiras baseado no usuário - Memoizado para evitar re-renderizações infinitas
+  const availableFairs = useMemo(() => {
+    const list = fairs || [];
+    if (!user) return [];
+    if (user.role === EUserRole.ADMIN) return list;
+    return list.filter((fair: any) => availableFairIds.length === 0 || availableFairIds.includes(fair.id));
+  }, [fairs, user, availableFairIds]);
 
   // Determina o ID inicial baseado em: URL params > Cookie > Primeira feira disponível
   const getInitialFairId = () => {
@@ -48,48 +57,41 @@ export const MainLayout: React.FC = () => {
 
   const [selectedId, setSelectedId] = useState(getInitialFairId);
 
-  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const id = e.target.value;
+  const handleSelectChange = (id: string) => {
     setSelectedId(id);
-
-    // Salva no cookie
     setSavedFairId(id);
-
-    // Atualiza URL
     setSearchParams({ fairId: id });
   };
 
-  const selectedFair = availableFairs.find((f: any) => f.id === selectedId);
+  // const selectedFair = availableFairs.find((f: any) => f.id === selectedId);
 
   const search = `?fairId=${selectedId}`;
 
   // Removido - o hook useFairs já faz o fetch automaticamente
 
-  // Sincroniza o selectedId quando as feiras são carregadas ou os params mudam
+  // Sincroniza o selectedId apenas quando necessário
   useEffect(() => {
     if (availableFairs.length > 0) {
       const newId = getInitialFairId();
+      
+      // Só atualiza o estado local se mudou
       if (newId && newId !== selectedId) {
         setSelectedId(newId);
-        // Se não há fairId na URL, adiciona
-        if (!searchParams.get("fairId")) {
-          setSearchParams({ fairId: newId });
-        }
+      }
+
+      // Só atualiza a URL se não houver fairId nela
+      if (newId && !searchParams.get("fairId")) {
+        setSearchParams({ fairId: newId }, { replace: true });
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [availableFairs, searchParams]);
+  }, [availableFairs.length]); // Apenas quando a lista de feiras deixar de estar vazia
 
   // Aguarda as feiras serem carregadas e o fairId ser definido antes de renderizar
   if (availableFairs.length === 0 || !selectedId) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">
-            {availableFairs.length === 0 ? "Nenhuma feira disponível" : "Carregando feiras..."}
-          </p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-brand-blue">
+        <LogoLoading size={80} />
       </div>
     );
   }
@@ -104,151 +106,114 @@ export const MainLayout: React.FC = () => {
       />
       
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0">
         {/* Header Principal */}
-        <header className="relative w-full bg-brand-blue border-b border-white/5 shadow-2xl">
-        {/* Background Image com Overlay */}
-        <div className="absolute inset-0">
-          {/* Subtle brand gradient overlay instead of image if preferred, but keeping image with lower opacity for texture */}
-          <img
-            src="/bg.png"
-            alt="Background"
-            className="w-full h-full object-cover opacity-10"
-          />
-          <div className="absolute inset-0 bg-linear-to-r from-brand-blue/95 via-brand-blue/80 to-brand-blue/95" />
-        </div>
-
-        {/* Conteúdo do Header - Organizado com Esquerda e Direita */}
-        <div className="relative z-10 px-4 py-2">
-          <div className="flex items-center justify-between text-white">
-            {/* Lado Esquerdo - Menu Button, Logo, Select, Data e Hora */}
-            <div className="flex items-center gap-3">
-              {/* Menu Button */}
+        <header className="sticky top-0 z-40 w-full bg-brand-blue/80 backdrop-blur-md border-b border-white/5 shadow-xl">
+          <div className="px-4 h-16 sm:h-20 flex items-center justify-between gap-4">
+            {/* Lado Esquerdo */}
+            <div className="flex items-center gap-3 min-w-0">
               <button
                 onClick={() => setIsSidebarOpen(true)}
-                className="p-2 rounded-lg hover:bg-white/10 transition-colors lg:hidden"
+                className="p-2.5 rounded-xl hover:bg-white/10 transition-all active:scale-95 lg:hidden shrink-0 border border-white/5"
                 aria-label="Abrir menu"
               >
-                <Menu className="h-5 w-5" />
+                <Menu className="h-5 w-5 text-white" />
               </button>
 
-              {/* Logo */}
-              <img
-                src="/logo.png"
-                alt="Logo"
-                className="h-8 w-auto shrink-0"
-              />
+              <div className="flex items-center gap-4 min-w-0">
+                <img
+                  src="/logo.png"
+                  alt="Logo"
+                  className="h-7 sm:h-9 w-auto shrink-0 hidden xs:block"
+                />
+                
+                <div className="h-6 w-px bg-white/10 hidden sm:block shrink-0"></div>
 
-              {/* Separator */}
-              <div className="h-6 w-px bg-white/30"></div>
-
-              {/* Fair Selector */}
-              <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded px-3 py-1">
-                <div className="bg-green-400 rounded-full h-2 w-2 shrink-0"></div>
-                <select
-                  value={selectedId}
-                  onChange={handleChange}
-                  className="bg-transparent text-white text-xs font-semibold min-w-0 appearance-none focus:outline-none truncate pr-4"
-                >
-                  {availableFairs.map((fair: any) => (
-                    <option
-                      key={fair.id}
-                      value={fair.id}
-                      className="text-black bg-white"
-                    >
-                      {`${fair.name} ${fair.startDate ? new Date(fair.startDate).getFullYear() : 'N/A'}`}
-                    </option>
-                  ))}
-                </select>
-                <svg
-                  className="h-3 w-3 text-white/70 shrink-0"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-              </div>
-
-              {/* Separator */}
-              <div className="h-6 w-px bg-white/30 hidden md:block"></div>
-
-              {/* Data e Horário */}
-              <div className="hidden md:flex items-center gap-1 shrink-0 text-xs">
-                <Calendar className="h-3 w-3 text-brand-cyan" />
-                <span className="font-bold">{selectedFair?.startDate ? new Date(selectedFair.startDate).toLocaleDateString('pt-BR') : ''}</span>
-                <span className="text-white/50">•</span>
-                <span className="text-white/90">13h-21h</span>
-              </div>
-
-              {/* Separator */}
-              <div className="h-6 w-px bg-white/30 hidden lg:block"></div>
-
-              {/* Local */}
-              <div className="hidden lg:flex items-center gap-1 shrink-0 text-[10px] text-white/80">
-                <MapPin className="h-3 w-3 text-brand-cyan" />
-                <span className="font-bold uppercase tracking-widest">Estação das Docas</span>
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="bg-green-400 rounded-full h-2 w-2 shrink-0 shadow-[0_0_10px_rgba(74,222,128,0.5)] hidden xs:block"></div>
+                  
+                  <Select value={selectedId} onValueChange={handleSelectChange}>
+                    <SelectTrigger className="h-9 sm:h-10 bg-white/5 border-white/5 text-white text-[10px] sm:text-xs font-black uppercase tracking-widest hover:bg-white/10 transition-all rounded-2xl px-3 sm:px-4 cursor-pointer min-w-0 max-w-[180px] sm:max-w-none">
+                      <SelectValue placeholder="Selecione uma feira" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-brand-blue border-white/10 text-white">
+                      {availableFairs.map((fair: any) => (
+                        <SelectItem
+                          key={fair.id}
+                          value={fair.id}
+                          className="text-[10px] sm:text-xs font-black uppercase tracking-widest focus:bg-white/10 focus:text-white"
+                        >
+                          {`${fair.name} ${fair.startDate ? new Date(fair.startDate).getFullYear() : 'N/A'}`}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
 
-            {/* Lado Direito - Email, Controls */}
-            <div className="flex items-center gap-3">
-              {/* User Email */}
-              <div className="hidden sm:flex items-center gap-1 shrink-0">
-                <div className="w-1.5 h-1.5 bg-green-400 rounded-full"></div>
-                <span className="text-xs font-medium truncate max-w-32">
-                  {user?.email}
+            {/* Lado Direito */}
+            <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+              {/* User - Hidden on very small screens */}
+              <div className="hidden md:flex flex-col items-end mr-2">
+                <span className="text-[10px] text-white/40 font-black uppercase tracking-[0.2em]">Operador</span>
+                <span className="text-xs text-white font-bold truncate max-w-[120px]">
+                  {user?.email.split('@')[0]}
                 </span>
               </div>
 
-              {/* Separator */}
-              <div className="h-6 w-px bg-white/30 hidden sm:block"></div>
-
-              {/* Controls */}
-              <div className="flex items-center gap-2 shrink-0">
-                {/* Desktop Menu Button */}
+              <div className="flex items-center gap-1.5 sm:gap-2 bg-white/5 p-1 rounded-2xl border border-white/5">
                 <button
                   onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                  className="hidden lg:flex p-2 rounded-lg hover:bg-white/10 transition-colors"
+                  className="hidden lg:flex p-2 rounded-xl h-9 w-9 items-center justify-center hover:bg-white/10 transition-all text-white/60 hover:text-white"
                   aria-label={isSidebarOpen ? "Fechar menu" : "Abrir menu"}
                 >
                   <Menu className="h-4 w-4" />
                 </button>
                 
+                <div className="h-5 w-px bg-white/10 hidden lg:block"></div>
+                
                 <ThemeToggle />
-                <RefreshCcw
+                
+                <button
                   onClick={() => window.location.reload()}
-                  className={`h-4 w-4 text-white/80 hover:text-white cursor-pointer transition-all hover:scale-110 ${
-                    loading ? "animate-spin" : ""
-                  }`}
-                />
+                  className="p-2 rounded-xl h-9 w-9 flex items-center justify-center hover:bg-white/10 transition-all text-white/60 hover:text-white group relative"
+                >
+                  {loading ? (
+                    <LogoLoading size={16} minimal className="animate-pulse" />
+                  ) : (
+                    <RefreshCcw className="h-4 w-4 transition-transform group-hover:rotate-180 duration-500" />
+                  )}
+                </button>
+
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Settings className="h-4 w-4 text-white/80 hover:text-white cursor-pointer transition-all hover:scale-110" />
+                    <button className="p-2 rounded-xl h-9 w-9 flex items-center justify-center hover:bg-white/10 transition-all text-white/60 hover:text-white">
+                      <Settings className="h-4 w-4" />
+                    </button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-48 bg-white  ">
-                    <div className="p-3 space-y-2">
-                      <ModalCreateFair />
-                      <div
-                        onClick={signOut}
-                        className="flex items-center gap-2 text-foreground hover:text-red-600 cursor-pointer transition-colors p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-950"
-                      >
-                        <LogOut size={14} />
-                        <span className="text-sm font-medium">Sair</span>
+                  <PopoverContent className="w-56 mt-2 bg-white border-white/5 p-2 rounded-2xl shadow-2xl mr-4" align="end">
+                    <div className="space-y-1">
+                      <div className="px-3 py-2 border-b border-black/5 mb-1 md:hidden">
+                        <p className="text-[10px] text-black/40 font-black uppercase tracking-widest">Usuário</p>
+                        <p className="text-sm font-bold truncate">{user?.email}</p>
                       </div>
+                      <ModalCreateFair />
                       <CreateUserModal />
+                      <div className="h-px bg-black/5 my-1"></div>
+                      <button
+                        onClick={signOut}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 text-red-500 hover:bg-red-50 rounded-xl transition-all font-bold text-sm"
+                      >
+                        <LogOut size={16} />
+                        <span>Encerrar Sessão</span>
+                      </button>
                     </div>
                   </PopoverContent>
                 </Popover>
               </div>
             </div>
           </div>
-        </div>
         </header>
 
         <main className="grow p-6 bg-brand-blue relative overflow-hidden">

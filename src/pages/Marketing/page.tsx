@@ -14,7 +14,8 @@ import { useMarketingService } from "@/service/marketing.service";
 import type { SendMarketingEmailRequest } from "@/service/marketing.service";
 import { useSearchParams } from "@/hooks/useSearchParams";
 import { toast } from "sonner";
-import { Loader2, Mail, Send, Eye, Users } from "lucide-react";
+import { Mail, Send, Eye, Users } from "lucide-react";
+import { LogoLoading } from "@/components/LogoLoading";
 
 interface MarketingFormData {
   subject: string;
@@ -255,7 +256,7 @@ export const MarketingPage: React.FC = () => {
                 >
                   {loading ? (
                     <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      <LogoLoading size={16} minimal className="mr-2" />
                       Enviando...
                     </>
                   ) : (

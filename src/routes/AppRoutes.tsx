@@ -6,7 +6,7 @@ import { SucessForm } from "@/pages/Sucess/page";
 import { MainLayout } from "@/components/Layout/mainLayout";
 import { PublicLayout } from "@/components/Layout/PublicLayout";
 import { Dashboard } from "@/pages/Dashboard/page";
-import { TabeleVisitors } from "@/pages/TableVisitors";
+import { TableVisitors } from "@/pages/TableVisitors";
 import { Visitor } from "@/pages/Visitor/page";
 import { PrivateForm } from "@/pages/PrivateForm/page";
 import { PublicFormtotem } from "@/pages/PublicFormTotem/page";
@@ -87,7 +87,7 @@ export const AppRoutes = createBrowserRouter([
             element: <MainLayout />,
             children: [
               { path: "/", element: <Dashboard /> },
-              { path: "/visitors-table", element: <TabeleVisitors /> },
+              { path: "/visitors-table", element: <TableVisitors /> },
               { path: "/visitor/:id", element: <Visitor /> },
               { path: "/marketing", element: <MarketingPage /> },
               {
@@ -142,6 +142,7 @@ export const AppRoutes = createBrowserRouter([
                   </AdminRouteGuard>
                 ),
               },
+              { path: "/consultant-dashboard", element: <ConsultantPage /> },
             ],
           },
         ],
@@ -154,7 +155,6 @@ export const AppRoutes = createBrowserRouter([
           </PublicLayout>
         ),
       },
-      { path: "/consultant-dashboard", element: <ConsultantPage /> },
     ],
   },
 ]);

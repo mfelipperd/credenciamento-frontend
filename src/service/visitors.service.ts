@@ -5,7 +5,7 @@ import type {
   Visitor,
   VisitorEdit,
 } from "@/interfaces/visitors";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { AppEndpoints } from "@/constants/AppEndpoints";
 
 // Interface para resposta paginada
@@ -173,16 +173,22 @@ export const useVisitorsService = () => {
     [api, setLoading]
   );
 
-  const checkinVisitor = async (visitorId: string, fairId: string) => {
-    const result = await handleRequest({
-      request: () =>
-        api.post(AppEndpoints.CHECKINS.BASE, { registrationCode: visitorId, fairId: fairId }),
-      setLoading,
-      successMessage: "Check-in realizado com sucesso!",
-    });
-    if (!result) return;
-    return result;
-  };
+  const checkinVisitor = useCallback(
+    async (visitorId: string, fairId: string) => {
+      const result = await handleRequest({
+        request: () =>
+          api.post(AppEndpoints.CHECKINS.BASE, {
+            registrationCode: visitorId,
+            fairId: fairId,
+          }),
+        setLoading,
+        successMessage: "Check-in realizado com sucesso!",
+      });
+      if (!result) return;
+      return result;
+    },
+    [api, setLoading]
+  );
 
   const getCheckinPerHour = useCallback(
     async (fairId: string, filterDay?: string) => {
@@ -199,19 +205,25 @@ export const useVisitorsService = () => {
     [api, setLoading]
   );
 
-  const updateVisitor = async (visitor: Partial<VisitorEdit>) => {
-    const result = await handleRequest({
-      request: () =>
-        api.patch<VisitorEdit>(AppEndpoints.VISITORS.BY_ID(visitor.registrationCode || ""), {
-          name: visitor.name,
-          fairIds: visitor.fairIds,
-        }),
-      setLoading,
-      successMessage: "Visitante atualizado com sucesso!",
-    });
-    if (!result) return;
-    return result;
-  };
+  const updateVisitor = useCallback(
+    async (visitor: Partial<VisitorEdit>) => {
+      const result = await handleRequest({
+        request: () =>
+          api.patch<VisitorEdit>(
+            AppEndpoints.VISITORS.BY_ID(visitor.registrationCode || ""),
+            {
+              name: visitor.name,
+              fairIds: visitor.fairIds,
+            }
+          ),
+        setLoading,
+        successMessage: "Visitante atualizado com sucesso!",
+      });
+      if (!result) return;
+      return result;
+    },
+    [api, setLoading]
+  );
 
   const deleteVisitor = useCallback(
     async (visitorId: string) => {
@@ -224,20 +236,38 @@ export const useVisitorsService = () => {
     },
     [api, setLoading]
   );
-  return {
-    getVisitors,
-    getVisitorsPaginated,
-    loading,
-    visitors,
-    paginationMeta,
-    error,
-    deleteVisitor,
-    getVisitorById,
-    visitor,
-    checkinVisitor,
-    getCheckinPerHour,
-    checkinPerHour,
-    setVisitor,
-    updateVisitor,
-  };
+  return useMemo(
+    () => ({
+      getVisitors,
+      getVisitorsPaginated,
+      loading,
+      visitors,
+      paginationMeta,
+      error,
+      deleteVisitor,
+      getVisitorById,
+      visitor,
+      checkinVisitor,
+      getCheckinPerHour,
+      checkinPerHour,
+      setVisitor,
+      updateVisitor,
+    }),
+    [
+      getVisitors,
+      getVisitorsPaginated,
+      loading,
+      visitors,
+      paginationMeta,
+      error,
+      deleteVisitor,
+      getVisitorById,
+      visitor,
+      checkinVisitor,
+      getCheckinPerHour,
+      checkinPerHour,
+      setVisitor,
+      updateVisitor,
+    ]
+  );
 };

@@ -1,164 +1,106 @@
-import { useDashboardService } from "@/service/dashboard.service";
 import React, { useEffect, useState, useRef } from "react";
 import ReactApexChart from "react-apexcharts";
+import { useDashboardService } from "@/service/dashboard.service";
+import { UserCircle2 } from "lucide-react";
+import { LogoLoading } from "@/components/LogoLoading";
 
-interface CategoryChartState {
-  series: number[];
-  options: ApexCharts.ApexOptions;
-}
+const CATEGORY_COLORS = ["#EB2970", "#00aacd", "#F39B0C", "#10B981"];
 
-const CATEGORY_COLORS = [
-  "#EB2970", // azul
-  "#F39B0C", // laranja
-  "#5CB1FC", // verde
-  "#d62728", // vermelho
-  // … mais se precisar
-];
-
-export const CategoryRadialChart: React.FC<{ fairId: string }> = ({
-  fairId,
-}) => {
+export const CategoryRadialChart: React.FC<{ fairId: string }> = ({ fairId }) => {
   const { getVisitorsByCategory, loading } = useDashboardService();
   const lastFetchedFairIdRef = useRef<string | null>(null);
-  const [chart, setChart] = useState<CategoryChartState>({
-    series: [],
-    options: {
-      chart: { height: 250, type: "radialBar" },
-      plotOptions: {
-        radialBar: {
-          dataLabels: {
-            name: { fontSize: "22px", color: "#ffffff" },
-            value: { fontSize: "16px", color: "#ffffff" },
-            total: {
-              show: true,
-              label: "Total",
-              formatter: () => "0",
-              color: "#ffffff",
-            },
-          },
-        },
-      },
-      labels: [],
-    },
-  });
-
-  // Estado separado para armazenar os valores absolutos
+  const [labels, setLabels] = useState<string[]>([]);
   const [absoluteValues, setAbsoluteValues] = useState<number[]>([]);
+  const [series, setSeries] = useState<number[]>([]);
 
   useEffect(() => {
     (async () => {
-      // Só faz requisição se fairId é válido e diferente da última requisição
-      if (!fairId || fairId.trim() === "") {
-        console.log(
-          "CategoryRadialChart: fairId inválido, não fazendo requisição:",
-          fairId
-        );
-        return;
-      }
-
-      // Evita requisições duplicadas
-      if (lastFetchedFairIdRef.current === fairId) {
-        return;
-      }
+      if (!fairId || fairId.trim() === "" || lastFetchedFairIdRef.current === fairId) return;
 
       lastFetchedFairIdRef.current = fairId;
-
       const data = await getVisitorsByCategory(fairId);
       if (!data) return;
 
       const counts = data.visitorsByCategory.map((v) => Number(v.count));
-      const labels = data.visitorsByCategory.map((v) => v.visitor_category);
+      const lbls = data.visitorsByCategory.map((v) => v.visitor_category);
       const total = counts.reduce((sum, n) => sum + n, 0);
 
-      // Converte os valores absolutos para porcentagens (0-100)
-      const series = counts.map((count) =>
+      const srs = counts.map((count) =>
         total > 0 ? Math.round((count / total) * 100) : 0
       );
 
-      // Armazenar os valores absolutos no estado separado
       setAbsoluteValues(counts);
-
-      setChart({
-        series,
-        options: {
-          chart: { height: 250, type: "radialBar" },
-          plotOptions: {
-            radialBar: {
-              dataLabels: {
-                name: { fontSize: "22px", color: "#ffffff" },
-                value: { fontSize: "16px", color: "#ffffff" },
-                total: {
-                  show: true,
-                  label: "Total",
-                  formatter: () => total.toString(),
-                  color: "#ffffff",
-                },
-              },
-            },
-          },
-          colors: CATEGORY_COLORS,
-          labels,
-        },
-      });
+      setLabels(lbls);
+      setSeries(srs);
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fairId]);
+  }, [fairId, getVisitorsByCategory]);
 
-  if (loading) return <p>Carregando...</p>;
-  if (chart.series.length === 0) return <p>Sem dados para exibir.</p>;
+  const options: ApexCharts.ApexOptions = {
+    chart: { type: "radialBar", background: "transparent", fontFamily: "inherit" },
+    plotOptions: {
+      radialBar: {
+        hollow: { size: "45%" },
+        track: { background: "rgba(255, 255, 255, 0.05)", strokeWidth: "97%" },
+        dataLabels: {
+          name: { show: true, fontSize: "12px", fontWeight: 900, color: "#ffffff", offsetY: -10 },
+          value: { show: true, fontSize: "24px", fontWeight: 900, color: "#ffffff", offsetY: 5 },
+          total: {
+            show: true,
+            label: "TOTAL",
+            color: "rgba(255, 255, 255, 0.4)",
+            fontSize: "10px",
+            fontWeight: 900,
+            formatter: () => {
+              const total = absoluteValues.reduce((a, b) => a + b, 0);
+              return total.toString();
+            }
+          }
+        }
+      }
+    },
+    colors: CATEGORY_COLORS,
+    labels: labels,
+    stroke: { lineCap: "round" }
+  };
 
-  console.log(chart);
   return (
-    <div className="w-full h-full flex flex-col lg:flex-row items-center justify-between gap-4 p-4 min-h-[350px]">
-      {/* Legenda */}
-      <div className="flex flex-col gap-3 order-2 lg:order-1 w-full lg:w-auto">
-        {chart.options.labels?.map((label, i) => (
+    <div className="w-full h-full flex flex-col gap-6">
+      <div className="flex-1 min-h-[250px] relative">
+        {loading ? (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <LogoLoading size={48} minimal />
+          </div>
+        ) : series.length > 0 ? (
+          <ReactApexChart
+            options={options}
+            series={series}
+            type="radialBar"
+            height="100%"
+          />
+        ) : (
+          <div className="absolute inset-0 flex flex-col items-center justify-center opacity-20">
+            <UserCircle2 size={48} className="mb-4" />
+            <p className="text-xs font-black uppercase tracking-widest">Sem registros</p>
+          </div>
+        )}
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 px-2 pb-2">
+        {labels.map((label, i) => (
           <div
             key={label}
-            className="flex items-center gap-3 justify-between lg:justify-start"
+            className="flex flex-col p-3 rounded-2xl bg-white/5 border border-white/5 transition-all hover:bg-white/10"
           >
-            <div className="flex items-center gap-2">
-              <div
-                className="h-4 w-4 rounded-full flex-shrink-0"
-                style={{ backgroundColor: chart.options.colors![i] }}
-              />
-              <p className="text-sm sm:text-base capitalize text-muted-foreground font-semibold">
-                {label}
-              </p>
+            <div className="flex items-center gap-2 mb-1">
+              <div className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: CATEGORY_COLORS[i % CATEGORY_COLORS.length] }} />
+              <span className="text-[9px] text-white/40 font-black uppercase tracking-widest truncate">{label}</span>
             </div>
-            <div className="text-right">
-              <p className="text-sm sm:text-base font-medium text-foreground">
-                {absoluteValues[i] || 0}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {chart.series[i]}%
-              </p>
+            <div className="flex items-baseline justify-between">
+              <span className="text-lg font-black text-white">{absoluteValues[i]}</span>
+              <span className="text-[10px] font-bold text-white/20">{series[i]}%</span>
             </div>
           </div>
         ))}
-      </div>
-
-      {/* Gráfico */}
-      <div className="flex-1 order-1 lg:order-2 w-full flex justify-center items-center">
-        <div className="w-full max-w-full h-full flex items-center justify-center">
-          <ReactApexChart
-            options={{
-              ...chart.options,
-              chart: {
-                ...chart.options.chart,
-                height: 300,
-                width: "100%",
-                parentHeightOffset: 0,
-                offsetX: 0,
-                offsetY: 0,
-              },
-            }}
-            series={chart.series}
-            type="radialBar"
-            height={300}
-            width="100%"
-          />
-        </div>
       </div>
     </div>
   );

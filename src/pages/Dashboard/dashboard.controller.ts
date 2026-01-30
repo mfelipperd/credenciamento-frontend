@@ -6,7 +6,6 @@ import { useSearchParams } from "@/hooks/useSearchParams";
 export const useDashboardController = () => {
   const [, , fairId] = useSearchParams();
   const hasFetchedRef = useRef<string | null>(null);
-  const isInitializedRef = useRef(false);
 
   const {
     getOverView,
@@ -20,30 +19,21 @@ export const useDashboardController = () => {
   const { getCheckinPerHour, checkinPerHour, loading } = useVisitorsService();
 
   useEffect(() => {
-    // Aguarda a inicialização completa antes de fazer qualquer requisição
-    if (!isInitializedRef.current) {
-      isInitializedRef.current = true;
-      return;
-    }
-
     // Só faz requisições se fairId existe e é diferente do último fetch
     if (fairId && hasFetchedRef.current !== fairId) {
-      console.log("Dashboard: Fazendo fetch de dados para fairId:", fairId);
-      getOverView(fairId);
-      getCheckedInVisitors(fairId);
-      getVisitorsBySectors(fairId);
-      getAbsenteeVisitors(fairId);
-      getCheckinPerHour(fairId);
+      console.log("Dashboard: Atualizando dados para novo fairId:", fairId);
       hasFetchedRef.current = fairId;
-    } else if (!fairId) {
-      console.log(
-        "Dashboard: Não foi possível fazer fetch - fairId não disponível"
-      );
-      // Não faz requisições quando não há fairId válido
-      return;
+      
+      // Executa as chamadas em paralelo
+      Promise.all([
+        getOverView(fairId),
+        getCheckedInVisitors(fairId),
+        getVisitorsBySectors(fairId),
+        getAbsenteeVisitors(fairId),
+        getCheckinPerHour(fairId)
+      ]);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fairId]);
+  }, [fairId, getOverView, getCheckedInVisitors, getVisitorsBySectors, getAbsenteeVisitors, getCheckinPerHour]);
 
   return {
     overview,
