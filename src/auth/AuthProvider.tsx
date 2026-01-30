@@ -97,14 +97,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
       
-      console.log("✅ Usuário consultor com feiras associadas:", userFairIds);
-      // Se tem feiras associadas, redirecionar para o dashboard
-      const state = location.state;
-      if (state?.from) {
-        const { pathname, search = "" } = state.from;
-        navigate(`${pathname}${search}`, { replace: true });
-      } else {
-        navigate("/consultant-dashboard", { replace: true });
+      // Se tem feiras associadas, redirecionar se estiver em páginas públicas/gerais
+      const restrictedPaths = ["/login", "/", ""];
+      if (restrictedPaths.includes(location.pathname)) {
+        const state = location.state;
+        if (state?.from) {
+          const { pathname, search = "" } = state.from;
+          if (location.pathname !== pathname) {
+            navigate(`${pathname}${search}`, { replace: true });
+            return;
+          }
+        }
+        
+        // Se não tem de onde vir, vai para o dashboard do consultor
+        if (location.pathname !== "/consultant-dashboard") {
+          navigate("/consultant-dashboard", { replace: true });
+        }
       }
       return;
     }
@@ -131,15 +139,9 @@ export const ProtectedRoute = () => {
   const { isAuthenticated } = useAuth();
   const location = useLocation();
 
-  useEffect(() => {
-    const checkAuthentication = async () => {
-      if (!isAuthenticated) {
-        return <Navigate to="/login" state={{ from: location }} replace />;
-      }
-    };
-
-    checkAuthentication();
-  }, [isAuthenticated, location]);
+  if (!isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
 
   return <Outlet />;
 };

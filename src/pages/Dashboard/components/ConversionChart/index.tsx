@@ -1,25 +1,11 @@
 import { useDashboardService } from "@/service/dashboard.service";
 import React, { useEffect, useState } from "react";
 import ReactApexChart from "react-apexcharts";
+import { TrendingUp } from "lucide-react";
+import { LogoLoading } from "@/components/LogoLoading";
 import type { ConversionByHowDidYouKnow } from "@/interfaces/dashboard";
 
-interface ConversionChartState {
-  series: { data: number[] }[];
-  options: ApexCharts.ApexOptions;
-  conversionsData: ConversionByHowDidYouKnow[]; // Dados completos para o tooltip
-  labels: string[]; // Labels para o tooltip
-}
-
-const CONVERSION_COLORS = [
-  "#EB2970", // Rosa
-  "#F39B0C", // Laranja
-  "#5CB1FC", // Azul
-  "#10B981", // Verde
-  "#8B5CF6", // Roxo
-  "#F59E0B", // Amarelo
-  "#EF4444", // Vermelho
-  "#6B7280", // Cinza
-];
+const CONVERSION_COLORS = ["#00aacd"];
 
 const HOW_DID_YOU_KNOW_LABELS: Record<string, string> = {
   facebook: "Facebook",
@@ -35,209 +21,125 @@ const HOW_DID_YOU_KNOW_LABELS: Record<string, string> = {
 
 export const ConversionChart: React.FC<{ fairId: string }> = ({ fairId }) => {
   const { getConversionsByHowDidYouKnow, loading } = useDashboardService();
-  const [chart, setChart] = useState<ConversionChartState>({
-    series: [],
-    conversionsData: [],
-    labels: [],
-    options: {
-      chart: {
-        type: "bar",
-        toolbar: {
-          show: false,
-        },
-      },
-      plotOptions: {
-        bar: {
-          horizontal: true,
-          borderRadius: 4,
-          dataLabels: {
-            position: "center",
-          },
-        },
-      },
-      dataLabels: {
-        enabled: false,
-      },
-      xaxis: {
-        categories: [],
-        labels: {
-          formatter: (val: string) => `${val}%`,
-          style: {
-            fontSize: "11px",
-            colors: "#ffffff",
-          },
-        },
-      },
-      yaxis: {
-        labels: {
-          style: {
-            fontSize: "10px",
-            fontWeight: 600,
-            colors: "#ffffff",
-          },
-          maxWidth: 120,
-        },
-      },
-      colors: CONVERSION_COLORS,
-      legend: {
-        show: false,
-      },
-      tooltip: {
-        enabled: true,
-        y: {
-          formatter: (val: number) => {
-            return `${val} check-ins`;
-          },
-        },
-      },
-      grid: {
-        show: true,
-        borderColor: "#ffffff40",
-        strokeDashArray: 3,
-      },
-      responsive: [
-        {
-          breakpoint: 640,
-          options: {
-            yaxis: {
-              labels: {
-                style: {
-                  fontSize: "9px",
-                  colors: "#ffffff",
-                },
-                maxWidth: 80,
-              },
-            },
-            xaxis: {
-              labels: {
-                style: {
-                  fontSize: "10px",
-                  colors: "#ffffff",
-                },
-              },
-            },
-          },
-        },
-        {
-          breakpoint: 480,
-          options: {
-            yaxis: {
-              labels: {
-                style: {
-                  fontSize: "8px",
-                  colors: "#ffffff",
-                },
-                maxWidth: 60,
-              },
-            },
-          },
-        },
-      ],
-    },
-  });
+  const lastFetchedRef = React.useRef<string>("");
+  const [data, setData] = useState<ConversionByHowDidYouKnow[]>([]);
 
   useEffect(() => {
-    // Só faz a chamada se fairId existe e é válido
-    if (!fairId || fairId.trim() === "") {
-      console.log("ConversionChart: fairId não disponível, pulando chamada");
-      return;
-    }
+    if (!fairId || fairId.trim() === "" || lastFetchedRef.current === fairId) return;
+    lastFetchedRef.current = fairId;
 
     (async () => {
-      const data = await getConversionsByHowDidYouKnow(fairId);
-      if (!data || !data.conversions || data.conversions.length === 0) return;
+      const result = await getConversionsByHowDidYouKnow(fairId);
+      if (!result || !result.conversions) return;
 
-      // Ordena por quantidade de check-ins decrescente
-      const sortedConversions = data.conversions.sort(
-        (a, b) => b.totalCheckIns - a.totalCheckIns
-      );
-
-      const series = sortedConversions.map(
-        (conversion) => conversion.totalCheckIns
-      );
-      const labels = sortedConversions.map(
-        (conversion) =>
-          HOW_DID_YOU_KNOW_LABELS[conversion.howDidYouKnow] ||
-          conversion.howDidYouKnow
-      );
-
-      setChart({
-        series: [{ data: series }],
-        conversionsData: sortedConversions,
-        labels: labels,
-        options: {
-          ...chart.options,
-          xaxis: {
-            ...chart.options.xaxis,
-            categories: labels,
-          },
-          colors: CONVERSION_COLORS.slice(0, series.length),
-        },
-      });
+      setData(result.conversions.sort((a, b) => b.conversionRate - a.conversionRate));
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fairId]);
+  }, [fairId, getConversionsByHowDidYouKnow]);
 
-  if (loading)
-    return <p className="text-center py-8">Carregando dados de conversão...</p>;
-  if (chart.series.length === 0)
-    return (
-      <p className="text-center py-8">Sem dados de conversão disponíveis.</p>
-    );
+  const series = [{
+    name: "Taxa de Conversão",
+    data: data.map(c => Math.round(c.conversionRate))
+  }];
 
-  // Cria um tooltip personalizado com acesso aos dados
-  const tooltipOptions = {
-    ...chart.options,
-    tooltip: {
+  const options: ApexCharts.ApexOptions = {
+    chart: {
+      type: "bar",
+      toolbar: { show: false },
+      background: "transparent",
+      fontFamily: "inherit",
+    },
+    colors: CONVERSION_COLORS,
+    plotOptions: {
+      bar: {
+        horizontal: true,
+        borderRadius: 4,
+        barHeight: "60%",
+        dataLabels: { position: "end" }
+      },
+    },
+    dataLabels: {
       enabled: true,
-      custom: function ({
-        series,
-        seriesIndex,
-        dataPointIndex,
-      }: {
-        series: number[][];
-        seriesIndex: number;
-        dataPointIndex: number;
-      }) {
-        const conversionData = chart.conversionsData[dataPointIndex];
-        const checkIns = series[seriesIndex][dataPointIndex];
-        const conversionRate =
-          conversionData?.conversionRate?.toFixed(1) || "0";
-        const totalRegistered = conversionData?.totalRegistered || 0;
-        const channel = chart.labels[dataPointIndex];
-
+      formatter: (val) => `${val}%`,
+      style: {
+        fontSize: "10px",
+        fontWeight: 900,
+        colors: ["#ffffff"]
+      },
+      offsetX: 30,
+    },
+    grid: {
+      borderColor: "rgba(255, 255, 255, 0.05)",
+      xaxis: { lines: { show: true } },
+      padding: { right: 40 }
+    },
+    xaxis: {
+      categories: data.map(c => HOW_DID_YOU_KNOW_LABELS[c.howDidYouKnow] || c.howDidYouKnow),
+      axisBorder: { show: false },
+      axisTicks: { show: false },
+      labels: {
+        style: {
+          colors: "rgba(255, 255, 255, 0.4)",
+          fontSize: "10px",
+          fontWeight: 700,
+        },
+      },
+    },
+    yaxis: {
+      labels: {
+        style: {
+          colors: "rgba(255, 255, 255, 0.6)",
+          fontSize: "10px",
+          fontWeight: 900,
+        },
+      },
+    },
+    tooltip: {
+      theme: "dark",
+      custom: function({ dataPointIndex }) {
+        const item = data[dataPointIndex];
         return `
-          <div style="padding: 8px 12px; background: white; border: 1px solid #e5e7eb; border-radius: 6px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-            <div style="font-weight: 600; margin-bottom: 4px;">${channel}</div>
-            <div style="font-size: 14px; color: #374151;">
-              <div><strong>${checkIns}</strong> check-ins</div>
-              <div><strong>${totalRegistered}</strong> visitantes registrados</div>
-              <div style="color: #059669;"><strong>${conversionRate}%</strong> de conversão</div>
+          <div class="p-3 bg-brand-blue border border-white/10 rounded-xl shadow-2xl">
+            <div class="text-[10px] font-black uppercase tracking-widest text-white/40 mb-2">${HOW_DID_YOU_KNOW_LABELS[item.howDidYouKnow] || item.howDidYouKnow}</div>
+            <div class="space-y-1">
+              <div class="flex justify-between gap-8">
+                <span class="text-xs text-white/60">Inscritos:</span>
+                <span class="text-xs font-bold text-white">${item.totalRegistered}</span>
+              </div>
+              <div class="flex justify-between gap-8">
+                <span class="text-xs text-white/60">Check-ins:</span>
+                <span class="text-xs font-bold text-white">${item.totalCheckIns}</span>
+              </div>
+              <div class="pt-1 mt-1 border-t border-white/5 flex justify-between gap-8">
+                <span class="text-xs text-brand-cyan font-bold">Conversão:</span>
+                <span class="text-xs font-black text-brand-cyan">${item.conversionRate.toFixed(1)}%</span>
+              </div>
             </div>
           </div>
         `;
-      },
+      }
     },
   };
 
   return (
-    <div className="w-full h-full flex flex-col min-h-[320px]">
-      <div className="w-full flex-1">
-        <ReactApexChart
-          options={{
-            ...tooltipOptions,
-            chart: {
-              ...tooltipOptions.chart,
-              height: "100%",
-              width: "100%",
-              parentHeightOffset: 0,
-            },
-          }}
-          series={chart.series}
-          type="bar"
-          height="100%"
-          width="100%"
-        />
+    <div className="w-full h-full flex flex-col">
+      <div className="flex-1 min-h-[300px]">
+        {loading ? (
+          <div className="w-full h-full flex items-center justify-center">
+            <LogoLoading size={48} minimal />
+          </div>
+        ) : data.length > 0 ? (
+          <ReactApexChart
+            options={options}
+            series={series}
+            type="bar"
+            height="100%"
+          />
+        ) : (
+          <div className="w-full h-full flex flex-col items-center justify-center opacity-20">
+            <TrendingUp size={48} className="mb-4" />
+            <p className="text-xs font-black uppercase tracking-widest">Aguardando dados de conversão</p>
+          </div>
+        )}
       </div>
     </div>
   );

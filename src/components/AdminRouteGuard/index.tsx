@@ -15,9 +15,9 @@ export function AdminRouteGuard({ children }: AdminRouteGuardProps) {
     return <Navigate to="/login" replace />;
   }
 
-  // Se o usuário não é admin, redireciona para dashboard
+  // Se o usuário não é admin, redireciona para dashboard (home)
   if (user.role !== EUserRole.ADMIN) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/" replace />;
   }
 
   // Se é admin, renderiza o conteúdo

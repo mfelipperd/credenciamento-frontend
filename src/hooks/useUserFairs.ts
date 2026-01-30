@@ -89,7 +89,7 @@ export const useUserFairs = () => {
     };
   }, [userFairIds]);
 
-  return {
+  return useMemo(() => ({
     // Dados das feiras
     userFairIds,
     currentFairId,
@@ -102,5 +102,5 @@ export const useUserFairs = () => {
     
     // Ações
     setSelectedFairId,
-  };
+  }), [userFairIds, currentFairId, availableFairIds, hasAccessToCurrentFair, shouldShowFairSelector, fairStatus, setSelectedFairId]);
 };

@@ -1,5 +1,5 @@
 import { useAxio } from "@/hooks/useAxio";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
 export const useBaseService = () => {
@@ -13,9 +13,9 @@ export const useBaseService = () => {
     []
   );
 
-  return {
+  return useMemo(() => ({
     api,
     loading,
     setLoading: setLoadingCallback,
-  };
+  }), [api, loading, setLoadingCallback]);
 };

@@ -1,127 +1,20 @@
 import React, { useEffect, useState } from "react";
 import ReactApexChart from "react-apexcharts";
 import { useDashboardService } from "@/service/dashboard.service";
+import { Share2 } from "lucide-react";
+import { LogoLoading } from "@/components/LogoLoading";
 
-interface OriginChartState {
-  series: { name: string; data: number[] }[];
-  options: ApexCharts.ApexOptions;
-}
-
-const ORIGIN_COLORS = [
-  "#EB2970", // cor 1
-  "#F39B0C", // cor 2
-  "#5CB1FC", // cor 3
-  "#2CA02C", // cor 4
-  "#9467BD", // cor 5
-  "#8C564B", // cor 6
-];
+const ORIGIN_COLORS = ["#5CB1FC"];
 
 export const OriginBarChart: React.FC<{ fairId: string }> = ({ fairId }) => {
   const { getVisitorsByOrigin, loading } = useDashboardService();
-
-  const [chart, setChart] = useState<OriginChartState>({
-    series: [
-      {
-        name: "Visitantes",
-        data: [],
-      },
-    ],
-    options: {
-      chart: {
-        type: "bar",
-        toolbar: { show: false },
-        zoom: { enabled: false },
-        width: "100%",
-      },
-      colors: ORIGIN_COLORS,
-      plotOptions: {
-        bar: {
-          horizontal: false,
-          columnWidth: "60%",
-          borderRadius: 6,
-        },
-      },
-      dataLabels: {
-        enabled: false,
-      },
-      grid: {
-        yaxis: {
-          lines: {
-            show: false,
-          },
-        },
-      },
-      yaxis: {
-        labels: {
-          show: false,
-        },
-      },
-      xaxis: {
-        labels: {
-          style: {
-            fontSize: "11px",
-            fontWeight: 500,
-            colors: "#ffffff",
-          },
-          rotate: -45,
-        },
-      },
-      tooltip: {
-        y: {
-          formatter: (val) => `${val} visitantes`,
-        },
-      },
-      responsive: [
-        {
-          breakpoint: 768,
-          options: {
-            plotOptions: {
-              bar: {
-                columnWidth: "70%",
-                borderRadius: 4,
-              },
-            },
-            xaxis: {
-              labels: {
-                style: {
-                  fontSize: "10px",
-                  colors: "#ffffff",
-                },
-                rotate: -45,
-              },
-            },
-          },
-        },
-        {
-          breakpoint: 640,
-          options: {
-            plotOptions: {
-              bar: {
-                columnWidth: "80%",
-                borderRadius: 3,
-              },
-            },
-            xaxis: {
-              labels: {
-                style: {
-                  fontSize: "9px",
-                  colors: "#ffffff",
-                },
-                rotate: -50,
-              },
-            },
-          },
-        },
-      ],
-    },
-  });
+  const lastFetchedRef = React.useRef<string>("");
+  const [categories, setCategories] = useState<string[]>([]);
+  const [series, setSeries] = useState<number[]>([]);
 
   useEffect(() => {
-    // Só faz a chamada se fairId existe e é válido
-    if (!fairId || fairId.trim() === "") {
-      console.log("OriginBarChart: fairId não disponível, pulando chamada");
-      return;
-    }
+    if (!fairId || fairId.trim() === "" || lastFetchedRef.current === fairId) return;
+    lastFetchedRef.current = fairId;
 
     (async () => {
       const data = await getVisitorsByOrigin(fairId);
@@ -130,48 +23,82 @@ export const OriginBarChart: React.FC<{ fairId: string }> = ({ fairId }) => {
       const counts = data.visitorsByOrigin.map((v) => Number(v.count));
       const origins = data.visitorsByOrigin.map((v) => v.origin);
 
-      setChart((cur) => ({
-        series: [
-          {
-            name: "Visitantes",
-            data: counts,
-          },
-        ],
-        options: {
-          ...cur.options,
-          xaxis: {
-            ...cur.options.xaxis!,
-            categories: origins,
-          },
-        },
-      }));
+      setSeries(counts);
+      setCategories(origins);
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fairId]);
+  }, [fairId, getVisitorsByOrigin]);
 
-  if (loading) return <p>Carregando...</p>;
-  if (chart.series[0].data.length === 0) return <p>Sem dados para exibir.</p>;
+  const options: ApexCharts.ApexOptions = {
+    chart: {
+      type: "bar",
+      toolbar: { show: false },
+      background: "transparent",
+      fontFamily: "inherit",
+    },
+    colors: ORIGIN_COLORS,
+    plotOptions: {
+      bar: {
+        borderRadius: 8,
+        columnWidth: "50%",
+        distributed: false,
+        dataLabels: { position: "top" }
+      },
+    },
+    dataLabels: {
+      enabled: true,
+      offsetY: -20,
+      style: {
+        fontSize: "10px",
+        fontWeight: 900,
+        colors: ["#ffffff"]
+      }
+    },
+    grid: {
+      show: false,
+    },
+    xaxis: {
+      categories: categories,
+      axisBorder: { show: false },
+      axisTicks: { show: false },
+      labels: {
+        style: {
+          colors: "rgba(255, 255, 255, 0.4)",
+          fontSize: "10px",
+          fontWeight: 700,
+        },
+        rotate: -45,
+        offsetY: 5,
+      },
+    },
+    yaxis: {
+      show: false,
+    },
+    tooltip: {
+      theme: "dark",
+      y: { formatter: (val) => `${val} visitantes` },
+    },
+  };
 
   return (
-    <div className="w-full h-full flex flex-col min-h-[320px]">
-      <div className="w-full flex-1">
-        <ReactApexChart
-          options={{
-            ...chart.options,
-            chart: {
-              ...chart.options.chart,
-              height: "100%",
-              width: "100%",
-              parentHeightOffset: 0,
-              offsetX: 0,
-              offsetY: 0,
-            },
-          }}
-          series={chart.series}
-          type="bar"
-          height="100%"
-          width="100%"
-        />
+    <div className="w-full h-full flex flex-col">
+      <div className="flex-1 min-h-[300px]">
+        {loading ? (
+          <div className="w-full h-full flex items-center justify-center">
+            <LogoLoading size={48} minimal />
+          </div>
+        ) : series.length > 0 ? (
+          <ReactApexChart
+            options={options}
+            series={[{ name: "Visitantes", data: series }]}
+            type="bar"
+            height="100%"
+          />
+        ) : (
+          <div className="w-full h-full flex flex-col items-center justify-center opacity-20">
+            <Share2 size={48} className="mb-4" />
+            <p className="text-xs font-black uppercase tracking-widest">Sem dados de origem</p>
+          </div>
+        )}
       </div>
     </div>
   );

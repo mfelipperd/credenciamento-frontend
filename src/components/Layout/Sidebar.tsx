@@ -146,7 +146,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, search }) => 
               return (
                 <Link
                   key={item.name}
-                  to={{ pathname: item.href, search: item.roles.includes(EUserRole.PARTNER) && item.href === "/partner-dashboard" ? undefined : search }}
+                  to={{ pathname: item.href, search }}
                   onClick={onClose}
                   className={cn(
                     "flex items-center gap-4 px-5 py-4 rounded-2xl text-xs font-extrabold uppercase tracking-wider transition-all duration-300 group mr-2",
@@ -218,7 +218,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, search }) => 
               return (
                 <Link
                   key={item.name}
-                  to={{ pathname: item.href, search: item.roles.includes(EUserRole.PARTNER) && item.href === "/partner-dashboard" ? undefined : search }}
+                  to={{ pathname: item.href, search }}
                   className={cn(
                     "flex items-center gap-4 px-5 py-5 rounded-2xl text-xs font-extrabold uppercase tracking-wider transition-all duration-300 group relative",
                     isActive

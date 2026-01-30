@@ -2,7 +2,8 @@ import { ControlledInput } from "@/components/ControlledInput";
 import { PasswordInput } from "@/components/PasswordInput";
 import { useLoginController } from "../../login.controller";
 import { Button } from "@/components/ui/button";
-import { Loader2, LogIn } from "lucide-react";
+import { LogIn } from "lucide-react";
+import { LogoLoading } from "@/components/LogoLoading";
 
 export const LoginForm = () => {
   const controller = useLoginController();
@@ -51,7 +52,7 @@ export const LoginForm = () => {
           style={{ backgroundColor: '#E91E63', color: '#ffffff' }}
         >
           {controller.loading ? (
-            <Loader2 className="animate-spin mr-3 h-6 w-6" />
+            <LogoLoading size={24} minimal className="mr-3" />
           ) : (
             <LogIn className="mr-3 h-6 w-6 group-hover:translate-x-1.5 transition-transform" />
           )}

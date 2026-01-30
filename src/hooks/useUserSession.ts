@@ -118,7 +118,7 @@ export const useUserSession = () => {
     };
   }, [user, shouldShowFairSelector]);
 
-  return {
+  return useMemo(() => ({
     // Dados do usuário
     user: userInfo,
     token,
@@ -138,5 +138,5 @@ export const useUserSession = () => {
     
     // Configurações de UI
     uiConfig,
-  };
+  }), [userInfo, token, isAuthenticated, sessionStatus, canAccessData, currentFairId, availableFairIds, fairStatus, hasAccessToCurrentFair, shouldShowFairSelector, setSelectedFairId, uiConfig]);
 };
