@@ -1,175 +1,174 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { usePartnersService } from "@/service/partners.service";
+import { queryKeys } from "@/lib/query-keys";
+import { useAxio } from "@/hooks/useAxio";
+import { toast } from "sonner";
+import { AppEndpoints } from "@/constants/AppEndpoints";
 import type {
+  Partner,
+  CreatePartnerForm,
   UpdatePartnerForm,
-  CreateWithdrawalForm,
-  RejectWithdrawalForm,
+  AvailablePercentage,
   PartnerFilters,
-  WithdrawalFilters,
+  ProfitDistribution,
 } from "@/interfaces/partners";
 
-// Hooks para gestão de sócios
+// ===== QUERIES =====
+
+// Hook para buscar todos os partners
 export const usePartners = (filters?: PartnerFilters) => {
-  const partnersService = usePartnersService();
+  const api = useAxio();
   
   return useQuery({
-    queryKey: ["partners", filters],
-    queryFn: () => partnersService.getPartners(filters),
+    queryKey: queryKeys.partners.list(filters),
+    queryFn: async () => {
+      const response = await api.get(AppEndpoints.PARTNERS.BASE, { params: filters });
+      return response.data as Partner[];
+    },
   });
 };
 
+// Hook para buscar partner atual (me)
 export const usePartnerMe = () => {
-  const partnersService = usePartnersService();
+  const api = useAxio();
   
   return useQuery({
-    queryKey: ["partners", "me"],
-    queryFn: partnersService.getPartnerMe,
+    queryKey: queryKeys.partners.me(),
+    queryFn: async () => {
+      const response = await api.get(AppEndpoints.PARTNERS.ME);
+      return response.data as Partner;
+    },
   });
 };
 
+// Hook para buscar detalhes de um partner
 export const usePartner = (id: string) => {
-  const partnersService = usePartnersService();
+  const api = useAxio();
   
   return useQuery({
-    queryKey: ["partners", id],
-    queryFn: () => partnersService.getPartnerById(id),
+    queryKey: queryKeys.partners.detail(id),
+    queryFn: async () => {
+      const response = await api.get(AppEndpoints.PARTNERS.BY_ID(id));
+      return response.data as Partner;
+    },
     enabled: !!id,
   });
 };
 
-export const useCreatePartner = () => {
-  const queryClient = useQueryClient();
-  const partnersService = usePartnersService();
-  
-  return useMutation({
-    mutationFn: partnersService.createPartner,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["partners"] });
-      queryClient.invalidateQueries({ queryKey: ["partners", "available-percentage"] });
-    },
-  });
-};
-
-export const useUpdatePartner = () => {
-  const queryClient = useQueryClient();
-  const partnersService = usePartnersService();
-  
-  return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdatePartnerForm }) => 
-      partnersService.updatePartner(id, data),
-    onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: ["partners"] });
-      queryClient.invalidateQueries({ queryKey: ["partners", id] });
-      queryClient.invalidateQueries({ queryKey: ["partners", "available-percentage"] });
-    },
-  });
-};
-
-export const useDeletePartner = () => {
-  const queryClient = useQueryClient();
-  const partnersService = usePartnersService();
-  
-  return useMutation({
-    mutationFn: partnersService.deletePartner,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["partners"] });
-      queryClient.invalidateQueries({ queryKey: ["partners", "available-percentage"] });
-    },
-  });
-};
-
-// Hooks para controle financeiro
+// Hook para buscar resumo financeiro de um partner
 export const usePartnerFinancialSummary = (id: string, fairId: string) => {
-  const partnersService = usePartnersService();
+  const api = useAxio();
   
   return useQuery({
-    queryKey: ["partners", id, "financial-summary", fairId],
-    queryFn: () => partnersService.getPartnerFinancialSummary(id, fairId),
+    queryKey: queryKeys.partners.financialSummary(id, fairId),
+    queryFn: async () => {
+      const response = await api.get(`${AppEndpoints.PARTNERS.FINANCIAL_SUMMARY(id)}?fairId=${fairId}`);
+      return response.data as import("@/interfaces/withdrawals").PartnerFinancialSummary;
+    },
     enabled: !!id && !!fairId,
   });
 };
 
+// Hook para buscar percentual disponível
 export const useAvailablePercentage = () => {
-  const partnersService = usePartnersService();
+  const api = useAxio();
   
   return useQuery({
-    queryKey: ["partners", "available-percentage"],
-    queryFn: partnersService.getAvailablePercentage,
-  });
-};
-
-// Hooks para sistema de saques
-export const usePartnerWithdrawals = (partnerId: string, filters?: WithdrawalFilters) => {
-  const partnersService = usePartnersService();
-  
-  return useQuery({
-    queryKey: ["partners", partnerId, "withdrawals", filters],
-    queryFn: () => partnersService.getPartnerWithdrawals(partnerId, filters),
-    enabled: !!partnerId,
-  });
-};
-
-export const useAllWithdrawals = (filters?: WithdrawalFilters) => {
-  const partnersService = usePartnersService();
-  
-  return useQuery({
-    queryKey: ["partners", "withdrawals", filters],
-    queryFn: () => partnersService.getAllWithdrawals(filters),
-  });
-};
-
-export const useCreateWithdrawal = () => {
-  const queryClient = useQueryClient();
-  const partnersService = usePartnersService();
-  
-  return useMutation({
-    mutationFn: ({ partnerId, data }: { partnerId: string; data: CreateWithdrawalForm }) => 
-      partnersService.createWithdrawal(partnerId, data),
-    onSuccess: (_, { partnerId }) => {
-      queryClient.invalidateQueries({ queryKey: ["partners", partnerId, "withdrawals"] });
-      queryClient.invalidateQueries({ queryKey: ["partners", partnerId, "financial-summary"] });
-      queryClient.invalidateQueries({ queryKey: ["partners", "withdrawals"] });
+    queryKey: queryKeys.partners.availablePercentage(),
+    queryFn: async () => {
+      const response = await api.get(AppEndpoints.PARTNERS.AVAILABLE_PERCENTAGE);
+      return response.data as AvailablePercentage;
     },
   });
 };
 
-export const useApproveWithdrawal = () => {
+// ===== MUTATIONS =====
+
+// Hook para criar partner
+export const useCreatePartner = () => {
   const queryClient = useQueryClient();
-  const partnersService = usePartnersService();
-  
+  const api = useAxio();
+
   return useMutation({
-    mutationFn: partnersService.approveWithdrawal,
+    mutationFn: async (data: CreatePartnerForm) => {
+      const response = await api.post(AppEndpoints.PARTNERS.BASE, data);
+      return response.data as Partner;
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["partners", "withdrawals"] });
-      queryClient.invalidateQueries({ queryKey: ["partners"] });
+      // Invalida queries relacionadas
+      queryClient.invalidateQueries({ queryKey: queryKeys.partners.lists() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.partners.availablePercentage() });
+      toast.success("Sócio criado com sucesso!");
+    },
+    onError: (error: any) => {
+      toast.error("Erro ao criar sócio: " + (error.response?.data?.message || error.message));
     },
   });
 };
 
-export const useRejectWithdrawal = () => {
+// Hook para atualizar partner
+export const useUpdatePartner = () => {
   const queryClient = useQueryClient();
-  const partnersService = usePartnersService();
-  
+  const api = useAxio();
+
   return useMutation({
-    mutationFn: ({ withdrawalId, data }: { withdrawalId: string; data: RejectWithdrawalForm }) => 
-      partnersService.rejectWithdrawal(withdrawalId, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["partners", "withdrawals"] });
-      queryClient.invalidateQueries({ queryKey: ["partners"] });
+    mutationFn: async ({ id, data }: { id: string; data: UpdatePartnerForm }) => {
+      const response = await api.patch(AppEndpoints.PARTNERS.BY_ID(id), data);
+      return response.data as Partner;
+    },
+    onSuccess: (_, { id }) => {
+      // Invalida queries relacionadas
+      queryClient.invalidateQueries({ queryKey: queryKeys.partners.lists() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.partners.detail(id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.partners.me() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.partners.availablePercentage() });
+      toast.success("Sócio atualizado com sucesso!");
+    },
+    onError: (error: any) => {
+      toast.error("Erro ao atualizar sócio: " + (error.response?.data?.message || error.message));
     },
   });
 };
 
-// Hook para distribuição de lucros
+// Hook para deletar partner
+export const useDeletePartner = () => {
+  const queryClient = useQueryClient();
+  const api = useAxio();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const response = await api.delete(AppEndpoints.PARTNERS.BY_ID(id));
+      return response.data;
+    },
+    onSuccess: () => {
+      // Invalida queries relacionadas
+      queryClient.invalidateQueries({ queryKey: queryKeys.partners.lists() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.partners.availablePercentage() });
+      toast.success("Sócio removido com sucesso!");
+    },
+    onError: (error: any) => {
+      toast.error("Erro ao remover sócio: " + (error.response?.data?.message || error.message));
+    },
+  });
+};
+
+// Hook para distribuir lucros
 export const useDistributeProfit = () => {
   const queryClient = useQueryClient();
-  const partnersService = usePartnersService();
-  
+  const api = useAxio();
+
   return useMutation({
-    mutationFn: partnersService.distributeProfit,
-    onSuccess: (_, fairId) => {
-      queryClient.invalidateQueries({ queryKey: ["partners"] });
-      queryClient.invalidateQueries({ queryKey: ["cash-flow-analysis", fairId] });
+    mutationFn: async (fairId: string) => {
+      const response = await api.post(AppEndpoints.FINANCE.CASH_FLOW_DISTRIBUTE(fairId));
+      return response.data as ProfitDistribution;
+    },
+    onSuccess: () => {
+      // Invalida queries relacionadas
+      queryClient.invalidateQueries({ queryKey: queryKeys.partners.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.finance.all });
+      toast.success("Lucros distribuídos com sucesso!");
+    },
+    onError: (error: any) => {
+      toast.error("Erro ao distribuir lucros: " + (error.response?.data?.message || error.message));
     },
   });
 };
