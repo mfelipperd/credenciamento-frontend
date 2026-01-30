@@ -9,6 +9,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 import type { Kpis } from "@/interfaces/finance";
+import type { LucideIcon } from "lucide-react";
 
 interface FinanceKpisProps {
   data?: Kpis;
@@ -22,60 +23,78 @@ interface KpiCardProps {
   value: string;
   subtitle?: string;
   trend?: number;
-  icon: React.ReactNode;
+  icon: LucideIcon;
   color: string;
   onClick?: () => void;
 }
 
-function KpiCard({ title, value, subtitle, trend, icon, color, onClick }: KpiCardProps) {
+function KpiCard({ title, value, subtitle, trend, icon: Icon, color, onClick }: KpiCardProps) {
   return (
-    <Card 
-      className={`glass-card p-6 ${onClick ? 'cursor-pointer hover:shadow-lg transition-shadow' : ''}`}
+    <div
+      className={`group relative overflow-hidden h-40 bg-white/5 backdrop-blur-xl border border-white/10 rounded-[32px] p-6 transition-all duration-500 hover:scale-[1.02] hover:bg-white/10 shadow-2xl ${
+        onClick ? "cursor-pointer" : ""
+      }`}
       onClick={onClick}
     >
-      <div className="flex items-center justify-between">
-        <div className="space-y-2">
-          <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+      {/* Background Glow */}
+      <div 
+        className="absolute -right-4 -top-4 w-24 h-24 blur-3xl opacity-20 transition-opacity group-hover:opacity-40"
+        style={{ backgroundColor: color }}
+      />
+
+      <div className="relative z-10 h-full flex flex-col justify-between">
+        <div className="flex items-center justify-between">
+          <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.2em]">
             {title}
           </p>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">
-            {value}
-          </p>
-          {subtitle && (
-            <p className="text-sm text-gray-500 dark:text-gray-500">
-              {subtitle}
-            </p>
-          )}
-        </div>
-
-        <div className={`p-3 rounded-full ${color}`}>{icon}</div>
-      </div>
-
-      {trend !== undefined && (
-        <div className="mt-4 flex items-center">
-          {trend > 0 ? (
-            <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
-          ) : trend < 0 ? (
-            <TrendingDown className="w-4 h-4 text-red-500 mr-1" />
-          ) : null}
-          <span
-            className={`text-sm font-medium ${
-              trend > 0
-                ? "text-green-600"
-                : trend < 0
-                ? "text-red-600"
-                : "text-gray-500"
-            }`}
+          <div 
+            className="p-2 rounded-xl bg-white/5 text-white/60 group-hover:scale-110 transition-transform duration-500"
+            style={{ color: color }}
           >
-            {trend > 0 ? "+" : ""}
-            {trend?.toFixed(1)}%
-          </span>
-          <span className="text-sm text-gray-500 ml-1">
-            vs período anterior
-          </span>
+            <Icon size={18} />
+          </div>
         </div>
-      )}
-    </Card>
+
+        <div>
+          <div className="flex items-baseline gap-2">
+            <p className="text-white text-3xl font-black tracking-tighter">
+              {value}
+            </p>
+            <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+          </div>
+          
+          <div className="flex items-center justify-between mt-1">
+            {subtitle && (
+              <p className="text-white/40 text-[10px] font-medium truncate max-w-[150px]">
+                {subtitle}
+              </p>
+            )}
+            
+            {trend !== undefined && (
+              <div className="flex items-center gap-1">
+                {trend > 0 ? (
+                  <TrendingUp className="w-3 h-3 text-green-500" />
+                ) : trend < 0 ? (
+                  <TrendingDown className="w-3 h-3 text-red-500" />
+                ) : null}
+                <span
+                  className={`text-[10px] font-bold ${
+                    trend > 0
+                      ? "text-green-500"
+                      : trend < 0
+                      ? "text-red-500"
+                      : "text-white/40"
+                  }`}
+                >
+                  {trend > 0 ? "+" : ""}
+                  {trend?.toFixed(1)}%
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -130,8 +149,8 @@ export function FinanceKpis({ data, isLoading, onTotalContractedClick, onTotalRe
         value={formatCurrency(data.totalContractedCents)}
         subtitle={`${data.totalContracts} contratos`}
         trend={data.contractedGrowth}
-        icon={<DollarSign className="w-6 h-6 text-white" />}
-        color="bg-blue-500"
+        icon={DollarSign}
+        color="#00aacd"
         onClick={onTotalContractedClick}
       />
 
@@ -140,8 +159,8 @@ export function FinanceKpis({ data, isLoading, onTotalContractedClick, onTotalRe
         value={formatCurrency(data.totalReceivedCents)}
         subtitle={formatPercentage(data.receivedPercentage) + " do contratado"}
         trend={data.receivedGrowth}
-        icon={<CheckCircle className="w-6 h-6 text-white" />}
-        color="bg-green-500"
+        icon={CheckCircle}
+        color="#22c55e"
         onClick={onTotalReceivedClick}
       />
 
@@ -149,16 +168,16 @@ export function FinanceKpis({ data, isLoading, onTotalContractedClick, onTotalRe
         title="Em Aberto"
         value={formatCurrency(data.totalPendingCents)}
         subtitle={formatPercentage(data.pendingPercentage) + " do contratado"}
-        icon={<CreditCard className="w-6 h-6 text-white" />}
-        color="bg-yellow-500"
+        icon={CreditCard}
+        color="#eab308"
       />
 
       <KpiCard
         title="Em Atraso"
         value={formatCurrency(data.totalOverdueCents)}
         subtitle={`${data.overdueCount} parcelas`}
-        icon={<AlertCircle className="w-6 h-6 text-white" />}
-        color="bg-red-500"
+        icon={AlertCircle}
+        color="#ef4444"
       />
     </div>
   );

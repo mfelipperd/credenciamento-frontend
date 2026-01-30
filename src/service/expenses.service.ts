@@ -45,10 +45,11 @@ export const useExpensesService = () => {
   };
 
   const getExpenseDetail = async (
+    fairId: string,
     id: string
   ): Promise<Expense | undefined> => {
     return handleRequest<Expense>({
-      request: () => api.get(`${AppEndpoints.FINANCE.EXPENSES}/${id}`),
+      request: () => api.get(AppEndpoints.FINANCE.EXPENSE_BY_ID(fairId, id)),
     });
   };
 
@@ -70,18 +71,19 @@ export const useExpensesService = () => {
   };
 
   const updateExpense = async (
+    fairId: string,
     id: string,
     data: UpdateExpenseForm
   ): Promise<Expense | undefined> => {
     return handleRequest<Expense>({
-      request: () => api.patch(`${AppEndpoints.FINANCE.EXPENSES}/${id}`, data),
+      request: () => api.patch(AppEndpoints.FINANCE.EXPENSE_BY_ID(fairId, id), data),
       successMessage: "Despesa atualizada com sucesso!",
     });
   };
 
-  const deleteExpense = async (id: string): Promise<void> => {
+  const deleteExpense = async (fairId: string, id: string): Promise<void> => {
     await handleRequest<{ success: boolean }>({
-      request: () => api.delete(`${AppEndpoints.FINANCE.EXPENSES}/${id}`),
+      request: () => api.delete(AppEndpoints.FINANCE.EXPENSE_BY_ID(fairId, id)),
       successMessage: "Despesa removida com sucesso!",
     });
   };
@@ -120,7 +122,7 @@ export const useExpensesService = () => {
     fairId: string
   ): Promise<FinanceCategory[] | undefined> => {
     const response = await handleRequest<FinanceCategory[]>({
-      request: () => api.get(`/categories/fair/${fairId}`),
+      request: () => api.get(AppEndpoints.FINANCE.CATEGORIES_BY_FAIR(fairId)),
     });
 
     // Mapear campo 'name' do backend para 'nome' da interface
@@ -134,7 +136,7 @@ export const useExpensesService = () => {
     id: string
   ): Promise<FinanceCategory | undefined> => {
     return handleRequest<FinanceCategory>({
-      request: () => api.get(`/categories/${id}`),
+      request: () => api.get(AppEndpoints.FINANCE.CATEGORY_BY_ID(id)),
     });
   };
 
@@ -150,7 +152,7 @@ export const useExpensesService = () => {
     };
 
     return handleRequest<FinanceCategory>({
-      request: () => api.post(`/categories`, mappedData),
+      request: () => api.post(AppEndpoints.FINANCE.CATEGORIES, mappedData),
       successMessage: "Categoria criada com sucesso!",
     });
   };
@@ -168,14 +170,14 @@ export const useExpensesService = () => {
     };
 
     return handleRequest<FinanceCategory>({
-      request: () => api.patch(`/categories/${id}`, mappedData),
+      request: () => api.patch(AppEndpoints.FINANCE.CATEGORY_BY_ID(id), mappedData),
       successMessage: "Categoria atualizada com sucesso!",
     });
   };
 
   const deleteFinanceCategory = async (id: string): Promise<void> => {
     await handleRequest<{ success: boolean }>({
-      request: () => api.delete(`/categories/${id}`),
+      request: () => api.delete(AppEndpoints.FINANCE.CATEGORY_BY_ID(id)),
       successMessage: "Categoria removida com sucesso!",
     });
   };
@@ -184,13 +186,13 @@ export const useExpensesService = () => {
 
   const getAccounts = async (): Promise<Account[] | undefined> => {
     return handleRequest<Account[]>({
-      request: () => api.get(`/accounts`),
+      request: () => api.get(AppEndpoints.FINANCE.ACCOUNTS),
     });
   };
 
   const getAccount = async (id: string): Promise<Account | undefined> => {
     return handleRequest<Account>({
-      request: () => api.get(`/accounts/${id}`),
+      request: () => api.get(AppEndpoints.FINANCE.ACCOUNT_BY_ID(id)),
     });
   };
 
@@ -205,7 +207,7 @@ export const useExpensesService = () => {
     };
 
     return handleRequest<Account>({
-      request: () => api.post(`/accounts`, mappedData),
+      request: () => api.post(AppEndpoints.FINANCE.ACCOUNTS, mappedData),
       successMessage: "Conta bancária criada com sucesso!",
     });
   };
@@ -222,14 +224,14 @@ export const useExpensesService = () => {
     };
 
     return handleRequest<Account>({
-      request: () => api.patch(`/accounts/${id}`, mappedData),
+      request: () => api.patch(AppEndpoints.FINANCE.ACCOUNT_BY_ID(id), mappedData),
       successMessage: "Conta bancária atualizada com sucesso!",
     });
   };
 
   const deleteAccount = async (id: string): Promise<void> => {
     await handleRequest<{ success: boolean }>({
-      request: () => api.delete(`/accounts/${id}`),
+      request: () => api.delete(AppEndpoints.FINANCE.ACCOUNT_BY_ID(id)),
       successMessage: "Conta bancária removida com sucesso!",
     });
   };

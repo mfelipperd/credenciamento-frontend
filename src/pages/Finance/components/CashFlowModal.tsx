@@ -112,35 +112,44 @@ export function CashFlowModal({ isOpen, onClose, fairId }: CashFlowModalProps) {
   if (isLoading) {
     return (
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="max-w-6xl w-[95vw] max-h-[90vh] overflow-y-auto p-0">
-          <DialogHeader className="px-6 py-4 border-b bg-gray-50 dark:bg-gray-800/50">
-            <div className="flex items-center justify-between">
+        <DialogContent className="max-w-6xl w-[95vw] max-h-[90vh] overflow-y-auto p-0 border-none bg-slate-950">
+          {/* Premium Header */}
+          <div className="relative h-32 w-full flex items-end p-6 bg-linear-to-br from-[#00aacd] to-[#EB2970] overflow-hidden">
+            <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3 blur-3xl" />
+            <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/4 blur-2xl" />
+            
+            <div className="relative z-10 w-full flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
-                  <BarChart3 className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                <div className="p-2 rounded-xl bg-white/10 backdrop-blur-md border border-white/20">
+                  <BarChart3 className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white">
-                    Análise de Fluxo de Caixa
-                  </DialogTitle>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Carregando dados...
+                  <p className="text-white/60 text-[10px] font-black uppercase tracking-[0.2em] mb-1">
+                    Análise Financeira
                   </p>
+                  <DialogTitle className="text-2xl font-black text-white tracking-tighter">
+                    Fluxo de Caixa
+                  </DialogTitle>
                 </div>
               </div>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={onClose}
+                className="text-white/60 hover:text-white hover:bg-white/10 rounded-full h-10 w-10"
+              >
+                <X className="w-6 h-6" />
+              </Button>
             </div>
-          </DialogHeader>
-          <div className="p-6 space-y-6">
+          </div>
+
+          <div className="p-6 space-y-6 bg-slate-950">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {[1, 2, 3].map((i) => (
-                <Card key={i}>
-                  <CardHeader>
-                    <Skeleton className="h-6 w-32" />
-                  </CardHeader>
-                  <CardContent>
-                    <Skeleton className="h-8 w-24" />
-                  </CardContent>
-                </Card>
+                <div key={i} className="glass-card rounded-3xl p-6 space-y-4">
+                  <Skeleton className="h-6 w-32 bg-white/10" />
+                  <Skeleton className="h-8 w-24 bg-white/10" />
+                </div>
               ))}
             </div>
           </div>
@@ -179,65 +188,68 @@ export function CashFlowModal({ isOpen, onClose, fairId }: CashFlowModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-[95vw] w-[95vw] min-w-[70vw] max-h-[95vh] overflow-y-auto p-0">
-        <DialogHeader className="px-6 py-4 border-b bg-gray-50 dark:bg-gray-800/50">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
-                <BarChart3 className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+      <DialogContent className="max-w-[95vw] w-[95vw] min-w-[70vw] max-h-[95vh] overflow-y-auto p-0 border-none bg-slate-950">
+          {/* Premium Header */}
+          <div className="relative h-32 w-full flex items-end p-6 bg-linear-to-br from-[#00aacd] to-[#EB2970] overflow-hidden">
+            <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3 blur-3xl" />
+            <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/4 blur-2xl" />
+            
+            <div className="relative z-10 w-full flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-white/10 backdrop-blur-md border border-white/20">
+                  <BarChart3 className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <p className="text-white/60 text-[10px] font-black uppercase tracking-[0.2em] mb-1">
+                    Análise Financeira
+                  </p>
+                  <DialogTitle className="text-2xl font-black text-white tracking-tighter">
+                    Fluxo de Caixa
+                  </DialogTitle>
+                </div>
               </div>
-              <div>
-                <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white">
-                  Análise de Fluxo de Caixa
-                </DialogTitle>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Performance financeira da feira
-                </p>
+              <div className="flex gap-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleRefresh}
+                  disabled={isRefreshing}
+                  className="text-white/60 hover:text-white hover:bg-white/10 rounded-full h-10 w-10"
+                >
+                  <RefreshCw className={`w-5 h-5 ${isRefreshing ? "animate-spin" : ""}`} />
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={onClose}
+                  className="text-white/60 hover:text-white hover:bg-white/10 rounded-full h-10 w-10"
+                >
+                  <X className="w-6 h-6" />
+                </Button>
               </div>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleRefresh}
-                disabled={isRefreshing}
-                className="flex items-center gap-2"
-              >
-                <RefreshCw className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`} />
-                Atualizar
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onClose}
-                className="h-8 w-8 p-0 hover:bg-gray-100 dark:hover:bg-gray-700"
-              >
-                <X className="h-4 w-4" />
-              </Button>
             </div>
           </div>
-        </DialogHeader>
 
-        <div className="p-8 space-y-8">
+        <div className="p-8 space-y-8 bg-slate-950">
           {/* Resumo Principal */}
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/10 dark:to-indigo-900/10 rounded-xl p-8 border border-blue-200 dark:border-blue-800">
+          <div className="glass-card rounded-[32px] p-8 border border-white/10">
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
               <div className="lg:col-span-2">
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                <h3 className="text-xl font-black text-white mb-4 tracking-tight">
                   Resumo Executivo
                 </h3>
-                <p className="text-gray-700 dark:text-gray-300 text-base leading-relaxed break-words">
+                <p className="text-slate-300 text-base leading-relaxed wrap-break-word">
                   {cashFlowData.summary || "Nenhum resumo disponível"}
                 </p>
               </div>
               <div className="text-center lg:text-right">
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Performance</p>
-                <Badge className={`text-sm ${getPerformanceColor(cashFlowData.performance)}`}>
+                <p className="text-sm text-slate-400 mb-2 font-bold uppercase tracking-wider">Performance</p>
+                <Badge className={`text-sm font-bold ${getPerformanceColor(cashFlowData.performance)}`}>
                   {getPerformanceLabel(cashFlowData.performance)}
                 </Badge>
               </div>
               <div className="text-center lg:text-right">
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Status</p>
+                <p className="text-sm text-slate-400 mb-2 font-bold uppercase tracking-wider">Status</p>
                 <div className="flex items-center justify-center lg:justify-end gap-1">
                   {cashFlowData.isProfitable ? (
                     <CheckCircle className="w-4 h-4 text-green-600" />
@@ -367,7 +379,7 @@ export function CashFlowModal({ isOpen, onClose, fairId }: CashFlowModalProps) {
                 <ul className="space-y-4">
                   {cashFlowData.recommendations.map((recommendation: string, index: number) => (
                     <li key={index} className="flex items-start gap-3">
-                      <div className="w-3 h-3 bg-yellow-500 rounded-full mt-2 flex-shrink-0" />
+                      <div className="w-3 h-3 bg-yellow-500 rounded-full mt-2 shrink-0" />
                       <p className="text-gray-700 dark:text-gray-300 text-base leading-relaxed break-words">
                         {recommendation}
                       </p>

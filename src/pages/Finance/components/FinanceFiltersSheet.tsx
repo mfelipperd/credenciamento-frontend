@@ -6,7 +6,6 @@ import { Calendar } from "@/components/ui/calendar";
 import {
   Sheet,
   SheetContent,
-  SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
 import {
@@ -94,20 +93,37 @@ export function FinanceFiltersSheet({
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent className="w-full max-w-2xl min-w-[30rem] overflow-y-auto p-6">
-        <SheetHeader className="border-b border-gray-200/30 dark:border-gray-700/30 pb-4 mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Filter className="w-5 h-5 text-gray-600 dark:text-white" />
-              <SheetTitle className="text-xl font-semibold text-gray-900 dark:text-white">
-                Filtros Avançados
-              </SheetTitle>
+      <SheetContent className="w-full max-w-2xl min-w-120 overflow-y-auto p-0 border-none bg-white dark:bg-slate-950">
+        <div className="relative h-32 w-full flex items-end p-8 bg-linear-to-br from-[#F39B0C] to-[#EB2970] overflow-hidden">
+          {/* Decorative elements */}
+          <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3 blur-3xl" />
+          
+          <div className="relative z-10 w-full flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="p-2 rounded-xl bg-white/10 backdrop-blur-md border border-white/20">
+                <Filter className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <p className="text-white/60 text-[10px] font-black uppercase tracking-[0.2em] mb-0.5">
+                  Refinar Buscas
+                </p>
+                <SheetTitle className="text-2xl font-black text-white tracking-tighter">
+                  Filtros Avançados
+                </SheetTitle>
+              </div>
             </div>
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              <X className="w-4 h-4 text-gray-600 dark:text-white" />
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={onClose}
+              className="text-white/60 hover:text-white hover:bg-white/10 rounded-full h-10 w-10 transition-all duration-300"
+            >
+              <X className="w-6 h-6" />
             </Button>
           </div>
-        </SheetHeader>
+        </div>
+
+        <div className="p-8 space-y-8">
 
         <div className="space-y-6">
           {/* Busca por texto */}
@@ -349,10 +365,11 @@ export function FinanceFiltersSheet({
             <Button
               type="button"
               onClick={handleApplyFilters}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-blue-600 hover:bg-blue-700 px-8 font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all active:scale-95"
             >
               Aplicar Filtros
             </Button>
+          </div>
           </div>
         </div>
       </SheetContent>

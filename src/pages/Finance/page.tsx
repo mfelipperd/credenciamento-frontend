@@ -179,43 +179,44 @@ export function FinancePage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Visão Geral</p>
+            <h1 className="text-4xl font-black text-white tracking-tighter">
               Gestão Financeira
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">
-              Controle de receitas e análise de resultados
+            <p className="text-white/40 text-sm font-medium mt-1">
+              Controle de receitas e análise de resultados em tempo real
             </p>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <Button
               onClick={() => setIsFiltersSheetOpen(true)}
               variant="outline"
-              className={`text-gray-900 dark:text-white relative ${
+              className={`relative border-white/10 bg-white/5 backdrop-blur-md rounded-xl px-4 font-bold transition-all hover:bg-white/10 active:scale-95 ${
                 hasActiveFilters()
-                  ? "border-blue-500 text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950"
-                  : ""
+                  ? "border-blue-500/50 text-blue-400 bg-blue-500/10"
+                  : "text-white/70"
               }`}
             >
               <Filter className="w-4 h-4 mr-2" />
               Filtros
               {hasActiveFilters() && (
-                <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full"></div>
+                <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-blue-500 rounded-full shadow-lg shadow-blue-500/50"></div>
               )}
             </Button>
             <Button
               onClick={() => setIsConfigDialogOpen(true)}
               variant="outline"
-              className="text-gray-900 dark:text-white"
+              className="border-white/10 bg-white/5 backdrop-blur-md text-white/70 rounded-xl px-4 font-bold transition-all hover:bg-white/10 active:scale-95"
             >
               <Plus className="w-4 h-4 mr-2" />
-              Criar Stands
+              Configurar Entrada
             </Button>
             <Button
               onClick={handleCreateRevenue}
-              className="flex items-center gap-2 shadow-lg hover:shadow-xl transition-all duration-200 font-semibold px-6"
+              className="bg-linear-to-br from-[#00aacd] to-[#EB2970] text-white rounded-xl px-6 font-bold shadow-lg shadow-pink-500/20 transition-all hover:scale-105 active:scale-95"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-4 h-4 mr-2" />
               Nova Receita
             </Button>
           </div>

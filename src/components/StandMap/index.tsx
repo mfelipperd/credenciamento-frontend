@@ -89,26 +89,32 @@ export const StandMap: React.FC<StandMapProps> = ({
 
   const getStandColor = (stand: Stand) => {
     if (stand.isAvailable) {
-      return "bg-green-100 border-green-300 hover:bg-green-200 text-green-800";
+      // Available stands - vibrant logo-consistent green
+      return "bg-emerald-500/20 border-emerald-500/40 hover:bg-emerald-500/30 text-emerald-300 font-bold";
     } else if (stand.revenueStatus) {
-      // Stand vendido com receita - usar cores baseadas no status
+      // Stand vendido com receita - usar cores baseadas no status (darker palette)
       switch (stand.revenueStatus) {
         case "PAGO":
-          return "bg-blue-100 border-blue-300 hover:bg-blue-200 text-blue-800";
+          // Paid - vibrant green (logo theme)
+          return "bg-green-600/30 border-green-500/50 hover:bg-green-600/40 text-green-200 font-bold";
         case "EM_ANDAMENTO":
-          return "bg-yellow-100 border-yellow-300 hover:bg-yellow-200 text-yellow-800";
+          // In progress - darker yellow/amber
+          return "bg-amber-600/30 border-amber-500/50 hover:bg-amber-600/40 text-amber-200 font-bold";
         case "EM_ATRASO":
-          return "bg-red-100 border-red-300 hover:bg-red-200 text-red-800";
+          // Overdue - darker red
+          return "bg-red-700/30 border-red-600/50 hover:bg-red-700/40 text-red-200 font-bold";
         case "PENDENTE":
-          return "bg-orange-100 border-orange-300 hover:bg-orange-200 text-orange-800";
+          // Pending - darker orange
+          return "bg-orange-600/30 border-orange-500/50 hover:bg-orange-600/40 text-orange-200 font-bold";
         case "CANCELADO":
-          return "bg-gray-100 border-gray-300 hover:bg-gray-200 text-gray-800";
+          // Canceled - darker gray
+          return "bg-slate-600/30 border-slate-500/50 hover:bg-slate-600/40 text-slate-300 font-bold";
         default:
-          return "bg-blue-100 border-blue-300 hover:bg-blue-200 text-blue-800";
+          return "bg-green-600/30 border-green-500/50 hover:bg-green-600/40 text-green-200 font-bold";
       }
     } else {
-      // Stand ocupado/reservado (sem receita)
-      return "bg-red-100 border-red-300 hover:bg-red-200 text-red-800";
+      // Stand ocupado/reservado (sem receita) - darker red
+      return "bg-red-800/30 border-red-700/50 hover:bg-red-800/40 text-red-300 font-bold";
     }
   };
 
