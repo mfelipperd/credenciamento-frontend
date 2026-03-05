@@ -2,7 +2,7 @@ import { CardRoot } from "@/components/Card";
 import { VisitorTable } from "./components/Table";
 import { useTableVisitorsController } from "./tableVisitors.controller";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Download } from "lucide-react";
 import { useSearchParams } from "@/hooks/useSearchParams";
 import { ModalCreateFormPrivate } from "./components/ModalCreate";
 import { Pagination } from "./components/Pagination";
@@ -32,6 +32,15 @@ export const TableVisitors = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full lg:w-auto">
+              <Button
+                type="button"
+                onClick={controller.handleExportPdf}
+                disabled={controller.isExporting}
+                className="h-14 px-8 bg-white/10 border border-white/20 rounded-2xl text-white font-black uppercase tracking-widest hover:bg-white/20 transition-all active:scale-[0.98] cursor-pointer"
+              >
+                <Download className={`mr-3 h-5 w-5 ${controller.isExporting ? 'animate-bounce' : ''}`} />
+                {controller.isExporting ? "Gerando..." : "Exportar PDF"}
+              </Button>
               <Button
                 type="button"
                 onClick={handleClick}

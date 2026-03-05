@@ -14,6 +14,7 @@ export const AppEndpoints = {
   VISITORS: {
     BASE: "/visitors",
     BY_ID: (id: string) => `/visitors/${id}`,
+    EXPORT_PDF: (fairId: string) => `/visitors/pdf/${fairId}`,
   },
   CHECKINS: {
     BASE: "/checkins",
