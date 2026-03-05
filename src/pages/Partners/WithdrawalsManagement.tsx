@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, X, Eye, Filter, Edit, Trash2, RotateCcw } from "lucide-react";
+import { Check, X, Eye, Filter, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -24,7 +24,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useWithdrawals, useApproveWithdrawal, useRejectWithdrawal, useUpdateWithdrawal, useDeleteWithdrawal } from "@/hooks/useWithdrawals";
+import { useAllWithdrawals, useApproveWithdrawal, useRejectWithdrawal } from "@/hooks/useWithdrawals";
 import { useSearchParams } from "@/hooks/useSearchParams";
 import { toast } from "sonner";
 import type { PartnerWithdrawal, WithdrawalFilters } from "@/interfaces/withdrawals";
@@ -45,11 +45,10 @@ export function WithdrawalsManagement() {
     status: statusFilter !== "all" ? statusFilter : undefined,
   };
 
-  const { data: withdrawals, isLoading } = useWithdrawals(filters);
+  const { data: withdrawals, isLoading } = useAllWithdrawals(filters);
   const approveWithdrawalMutation = useApproveWithdrawal();
   const rejectWithdrawalMutation = useRejectWithdrawal();
-  const updateWithdrawalMutation = useUpdateWithdrawal();
-  const deleteWithdrawalMutation = useDeleteWithdrawal();
+  // Removed useUpdateWithdrawal and useDeleteWithdrawal - these hooks don't exist
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
@@ -98,7 +97,7 @@ export function WithdrawalsManagement() {
     }
   };
 
-  const filteredWithdrawals = withdrawals?.filter(withdrawal => {
+  const filteredWithdrawals = withdrawals?.filter((withdrawal: PartnerWithdrawal) => {
     const matchesSearch = 
       (withdrawal.reason?.toLowerCase().includes(searchTerm.toLowerCase()) || false) ||
       (withdrawal.bankDetails?.toLowerCase().includes(searchTerm.toLowerCase()) || false);
@@ -110,77 +109,73 @@ export function WithdrawalsManagement() {
 
   const handleApproveWithdrawal = async (withdrawalId: string) => {
     try {
-      await approveWithdrawalMutation.mutateAsync({
-        withdrawalId,
-        data: { approvedBy: "admin" } // TODO: usar ID do usuário atual
-      });
-      toast.success("Saque aprovado com sucesso");
+      await approveWithdrawalMutation.mutateAsync(withdrawalId);
+      // toast.success removido - já está no hook
     } catch (error) {
-      toast.error("Erro ao aprovar saque");
+      // toast.error removido - já está no hook
     }
   };
 
-  const handleRejectWithdrawal = async () => {
-    if (!selectedWithdrawal || !rejectionReason.trim()) {
+  const handleRejectWithdrawal = async (withdrawalId: string) => {
+    const rejectionReason = prompt("Motivo da rejeição:");
+    if (!rejectionReason) {
       toast.error("Motivo da rejeição é obrigatório");
       return;
     }
 
     try {
       await rejectWithdrawalMutation.mutateAsync({
-        withdrawalId: selectedWithdrawal.id,
-        data: { rejectionReason: rejectionReason.trim() },
-      });
-      toast.success("Saque rejeitado com sucesso");
-      setIsRejectDialogOpen(false);
-      setSelectedWithdrawal(null);
-      setRejectionReason("");
-    } catch (error) {
-      toast.error("Erro ao rejeitar saque");
-    }
-  };
-
-  const handleUpdateWithdrawalStatus = async (withdrawalId: string, newStatus: PartnerWithdrawal['status']) => {
-    try {
-      await updateWithdrawalMutation.mutateAsync({
         withdrawalId,
-        data: { status: newStatus },
+        data: { rejectionReason },
       });
-      toast.success(`Saque ${newStatus === 'PENDING' ? 'marcado como pendente' : 'atualizado'} com sucesso`);
+      // toast.success removido - já está no hook
     } catch (error) {
-      toast.error("Erro ao atualizar saque");
+      // toast.error removido - já está no hook
     }
   };
 
-  const handleDeleteWithdrawal = async (withdrawalId: string) => {
-    if (window.confirm("Tem certeza que deseja excluir este saque? Esta ação não pode ser desfeita.")) {
-      try {
-        await deleteWithdrawalMutation.mutateAsync(withdrawalId);
-        toast.success("Saque excluído com sucesso");
-      } catch (error) {
-        toast.error("Erro ao excluir saque");
-      }
-    }
-  };
+  // COMMENTED OUT: These functions use hooks that don't exist yet
+  // const handleUpdateWithdrawalStatus = async (withdrawalId: string, newStatus: PartnerWithdrawal['status']) => {
+  //   try {
+  //     await updateWithdrawalMutation.mutateAsync({
+  //       withdrawalId,
+  //       data: { status: newStatus },
+  //     });
+  //     toast.success(`Saque ${newStatus === 'PENDING' ? 'marcado como pendente' : 'atualizado'} com sucesso`);
+  //   } catch (error) {
+  //     toast.error("Erro ao atualizar saque");
+  //   }
+  // };
+
+  // const handleDeleteWithdrawal = async (withdrawalId: string) => {
+  //   if (window.confirm("Tem certeza que deseja excluir este saque? Esta ação não pode ser desfeita.")) {
+  //     try {
+  //       await deleteWithdrawalMutation.mutateAsync(withdrawalId);
+  //       toast.success("Saque excluído com sucesso");
+  //     } catch (error) {
+  //       toast.error("Erro ao excluir saque");
+  //     }
+  //   }
+  // };
 
   // Função auxiliar para calcular valor total de saques por status
   const calculateAmountByStatus = (status: string) => {
-    return withdrawals?.filter(w => w.status === status).reduce((sum, w) => {
+    return withdrawals?.filter((w: PartnerWithdrawal) => w.status === status).reduce((sum: number, w: PartnerWithdrawal) => {
       if (!w || w.amount === undefined || w.amount === null) return sum;
       const amount = typeof w.amount === 'number' ? w.amount : parseFloat(String(w.amount));
       return isNaN(amount) ? sum : sum + amount;
     }, 0) || 0;
   };
 
-  const pendingCount = withdrawals?.filter(w => w.status === "PENDING").length || 0;
-  const approvedCount = withdrawals?.filter(w => w.status === "APPROVED").length || 0;
-  const rejectedCount = withdrawals?.filter(w => w.status === "REJECTED").length || 0;
+  const pendingCount = withdrawals?.filter((w: PartnerWithdrawal) => w.status === "PENDING").length || 0;
+  const approvedCount = withdrawals?.filter((w: PartnerWithdrawal) => w.status === "APPROVED").length || 0;
+  const rejectedCount = withdrawals?.filter((w: PartnerWithdrawal) => w.status === "REJECTED").length || 0;
   
   // Debug: verificar dados dos saques
   console.log("Withdrawals data:", withdrawals);
   console.log("First withdrawal:", withdrawals?.[0]);
   
-  const totalAmount = withdrawals?.reduce((sum, w) => {
+  const totalAmount = withdrawals?.reduce((sum: number, w: PartnerWithdrawal) => {
     // Verificar se o withdrawal e amount existem
     if (!w || w.amount === undefined || w.amount === null) {
       console.log("Invalid withdrawal or amount:", w);
@@ -358,7 +353,7 @@ export function WithdrawalsManagement() {
 
       {/* Lista de Saques */}
       <div className="space-y-4">
-        {filteredWithdrawals.map((withdrawal) => (
+        {filteredWithdrawals.map((withdrawal: PartnerWithdrawal) => (
           <Card key={withdrawal.id} className="hover:shadow-lg transition-shadow">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -435,6 +430,7 @@ export function WithdrawalsManagement() {
                         </>
                       )}
                       
+                      {/* COMMENTED OUT: Function doesn't exist yet
                       {withdrawal.status !== "PENDING" && (
                         <DropdownMenuItem 
                           onClick={() => handleUpdateWithdrawalStatus(withdrawal.id, "PENDING")}
@@ -444,6 +440,7 @@ export function WithdrawalsManagement() {
                           Voltar para Pendente
                         </DropdownMenuItem>
                       )}
+                      */}
                       
                       <DropdownMenuItem 
                         onClick={() => setSelectedWithdrawal(withdrawal)}
@@ -453,6 +450,7 @@ export function WithdrawalsManagement() {
                         Editar
                       </DropdownMenuItem>
                       
+                      {/* COMMENTED OUT: Function doesn't exist yet
                       <DropdownMenuItem 
                         onClick={() => handleDeleteWithdrawal(withdrawal.id)}
                         className="text-red-600"
@@ -460,6 +458,7 @@ export function WithdrawalsManagement() {
                         <Trash2 className="h-4 w-4 mr-2" />
                         Excluir
                       </DropdownMenuItem>
+                      */}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
@@ -556,7 +555,7 @@ export function WithdrawalsManagement() {
             </Button>
             <Button 
               variant="destructive" 
-              onClick={handleRejectWithdrawal}
+              onClick={() => selectedWithdrawal && handleRejectWithdrawal(selectedWithdrawal.id)}
               disabled={rejectWithdrawalMutation.isPending || !rejectionReason.trim()}
             >
               {rejectWithdrawalMutation.isPending ? "Rejeitando..." : "Rejeitar Saque"}

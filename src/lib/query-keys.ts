@@ -106,6 +106,40 @@ export const queryKeys = {
     permissions: () => [...queryKeys.auth.all, "permissions"] as const,
     roles: () => [...queryKeys.auth.all, "roles"] as const,
   },
+
+  // Módulo de Partners
+  partners: {
+    all: ["partners"] as const,
+    lists: () => [...queryKeys.partners.all, "list"] as const,
+    list: (filters?: any) => [...queryKeys.partners.lists(), filters] as const,
+    details: () => [...queryKeys.partners.all, "detail"] as const,
+    detail: (id: string) => [...queryKeys.partners.details(), id] as const,
+    me: () => [...queryKeys.partners.all, "me"] as const,
+    financialSummary: (id: string, fairId: string) => 
+      [...queryKeys.partners.all, "financial-summary", id, fairId] as const,
+    availablePercentage: () => [...queryKeys.partners.all, "available-percentage"] as const,
+  },
+
+  // Módulo de Withdrawals
+  withdrawals: {
+    all: ["withdrawals"] as const,
+    lists: () => [...queryKeys.withdrawals.all, "list"] as const,
+    list: (partnerId: string, filters?: any) => 
+      [...queryKeys.withdrawals.lists(), partnerId, filters] as const,
+    allWithdrawals: (filters?: any) => 
+      [...queryKeys.withdrawals.lists(), "all", filters] as const,
+    details: () => [...queryKeys.withdrawals.all, "detail"] as const,
+    detail: (id: string) => [...queryKeys.withdrawals.details(), id] as const,
+  },
+
+  // Módulo de Fair Partners
+  fairPartners: {
+    all: ["fair-partners"] as const,
+    lists: () => [...queryKeys.fairPartners.all, "list"] as const,
+    list: (fairId: string) => [...queryKeys.fairPartners.lists(), fairId] as const,
+    details: () => [...queryKeys.fairPartners.all, "detail"] as const,
+    detail: (id: string) => [...queryKeys.fairPartners.details(), id] as const,
+  },
 };
 
 // Função helper para criar query keys dinâmicas

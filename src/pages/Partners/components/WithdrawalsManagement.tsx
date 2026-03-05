@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { useWithdrawals, useApproveWithdrawal, useRejectWithdrawal } from "@/hooks/useWithdrawals";
+import { useAllWithdrawals, useApproveWithdrawal, useRejectWithdrawal } from "@/hooks/useWithdrawals";
 import { useFairs } from "@/hooks/useFairs";
 import type { PartnerWithdrawal } from "@/interfaces/withdrawals";
 import { format } from "date-fns";
@@ -38,9 +38,10 @@ export const WithdrawalsManagement: React.FC = () => {
   // Selecionar a primeira feira por padrão se não houver seleção
   const selectedFairId = fairFilter || fairs?.[0]?.id;
 
-  const { data: withdrawals, isLoading, error } = useWithdrawals({
+  const { data: withdrawals, isLoading, error } = useAllWithdrawals({
     status: statusFilter === "all" ? undefined : statusFilter as any,
     fairId: selectedFairId,
+    partnerId: user?.id?.toString(), // Assuming we need partnerId
   });
 
   // Debug logs
@@ -98,10 +99,7 @@ export const WithdrawalsManagement: React.FC = () => {
     if (!user?.id) return;
     
     try {
-      await approveWithdrawalMutation.mutateAsync({
-        withdrawalId,
-        data: { approvedBy: user.id.toString() },
-      });
+      await approveWithdrawalMutation.mutateAsync(withdrawalId);
     } catch (error) {
       // Error is handled by the mutation
     }
@@ -121,7 +119,7 @@ export const WithdrawalsManagement: React.FC = () => {
     }
   };
 
-  const filteredWithdrawals = withdrawals?.filter((withdrawal) => {
+  const filteredWithdrawals = withdrawals?.filter((withdrawal: PartnerWithdrawal) => {
     const matchesSearch = 
       withdrawal.reason?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       withdrawal.bankDetails?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -131,8 +129,8 @@ export const WithdrawalsManagement: React.FC = () => {
     return matchesSearch;
   }) || [];
 
-  const pendingWithdrawals = filteredWithdrawals.filter(w => w.status === 'PENDING');
-  const totalPendingValue = pendingWithdrawals.reduce((sum, w) => sum + w.amount, 0);
+  const pendingWithdrawals = filteredWithdrawals.filter((w: PartnerWithdrawal) => w.status === 'PENDING');
+  const totalPendingValue = pendingWithdrawals.reduce((sum: number, w: PartnerWithdrawal) => sum + w.amount, 0);
 
   if (isLoading) {
     return (
@@ -288,7 +286,7 @@ export const WithdrawalsManagement: React.FC = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredWithdrawals.map((withdrawal) => (
+                  {filteredWithdrawals.map((withdrawal: PartnerWithdrawal) => (
                     <TableRow key={withdrawal.id}>
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">

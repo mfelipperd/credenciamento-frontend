@@ -1,6 +1,7 @@
 import { useVisitorsService } from "@/service/visitors.service";
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { useSearchParams } from "@/hooks/useSearchParams";
+import { toast } from "sonner";
 
 export const useTableVisitorsController = () => {
   const [, , fairId] = useSearchParams();
@@ -14,8 +15,10 @@ export const useTableVisitorsController = () => {
     paginationMeta,
     error,
     deleteVisitor,
+    exportVisitorsPdf,
   } = useVisitorsService();
   const [search, setSearch] = useState("");
+  const [isExporting, setIsExporting] = useState(false);
 
   // Estados para paginação e busca
   const [currentPage, setCurrentPage] = useState(1);
@@ -179,6 +182,29 @@ export const useTableVisitorsController = () => {
     setId(id);
   };
 
+  const handleExportPdf = async () => {
+    if (!fairId) {
+      toast.error("ID da feira não encontrado.");
+      return;
+    }
+
+    try {
+      setIsExporting(true);
+      toast.info("Gerando PDF, aguarde...", { id: "export-pdf" });
+      const success = await exportVisitorsPdf(fairId);
+      if (success) {
+        toast.success("PDF exportado com sucesso!", { id: "export-pdf" });
+      } else {
+        toast.error("Erro ao exportar o PDF.", { id: "export-pdf" });
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Ocorreu um erro ao gerar o PDF.", { id: "export-pdf" });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return {
     loading,
     error,
@@ -204,5 +230,7 @@ export const useTableVisitorsController = () => {
     setSearchField,
     // Metadata de paginação server-side
     paginationMeta,
+    handleExportPdf,
+    isExporting,
   };
 };

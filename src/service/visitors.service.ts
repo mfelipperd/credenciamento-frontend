@@ -236,6 +236,39 @@ export const useVisitorsService = () => {
     },
     [api, setLoading]
   );
+  const exportVisitorsPdf = useCallback(
+    async (fairId: string) => {
+      try {
+        setLoading(true);
+        const response = await api.get(AppEndpoints.VISITORS.EXPORT_PDF(fairId), {
+          responseType: "blob", // Importante para receber arquivos binários
+        });
+
+        // Cria uma URL para o blob
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        
+        // Cria um elemento a e força o download
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", `lista-visitantes-${fairId}.pdf`); // Nome do arquivo
+        document.body.appendChild(link);
+        link.click();
+        
+        // Limpeza
+        link.parentNode?.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        
+        return true;
+      } catch (error) {
+        console.error("Erro ao exportar PDF:", error);
+        return false;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [api, setLoading]
+  );
+
   return useMemo(
     () => ({
       getVisitors,
@@ -252,6 +285,7 @@ export const useVisitorsService = () => {
       checkinPerHour,
       setVisitor,
       updateVisitor,
+      exportVisitorsPdf,
     }),
     [
       getVisitors,
@@ -268,6 +302,7 @@ export const useVisitorsService = () => {
       checkinPerHour,
       setVisitor,
       updateVisitor,
+      exportVisitorsPdf,
     ]
   );
 };

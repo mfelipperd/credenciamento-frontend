@@ -2,7 +2,7 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, Wallet, Percent, Clock } from "lucide-react";
-import { usePartnerFinancialSummary } from "@/hooks/useWithdrawals";
+import { usePartnerFinancialSummary } from "@/hooks/usePartners";
 import { useCashFlowAnalysis } from "@/hooks/useFinance";
 import type { FairEarning } from "@/interfaces/withdrawals";
 
@@ -53,7 +53,7 @@ export const FinancialSummary: React.FC<FinancialSummaryProps> = ({ partnerId, f
   const currentFairProfit = cashFlowData?.netProfit || 0;
   
   // Calcular porcentagem do sócio na feira atual
-  const currentFairEarning = summary.fairEarnings?.find(fair => fair.fairId === fairId);
+  const currentFairEarning = summary.fairEarnings?.find((fair: FairEarning) => fair.fairId === fairId);
   const currentFairPercentage = currentFairEarning ? parseFloat(currentFairEarning.percentage) : 0;
 
   const cards = [
@@ -156,7 +156,7 @@ export const FinancialSummary: React.FC<FinancialSummaryProps> = ({ partnerId, f
                   Feiras Lucrativas:
                 </span>
                 <span className="font-medium">
-                  {summary.fairEarnings?.filter(fair => fair.isProfitable).length || 0}
+                  {summary.fairEarnings?.filter((fair: FairEarning) => fair.isProfitable).length || 0}
                 </span>
               </div>
             </div>

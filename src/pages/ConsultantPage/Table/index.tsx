@@ -34,7 +34,7 @@ import {
 } from "@/components/ui/sheet";
 import { Checkbox } from "@/components/ui/checkbox";
 import { SlidersHorizontal, MessageCircle, MoreHorizontal } from "lucide-react";
-import { useVisitorsPaginated } from "@/hooks/useVisitors";
+import { useVisitors } from "@/hooks/useVisitors";
 import { useUserSession } from "@/hooks/useUserSession";
 import { Label } from "@/components/ui/label";
 import {
@@ -82,7 +82,7 @@ export const EnhancedTableConsultant = () => {
   const {
     data: visitorsData,
     isLoading: loading,
-  } = useVisitorsPaginated({
+  } = useVisitors({
     fairId: currentFairId,
     search: debouncedSearch || undefined,
     page,
