@@ -18,11 +18,11 @@ const STORAGE_TOKEN_KEY = "app_token";
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(() => {
-    const stored = localStorage.getItem(STORAGE_USER_KEY);
+    const stored = localStorage.getItem(STORAGE_USER_KEY) || sessionStorage.getItem(STORAGE_USER_KEY);
     return stored ? JSON.parse(stored) : null;
   });
   const [token, setToken] = useState<string | null>(() => {
-    return localStorage.getItem(STORAGE_TOKEN_KEY);
+    return localStorage.getItem(STORAGE_TOKEN_KEY) || sessionStorage.getItem(STORAGE_TOKEN_KEY);
   });
 
   const navigate = useNavigate();
@@ -31,8 +31,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const isAuthenticated = !!token;
 
   const signIn = useCallback(({ access_token, user }: AuthResponse) => {
-    localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(user));
-    localStorage.setItem(STORAGE_TOKEN_KEY, access_token);
+    const rememberMe = localStorage.getItem("remember_me") === "true";
+    
+    if (rememberMe) {
+      localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(user));
+      localStorage.setItem(STORAGE_TOKEN_KEY, access_token);
+      sessionStorage.removeItem(STORAGE_USER_KEY);
+      sessionStorage.removeItem(STORAGE_TOKEN_KEY);
+    } else {
+      sessionStorage.setItem(STORAGE_USER_KEY, JSON.stringify(user));
+      sessionStorage.setItem(STORAGE_TOKEN_KEY, access_token);
+      localStorage.removeItem(STORAGE_USER_KEY);
+      localStorage.removeItem(STORAGE_TOKEN_KEY);
+    }
     setUser(user);
     setToken(access_token);
   }, []);
@@ -40,6 +51,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signOut = useCallback(() => {
     localStorage.removeItem(STORAGE_USER_KEY);
     localStorage.removeItem(STORAGE_TOKEN_KEY);
+    sessionStorage.removeItem(STORAGE_USER_KEY);
+    sessionStorage.removeItem(STORAGE_TOKEN_KEY);
     setUser(null);
     setToken(null);
   }, []);

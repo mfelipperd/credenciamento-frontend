@@ -178,6 +178,8 @@ export const MainLayout: React.FC = () => {
                 <button
                   onClick={() => window.location.reload()}
                   className="p-2 rounded-xl h-9 w-9 flex items-center justify-center hover:bg-white/10 transition-all text-white/60 hover:text-white group relative"
+                  aria-label="Recarregar página"
+                  title="Recarregar página"
                 >
                   {loading ? (
                     <LogoLoading size={16} minimal className="animate-pulse" />
@@ -188,7 +190,7 @@ export const MainLayout: React.FC = () => {
 
                 <Popover>
                   <PopoverTrigger asChild>
-                    <button className="p-2 rounded-xl h-9 w-9 flex items-center justify-center hover:bg-white/10 transition-all text-white/60 hover:text-white">
+                    <button className="p-2 rounded-xl h-9 w-9 flex items-center justify-center hover:bg-white/10 transition-all text-white/60 hover:text-white" aria-label="Configurações" title="Configurações">
                       <Settings className="h-4 w-4" />
                     </button>
                   </PopoverTrigger>

@@ -131,8 +131,33 @@ export const useVisitorsService = () => {
           return { data: result, meta: null };
         } else {
           // Backend retorna formato paginado (futuro)
-          setVisitors(result.data);
-          setPaginationMeta(result.meta);
+          const rawData = result || {};
+          const rawMeta = (rawData.meta || {}) as any;
+          
+          const totalItems = typeof rawMeta.totalItems === 'number' && !isNaN(rawMeta.totalItems)
+            ? rawMeta.totalItems
+            : typeof rawMeta.total === 'number' && !isNaN(rawMeta.total)
+            ? rawMeta.total
+            : Array.isArray(rawData.data)
+            ? rawData.data.length
+            : 0;
+            
+          const limit = rawMeta.limit || params.limit || 50;
+          const totalPages = typeof rawMeta.totalPages === 'number' && !isNaN(rawMeta.totalPages)
+            ? rawMeta.totalPages
+            : typeof rawMeta.total_pages === 'number' && !isNaN(rawMeta.total_pages)
+            ? rawMeta.total_pages
+            : Math.ceil(totalItems / limit) || 1;
+
+          setVisitors(rawData.data || []);
+          setPaginationMeta({
+            page: rawMeta.page || params.page || 1,
+            limit,
+            totalItems,
+            totalPages,
+            hasNextPage: !!rawMeta.hasNextPage,
+            hasPreviousPage: !!rawMeta.hasPreviousPage,
+          });
           return result;
         }
       } catch (error: unknown) {

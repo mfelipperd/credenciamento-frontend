@@ -17,7 +17,7 @@ export const Pagination: React.FC<PaginationProps> = ({
   itemsPerPage,
 }) => {
   const startItem = (currentPage - 1) * itemsPerPage + 1;
-  const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+  const endItem = Math.min(currentPage * itemsPerPage, totalItems || 0);
 
   const getVisiblePages = () => {
     const delta = 2;

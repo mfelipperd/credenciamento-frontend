@@ -140,7 +140,15 @@ export const useTableVisitorsController = () => {
   const totalPages = useMemo(() => {
     // Se tem metadata do backend, usa ela
     if (paginationMeta) {
-      return paginationMeta.totalPages;
+      const totalPagesVal = paginationMeta.totalPages ?? (paginationMeta as any).total_pages;
+      if (typeof totalPagesVal === 'number' && !isNaN(totalPagesVal)) {
+        return totalPagesVal;
+      }
+      
+      const totalItemsVal = paginationMeta.totalItems ?? (paginationMeta as any).total;
+      if (typeof totalItemsVal === 'number' && !isNaN(totalItemsVal)) {
+        return Math.ceil(totalItemsVal / itemsPerPage) || 1;
+      }
     }
 
     // Proteção contra visitors undefined
@@ -149,13 +157,16 @@ export const useTableVisitorsController = () => {
     }
 
     // Fallback para cálculo client-side
-    return Math.ceil(visitors.length / itemsPerPage);
+    return Math.ceil(visitors.length / itemsPerPage) || 1;
   }, [visitors, itemsPerPage, paginationMeta]);
 
   // Total de itens
   const totalItems = useMemo(() => {
     if (paginationMeta) {
-      return paginationMeta.totalItems;
+      const totalItemsVal = paginationMeta.totalItems ?? (paginationMeta as any).total;
+      if (typeof totalItemsVal === 'number' && !isNaN(totalItemsVal)) {
+        return totalItemsVal;
+      }
     }
 
     // Proteção contra visitors undefined

@@ -63,6 +63,7 @@ export const LoginForm = () => {
           <input 
             type="checkbox" 
             id="remember"
+            {...controller.form.register("remember")}
             className="w-6 h-6 rounded-lg border-white/10 bg-white/5 text-brand-pink focus:ring-brand-pink transition-all cursor-pointer" 
           />
           <label htmlFor="remember" className="text-slate-400 font-bold text-[10px] cursor-pointer select-none uppercase tracking-[0.15em] hover:text-slate-600 transition-colors">

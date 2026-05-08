@@ -223,6 +223,8 @@ export function FairPartnerForm({ isOpen, onClose, partner, mode, fairId }: Fair
                       checked={field.value}
                       onChange={field.onChange}
                       className="rounded"
+                      aria-label="Ativo"
+                      title="Ativo"
                     />
                   </FormControl>
                   <FormLabel className="text-white">Ativo</FormLabel>

@@ -107,7 +107,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, search }) => 
       {/* Mobile Sidebar */}
       <div
         className={cn(
-          "fixed top-0 left-0 h-full w-80 bg-[#0A1E3B] shadow-2xl z-50 transform transition-transform duration-300 ease-in-out lg:hidden border-r border-white/5",
+          "fixed top-0 left-0 h-full w-80 bg-brand-blue shadow-2xl z-50 transform transition-transform duration-300 ease-in-out lg:hidden border-r border-white/5",
           isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
@@ -131,6 +131,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, search }) => 
           <button
             onClick={onClose}
             className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+            aria-label="Fechar menu"
+            title="Fechar menu"
           >
             <X className="h-5 w-5 text-white/60" />
           </button>
@@ -186,7 +188,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, search }) => 
 
       {/* Desktop Sidebar - fixed for branding */}
       <div className={cn(
-        "hidden lg:block bg-[#0A1E3B] shadow-2xl transition-all duration-500 ease-in-out border-r border-white/5 flex-col",
+        "hidden lg:block bg-brand-blue shadow-2xl transition-all duration-500 ease-in-out border-r border-white/5 flex-col",
         isOpen ? "w-72" : "w-0 overflow-hidden opacity-0"
       )}>
         {/* Header */}

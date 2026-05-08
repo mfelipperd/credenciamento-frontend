@@ -20,18 +20,7 @@ export interface VisitorsFilters {
   sortOrder?: "asc" | "desc";
 }
 
-// Interface para resposta paginada
-interface PaginatedResponse<T> {
-  data: T[];
-  meta: {
-    page: number;
-    limit: number;
-    totalItems: number;
-    totalPages: number;
-    hasNextPage: boolean;
-    hasPreviousPage: boolean;
-  };
-}
+
 
 // ===== QUERIES =====
 
@@ -58,24 +47,36 @@ export const useVisitors = (filters: VisitorsFilters) => {
 
       const response = await api.get(AppEndpoints.VISITORS.BASE, { params });
 
-      // Backend retorna formato diferente baseado nos parâmetros:
-      // - Sem page/limit: Array<Visitor> (compatibilidade)
-      // - Com page/limit: PaginatedResponse<Visitor>
-      if (Array.isArray(response.data)) {
-        return {
-          data: response.data as Visitor[],
-          meta: {
-            page: filters.page || 1,
-            limit: filters.limit || 50,
-            totalItems: response.data.length,
-            totalPages: 1,
-            hasNextPage: false,
-            hasPreviousPage: false,
-          },
-        };
-      }
+      // Se não for um array direto, normaliza as chaves do objeto de resposta
+      const rawData = response.data || {};
+      const rawMeta = rawData.meta || {};
+      
+      const totalItems = typeof rawMeta.totalItems === 'number' && !isNaN(rawMeta.totalItems)
+        ? rawMeta.totalItems
+        : typeof rawMeta.total === 'number' && !isNaN(rawMeta.total)
+        ? rawMeta.total
+        : Array.isArray(rawData.data)
+        ? rawData.data.length
+        : 0;
+        
+      const limit = rawMeta.limit || filters.limit || 50;
+      const totalPages = typeof rawMeta.totalPages === 'number' && !isNaN(rawMeta.totalPages)
+        ? rawMeta.totalPages
+        : typeof rawMeta.total_pages === 'number' && !isNaN(rawMeta.total_pages)
+        ? rawMeta.total_pages
+        : Math.ceil(totalItems / limit) || 1;
 
-      return response.data as PaginatedResponse<Visitor>;
+      return {
+        data: (rawData.data || []) as Visitor[],
+        meta: {
+          page: rawMeta.page || filters.page || 1,
+          limit,
+          totalItems,
+          totalPages,
+          hasNextPage: !!rawMeta.hasNextPage,
+          hasPreviousPage: !!rawMeta.hasPreviousPage,
+        }
+      };
     },
     enabled: !!filters.fairId,
   });

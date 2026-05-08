@@ -67,6 +67,8 @@ export const TableVisitors = () => {
                 value={controller.searchField}
                 onChange={(e) => controller.setSearchField(e.target.value)}
                 className="h-14 px-6 bg-white/5 border border-white/10 rounded-2xl focus:ring-4 focus:ring-brand-pink/20 transition-all font-bold text-white outline-none cursor-pointer appearance-none md:min-w-[200px]"
+                aria-label="Filtrar por campo"
+                title="Filtrar por campo"
               >
                 <option value="all" className="bg-brand-blue">Todos os campos</option>
                 <option value="name" className="bg-brand-blue">Nome</option>
@@ -82,9 +84,7 @@ export const TableVisitors = () => {
                 <span className="text-[10px] text-white/40 font-black uppercase tracking-[0.2em]">
                   {controller.loading
                     ? "Sincronizando..."
-                    : controller.paginationMeta
-                    ? `${controller.paginationMeta.totalItems} Encontrados`
-                    : `${controller.totalItems} Encontrados`}
+                    : `${controller.totalItems || 0} Encontrados`}
                 </span>
               </div>
 
