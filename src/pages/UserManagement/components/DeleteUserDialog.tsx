@@ -61,25 +61,27 @@ export function DeleteUserDialog({ user, isOpen, onClose }: DeleteUserDialogProp
             <AlertTriangle className="h-5 w-5 text-red-500" />
             Confirmar Exclusão
           </AlertDialogTitle>
-          <AlertDialogDescription className="space-y-2">
-            <p>
-              Tem certeza que deseja excluir o usuário <strong>{user.name}</strong>?
-            </p>
-            <p className="text-sm text-gray-600">
-              <strong>Email:</strong> {user.email}
-            </p>
-            {user.cpf && (
+          <AlertDialogDescription className="space-y-2" asChild>
+            <div>
+              <p>
+                Tem certeza que deseja excluir o usuário <strong>{user.name}</strong>?
+              </p>
               <p className="text-sm text-gray-600">
-                <strong>CPF:</strong> {user.cpf}
+                <strong>Email:</strong> {user.email}
               </p>
-            )}
-            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
-              <p className="text-sm text-red-800 font-medium">
-                ⚠️ Esta ação não pode ser desfeita!
-              </p>
-              <p className="text-sm text-red-700 mt-1">
-                Todos os dados do usuário serão permanentemente removidos do sistema.
-              </p>
+              {user.cpf && (
+                <p className="text-sm text-gray-600">
+                  <strong>CPF:</strong> {user.cpf}
+                </p>
+              )}
+              <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
+                <p className="text-sm text-red-800 font-medium">
+                  ⚠️ Esta ação não pode ser desfeita!
+                </p>
+                <p className="text-sm text-red-700 mt-1">
+                  Todos os dados do usuário serão permanentemente removidos do sistema.
+                </p>
+              </div>
             </div>
           </AlertDialogDescription>
         </AlertDialogHeader>

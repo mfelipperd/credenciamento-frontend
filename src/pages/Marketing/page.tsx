@@ -104,7 +104,7 @@ const tplSaudade = (fair?: Fair): string => {
 
       <!-- Body -->
       <tr><td style="padding:40px 40px 32px;">
-        <h2 style="margin:0 0 12px;color:#1E3A8A;font-size:22px;font-weight:800;">Sentimos sua falta! 💙</h2>
+        <h2 style="margin:0 0 12px;color:#1E3A8A;font-size:22px;font-weight:800;">Olá, {{VISITOR_NAME}}! 💙</h2>
         <p style="margin:0 0 20px;color:#374151;font-size:15px;line-height:1.7;">
           Você se inscreveu na <strong>${name}</strong> mas ainda não nos visitou. O evento ainda está acontecendo e
           separamos experiências incríveis para você.
@@ -167,7 +167,7 @@ const tplUrgencia = (fair?: Fair): string => {
       <!-- Body -->
       <tr><td style="padding:40px 40px 32px;">
         <h2 style="margin:0 0 16px;color:#DC2626;font-size:20px;font-weight:800;text-align:center;">
-          Não perca essa oportunidade!
+          {{VISITOR_NAME}}, não perca essa oportunidade!
         </h2>
         <p style="margin:0 0 24px;color:#374151;font-size:15px;line-height:1.7;text-align:center;">
           O evento está <strong>quase no fim</strong> e você ainda não apareceu!
@@ -245,7 +245,7 @@ const tplPalestras = (fair?: Fair): string => {
       <!-- Body -->
       <tr><td style="padding:40px 40px 32px;">
         <p style="margin:0 0 24px;color:#374151;font-size:15px;line-height:1.7;">
-          Você se inscreveu na <strong>${name}</strong> e não pode perder a programação de
+          <strong>{{VISITOR_NAME}}</strong>, você se inscreveu na <strong>${name}</strong> e não pode perder a programação de
           <strong>palestras e workshops</strong> que preparamos com os melhores especialistas do setor.
         </p>
 
@@ -351,7 +351,7 @@ const tplVip = (fair?: Fair): string => {
       <!-- Body -->
       <tr><td style="padding:32px 40px 28px;">
         <p style="margin:0 0 20px;color:#E7D5B3;font-size:15px;line-height:1.8;text-align:center;">
-          Você foi <strong style="color:#FCD34D;">selecionado especialmente</strong> para ter acesso
+          <strong style="color:#FCD34D;">{{VISITOR_NAME}}</strong>, você foi <strong style="color:#FCD34D;">selecionado especialmente</strong> para ter acesso
           privilegiado ao melhor que a <strong style="color:#FCD34D;">${name}</strong> tem a oferecer.
         </p>
 
@@ -412,7 +412,7 @@ const tplNetworking = (fair?: Fair): string => {
       <!-- Body -->
       <tr><td style="padding:40px 40px 32px;">
         <p style="margin:0 0 24px;color:#374151;font-size:15px;line-height:1.7;">
-          A <strong>${name}</strong> é o maior evento de negócios da região. Você já se inscreveu
+          <strong>{{VISITOR_NAME}}</strong>, a <strong>${name}</strong> é o maior evento de negócios da região. Você já se inscreveu
           — agora é a hora de aparecer e <strong>transformar contatos em contratos</strong>.
         </p>
 
@@ -962,7 +962,8 @@ export const MarketingPage: React.FC = () => {
         <div className="text-sm text-white/50 space-y-1">
           <p className="font-black text-white/70 uppercase tracking-widest text-xs mb-1">Sobre os envios</p>
           <p>O backend busca os destinatários e enfileira os envios via <span className="text-white/70 font-bold">BullMQ</span> — nenhuma lista de emails é processada no navegador.</p>
-          <p><span className="text-white/70 font-bold">Remarketing</span> — selecione feiras diferentes para o template e para o público-alvo. O email usará os dados da feira selecionada no cabeçalho (nome, local, data, horário).</p>
+          <p><span className="text-white/70 font-bold">Personalização</span> — o backend substitui automaticamente <code className="bg-white/10 px-1 py-0.5 rounded text-white/60 text-xs">{"{{VISITOR_NAME}}"}</code> no HTML pelo nome de cada visitante. Todos os templates já incluem essa tag.</p>
+          <p><span className="text-white/70 font-bold">Remarketing</span> — selecione feiras diferentes para o template e para o público-alvo. O email usará os dados da feira do cabeçalho (nome, local, data, horário).</p>
         </div>
       </div>
 
