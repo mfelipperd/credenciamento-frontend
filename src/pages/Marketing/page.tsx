@@ -55,6 +55,8 @@ import {
   ExternalLink,
   Clipboard,
   Info,
+  X,
+  Edit,
 } from "lucide-react";
 import { LogoLoading } from "@/components/LogoLoading";
 import type { Fair } from "@/interfaces/fairs";
@@ -535,6 +537,7 @@ const EMAIL_TEMPLATES: EmailTemplate[] = [
 const AI_SERVICES = [
   {
     name: "Claude",
+    shortUrl: "claude.ai",
     url: "https://claude.ai/new",
     color: "#D97757",
     icon: (
@@ -545,6 +548,7 @@ const AI_SERVICES = [
   },
   {
     name: "ChatGPT",
+    shortUrl: "chat.openai.com",
     url: "https://chat.openai.com/",
     color: "#10A37F",
     icon: (
@@ -555,6 +559,7 @@ const AI_SERVICES = [
   },
   {
     name: "Gemini",
+    shortUrl: "gemini.google.com",
     url: "https://gemini.google.com/",
     color: "#4285F4",
     icon: (
@@ -565,6 +570,7 @@ const AI_SERVICES = [
   },
   {
     name: "DeepSeek",
+    shortUrl: "chat.deepseek.com",
     url: "https://chat.deepseek.com/",
     color: "#4D6BFD",
     icon: (
@@ -575,6 +581,7 @@ const AI_SERVICES = [
   },
   {
     name: "Copilot",
+    shortUrl: "copilot.microsoft.com",
     url: "https://copilot.microsoft.com/",
     color: "#9C6ADE",
     icon: (
@@ -709,6 +716,13 @@ ASSUNTO: [mesmo subject ou novo se solicitado]
 Não adicione texto fora desta estrutura.`;
 };
 
+// Limites reais por plano Brevo (a API retorna o restante como "total", ignoramos)
+const BREVO_PLAN_LIMITS: Record<string, number> = {
+  Starter: 10_000,
+  Business: 100_000,
+  Enterprise: 500_000,
+};
+
 const parseAIResponse = (text: string): { title?: string; subject?: string; html?: string } => {
   const titleMatch = text.match(/^TITULO:\s*(.+)$/m);
   const subjectMatch = text.match(/^ASSUNTO:\s*(.+)$/m);
@@ -743,6 +757,7 @@ export const MarketingPage: React.FC = () => {
   const [pendingAudience, setPendingAudience] = useState<"all" | "absent">("absent");
 
   const [showAIDialog, setShowAIDialog] = useState(false);
+  const [aiStep, setAiStep] = useState<1 | 2>(1);
   const [aiDescription, setAiDescription] = useState("");
   const [generatedPrompt, setGeneratedPrompt] = useState("");
   const [promptCopied, setPromptCopied] = useState(false);
@@ -750,6 +765,16 @@ export const MarketingPage: React.FC = () => {
   const [revisionPrompt, setRevisionPrompt] = useState("");
   const [aiResponseInput, setAiResponseInput] = useState("");
   const [showPasteArea, setShowPasteArea] = useState(false);
+
+  const [card1Collapsed, setCard1Collapsed] = useState(true);
+  const [card2Collapsed, setCard2Collapsed] = useState(false);
+  const [mainTab, setMainTab] = useState<"create" | "history">("create");
+
+  useEffect(() => {
+    if (headerFair) {
+      setCard1Collapsed(true);
+    }
+  }, [headerFair]);
 
   // Campaign history + account stats
   const [campaigns, setCampaigns] = useState<import("@/service/marketing.service").Campaign[]>([]);
@@ -785,6 +810,7 @@ export const MarketingPage: React.FC = () => {
     setSelectedTemplateId(tpl.id);
     setHtmlContent(tpl.generate(headerFair));
     setActiveTab("editor");
+    setCard2Collapsed(true);
     toast.success(`Template "${tpl.name}" aplicado com dados de "${headerFair?.name ?? "feira do cabeçalho"}"`);
   };
 
@@ -792,6 +818,7 @@ export const MarketingPage: React.FC = () => {
     if (!headerFair) { toast.error("Selecione uma feira no cabeçalho da página"); return; }
     if (!aiDescription.trim()) { toast.error("Descreva o que você quer no email"); return; }
     setGeneratedPrompt(generateAIPrompt(headerFair, aiDescription));
+    setAiStep(2);
   };
 
   const handleCopyPrompt = async () => {
@@ -834,6 +861,7 @@ export const MarketingPage: React.FC = () => {
     setAiResponseInput("");
     setShowPasteArea(false);
     setActiveTab("preview");
+    setCard2Collapsed(true);
     toast.success("Resposta aplicada!", {
       description: [parsed.title && "título", parsed.subject && "assunto", parsed.html && "HTML"].filter(Boolean).join(", ") + " preenchidos automaticamente.",
     });
@@ -899,6 +927,7 @@ export const MarketingPage: React.FC = () => {
         const updated = await getCampaigns();
         if (updated) setCampaigns(updated);
         if (res.campaignId) setSelectedCampaignId(res.campaignId);
+        setMainTab("history");
       } else {
         toast.error("Erro ao iniciar envio");
       }
@@ -928,180 +957,339 @@ export const MarketingPage: React.FC = () => {
         </p>
       </div>
 
-      {/* ── Step 1: Público-alvo ── */}
-      <div className="glass-card border-white/5 shadow-2xl rounded-[32px] p-6 lg:p-8">
-        <div className="flex items-center gap-3 mb-5">
-          <span className="bg-brand-pink text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black shrink-0">1</span>
-          <h2 className="text-sm font-black text-white uppercase tracking-widest">Público-alvo</h2>
-          <span className="text-white/30 text-xs font-medium">— usa a feira do cabeçalho por padrão</span>
-        </div>
+      {/* ── Main Navigation Tabs ── */}
+      <div className="flex gap-4 border-b border-white/5 pb-1">
+        <button
+          onClick={() => setMainTab("create")}
+          className={`flex items-center gap-2 pb-3.5 px-1 text-sm font-black uppercase tracking-widest transition-all border-b-2 -mb-px cursor-pointer ${
+            mainTab === "create"
+              ? "text-brand-pink border-brand-pink font-black"
+              : "text-white/40 border-transparent hover:text-white/70"
+          }`}
+        >
+          <Send className="h-4 w-4" />
+          Enviar Campanha
+        </button>
+        <button
+          onClick={() => setMainTab("history")}
+          className={`flex items-center gap-2 pb-3.5 px-1 text-sm font-black uppercase tracking-widest transition-all border-b-2 -mb-px cursor-pointer ${
+            mainTab === "history"
+              ? "text-brand-cyan border-brand-cyan font-black"
+              : "text-white/40 border-transparent hover:text-white/70"
+          }`}
+        >
+          <BarChart3 className="h-4 w-4" />
+          Análise de Resultados
+        </button>
+      </div>
 
-        {/* Header fair — template base, read-only */}
-        {headerFair ? (
-          <div className="glass border-brand-cyan/20 rounded-2xl p-4 mb-5">
+      {mainTab === "create" ? (
+        <>
+      {/* ── Cards 1 & 2 container ── */}
+      {card1Collapsed && card2Collapsed ? (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Card 1 Minimized */}
+          <div className="glass-card border-white/5 shadow-2xl rounded-3xl p-5 flex items-center justify-between transition-all">
             <div className="flex items-center gap-3">
-              <div className="bg-brand-cyan/20 text-brand-cyan rounded-xl p-2 shrink-0">
-                <Mail className="h-4 w-4" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <p className="font-black text-white text-sm truncate">{headerFair.name}</p>
-                  <span className="text-[9px] font-black text-brand-cyan uppercase tracking-widest bg-brand-cyan/10 px-2 py-0.5 rounded-full shrink-0">
-                    Cabeçalho
-                  </span>
+              <span className="bg-brand-pink text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black shrink-0">1</span>
+              <div>
+                <p className="text-white/30 text-[10px] font-black uppercase tracking-widest">Público-alvo</p>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <p className="font-bold text-white text-sm truncate max-w-[150px] sm:max-w-[220px]">
+                    {selectedFair?.name || headerFair?.name || "Nenhuma feira"}
+                  </p>
+                  {selectedFairId && (
+                    <span className="text-[9px] font-black text-brand-orange uppercase tracking-widest bg-brand-orange/10 px-2 py-0.5 rounded-full shrink-0">
+                      Remarketing
+                    </span>
+                  )}
                 </div>
-                {(locationParts || headerFair.location) && (
-                  <p className="text-white/50 text-xs flex items-center gap-1 mt-0.5">
-                    <MapPin className="h-3 w-3" />
-                    {locationParts ? `${locationParts} — ` : ""}{headerFair.location}
-                  </p>
-                )}
-                {(headerFair.startDate || headerFair.endDate) && (
-                  <p className="text-white/50 text-xs flex items-center gap-1 mt-0.5">
-                    <Calendar className="h-3 w-3" />
-                    {fmt(headerFair.startDate)}
-                    {headerFair.endDate && headerFair.endDate !== headerFair.startDate && ` a ${fmt(headerFair.endDate)}`}
-                    {headerFair.startTime && ` · ${headerFair.startTime}`}
-                    {headerFair.endTime && ` às ${headerFair.endTime}`}
-                  </p>
-                )}
               </div>
-              <Badge className={headerFair.isActive
-                ? "bg-brand-cyan/20 text-brand-cyan border-brand-cyan/20 text-xs font-black shrink-0"
-                : "bg-white/5 text-white/30 border-white/10 text-xs shrink-0"
-              }>
-                {headerFair.isActive ? "Ativa" : "Encerrada"}
-              </Badge>
             </div>
-            <p className="text-white/30 text-[10px] mt-3 pt-2 border-t border-white/5">
-              Dados desta feira são injetados nos templates e no prompt de IA. Por padrão, os emails são enviados para os visitantes desta feira.
-            </p>
+            <button
+              onClick={() => setCard1Collapsed(false)}
+              className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer shrink-0"
+            >
+              <Edit className="h-3.5 w-3.5" />
+              Alterar
+            </button>
           </div>
-        ) : (
-          <div className="glass border-white/5 rounded-2xl p-4 mb-5 flex items-center gap-3">
-            <ChevronRight className="h-4 w-4 text-white/20" />
-            <p className="text-white/30 text-sm">Selecione uma feira no cabeçalho da página para habilitar templates e envio.</p>
-          </div>
-        )}
 
-        {/* Remarketing override — optional */}
-        <div className="space-y-3">
-          <p className="text-white/30 text-[10px] font-black uppercase tracking-widest">
-            Remarketing — enviar para visitantes de outra feira <span className="text-white/20 normal-case font-medium">(opcional)</span>
-          </p>
-          <Select value={selectedFairId} onValueChange={handleFairChange} disabled={loadingFairs}>
-            <SelectTrigger className="h-10 w-full max-w-sm bg-white/5 border-white/10 text-white hover:bg-white/10 transition-all rounded-xl cursor-pointer text-xs">
-              <SelectValue placeholder={loadingFairs ? "Carregando..." : "Enviar para visitantes de outra feira..."} />
-            </SelectTrigger>
-            <SelectContent className="bg-brand-blue border-white/10 text-white rounded-2xl">
-              {(fairs ?? []).map((fair) => (
-                <SelectItem key={fair.id} value={fair.id} className="focus:bg-white/10 focus:text-white rounded-xl cursor-pointer text-xs">
-                  <span className="flex items-center gap-2">
-                    {fair.name}
-                    {fair.isActive
-                      ? <span className="text-[10px] font-black text-brand-cyan uppercase tracking-widest">● Ativa</span>
-                      : <span className="text-[10px] font-black text-white/30 uppercase tracking-widest">○ Encerrada</span>
-                    }
-                  </span>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {selectedFairId && (
-            <div className="space-y-2">
-              <div className="flex items-start gap-2 p-3 bg-brand-orange/10 border border-brand-orange/20 rounded-xl">
-                <AlertTriangle className="h-3.5 w-3.5 text-brand-orange shrink-0 mt-0.5" />
-                <p className="text-brand-orange text-xs">
-                  <strong>Remarketing:</strong> template usa dados de <strong>{headerFair?.name ?? "feira do cabeçalho"}</strong>, mas o envio vai para visitantes de <strong>{selectedFair?.name}</strong>.
+          {/* Card 2 Minimized */}
+          <div className="glass-card border-white/5 shadow-2xl rounded-3xl p-5 flex items-center justify-between transition-all">
+            <div className="flex items-center gap-3">
+              <span className="bg-brand-pink text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black shrink-0">2</span>
+              <div>
+                <p className="text-white/30 text-[10px] font-black uppercase tracking-widest">Conteúdo do Email</p>
+                <p className="font-bold text-white text-sm mt-0.5">
+                  {selectedTemplateId
+                    ? `Template: ${EMAIL_TEMPLATES.find((t) => t.id === selectedTemplateId)?.name}`
+                    : htmlContent
+                    ? "Personalizado / IA"
+                    : "Nenhum selecionado"}
                 </p>
               </div>
+            </div>
+            <button
+              onClick={() => setCard2Collapsed(false)}
+              className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer shrink-0"
+            >
+              <Edit className="h-3.5 w-3.5" />
+              Alterar
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {/* Card 1 (either minimized or expanded, full width) */}
+          {card1Collapsed ? (
+            <div className="glass-card border-white/5 shadow-2xl rounded-3xl p-5 flex items-center justify-between transition-all">
+              <div className="flex items-center gap-3">
+                <span className="bg-brand-pink text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black shrink-0">1</span>
+                <div>
+                  <p className="text-white/30 text-[10px] font-black uppercase tracking-widest">Público-alvo</p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <p className="font-bold text-white text-sm truncate">
+                      {selectedFair?.name || headerFair?.name || "Nenhuma feira"}
+                    </p>
+                    {selectedFairId && (
+                      <span className="text-[9px] font-black text-brand-orange uppercase tracking-widest bg-brand-orange/10 px-2 py-0.5 rounded-full shrink-0">
+                        Remarketing
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
               <button
-                onClick={() => setSelectedFairId("")}
-                className="text-xs text-white/30 hover:text-white/60 transition-colors underline"
+                onClick={() => setCard1Collapsed(false)}
+                className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer shrink-0"
               >
-                Limpar — usar a feira do cabeçalho
+                <Edit className="h-3.5 w-3.5" />
+                Alterar
               </button>
+            </div>
+          ) : (
+            <div className="glass-card border-white/5 shadow-2xl rounded-[32px] p-6 lg:p-8">
+              <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center gap-3">
+                  <span className="bg-brand-pink text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black shrink-0">1</span>
+                  <h2 className="text-sm font-black text-white uppercase tracking-widest">Público-alvo</h2>
+                  <span className="text-white/30 text-xs font-medium hidden sm:inline">— usa a feira do cabeçalho por padrão</span>
+                </div>
+                {(headerFair || selectedFairId) && (
+                  <button
+                    onClick={() => setCard1Collapsed(true)}
+                    className="text-xs text-brand-cyan hover:text-brand-cyan/80 transition-colors flex items-center gap-1 cursor-pointer"
+                  >
+                    Minimizar
+                  </button>
+                )}
+              </div>
+
+              {/* Header fair — template base, read-only */}
+              {headerFair ? (
+                <div className="glass border-brand-cyan/20 rounded-2xl p-4 mb-5">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-brand-cyan/20 text-brand-cyan rounded-xl p-2 shrink-0">
+                      <Mail className="h-4 w-4" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="font-black text-white text-sm truncate">{headerFair.name}</p>
+                        <span className="text-[9px] font-black text-brand-cyan uppercase tracking-widest bg-brand-cyan/10 px-2 py-0.5 rounded-full shrink-0">
+                          Cabeçalho
+                        </span>
+                      </div>
+                      {(locationParts || headerFair.location) && (
+                        <p className="text-white/50 text-xs flex items-center gap-1 mt-0.5">
+                          <MapPin className="h-3 w-3" />
+                          {locationParts ? `${locationParts} — ` : ""}{headerFair.location}
+                        </p>
+                      )}
+                      {(headerFair.startDate || headerFair.endDate) && (
+                        <p className="text-white/50 text-xs flex items-center gap-1 mt-0.5">
+                          <Calendar className="h-3 w-3" />
+                          {fmt(headerFair.startDate)}
+                          {headerFair.endDate && headerFair.endDate !== headerFair.startDate && ` a ${fmt(headerFair.endDate)}`}
+                          {headerFair.startTime && ` · ${headerFair.startTime}`}
+                          {headerFair.endTime && ` às ${headerFair.endTime}`}
+                        </p>
+                      )}
+                    </div>
+                    <Badge className={headerFair.isActive
+                      ? "bg-brand-cyan/20 text-brand-cyan border-brand-cyan/20 text-xs font-black shrink-0"
+                      : "bg-white/5 text-white/30 border-white/10 text-xs shrink-0"
+                    }>
+                      {headerFair.isActive ? "Ativa" : "Encerrada"}
+                    </Badge>
+                  </div>
+                  <p className="text-white/30 text-[10px] mt-3 pt-2 border-t border-white/5">
+                    Dados desta feira são injetados nos templates e no prompt de IA. Por padrão, os emails são enviados para os visitantes desta feira.
+                  </p>
+                </div>
+              ) : (
+                <div className="glass border-white/5 rounded-2xl p-4 mb-5 flex items-center gap-3">
+                  <ChevronRight className="h-4 w-4 text-white/20" />
+                  <p className="text-white/30 text-sm">Selecione uma feira no cabeçalho da página para habilitar templates e envio.</p>
+                </div>
+              )}
+
+              {/* Remarketing override — optional */}
+              <div className="space-y-3">
+                <p className="text-white/30 text-[10px] font-black uppercase tracking-widest">
+                  Remarketing — enviar para visitantes de outra feira <span className="text-white/20 normal-case font-medium">(opcional)</span>
+                </p>
+                <Select value={selectedFairId} onValueChange={handleFairChange} disabled={loadingFairs}>
+                  <SelectTrigger className="h-10 w-full max-w-sm bg-white/5 border-white/10 text-white hover:bg-white/10 transition-all rounded-xl cursor-pointer text-xs">
+                    <SelectValue placeholder={loadingFairs ? "Carregando..." : "Enviar para visitantes de outra feira..."} />
+                  </SelectTrigger>
+                  <SelectContent className="bg-brand-blue border-white/10 text-white rounded-2xl">
+                    {(fairs ?? []).map((fair) => (
+                      <SelectItem key={fair.id} value={fair.id} className="focus:bg-white/10 focus:text-white rounded-xl cursor-pointer text-xs">
+                        <span className="flex items-center gap-2">
+                          {fair.name}
+                          {fair.isActive
+                            ? <span className="text-[10px] font-black text-brand-cyan uppercase tracking-widest">● Ativa</span>
+                            : <span className="text-[10px] font-black text-white/30 uppercase tracking-widest">○ Encerrada</span>
+                          }
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {selectedFairId && (
+                  <div className="space-y-2">
+                    <div className="flex items-start gap-2 p-3 bg-brand-orange/10 border border-brand-orange/20 rounded-xl">
+                      <AlertTriangle className="h-3.5 w-3.5 text-brand-orange shrink-0 mt-0.5" />
+                      <p className="text-brand-orange text-xs">
+                        <strong>Remarketing:</strong> template usa dados de <strong>{headerFair?.name ?? "feira do cabeçalho"}</strong>, mas o envio vai para visitantes de <strong>{selectedFair?.name}</strong>.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setSelectedFairId("")}
+                      className="text-xs text-white/30 hover:text-white/60 transition-colors underline"
+                    >
+                      Limpar — usar a feira do cabeçalho
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Card 2 (either minimized or expanded, full width) */}
+          {card2Collapsed ? (
+            <div className="glass-card border-white/5 shadow-2xl rounded-3xl p-5 flex items-center justify-between transition-all">
+              <div className="flex items-center gap-3">
+                <span className="bg-brand-pink text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black shrink-0">2</span>
+                <div>
+                  <p className="text-white/30 text-[10px] font-black uppercase tracking-widest">Conteúdo do Email</p>
+                  <p className="font-bold text-white text-sm mt-0.5">
+                    {selectedTemplateId
+                      ? `Template: ${EMAIL_TEMPLATES.find((t) => t.id === selectedTemplateId)?.name}`
+                      : htmlContent
+                      ? "Personalizado / IA"
+                      : "Nenhum selecionado"}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setCard2Collapsed(false)}
+                className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer shrink-0"
+              >
+                <Edit className="h-3.5 w-3.5" />
+                Alterar
+              </button>
+            </div>
+          ) : (
+            <div className="glass-card border-white/5 shadow-2xl rounded-[32px] p-6 lg:p-8">
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-3">
+                  <span className="bg-brand-pink text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black shrink-0">2</span>
+                  <h2 className="text-sm font-black text-white uppercase tracking-widest">Conteúdo do Email</h2>
+                </div>
+                {(selectedTemplateId || htmlContent) && (
+                  <button
+                    onClick={() => setCard2Collapsed(true)}
+                    className="text-xs text-brand-cyan hover:text-brand-cyan/80 transition-colors flex items-center gap-1 cursor-pointer"
+                  >
+                    Minimizar
+                  </button>
+                )}
+              </div>
+              <p className="text-white/30 text-xs mb-5 ml-9">Gere com IA ou escolha um template como ponto de partida <span className="text-white/20">(opcional)</span></p>
+
+              {/* ── Gerar com IA — destaque principal ── */}
+              <button
+                onClick={() => setShowAIDialog(true)}
+                className="w-full flex items-center gap-4 p-5 rounded-2xl border border-brand-cyan/30 bg-brand-cyan/8 hover:bg-brand-cyan/15 hover:border-brand-cyan/50 transition-all group mb-5 text-left"
+              >
+                <div className="bg-brand-cyan/20 rounded-2xl p-3 shrink-0 group-hover:bg-brand-cyan/30 transition-colors">
+                  <Sparkles className="h-6 w-6 text-brand-cyan" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-brand-cyan font-black uppercase tracking-widest text-sm">Gerar com IA</p>
+                  <p className="text-white/40 text-xs mt-0.5">
+                    Descreva o email em português — a IA gera título, assunto e HTML completo com design dark glassmorphism
+                  </p>
+                </div>
+                <ChevronRight className="h-5 w-5 text-brand-cyan/40 group-hover:text-brand-cyan/70 shrink-0 transition-colors" />
+              </button>
+
+              {/* ── Divider ── */}
+              <div className="flex items-center gap-3 mb-5">
+                <div className="flex-1 h-px bg-white/8" />
+                <span className="text-white/20 text-[10px] font-black uppercase tracking-widest">ou use um template</span>
+                <div className="flex-1 h-px bg-white/8" />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                {EMAIL_TEMPLATES.map((tpl) => {
+                  const isSelected = selectedTemplateId === tpl.id;
+                  return (
+                    <button
+                      key={tpl.id}
+                      onClick={() => handleSelectTemplate(tpl)}
+                      disabled={!headerFair}
+                      className={`group relative flex flex-col items-start gap-2 p-4 rounded-2xl border text-left transition-all active:scale-[0.97] disabled:opacity-30 disabled:cursor-not-allowed ${
+                        isSelected
+                          ? "bg-brand-pink/15 border-brand-pink/40 shadow-lg shadow-brand-pink/10"
+                          : "bg-white/3 border-white/8 hover:bg-white/8 hover:border-white/15"
+                      }`}
+                    >
+                      {isSelected && (
+                        <span className="absolute top-2 right-2 bg-brand-pink text-white rounded-full w-4 h-4 flex items-center justify-center">
+                          <Check className="h-2.5 w-2.5" />
+                        </span>
+                      )}
+                      <span className={`p-2 rounded-xl transition-colors ${
+                        isSelected ? "bg-brand-pink/20 text-brand-pink" : "bg-white/8 text-white/50 group-hover:text-white/80"
+                      }`}>
+                        {tpl.icon}
+                      </span>
+                      <div>
+                        <p className={`text-xs font-black uppercase tracking-widest leading-tight ${isSelected ? "text-white" : "text-white/70"}`}>
+                          {tpl.name}
+                        </p>
+                        <p className="text-white/30 text-[11px] mt-1 leading-snug">{tpl.description}</p>
+                      </div>
+                      <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${
+                        isSelected ? "bg-brand-pink/20 text-brand-pink" : "bg-white/5 text-white/25"
+                      }`}>
+                        {tpl.strategy}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {!headerFair && (
+                <p className="mt-3 text-white/20 text-xs text-center">Selecione uma feira no cabeçalho para habilitar os templates</p>
+              )}
             </div>
           )}
         </div>
-      </div>
-
-      {/* ── Step 2: Template selector + Gerar com IA ── */}
-      <div className="glass-card border-white/5 shadow-2xl rounded-[32px] p-6 lg:p-8">
-        <div className="flex items-center gap-3 mb-1">
-          <span className="bg-brand-pink text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black shrink-0">2</span>
-          <h2 className="text-sm font-black text-white uppercase tracking-widest">Conteúdo do Email</h2>
-        </div>
-        <p className="text-white/30 text-xs mb-5 ml-9">Gere com IA ou escolha um template como ponto de partida <span className="text-white/20">(opcional)</span></p>
-
-        {/* ── Gerar com IA — destaque principal ── */}
-        <button
-          onClick={() => setShowAIDialog(true)}
-          className="w-full flex items-center gap-4 p-5 rounded-2xl border border-brand-cyan/30 bg-brand-cyan/8 hover:bg-brand-cyan/15 hover:border-brand-cyan/50 transition-all group mb-5 text-left"
-        >
-          <div className="bg-brand-cyan/20 rounded-2xl p-3 shrink-0 group-hover:bg-brand-cyan/30 transition-colors">
-            <Sparkles className="h-6 w-6 text-brand-cyan" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-brand-cyan font-black uppercase tracking-widest text-sm">Gerar com IA</p>
-            <p className="text-white/40 text-xs mt-0.5">
-              Descreva o email em português — a IA gera título, assunto e HTML completo com design dark glassmorphism
-            </p>
-          </div>
-          <ChevronRight className="h-5 w-5 text-brand-cyan/40 group-hover:text-brand-cyan/70 shrink-0 transition-colors" />
-        </button>
-
-        {/* ── Divider ── */}
-        <div className="flex items-center gap-3 mb-5">
-          <div className="flex-1 h-px bg-white/8" />
-          <span className="text-white/20 text-[10px] font-black uppercase tracking-widest">ou use um template</span>
-          <div className="flex-1 h-px bg-white/8" />
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-          {EMAIL_TEMPLATES.map((tpl) => {
-            const isSelected = selectedTemplateId === tpl.id;
-            return (
-              <button
-                key={tpl.id}
-                onClick={() => handleSelectTemplate(tpl)}
-                disabled={!headerFair}
-                className={`group relative flex flex-col items-start gap-2 p-4 rounded-2xl border text-left transition-all active:scale-[0.97] disabled:opacity-30 disabled:cursor-not-allowed ${
-                  isSelected
-                    ? "bg-brand-pink/15 border-brand-pink/40 shadow-lg shadow-brand-pink/10"
-                    : "bg-white/3 border-white/8 hover:bg-white/8 hover:border-white/15"
-                }`}
-              >
-                {isSelected && (
-                  <span className="absolute top-2 right-2 bg-brand-pink text-white rounded-full w-4 h-4 flex items-center justify-center">
-                    <Check className="h-2.5 w-2.5" />
-                  </span>
-                )}
-                <span className={`p-2 rounded-xl transition-colors ${
-                  isSelected ? "bg-brand-pink/20 text-brand-pink" : "bg-white/8 text-white/50 group-hover:text-white/80"
-                }`}>
-                  {tpl.icon}
-                </span>
-                <div>
-                  <p className={`text-xs font-black uppercase tracking-widest leading-tight ${isSelected ? "text-white" : "text-white/70"}`}>
-                    {tpl.name}
-                  </p>
-                  <p className="text-white/30 text-[11px] mt-1 leading-snug">{tpl.description}</p>
-                </div>
-                <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${
-                  isSelected ? "bg-brand-pink/20 text-brand-pink" : "bg-white/5 text-white/25"
-                }`}>
-                  {tpl.strategy}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        {!headerFair && (
-          <p className="mt-3 text-white/20 text-xs text-center">Selecione uma feira no cabeçalho para habilitar os templates</p>
-        )}
-      </div>
+      )}
 
       {/* ── Step 3: Editor + preview ── */}
       <div className="glass-card border-white/5 shadow-2xl rounded-[32px] p-6 lg:p-8">
@@ -1111,7 +1299,7 @@ export const MarketingPage: React.FC = () => {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 mb-6">
+        <div className="flex flex-wrap items-center gap-2 mb-6">
           <button
             onClick={() => setActiveTab("editor")}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
@@ -1134,74 +1322,91 @@ export const MarketingPage: React.FC = () => {
             <Eye className="h-3.5 w-3.5" />
             Pré-visualização
           </button>
+
+          <button
+            onClick={() => {
+              setActiveTab("editor");
+              setShowPasteArea(!showPasteArea);
+            }}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+              showPasteArea && activeTab === "editor"
+                ? "bg-brand-cyan/25 text-brand-cyan border border-brand-cyan/35 shadow-lg shadow-brand-cyan/10"
+                : "bg-white/5 text-white/50 hover:bg-white/10 hover:text-white"
+            }`}
+          >
+            <Clipboard className="h-3.5 w-3.5" />
+            Colar resposta da IA
+          </button>
         </div>
 
         {activeTab === "editor" && (
           <div className="space-y-5">
 
             {/* ── Paste AI response ── */}
-            <div className="rounded-2xl border border-brand-cyan/20 overflow-hidden">
-              <button
-                onClick={() => setShowPasteArea(!showPasteArea)}
-                className="w-full flex items-center justify-between px-4 py-3 bg-brand-cyan/8 hover:bg-brand-cyan/12 transition-colors text-left"
-              >
-                <span className="flex items-center gap-2 text-brand-cyan text-xs font-black uppercase tracking-widest">
-                  <Clipboard className="h-3.5 w-3.5" />
-                  Colar resposta da IA
-                </span>
-                <ChevronRight className={`h-3.5 w-3.5 text-brand-cyan/60 transition-transform duration-200 ${showPasteArea ? "rotate-90" : ""}`} />
-              </button>
-              {showPasteArea && (
-                <div className="px-4 pb-4 pt-3 bg-brand-cyan/5 space-y-3 border-t border-brand-cyan/10">
-                  <p className="text-white/35 text-[10px] leading-relaxed">
-                    Cole aqui a resposta completa da IA — o sistema extrai automaticamente o <span className="text-white/60">título</span>, o <span className="text-white/60">assunto</span> e o <span className="text-white/60">HTML</span>.
-                  </p>
-                  <textarea
-                    value={aiResponseInput}
-                    onChange={(e) => setAiResponseInput(e.target.value)}
-                    rows={7}
-                    placeholder={"TITULO: Remarketing Feira — Maio 2026\nASSUNTO: Você perdeu a maior feira do Norte\n\n```html\n<!DOCTYPE html>...\n```"}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-3 text-white/80 text-xs font-mono leading-relaxed placeholder:text-white/15 focus:outline-none focus:border-brand-cyan/40 focus:ring-2 focus:ring-brand-cyan/10 transition-all resize-none overflow-x-auto"
-                  />
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={handleApplyAIResponse}
-                      disabled={!aiResponseInput.trim()}
-                      className="flex-1 h-9 bg-brand-cyan text-brand-blue text-xs font-black uppercase tracking-widest rounded-xl hover:bg-brand-cyan/90 transition-all disabled:opacity-40 cursor-pointer"
-                    >
-                      <Check className="h-3.5 w-3.5 mr-1.5" />
-                      Aplicar
-                    </Button>
-                    <button
-                      onClick={() => { setShowPasteArea(false); setAiResponseInput(""); }}
-                      className="px-4 text-xs text-white/30 hover:text-white/60 font-bold transition-colors"
-                    >
-                      Cancelar
-                    </button>
-                  </div>
+            {showPasteArea && (
+              <div className="rounded-2xl border border-brand-cyan/20 overflow-hidden bg-brand-cyan/5 p-4 space-y-3">
+                <div className="flex items-center justify-between border-b border-brand-cyan/10 pb-2">
+                  <span className="flex items-center gap-2 text-brand-cyan text-xs font-black uppercase tracking-widest">
+                    <Clipboard className="h-3.5 w-3.5" />
+                    Colar resposta da IA
+                  </span>
+                  <button
+                    onClick={() => { setShowPasteArea(false); setAiResponseInput(""); }}
+                    className="text-white/40 hover:text-white/70 transition-colors cursor-pointer"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
                 </div>
-              )}
-            </div>
+                <p className="text-white/35 text-[10px] leading-relaxed">
+                  Cole aqui a resposta completa da IA — o sistema extrai automaticamente o <span className="text-white/60">título</span>, o <span className="text-white/60">assunto</span> e o <span className="text-white/60">HTML</span>.
+                </p>
+                <textarea
+                  value={aiResponseInput}
+                  onChange={(e) => setAiResponseInput(e.target.value)}
+                  rows={7}
+                  placeholder={"TITULO: Remarketing Feira — Maio 2026\nASSUNTO: Você perdeu a maior feira do Norte\n\n```html\n<!DOCTYPE html>...\n```"}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-3 text-white/80 text-xs font-mono leading-relaxed placeholder:text-white/15 focus:outline-none focus:border-brand-cyan/40 focus:ring-2 focus:ring-brand-cyan/10 transition-all resize-none overflow-x-auto"
+                />
+                <div className="flex gap-2">
+                  <Button
+                    onClick={handleApplyAIResponse}
+                    disabled={!aiResponseInput.trim()}
+                    className="flex-1 h-9 bg-brand-cyan text-brand-blue text-xs font-black uppercase tracking-widest rounded-xl hover:bg-brand-cyan/90 transition-all disabled:opacity-40 cursor-pointer"
+                  >
+                    <Check className="h-3.5 w-3.5 mr-1.5" />
+                    Aplicar
+                  </Button>
+                  <button
+                    onClick={() => { setShowPasteArea(false); setAiResponseInput(""); }}
+                    className="px-4 text-xs text-white/30 hover:text-white/60 font-bold transition-colors cursor-pointer"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            )}
 
-            <div>
-              <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-2">Nome Interno da Campanha</p>
-              <Input
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder={`Ex: Remarketing ${headerFair?.name ?? "Feira"} — ${new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}`}
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/20 focus-visible:ring-brand-cyan/30"
-              />
-              <p className="text-white/20 text-[10px] mt-1.5 font-medium">Aparece no histórico — não é enviado ao visitante.</p>
-            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-2">Nome Interno da Campanha</p>
+                <Input
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder={`Ex: Remarketing ${headerFair?.name ?? "Feira"} — ${new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}`}
+                  className="bg-white/5 border-white/10 text-white placeholder:text-white/20 focus-visible:ring-brand-cyan/30"
+                />
+                <p className="text-white/20 text-[10px] mt-1.5 font-medium">Aparece no histórico — não é enviado ao visitante.</p>
+              </div>
 
-            <div>
-              <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-2">Assunto do Email</p>
-              <Input
-                value={subject}
-                onChange={(e) => setSubject(e.target.value)}
-                placeholder="Ex: ExpoMultiMix te espera — venha hoje!"
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/20 focus-visible:ring-brand-pink/30"
-              />
+              <div>
+                <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-2">Assunto do Email</p>
+                <Input
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  placeholder="Ex: ExpoMultiMix te espera — venha hoje!"
+                  className="bg-white/5 border-white/10 text-white placeholder:text-white/20 focus-visible:ring-brand-pink/30"
+                />
+              </div>
             </div>
 
             <div>
@@ -1332,19 +1537,10 @@ export const MarketingPage: React.FC = () => {
         </div>
       </div>
 
-      {/* ── Info ── */}
-      <div className="glass border-brand-orange/20 rounded-2xl p-4 flex gap-3">
-        <AlertTriangle className="h-4 w-4 text-brand-orange mt-0.5 shrink-0" />
-        <div className="text-sm text-white/50 space-y-1">
-          <p className="font-black text-white/70 uppercase tracking-widest text-xs mb-1">Sobre os envios</p>
-          <p>O backend busca os destinatários e enfileira os envios via <span className="text-white/70 font-bold">BullMQ</span> — nenhuma lista de emails é processada no navegador.</p>
-          <p><span className="text-white/70 font-bold">Personalização</span> — o backend substitui automaticamente <code className="bg-white/10 px-1 py-0.5 rounded text-white/60 text-xs">{"{{VISITOR_NAME}}"}</code> no HTML pelo nome de cada visitante. Todos os templates já incluem essa tag.</p>
-          <p><span className="text-white/70 font-bold">Remarketing</span> — selecione feiras diferentes para o template e para o público-alvo. O email usará os dados da feira do cabeçalho (nome, local, data, horário).</p>
-        </div>
-      </div>
-
-      {/* ── Campaign History ── */}
-      <div className="space-y-4">
+    </>
+  ) : (
+    /* ── Campaign History ── */
+    <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-black text-white uppercase tracking-tighter flex items-center gap-3">
             <BarChart3 className="h-5 w-5 text-brand-cyan" />
@@ -1391,33 +1587,44 @@ export const MarketingPage: React.FC = () => {
             </div>
 
             {/* Credits bar */}
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-white/30 text-[9px] font-black uppercase tracking-widest">Créditos de email</span>
-                <span className="text-white/50 text-[10px] font-bold">
-                  <span className="text-brand-cyan">{accountStats.credits.remaining.toLocaleString("pt-BR")}</span>
-                  <span className="text-white/30"> disponíveis de </span>
-                  <span className="text-white/60">{accountStats.credits.total.toLocaleString("pt-BR")}</span>
-                </span>
-              </div>
-              <div className="h-2 bg-white/5 rounded-full overflow-hidden flex">
-                {accountStats.credits.used > 0 && (
-                  <div
-                    className="h-full bg-brand-pink/50 transition-all duration-1000"
-                    style={{ width: `${Math.round((accountStats.credits.used / accountStats.credits.total) * 100)}%` }}
-                  />
-                )}
-                <div className="h-full bg-brand-cyan/70 transition-all duration-1000 flex-1 rounded-r-full" />
-              </div>
-              <div className="flex justify-between mt-1">
-                <span className="text-white/20 text-[8px]">
-                  {accountStats.credits.used.toLocaleString("pt-BR")} utilizados ({Math.round((accountStats.credits.used / accountStats.credits.total) * 100)}%)
-                </span>
-                <span className="text-brand-cyan/50 text-[8px] font-bold">
-                  {Math.round((accountStats.credits.remaining / accountStats.credits.total) * 100)}% disponível
-                </span>
-              </div>
-            </div>
+            {(() => {
+              const planTotal = BREVO_PLAN_LIMITS[accountStats.plan.name] ?? accountStats.credits.total;
+              const used = planTotal - accountStats.credits.remaining;
+              const usedPct = planTotal > 0 ? Math.round((used / planTotal) * 100) : 0;
+              const remainPct = 100 - usedPct;
+              return (
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-white/30 text-[9px] font-black uppercase tracking-widest">Créditos de email</span>
+                    <span className="text-white/50 text-[10px] font-bold">
+                      <span className="text-brand-cyan">{accountStats.credits.remaining.toLocaleString("pt-BR")}</span>
+                      <span className="text-white/30"> disponíveis de </span>
+                      <span className="text-white/60">{planTotal.toLocaleString("pt-BR")}</span>
+                    </span>
+                  </div>
+                  <div className="h-2 bg-white/5 rounded-full overflow-hidden flex">
+                    {used > 0 && (
+                      <div
+                        className="h-full bg-brand-pink/50 transition-all duration-1000"
+                        style={{ width: `${usedPct}%` }}
+                      />
+                    )}
+                    <div
+                      className="h-full bg-brand-cyan/70 transition-all duration-1000 rounded-r-full"
+                      style={{ width: `${remainPct}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between mt-1">
+                    <span className="text-white/20 text-[8px]">
+                      {used.toLocaleString("pt-BR")} utilizados ({usedPct}%)
+                    </span>
+                    <span className="text-brand-cyan/50 text-[8px] font-bold">
+                      {remainPct}% disponível
+                    </span>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         )}
 
@@ -1557,105 +1764,171 @@ export const MarketingPage: React.FC = () => {
           </div>
         )}
       </div>
+    )}
+      <Dialog
+        open={showAIDialog}
+        onOpenChange={(open) => {
+          setShowAIDialog(open);
+          if (!open) { setAiStep(1); setAiDescription(""); setGeneratedPrompt(""); setPromptCopied(false); }
+        }}
+      >
+        <DialogContent className="max-w-3xl bg-brand-blue/97 border-white/10 text-white p-0 overflow-hidden">
 
-      {/* ── AI Prompt Dialog ── */}
-      <Dialog open={showAIDialog} onOpenChange={setShowAIDialog}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-brand-blue/95 border-white/10 text-white">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-white font-black uppercase tracking-widest text-base">
-              <Sparkles className="h-5 w-5 text-brand-cyan" />
-              Gerar Email com IA
-            </DialogTitle>
-            <DialogDescription className="text-white/40">
-              Descreva o email desejado. Um prompt será gerado para colar no Claude.ai ou ChatGPT — a IA retornará o HTML pronto.
-            </DialogDescription>
-          </DialogHeader>
+          {/* ── Step indicator ── */}
+          <div className="flex items-center gap-0 border-b border-white/5">
+            {([1, 2] as const).map((s) => (
+              <div
+                key={s}
+                className={`flex-1 flex items-center justify-center gap-2 py-3.5 text-[10px] font-black uppercase tracking-widest transition-all ${
+                  aiStep === s
+                    ? "text-brand-cyan border-b-2 border-brand-cyan -mb-px"
+                    : aiStep > s
+                    ? "text-white/30"
+                    : "text-white/20"
+                }`}
+              >
+                <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-black shrink-0 ${
+                  aiStep > s ? "bg-brand-cyan/20 text-brand-cyan" : aiStep === s ? "bg-brand-cyan text-brand-blue" : "bg-white/10 text-white/30"
+                }`}>
+                  {aiStep > s ? <Check className="h-2.5 w-2.5" /> : s}
+                </span>
+                {s === 1 ? "Descrever" : "Abrir na IA"}
+              </div>
+            ))}
+          </div>
 
-          <div className="space-y-4 mt-2">
-            {!headerFair && (
-              <div className="flex items-center gap-2 p-3 bg-brand-orange/10 border border-brand-orange/20 rounded-xl text-sm text-brand-orange">
-                <AlertTriangle className="h-4 w-4 shrink-0" />
-                Selecione uma feira no cabeçalho da página — os dados da feira são incluídos automaticamente no prompt.
+          <div className="p-6">
+
+            {/* ════ STEP 1 ════ */}
+            {aiStep === 1 && (
+              <div className="space-y-5">
+                <DialogHeader className="space-y-1 p-0">
+                  <DialogTitle className="flex items-center gap-2 text-white font-black uppercase tracking-widest text-base">
+                    <Sparkles className="h-5 w-5 text-brand-cyan" />
+                    Descreva o email
+                  </DialogTitle>
+                  <DialogDescription className="text-white/35 text-sm">
+                    Diga o que você quer — a IA gera título, assunto e HTML completo com identidade visual da ExpoMultiMix.
+                  </DialogDescription>
+                </DialogHeader>
+
+                {/* Fair info */}
+                {!headerFair ? (
+                  <div className="flex items-center gap-2 p-3 bg-brand-orange/10 border border-brand-orange/20 rounded-xl text-sm text-brand-orange">
+                    <AlertTriangle className="h-4 w-4 shrink-0" />
+                    Selecione uma feira no cabeçalho para continuar.
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-3 p-3 bg-white/5 border border-white/8 rounded-xl">
+                    <div className="bg-brand-cyan/15 rounded-lg p-1.5 shrink-0">
+                      <Mail className="h-3.5 w-3.5 text-brand-cyan" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-white font-black text-xs truncate">{headerFair.name}</p>
+                      {locationParts && <p className="text-white/40 text-[10px] truncate">{locationParts}</p>}
+                    </div>
+                    <span className="text-[9px] font-black text-brand-cyan bg-brand-cyan/10 px-2 py-0.5 rounded-full shrink-0">base do email</span>
+                  </div>
+                )}
+
+                {/* Description */}
+                <div>
+                  <p className="text-white/40 text-[10px] font-black uppercase tracking-widest mb-2">O que você quer no email?</p>
+                  <textarea
+                    value={aiDescription}
+                    onChange={(e) => setAiDescription(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) handleGeneratePrompt(); }}
+                    placeholder="Ex: Lembrete de que a feira começa amanhã, tom urgente e empolgante, CTA para confirmar presença..."
+                    rows={5}
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white text-sm placeholder:text-white/10 focus:outline-none focus:border-brand-cyan/50 focus:ring-4 focus:ring-brand-cyan/10 transition-all resize-none"
+                  />
+                  <p className="text-white/20 text-[10px] mt-1.5">Dica: <kbd className="bg-white/8 px-1 rounded font-mono">Ctrl+Enter</kbd> para gerar</p>
+                </div>
+
+                <Button
+                  onClick={handleGeneratePrompt}
+                  disabled={!headerFair || !aiDescription.trim()}
+                  className="w-full h-12 bg-brand-cyan text-brand-blue font-black uppercase tracking-widest rounded-2xl hover:bg-brand-cyan/90 transition-all disabled:opacity-40 cursor-pointer"
+                >
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  Gerar Prompt
+                  <ChevronRight className="h-4 w-4 ml-2" />
+                </Button>
               </div>
             )}
-            {headerFair && (
-              <div className="flex items-center gap-2 p-3 bg-brand-cyan/10 border border-brand-cyan/20 rounded-xl text-sm text-brand-cyan">
-                <ChevronRight className="h-4 w-4 shrink-0" />
-                Dados de <strong className="text-white">{headerFair.name}</strong>
-                {locationParts ? ` (${locationParts})` : ""} incluídos no prompt.
-              </div>
-            )}
 
-            <div>
-              <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-2">O que você quer no email?</p>
-              <textarea
-                value={aiDescription}
-                onChange={(e) => setAiDescription(e.target.value)}
-                placeholder={`Ex: "Lembrete que a feira começa amanhã, tom urgente e empolgante, com CTA para confirmar presença."`}
-                rows={4}
-                className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white text-sm placeholder:text-white/10 focus:outline-none focus:border-brand-cyan/50 focus:ring-4 focus:ring-brand-cyan/10 transition-all resize-none"
-              />
-            </div>
+            {/* ════ STEP 2 ════ */}
+            {aiStep === 2 && (
+              <div className="space-y-5">
+                <DialogHeader className="space-y-1 p-0">
+                  <DialogTitle className="flex items-center gap-2 text-white font-black uppercase tracking-widest text-base">
+                    <Check className="h-5 w-5 text-brand-cyan" />
+                    Prompt pronto — abra uma IA
+                  </DialogTitle>
+                  <DialogDescription className="text-white/35 text-sm">
+                    Clique em qualquer assistente abaixo. O prompt é copiado automaticamente — cole com <kbd className="bg-white/10 px-1 rounded font-mono text-white/50">Ctrl+V</kbd>.
+                  </DialogDescription>
+                </DialogHeader>
 
-            <Button
-              onClick={handleGeneratePrompt}
-              disabled={!headerFair || !aiDescription.trim()}
-              className="w-full h-12 bg-brand-cyan text-brand-blue font-black uppercase tracking-widest rounded-2xl hover:bg-brand-cyan/90 transition-all disabled:opacity-40"
-            >
-              <Sparkles className="h-4 w-4 mr-2" />
-              Gerar Prompt
-            </Button>
-
-            {generatedPrompt && (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <p className="text-white/40 text-xs font-black uppercase tracking-widest">Prompt gerado:</p>
+                {/* Copy bar */}
+                <div className="flex items-center gap-3 p-3 bg-brand-cyan/8 border border-brand-cyan/20 rounded-xl">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white/60 text-[10px] font-mono truncate">{generatedPrompt.slice(0, 80)}…</p>
+                  </div>
                   <button
                     onClick={handleCopyPrompt}
-                    className="flex items-center gap-1.5 text-xs font-black uppercase tracking-widest text-white/40 hover:text-white transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-cyan/15 hover:bg-brand-cyan/25 border border-brand-cyan/30 rounded-lg text-[10px] font-black uppercase tracking-widest text-brand-cyan transition-all shrink-0"
                   >
-                    {promptCopied
-                      ? <><Check className="h-3.5 w-3.5 text-brand-cyan" /><span className="text-brand-cyan">Copiado!</span></>
-                      : <><Copy className="h-3.5 w-3.5" />Copiar</>
-                    }
+                    {promptCopied ? <><Check className="h-3 w-3" />Copiado!</> : <><Copy className="h-3 w-3" />Copiar</>}
                   </button>
                 </div>
-                <textarea
-                  value={generatedPrompt}
-                  readOnly
-                  rows={14}
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white/60 text-xs font-mono leading-relaxed focus:outline-none resize-none"
-                />
-                <div className="space-y-3">
-                  <p className="text-white/40 text-[10px] font-black uppercase tracking-widest">Abrir no assistente de IA:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {AI_SERVICES.map((ai) => (
-                      <button
-                        key={ai.name}
-                        onClick={() => handleOpenAI(ai.url, ai.name)}
-                        className="flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-black transition-all hover:scale-[1.03] active:scale-[0.97]"
-                        style={{
-                          color: ai.color,
-                          borderColor: `${ai.color}40`,
-                          backgroundColor: `${ai.color}12`,
-                        }}
-                        onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = `${ai.color}22`; (e.currentTarget as HTMLButtonElement).style.borderColor = `${ai.color}80`; }}
-                        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = `${ai.color}12`; (e.currentTarget as HTMLButtonElement).style.borderColor = `${ai.color}40`; }}
-                      >
-                        {ai.icon}
-                        {ai.name}
-                        <ExternalLink className="h-3 w-3 opacity-50" />
-                      </button>
-                    ))}
-                  </div>
-                  <p className="text-white/25 text-[10px] leading-relaxed">
-                    Clicar em qualquer IA copia o prompt automaticamente — cole com{" "}
-                    <kbd className="bg-white/10 px-1.5 py-0.5 rounded text-white/40 font-mono">Ctrl+V</kbd>{" "}
-                    na janela que abrir. Depois cole o HTML gerado no editor.
-                  </p>
+
+                {/* AI grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {AI_SERVICES.map((ai) => (
+                    <button
+                      key={ai.name}
+                      onClick={() => handleOpenAI(ai.url, ai.name)}
+                      className="flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-all hover:scale-[1.02] active:scale-[0.97]"
+                      style={{ color: ai.color, borderColor: `${ai.color}35`, backgroundColor: `${ai.color}10` }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = `${ai.color}20`; (e.currentTarget as HTMLButtonElement).style.borderColor = `${ai.color}60`; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = `${ai.color}10`; (e.currentTarget as HTMLButtonElement).style.borderColor = `${ai.color}35`; }}
+                    >
+                      <span className="shrink-0">{ai.icon}</span>
+                      <span className="flex-1 min-w-0">
+                        <span className="block font-black text-xs">{ai.name}</span>
+                        <span className="block text-[9px] opacity-40 truncate">{ai.shortUrl}</span>
+                      </span>
+                      <ExternalLink className="h-3 w-3 opacity-30 shrink-0" />
+                    </button>
+                  ))}
+                </div>
+
+                {/* Footer actions */}
+                <div className="flex gap-2 pt-1">
+                  <button
+                    onClick={() => { setAiStep(1); setGeneratedPrompt(""); }}
+                    className="flex items-center gap-1.5 px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-black uppercase tracking-widest text-white/40 hover:text-white transition-all"
+                  >
+                    <ChevronRight className="h-3.5 w-3.5 rotate-180" />
+                    Refazer
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowAIDialog(false);
+                      setAiStep(1);
+                      setShowPasteArea(true);
+                      setActiveTab("editor");
+                    }}
+                    className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-brand-pink/10 hover:bg-brand-pink/20 border border-brand-pink/30 rounded-xl text-xs font-black uppercase tracking-widest text-brand-pink transition-all"
+                  >
+                    Fechar — colar resposta no editor
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </button>
                 </div>
               </div>
             )}
+
           </div>
         </DialogContent>
       </Dialog>
