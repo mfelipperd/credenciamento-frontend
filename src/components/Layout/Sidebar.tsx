@@ -11,6 +11,7 @@ import {
   BarChart3,
   Settings,
   X,
+  ChevronLeft,
 } from "lucide-react";
 import { useUserSession } from "@/hooks/useUserSession";
 import { EUserRole } from "@/enums/user.enum";
@@ -18,6 +19,7 @@ import { EUserRole } from "@/enums/user.enum";
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
+  onToggle: () => void;
   search: string;
 }
 
@@ -84,7 +86,7 @@ const navigationItems = [
   },
 ];
 
-export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, search }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, onToggle, search }) => {
   const location = useLocation();
   const { user } = useUserSession();
 
@@ -208,6 +210,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, search }) => 
               </p>
             </div>
           </div>
+          {/* Toggle button — fecha o sidebar */}
+          <button
+            onClick={onToggle}
+            className="p-2 rounded-xl hover:bg-white/10 transition-all text-white/40 hover:text-white shrink-0"
+            aria-label="Recolher menu"
+            title="Recolher menu"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
         </div>
 
         {/* Navigation */}

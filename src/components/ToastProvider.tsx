@@ -3,6 +3,7 @@ import { Toaster } from "sonner";
 export function ToastProvider() {
   return (
     <Toaster
+      theme="dark"
       position="top-right"
       expand={true}
       richColors={true}
@@ -10,9 +11,9 @@ export function ToastProvider() {
       toastOptions={{
         duration: 4000,
         style: {
-          background: "hsl(var(--background))",
-          color: "hsl(var(--foreground))",
-          border: "1px solid hsl(var(--border))",
+          background: "#112244",
+          color: "#FFFFFF",
+          border: "1px solid rgba(255, 255, 255, 0.12)",
         },
       }}
     />

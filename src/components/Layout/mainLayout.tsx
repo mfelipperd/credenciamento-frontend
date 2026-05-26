@@ -6,6 +6,7 @@ import {
   RefreshCcw,
   Settings,
   Menu,
+  ChevronRight,
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { SimpleFooter } from "../Footer";
@@ -38,9 +39,9 @@ export const MainLayout: React.FC = () => {
     days: 30,
   });
 
-  // Filtrar feiras baseado no usuário - Memoizado para evitar re-renderizações infinitas
+  // Header mostra apenas feiras ativas — marketing usa todas para remarketing
   const availableFairs = useMemo(() => {
-    const list = fairs || [];
+    const list = (fairs || []).filter((fair: any) => fair.isActive);
     if (!user) return [];
     if (user.role === EUserRole.ADMIN) return list;
     return list.filter((fair: any) => availableFairIds.length === 0 || availableFairIds.includes(fair.id));
@@ -102,6 +103,7 @@ export const MainLayout: React.FC = () => {
       <Sidebar
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
+        onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
         search={search}
       />
       
@@ -112,6 +114,7 @@ export const MainLayout: React.FC = () => {
           <div className="px-4 h-16 sm:h-20 flex items-center justify-between gap-4">
             {/* Lado Esquerdo */}
             <div className="flex items-center gap-3 min-w-0">
+              {/* Mobile: abre o drawer */}
               <button
                 onClick={() => setIsSidebarOpen(true)}
                 className="p-2.5 rounded-xl hover:bg-white/10 transition-all active:scale-95 lg:hidden shrink-0 border border-white/5"
@@ -126,7 +129,19 @@ export const MainLayout: React.FC = () => {
                   alt="Logo"
                   className="h-7 sm:h-9 w-auto shrink-0 hidden xs:block"
                 />
-                
+
+                {/* Desktop: expandir sidebar quando estiver fechado */}
+                {!isSidebarOpen && (
+                  <button
+                    onClick={() => setIsSidebarOpen(true)}
+                    className="hidden lg:flex p-2 rounded-xl hover:bg-white/10 transition-all text-white/50 hover:text-white shrink-0 border border-white/5"
+                    aria-label="Expandir menu"
+                    title="Expandir menu"
+                  >
+                    <ChevronRight className="h-5 w-5" />
+                  </button>
+                )}
+
                 <div className="h-6 w-px bg-white/10 hidden sm:block shrink-0"></div>
 
                 <div className="flex items-center gap-2.5 min-w-0">
@@ -143,7 +158,7 @@ export const MainLayout: React.FC = () => {
                           value={fair.id}
                           className="text-[10px] sm:text-xs font-black uppercase tracking-widest focus:bg-white/10 focus:text-white"
                         >
-                          {`${fair.name} ${fair.startDate ? new Date(fair.startDate).getFullYear() : 'N/A'}`}
+                          {fair.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -163,16 +178,6 @@ export const MainLayout: React.FC = () => {
               </div>
 
               <div className="flex items-center gap-1.5 sm:gap-2 bg-white/5 p-1 rounded-2xl border border-white/5">
-                <button
-                  onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                  className="hidden lg:flex p-2 rounded-xl h-9 w-9 items-center justify-center hover:bg-white/10 transition-all text-white/60 hover:text-white"
-                  aria-label={isSidebarOpen ? "Fechar menu" : "Abrir menu"}
-                >
-                  <Menu className="h-4 w-4" />
-                </button>
-                
-                <div className="h-5 w-px bg-white/10 hidden lg:block"></div>
-                
                 <ThemeToggle />
                 
                 <button
@@ -218,7 +223,7 @@ export const MainLayout: React.FC = () => {
           </div>
         </header>
 
-        <main className="grow p-6 bg-brand-blue relative overflow-hidden">
+        <main className="grow p-6 bg-brand-blue relative">
           {/* Decorative background elements */}
           <div className="absolute top-0 right-0 w-96 h-96 bg-brand-pink/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2" />
           <div className="absolute bottom-0 left-0 w-96 h-96 bg-brand-cyan/5 blur-[120px] rounded-full translate-y-1/2 -translate-x-1/2" />

@@ -8,7 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { useSearchParams } from "@/hooks/useSearchParams";
 import { usePublicFormService } from "@/service/publicform.service";
-import { CheckCircle2, Loader2, Save } from "lucide-react";
+import { CheckCircle2, Loader2, MapPin, Save } from "lucide-react";
 import {
   credenciamentoSchema,
   defaultVisitorCnpj,
@@ -37,6 +37,7 @@ export const FormularioCredenciamento: React.FC = () => {
   const [isRep, setIsRep] = useState<boolean>(false);
   const [resgister, setRegistrationCode] = useState<IVisistor>();
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [isFetchingCep, setIsFetchingCep] = useState(false);
   const [, , fairId] = useSearchParams();
 
   const { getVisitorById, visitor, checkinVisitor } = useVisitorsService();
@@ -285,6 +286,26 @@ export const FormularioCredenciamento: React.FC = () => {
 
   const setoresSelecionados = watch("sectors") || [];
   const ingresso = watch("ingresso");
+  const zipCode = watch("zipCode");
+
+  useEffect(() => {
+    const cleaned = zipCode?.replace(/\D/g, "");
+    if (cleaned?.length !== 8) return;
+    setIsFetchingCep(true);
+    fetch(`https://viacep.com.br/ws/${cleaned}/json/`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (!data.erro) {
+          setValue("street", data.logradouro || "");
+          setValue("neighborhood", data.bairro || "");
+          setValue("city", data.localidade || "");
+          setValue("state", data.uf || "");
+        }
+      })
+      .catch(() => {})
+      .finally(() => setIsFetchingCep(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [zipCode]);
 
   useEffect(() => {
     // Adiciona uma verificação para evitar chamadas desnecessárias
@@ -490,7 +511,10 @@ export const FormularioCredenciamento: React.FC = () => {
               </div>
 
               <div className="col-span-12 lg:col-span-4 flex flex-col gap-1.5">
-                <label className="text-white/30 font-black text-[9px] uppercase tracking-widest ml-1">CEP</label>
+                <label className="text-white/30 font-black text-[9px] uppercase tracking-widest ml-1 flex items-center gap-2">
+                  CEP
+                  {isFetchingCep && <Loader2 className="h-3 w-3 animate-spin text-brand-cyan" />}
+                </label>
                 <ControlledInput control={control} name="zipCode" placeholder="00000-000" mask={maskCEP} />
               </div>
 
@@ -511,6 +535,36 @@ export const FormularioCredenciamento: React.FC = () => {
                     { value: "representante", label: "Indicação de Representante" },
                   ]}
                 />
+              </div>
+
+              {/* Address fields — auto-filled by ViaCEP, editable */}
+              <div className="col-span-12">
+                <div className="flex items-center gap-2 mb-4 border-t border-white/5 pt-4">
+                  <MapPin className="h-3.5 w-3.5 text-brand-cyan/60" />
+                  <span className="text-white/20 font-black text-[9px] uppercase tracking-widest">
+                    Endereço {isFetchingCep ? "— buscando..." : "— preenchido automaticamente pelo CEP"}
+                  </span>
+                </div>
+              </div>
+
+              <div className="col-span-12 lg:col-span-9 flex flex-col gap-1.5">
+                <label className="text-white/30 font-black text-[9px] uppercase tracking-widest ml-1">Logradouro</label>
+                <ControlledInput control={control} name="street" placeholder="Rua, Av, Travessa..." />
+              </div>
+
+              <div className="col-span-12 lg:col-span-3 flex flex-col gap-1.5">
+                <label className="text-white/30 font-black text-[9px] uppercase tracking-widest ml-1">UF</label>
+                <ControlledInput control={control} name="state" placeholder="Ex: AM" />
+              </div>
+
+              <div className="col-span-12 lg:col-span-5 flex flex-col gap-1.5">
+                <label className="text-white/30 font-black text-[9px] uppercase tracking-widest ml-1">Bairro</label>
+                <ControlledInput control={control} name="neighborhood" placeholder="Bairro" />
+              </div>
+
+              <div className="col-span-12 lg:col-span-7 flex flex-col gap-1.5">
+                <label className="text-white/30 font-black text-[9px] uppercase tracking-widest ml-1">Cidade</label>
+                <ControlledInput control={control} name="city" placeholder="Cidade" />
               </div>
             </div>
           </div>

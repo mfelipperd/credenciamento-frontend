@@ -85,6 +85,9 @@ export const AppEndpoints = {
   },
   MARKETING: {
     EMAILS_ABSENT: "/emails/marketing/absent-visitors",
+    EMAILS_CAMPAIGN: "/emails/campaign",
+    EMAILS_CONFIRMATION: "/emails/confirmation",
+    EMAILS_SEND: "/emails/marketing/send",
   },
   WITHDRAWALS: {
     BASE: "/partners/withdrawals",

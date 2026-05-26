@@ -18,6 +18,10 @@ export const credenciamentoSchema = z.object({
       /^\d{5}-?\d{3}$/,
       "CEP inválido, deve ser no formato 00000-000 ou 00000000"
     ),
+  street: z.string().optional(),
+  neighborhood: z.string().optional(),
+  city: z.string().optional(),
+  state: z.string().optional(),
   sectors: z.array(z.string()).optional(),
   howDidYouKnow: z.string().nonempty("Selecione uma opção"),
 });
