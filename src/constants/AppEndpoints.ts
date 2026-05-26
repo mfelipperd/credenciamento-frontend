@@ -88,6 +88,9 @@ export const AppEndpoints = {
     EMAILS_CAMPAIGN: "/emails/campaign",
     EMAILS_CONFIRMATION: "/emails/confirmation",
     EMAILS_SEND: "/emails/marketing/send",
+    CAMPAIGNS: "/emails/campaigns",
+    CAMPAIGN_STATS: (id: string) => `/emails/campaigns/${id}/stats`,
+    ACCOUNT_STATS: "/emails/account-stats",
   },
   WITHDRAWALS: {
     BASE: "/partners/withdrawals",

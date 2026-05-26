@@ -36,6 +36,7 @@ export interface SendCampaignResponse {
 }
 
 export interface SendMarketingRequest {
+  title: string;
   targetFairId: string;
   templateFairId: string;
   sendTo: "all" | "absent";
@@ -46,11 +47,75 @@ export interface SendMarketingRequest {
 export interface SendMarketingResponse {
   success: boolean;
   message: string;
+  campaignId?: string;
+  brevoTag?: string;
   targetFairId: string;
   templateFairId: string;
   sendTo: "all" | "absent";
   totalQueued: number;
   status: "QUEUED";
+}
+
+export interface Campaign {
+  id: string;
+  title: string;
+  subject: string;
+  targetFairId: string;
+  templateFairId: string;
+  sendTo: "all" | "absent";
+  totalQueued: number;
+  brevoTag: string;
+  sentAt: string;
+}
+
+export interface AccountStats {
+  plan: {
+    name: string;
+    status: string;
+    periodStart: string;
+    periodEnd: string;
+  };
+  credits: {
+    total: number;
+    remaining: number;
+    used: number;
+  };
+  last30Days: {
+    sent: number;
+    delivered: number;
+    deliveryRate: number;
+    opens: number;
+    uniqueOpens: number;
+    openRate: number;
+    clicks: number;
+    uniqueClicks: number;
+    bounced: number;
+    spam: number;
+    unsubscribed: number;
+  };
+}
+
+export interface CampaignStats {
+  campaign: Campaign;
+  delivery: {
+    queued: number;
+    delivered: number;
+    deliveryRate: number;
+    hardBounces: number;
+    softBounces: number;
+    blocked: number;
+    spam: number;
+    invalid: number;
+  };
+  engagement: {
+    opens: number;
+    uniqueOpens: number;
+    openRate: number;
+    clicks: number;
+    uniqueClicks: number;
+    clickRate: number;
+    unsubscribed: number;
+  };
 }
 
 export const useMarketingService = () => {
@@ -83,9 +148,33 @@ export const useMarketingService = () => {
     return response as SendMarketingResponse | null;
   };
 
+  const getCampaigns = async (): Promise<Campaign[] | null> => {
+    const response = await handleRequest({
+      request: () => api.get(AppEndpoints.MARKETING.CAMPAIGNS),
+    });
+    return response as Campaign[] | null;
+  };
+
+  const getCampaignStats = async (id: string): Promise<CampaignStats | null> => {
+    const response = await handleRequest({
+      request: () => api.get(AppEndpoints.MARKETING.CAMPAIGN_STATS(id)),
+    });
+    return response as CampaignStats | null;
+  };
+
+  const getAccountStats = async (): Promise<AccountStats | null> => {
+    const response = await handleRequest({
+      request: () => api.get(AppEndpoints.MARKETING.ACCOUNT_STATS),
+    });
+    return response as AccountStats | null;
+  };
+
   return {
     sendMarketingEmailToAbsentVisitors,
     sendCampaign,
     sendMarketing,
+    getCampaigns,
+    getCampaignStats,
+    getAccountStats,
   };
 };

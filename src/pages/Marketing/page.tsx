@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useMarketingService } from "@/service/marketing.service";
 import { useFairs } from "@/hooks/useFairs";
+import { useSearchParams } from "@/hooks/useSearchParams";
 import { toast } from "sonner";
 import {
   Mail,
@@ -46,6 +47,12 @@ import {
   Star,
   Handshake,
   Heart,
+  BarChart3,
+  RefreshCcw,
+  TrendingUp,
+  MousePointerClick,
+  Inbox,
+  ExternalLink,
 } from "lucide-react";
 import { LogoLoading } from "@/components/LogoLoading";
 import type { Fair } from "@/interfaces/fairs";
@@ -521,6 +528,61 @@ const EMAIL_TEMPLATES: EmailTemplate[] = [
 
 // ─── AI prompt generator ───────────────────────────────────────────────────────
 
+// ─── AI Services ───────────────────────────────────────────────────────────────
+
+const AI_SERVICES = [
+  {
+    name: "Claude",
+    url: "https://claude.ai/new",
+    color: "#D97757",
+    icon: (
+      <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
+        <path d="M12 3L3 20h4.5L12 10l4.5 10H21L12 3zm0 9.5-1.5 4h3l-1.5-4z" />
+      </svg>
+    ),
+  },
+  {
+    name: "ChatGPT",
+    url: "https://chat.openai.com/",
+    color: "#10A37F",
+    icon: (
+      <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
+        <path d="M12 2a10 10 0 0 1 7.1 17.1L17 22l-1.5-3.5A10 10 0 1 1 12 2zm0 2a8 8 0 1 0 0 16A8 8 0 0 0 12 4zm0 3a5 5 0 1 1 0 10A5 5 0 0 1 12 7zm0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6z" />
+      </svg>
+    ),
+  },
+  {
+    name: "Gemini",
+    url: "https://gemini.google.com/",
+    color: "#4285F4",
+    icon: (
+      <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
+        <path d="M12 2c-1 5-5 9-10 10 5 1 9 5 10 10 1-5 5-9 10-10-5-1-9-5-10-10z" />
+      </svg>
+    ),
+  },
+  {
+    name: "DeepSeek",
+    url: "https://chat.deepseek.com/",
+    color: "#4D6BFD",
+    icon: (
+      <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
+        <path d="M12 5C7 5 3 8.6 3 12s4 7 9 7 9-3.6 9-7-4-7-9-7zm0 11a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm0-6a2 2 0 1 0 0 4 2 2 0 0 0 0-4z" />
+      </svg>
+    ),
+  },
+  {
+    name: "Copilot",
+    url: "https://copilot.microsoft.com/",
+    color: "#9C6ADE",
+    icon: (
+      <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
+        <path d="M12 2C8.7 2 6 4.7 6 8c0 5.2 6 14 6 14s6-8.8 6-14c0-3.3-2.7-6-6-6zm0 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4z" />
+      </svg>
+    ),
+  },
+];
+
 const generateAIPrompt = (fair: Fair, userDescription: string): string => {
   const { name, fullLocation, dateRange, time, mapsUrl } = fairInfo(fair);
   return `Você é um especialista em email marketing B2B. Crie um email HTML profissional e persuasivo para a ExpoMultiMix.
@@ -554,21 +616,32 @@ ${userDescription}
 7. Logo da ExpoMultiMix no cabeçalho com a URL acima
 8. Nome, data e local da feira SEMPRE visíveis no cabeçalho do email
 
-## FORMATO DE RETORNO (CRÍTICO)
-Retorne SOMENTE o HTML completo. Comece com <!DOCTYPE html> e termine com </html>.
-Nenhum texto, markdown, backtick ou explicação fora do HTML.`;
+## FORMATO DE RETORNO (OBRIGATÓRIO)
+Retorne o HTML dentro de um bloco de código markdown, exatamente assim:
+
+\`\`\`html
+<!DOCTYPE html>
+<html>
+...
+</html>
+\`\`\`
+
+Coloque TODO o HTML dentro desse bloco. Não adicione texto, comentários ou explicações fora do bloco de código.`;
 };
 
 // ─── Component ─────────────────────────────────────────────────────────────────
 
 export const MarketingPage: React.FC = () => {
-  const { sendMarketing } = useMarketingService();
+  const { sendMarketing, getCampaigns, getCampaignStats, getAccountStats } = useMarketingService();
   // Marketing usa TODAS as feiras (inclusive encerradas) para remarketing
   const { data: fairs, isLoading: loadingFairs } = useFairs();
+  const [, , headerFairId] = useSearchParams();
+  // headerFair = feira do cabeçalho = base para template e IA; selectedFairId = alvo de remarketing (opcional)
+  const headerFair = fairs?.find((f) => f.id === headerFairId);
 
-  const [selectedFairId, setSelectedFairId] = useState<string>("");
-  const [targetFairId, setTargetFairId] = useState<string>("");
+  const [selectedFairId, setSelectedFairId] = useState<string>(""); // remarketing target (optional)
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
+  const [title, setTitle] = useState("");
   const [subject, setSubject] = useState("Você está convidado — ExpoMultiMix te espera!");
   const [htmlContent, setHtmlContent] = useState("");
   const [activeTab, setActiveTab] = useState<"editor" | "preview">("editor");
@@ -582,74 +655,122 @@ export const MarketingPage: React.FC = () => {
   const [generatedPrompt, setGeneratedPrompt] = useState("");
   const [promptCopied, setPromptCopied] = useState(false);
 
-  const selectedFair = fairs?.find((f) => f.id === selectedFairId);
+  // Campaign history + account stats
+  const [campaigns, setCampaigns] = useState<import("@/service/marketing.service").Campaign[]>([]);
+  const [accountStats, setAccountStats] = useState<import("@/service/marketing.service").AccountStats | null>(null);
+  const [loadingCampaigns, setLoadingCampaigns] = useState(false);
+  const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
+  const [campaignStats, setCampaignStats] = useState<import("@/service/marketing.service").CampaignStats | null>(null);
+  const [loadingStats, setLoadingStats] = useState(false);
 
-  const locationParts = selectedFair
-    ? [selectedFair.city, selectedFair.state].filter(Boolean).join(" / ")
+  useEffect(() => {
+    const load = async () => {
+      const [campaignData, statsData] = await Promise.all([getCampaigns(), getAccountStats()]);
+      if (campaignData) setCampaigns(campaignData);
+      if (statsData) setAccountStats(statsData);
+    };
+    load();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // selectedFair = remarketing target (optional); headerFair = template base (always from URL)
+  const selectedFair = fairs?.find((f) => f.id === selectedFairId);
+  const effectiveTargetId = selectedFairId || headerFairId || "";
+
+  const locationParts = headerFair
+    ? [headerFair.city, headerFair.state].filter(Boolean).join(" / ")
     : null;
 
   const handleFairChange = (fairId: string) => {
     setSelectedFairId(fairId);
-    // Keep target fair in sync unless user has explicitly changed it
-    if (!targetFairId || targetFairId === selectedFairId) setTargetFairId(fairId);
-    // Re-apply current template with new fair data if one is selected
-    if (selectedTemplateId) {
-      const tpl = EMAIL_TEMPLATES.find((t) => t.id === selectedTemplateId);
-      const newFair = fairs?.find((f) => f.id === fairId);
-      if (tpl) setHtmlContent(tpl.generate(newFair));
-    }
   };
 
   const handleSelectTemplate = (tpl: EmailTemplate) => {
-    if (!selectedFairId) {
-      toast.error("Selecione uma feira antes de aplicar o template");
-      return;
-    }
     setSelectedTemplateId(tpl.id);
-    setHtmlContent(tpl.generate(selectedFair));
+    setHtmlContent(tpl.generate(headerFair));
     setActiveTab("editor");
-    toast.success(`Template "${tpl.name}" aplicado com dados da feira`);
+    toast.success(`Template "${tpl.name}" aplicado com dados de "${headerFair?.name ?? "feira do cabeçalho"}"`);
   };
 
   const handleGeneratePrompt = () => {
-    if (!selectedFair) { toast.error("Selecione uma feira primeiro"); return; }
+    if (!headerFair) { toast.error("Selecione uma feira no cabeçalho da página"); return; }
     if (!aiDescription.trim()) { toast.error("Descreva o que você quer no email"); return; }
-    setGeneratedPrompt(generateAIPrompt(selectedFair, aiDescription));
+    setGeneratedPrompt(generateAIPrompt(headerFair, aiDescription));
   };
 
   const handleCopyPrompt = async () => {
     await navigator.clipboard.writeText(generatedPrompt);
     setPromptCopied(true);
-    toast.success("Prompt copiado! Cole no Claude.ai ou ChatGPT.");
+    toast.success("Prompt copiado!");
     setTimeout(() => setPromptCopied(false), 2500);
   };
 
+  const handleOpenAI = useCallback(async (url: string, name: string) => {
+    await navigator.clipboard.writeText(generatedPrompt);
+    window.open(url, "_blank", "noopener,noreferrer");
+    toast.success(`Prompt copiado — cole no ${name}`, { description: "Use Ctrl+V (ou Cmd+V) para colar." });
+  }, [generatedPrompt]);
+
   const openConfirmDialog = (audience: "all" | "absent") => {
-    if (!selectedFair) { toast.error("Selecione a feira do template primeiro"); return; }
-    if (!targetFairId) { toast.error("Selecione a feira do público-alvo"); return; }
+    if (!headerFair) { toast.error("Selecione uma feira no cabeçalho da página"); return; }
     if (!subject.trim() || !htmlContent.trim()) { toast.error("Preencha o assunto e o conteúdo HTML"); return; }
     setPendingAudience(audience);
     setShowConfirmDialog(true);
   };
 
+  const refreshCampaigns = useCallback(async () => {
+    setLoadingCampaigns(true);
+    try {
+      const [campaignData, statsData] = await Promise.all([getCampaigns(), getAccountStats()]);
+      if (campaignData) setCampaigns(campaignData);
+      if (statsData) setAccountStats(statsData);
+    } finally {
+      setLoadingCampaigns(false);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const loadCampaignStats = useCallback(async (campaignId: string) => {
+    if (selectedCampaignId === campaignId) {
+      setSelectedCampaignId(null);
+      setCampaignStats(null);
+      return;
+    }
+    setSelectedCampaignId(campaignId);
+    setCampaignStats(null);
+    setLoadingStats(true);
+    try {
+      const stats = await getCampaignStats(campaignId);
+      if (stats) setCampaignStats(stats);
+    } finally {
+      setLoadingStats(false);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCampaignId]);
+
   const handleSend = useCallback(async () => {
-    if (!selectedFair || !targetFairId) return;
+    if (!headerFair) return;
     setShowConfirmDialog(false);
     setLoading(true);
     try {
+      const campaignTitle = title.trim() || `Campanha ${headerFair.name} — ${new Date().toLocaleDateString("pt-BR")}`;
       const res = await sendMarketing({
-        targetFairId,
-        templateFairId: selectedFair.id,
+        title: campaignTitle,
+        targetFairId: effectiveTargetId,
+        templateFairId: headerFair.id,
         sendTo: pendingAudience,
         subject,
         htmlContent,
       });
       if (res?.success) {
-        const targetFairName = fairs?.find((f) => f.id === targetFairId)?.name ?? targetFairId;
+        const targetFairName = fairs?.find((f) => f.id === effectiveTargetId)?.name ?? effectiveTargetId;
         toast.success(
           `${res.totalQueued} email(s) enfileirados — ${pendingAudience === "all" ? "todos os inscritos" : "ausentes"} de "${targetFairName}"`,
-          { duration: 6000, description: `Status: ${res.status}` }
+          { duration: 6000, description: res.campaignId ? `ID: ${res.campaignId.slice(0, 8)}…` : `Status: ${res.status}` }
         );
+        const updated = await getCampaigns();
+        if (updated) setCampaigns(updated);
+        if (res.campaignId) setSelectedCampaignId(res.campaignId);
       } else {
         toast.error("Erro ao iniciar envio");
       }
@@ -659,7 +780,8 @@ export const MarketingPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedFair, targetFairId, pendingAudience, subject, htmlContent, sendMarketing, fairs]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [headerFair, effectiveTargetId, pendingAudience, title, subject, htmlContent, sendMarketing, fairs]);
 
   const confirmSend = () => handleSend();
 
@@ -678,24 +800,74 @@ export const MarketingPage: React.FC = () => {
         </p>
       </div>
 
-      {/* ── Step 1: Fair selector ── */}
+      {/* ── Step 1: Público-alvo ── */}
       <div className="glass-card border-white/5 shadow-2xl rounded-[32px] p-6 lg:p-8">
         <div className="flex items-center gap-3 mb-5">
           <span className="bg-brand-pink text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black shrink-0">1</span>
-          <h2 className="text-sm font-black text-white uppercase tracking-widest">Selecionar Feira</h2>
-          <span className="text-white/30 text-xs font-medium">— todas as feiras disponíveis para remarketing</span>
+          <h2 className="text-sm font-black text-white uppercase tracking-widest">Público-alvo</h2>
+          <span className="text-white/30 text-xs font-medium">— usa a feira do cabeçalho por padrão</span>
         </div>
 
-        {/* Select — linha própria para evitar sobreposição com o card de detalhes */}
-        <div className="mb-4">
-          <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-2">Feira</p>
+        {/* Header fair — template base, read-only */}
+        {headerFair ? (
+          <div className="glass border-brand-cyan/20 rounded-2xl p-4 mb-5">
+            <div className="flex items-center gap-3">
+              <div className="bg-brand-cyan/20 text-brand-cyan rounded-xl p-2 shrink-0">
+                <Mail className="h-4 w-4" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="font-black text-white text-sm truncate">{headerFair.name}</p>
+                  <span className="text-[9px] font-black text-brand-cyan uppercase tracking-widest bg-brand-cyan/10 px-2 py-0.5 rounded-full shrink-0">
+                    Cabeçalho
+                  </span>
+                </div>
+                {(locationParts || headerFair.location) && (
+                  <p className="text-white/50 text-xs flex items-center gap-1 mt-0.5">
+                    <MapPin className="h-3 w-3" />
+                    {locationParts ? `${locationParts} — ` : ""}{headerFair.location}
+                  </p>
+                )}
+                {(headerFair.startDate || headerFair.endDate) && (
+                  <p className="text-white/50 text-xs flex items-center gap-1 mt-0.5">
+                    <Calendar className="h-3 w-3" />
+                    {fmt(headerFair.startDate)}
+                    {headerFair.endDate && headerFair.endDate !== headerFair.startDate && ` a ${fmt(headerFair.endDate)}`}
+                    {headerFair.startTime && ` · ${headerFair.startTime}`}
+                    {headerFair.endTime && ` às ${headerFair.endTime}`}
+                  </p>
+                )}
+              </div>
+              <Badge className={headerFair.isActive
+                ? "bg-brand-cyan/20 text-brand-cyan border-brand-cyan/20 text-xs font-black shrink-0"
+                : "bg-white/5 text-white/30 border-white/10 text-xs shrink-0"
+              }>
+                {headerFair.isActive ? "Ativa" : "Encerrada"}
+              </Badge>
+            </div>
+            <p className="text-white/30 text-[10px] mt-3 pt-2 border-t border-white/5">
+              Dados desta feira são injetados nos templates e no prompt de IA. Por padrão, os emails são enviados para os visitantes desta feira.
+            </p>
+          </div>
+        ) : (
+          <div className="glass border-white/5 rounded-2xl p-4 mb-5 flex items-center gap-3">
+            <ChevronRight className="h-4 w-4 text-white/20" />
+            <p className="text-white/30 text-sm">Selecione uma feira no cabeçalho da página para habilitar templates e envio.</p>
+          </div>
+        )}
+
+        {/* Remarketing override — optional */}
+        <div className="space-y-3">
+          <p className="text-white/30 text-[10px] font-black uppercase tracking-widest">
+            Remarketing — enviar para visitantes de outra feira <span className="text-white/20 normal-case font-medium">(opcional)</span>
+          </p>
           <Select value={selectedFairId} onValueChange={handleFairChange} disabled={loadingFairs}>
-            <SelectTrigger className="h-12 w-full max-w-sm bg-white/5 border-white/10 text-white hover:bg-white/10 transition-all rounded-2xl cursor-pointer">
-              <SelectValue placeholder={loadingFairs ? "Carregando..." : "Escolha uma feira..."} />
+            <SelectTrigger className="h-10 w-full max-w-sm bg-white/5 border-white/10 text-white hover:bg-white/10 transition-all rounded-xl cursor-pointer text-xs">
+              <SelectValue placeholder={loadingFairs ? "Carregando..." : "Enviar para visitantes de outra feira..."} />
             </SelectTrigger>
             <SelectContent className="bg-brand-blue border-white/10 text-white rounded-2xl">
               {(fairs ?? []).map((fair) => (
-                <SelectItem key={fair.id} value={fair.id} className="focus:bg-white/10 focus:text-white rounded-xl cursor-pointer">
+                <SelectItem key={fair.id} value={fair.id} className="focus:bg-white/10 focus:text-white rounded-xl cursor-pointer text-xs">
                   <span className="flex items-center gap-2">
                     {fair.name}
                     {fair.isActive
@@ -707,55 +879,23 @@ export const MarketingPage: React.FC = () => {
               ))}
             </SelectContent>
           </Select>
+          {selectedFairId && (
+            <div className="space-y-2">
+              <div className="flex items-start gap-2 p-3 bg-brand-orange/10 border border-brand-orange/20 rounded-xl">
+                <AlertTriangle className="h-3.5 w-3.5 text-brand-orange shrink-0 mt-0.5" />
+                <p className="text-brand-orange text-xs">
+                  <strong>Remarketing:</strong> template usa dados de <strong>{headerFair?.name ?? "feira do cabeçalho"}</strong>, mas o envio vai para visitantes de <strong>{selectedFair?.name}</strong>.
+                </p>
+              </div>
+              <button
+                onClick={() => setSelectedFairId("")}
+                className="text-xs text-white/30 hover:text-white/60 transition-colors underline"
+              >
+                Limpar — usar a feira do cabeçalho
+              </button>
+            </div>
+          )}
         </div>
-
-        {/* Info card — sempre abaixo do select */}
-        {selectedFair ? (
-          <div className="glass border-white/10 rounded-2xl p-4 space-y-3">
-            <div className="flex items-center gap-3">
-              <div className="bg-brand-pink/20 text-brand-pink rounded-xl p-2 shrink-0">
-                <Mail className="h-4 w-4" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-black text-white text-sm truncate">{selectedFair.name}</p>
-                {(locationParts || selectedFair.location) && (
-                  <p className="text-white/50 text-xs flex items-center gap-1 mt-0.5">
-                    <MapPin className="h-3 w-3" />
-                    {locationParts ? `${locationParts} — ` : ""}{selectedFair.location}
-                  </p>
-                )}
-                {(selectedFair.startDate || selectedFair.endDate) && (
-                  <p className="text-white/50 text-xs flex items-center gap-1 mt-0.5">
-                    <Calendar className="h-3 w-3" />
-                    {fmt(selectedFair.startDate)}
-                    {selectedFair.endDate && selectedFair.endDate !== selectedFair.startDate && ` a ${fmt(selectedFair.endDate)}`}
-                    {selectedFair.startTime && ` · ${selectedFair.startTime}`}
-                    {selectedFair.endTime && ` às ${selectedFair.endTime}`}
-                  </p>
-                )}
-              </div>
-              <Badge className={
-                selectedFair.isActive
-                  ? "bg-brand-cyan/20 text-brand-cyan border-brand-cyan/20 text-xs font-black shrink-0"
-                  : "bg-white/5 text-white/30 border-white/10 text-xs shrink-0"
-              }>
-                {selectedFair.isActive ? "Ativa" : "Encerrada"}
-              </Badge>
-            </div>
-            <div className="flex items-start gap-2 pt-2 border-t border-white/5">
-              <AlertTriangle className="h-3.5 w-3.5 text-brand-orange mt-0.5 shrink-0" />
-              <p className="text-white/40 text-xs">
-                Emails enviados <strong className="text-white/60">exclusivamente</strong> para visitantes
-                desta feira{locationParts ? ` (${locationParts})` : ""}.
-              </p>
-            </div>
-          </div>
-        ) : (
-          <div className="glass border-white/5 rounded-2xl p-4 flex items-center gap-3">
-            <ChevronRight className="h-4 w-4 text-white/20" />
-            <p className="text-white/30 text-sm">Selecione uma feira para habilitar os templates e o envio.</p>
-          </div>
-        )}
       </div>
 
       {/* ── Step 2: Template selector ── */}
@@ -846,8 +986,24 @@ export const MarketingPage: React.FC = () => {
         {activeTab === "editor" && (
           <div className="space-y-5">
             <div>
+              <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-2">Nome Interno da Campanha</p>
+              <Input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder={`Ex: Remarketing ${headerFair?.name ?? "Feira"} — ${new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}`}
+                className="bg-white/5 border-white/10 text-white placeholder:text-white/20 focus-visible:ring-brand-cyan/30"
+              />
+              <p className="text-white/20 text-[10px] mt-1.5 font-medium">Aparece no histórico — não é enviado ao visitante.</p>
+            </div>
+
+            <div>
               <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-2">Assunto do Email</p>
-              <Input value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Ex: ExpoMultiMix te espera — venha hoje!" />
+              <Input
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+                placeholder="Ex: ExpoMultiMix te espera — venha hoje!"
+                className="bg-white/5 border-white/10 text-white placeholder:text-white/20 focus-visible:ring-brand-pink/30"
+              />
             </div>
 
             <div>
@@ -902,42 +1058,11 @@ export const MarketingPage: React.FC = () => {
           </div>
         )}
 
-        {/* ── Target audience ── */}
-        <div className="mt-6 pt-6 border-t border-white/5 space-y-3">
-          <div className="flex items-center gap-2">
-            <Users className="h-4 w-4 text-brand-cyan/60" />
-            <span className="text-white/40 font-black text-[10px] uppercase tracking-widest">Público-alvo</span>
-            <span className="text-white/20 text-[9px] ml-1">— inscritos de qual feira receberão este email?</span>
-          </div>
-          <Select
-            value={targetFairId}
-            onValueChange={setTargetFairId}
-            disabled={loadingFairs}
-          >
-            <SelectTrigger className="h-10 bg-white/5 border-white/10 text-white text-xs font-bold rounded-xl focus:ring-brand-cyan/20 max-w-sm">
-              <SelectValue placeholder="Selecione a feira do público-alvo" />
-            </SelectTrigger>
-            <SelectContent className="bg-brand-blue border-white/10 text-white">
-              {(fairs || []).map((fair) => (
-                <SelectItem key={fair.id} value={fair.id} className="text-xs font-bold focus:bg-white/10 focus:text-white">
-                  {fair.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {selectedFairId && targetFairId && selectedFairId !== targetFairId && (
-            <p className="text-brand-orange/70 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5">
-              <AlertTriangle className="h-3 w-3" />
-              Modo remarketing — template da feira do cabeçalho, envio para inscritos de outra feira
-            </p>
-          )}
-        </div>
-
         {/* ── Send buttons — always visible ── */}
-        <div className="flex flex-col sm:flex-row gap-3 mt-4">
+        <div className="flex flex-col sm:flex-row gap-3 mt-6 pt-6 border-t border-white/5">
           <Button
             type="button"
-            disabled={loading || !selectedFairId || !targetFairId}
+            disabled={loading || !headerFair}
             onClick={() => openConfirmDialog("absent")}
             className="flex-1 h-12 bg-white/10 border border-white/20 rounded-2xl text-white font-black uppercase tracking-widest hover:bg-white/20 transition-all active:scale-[0.98] cursor-pointer disabled:opacity-40"
           >
@@ -946,7 +1071,7 @@ export const MarketingPage: React.FC = () => {
           </Button>
           <Button
             type="button"
-            disabled={loading || !selectedFairId || !targetFairId}
+            disabled={loading || !headerFair}
             onClick={() => openConfirmDialog("all")}
             className="flex-1 h-12 bg-brand-pink rounded-2xl text-white font-black uppercase tracking-widest hover:bg-brand-pink/90 transition-all shadow-xl shadow-brand-pink/20 active:scale-[0.98] cursor-pointer disabled:opacity-40"
           >
@@ -967,6 +1092,151 @@ export const MarketingPage: React.FC = () => {
         </div>
       </div>
 
+      {/* ── Campaign History ── */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-black text-white uppercase tracking-tighter flex items-center gap-3">
+            <BarChart3 className="h-5 w-5 text-brand-cyan" />
+            Histórico de Campanhas
+          </h2>
+          <button
+            onClick={refreshCampaigns}
+            disabled={loadingCampaigns}
+            className="flex items-center gap-2 px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-black uppercase tracking-widest text-white/50 hover:text-white transition-all disabled:opacity-50"
+          >
+            <RefreshCcw className={`h-3.5 w-3.5 ${loadingCampaigns ? "animate-spin" : ""}`} />
+            Atualizar
+          </button>
+        </div>
+
+        {/* Account stats bar */}
+        {accountStats && (
+          <div className="glass-card rounded-2xl p-4 flex flex-wrap items-center gap-6">
+            <div className="flex items-center gap-2 shrink-0">
+              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+              <span className="text-white/40 text-xs font-black uppercase tracking-widest">Brevo {accountStats.plan.name}</span>
+            </div>
+            <div className="flex-1 min-w-[160px]">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-white/30 text-[9px] font-black uppercase tracking-widest">Créditos restantes</span>
+                <span className="text-white/60 text-xs font-bold">
+                  {accountStats.credits.remaining.toLocaleString("pt-BR")} / {accountStats.credits.total.toLocaleString("pt-BR")}
+                </span>
+              </div>
+              <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-brand-cyan rounded-full transition-all"
+                  style={{ width: `${Math.round((accountStats.credits.remaining / accountStats.credits.total) * 100)}%` }}
+                />
+              </div>
+            </div>
+            <div className="flex items-center gap-5 shrink-0">
+              <div className="text-center">
+                <p className={`text-lg font-black ${accountStats.last30Days.deliveryRate >= 95 ? "text-green-400" : accountStats.last30Days.deliveryRate >= 85 ? "text-yellow-400" : "text-red-400"}`}>
+                  {accountStats.last30Days.deliveryRate.toFixed(1)}%
+                </p>
+                <p className="text-white/30 text-[9px] uppercase tracking-widest">Entrega</p>
+              </div>
+              <div className="text-center">
+                <p className={`text-lg font-black ${accountStats.last30Days.openRate >= 30 ? "text-green-400" : accountStats.last30Days.openRate >= 15 ? "text-yellow-400" : "text-red-400"}`}>
+                  {accountStats.last30Days.openRate.toFixed(1)}%
+                </p>
+                <p className="text-white/30 text-[9px] uppercase tracking-widest">Abertura</p>
+              </div>
+              <div className="text-center">
+                <p className="text-lg font-black text-white/60">{accountStats.last30Days.sent}</p>
+                <p className="text-white/30 text-[9px] uppercase tracking-widest">Enviados/30d</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Campaign list */}
+        {campaigns.length === 0 ? (
+          <div className="glass-card rounded-2xl p-10 text-center">
+            <Inbox className="h-8 w-8 text-white/10 mx-auto mb-3" />
+            <p className="text-white/25 text-sm">Nenhuma campanha enviada ainda</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {campaigns.map((campaign) => {
+              const isSelected = selectedCampaignId === campaign.id;
+              const targetFair = fairs?.find((f) => f.id === campaign.targetFairId);
+              const sentDate = new Date(campaign.sentAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
+
+              return (
+                <div key={campaign.id} className={`glass-card rounded-2xl overflow-hidden border transition-all ${isSelected ? "border-brand-cyan/30" : "border-white/5"}`}>
+                  <button
+                    onClick={() => loadCampaignStats(campaign.id)}
+                    className="w-full flex items-center gap-4 p-4 text-left hover:bg-white/5 transition-all group"
+                  >
+                    <div className={`w-1 self-stretch rounded-full shrink-0 transition-colors ${isSelected ? "bg-brand-cyan" : "bg-white/10 group-hover:bg-white/20"}`} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-black text-white truncate">{campaign.title}</p>
+                      <p className="text-xs text-white/40 truncate mt-0.5">{campaign.subject}</p>
+                    </div>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <Badge className={`text-[9px] font-black uppercase tracking-widest border-0 ${campaign.sendTo === "all" ? "bg-brand-cyan/10 text-brand-cyan" : "bg-brand-pink/10 text-brand-pink"}`}>
+                        {campaign.sendTo === "all" ? "Todos" : "Ausentes"}
+                      </Badge>
+                      <div className="text-right hidden sm:block">
+                        <p className="text-xs text-white/60 font-bold">{campaign.totalQueued} emails</p>
+                        <p className="text-[9px] text-white/30">{targetFair?.name ?? sentDate}</p>
+                      </div>
+                      <ChevronRight className={`h-4 w-4 text-white/30 transition-transform ${isSelected ? "rotate-90" : ""}`} />
+                    </div>
+                  </button>
+
+                  {isSelected && (
+                    <div className="border-t border-white/5 p-4">
+                      {loadingStats ? (
+                        <div className="flex items-center justify-center py-6 gap-2">
+                          <LogoLoading size={18} minimal className="animate-pulse" />
+                          <span className="text-white/40 text-xs">Carregando estatísticas...</span>
+                        </div>
+                      ) : campaignStats ? (
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                          <div className="bg-white/5 rounded-xl p-3 text-center">
+                            <p className={`text-xl font-black ${campaignStats.delivery.deliveryRate >= 95 ? "text-green-400" : campaignStats.delivery.deliveryRate >= 85 ? "text-yellow-400" : "text-red-400"}`}>
+                              {campaignStats.delivery.deliveryRate.toFixed(1)}%
+                            </p>
+                            <p className="text-white/30 text-[9px] uppercase tracking-widest mt-0.5">Taxa de Entrega</p>
+                            <p className="text-white/40 text-xs mt-1">{campaignStats.delivery.delivered}/{campaignStats.delivery.queued}</p>
+                          </div>
+                          <div className="bg-white/5 rounded-xl p-3 text-center">
+                            <TrendingUp className={`h-4 w-4 mx-auto mb-1 ${campaignStats.engagement.openRate >= 30 ? "text-green-400" : campaignStats.engagement.openRate >= 15 ? "text-yellow-400" : "text-red-400"}`} />
+                            <p className={`text-xl font-black ${campaignStats.engagement.openRate >= 30 ? "text-green-400" : campaignStats.engagement.openRate >= 15 ? "text-yellow-400" : "text-red-400"}`}>
+                              {campaignStats.engagement.openRate.toFixed(1)}%
+                            </p>
+                            <p className="text-white/30 text-[9px] uppercase tracking-widest mt-0.5">Abertura</p>
+                            <p className="text-white/40 text-xs mt-1">{campaignStats.engagement.uniqueOpens} únicos</p>
+                          </div>
+                          <div className="bg-white/5 rounded-xl p-3 text-center">
+                            <MousePointerClick className={`h-4 w-4 mx-auto mb-1 ${campaignStats.engagement.clickRate >= 5 ? "text-green-400" : campaignStats.engagement.clickRate >= 2 ? "text-yellow-400" : "text-red-400"}`} />
+                            <p className={`text-xl font-black ${campaignStats.engagement.clickRate >= 5 ? "text-green-400" : campaignStats.engagement.clickRate >= 2 ? "text-yellow-400" : "text-red-400"}`}>
+                              {campaignStats.engagement.clickRate.toFixed(1)}%
+                            </p>
+                            <p className="text-white/30 text-[9px] uppercase tracking-widest mt-0.5">Cliques</p>
+                            <p className="text-white/40 text-xs mt-1">{campaignStats.engagement.uniqueClicks} únicos</p>
+                          </div>
+                          <div className="bg-white/5 rounded-xl p-3 text-center">
+                            <p className={`text-xl font-black ${(campaignStats.delivery.hardBounces + campaignStats.delivery.spam) === 0 ? "text-green-400" : "text-red-400"}`}>
+                              {campaignStats.delivery.hardBounces + campaignStats.delivery.spam}
+                            </p>
+                            <p className="text-white/30 text-[9px] uppercase tracking-widest mt-0.5">Bounces + Spam</p>
+                            <p className="text-white/40 text-xs mt-1">{campaignStats.engagement.unsubscribed} descad.</p>
+                          </div>
+                        </div>
+                      ) : null}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
       {/* ── AI Prompt Dialog ── */}
       <Dialog open={showAIDialog} onOpenChange={setShowAIDialog}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-brand-blue/95 border-white/10 text-white">
@@ -981,16 +1251,16 @@ export const MarketingPage: React.FC = () => {
           </DialogHeader>
 
           <div className="space-y-4 mt-2">
-            {!selectedFair && (
+            {!headerFair && (
               <div className="flex items-center gap-2 p-3 bg-brand-orange/10 border border-brand-orange/20 rounded-xl text-sm text-brand-orange">
                 <AlertTriangle className="h-4 w-4 shrink-0" />
-                Selecione uma feira primeiro — os dados da feira são incluídos automaticamente no prompt.
+                Selecione uma feira no cabeçalho da página — os dados da feira são incluídos automaticamente no prompt.
               </div>
             )}
-            {selectedFair && (
+            {headerFair && (
               <div className="flex items-center gap-2 p-3 bg-brand-cyan/10 border border-brand-cyan/20 rounded-xl text-sm text-brand-cyan">
                 <ChevronRight className="h-4 w-4 shrink-0" />
-                Dados de <strong className="text-white">{selectedFair.name}</strong>
+                Dados de <strong className="text-white">{headerFair.name}</strong>
                 {locationParts ? ` (${locationParts})` : ""} incluídos no prompt.
               </div>
             )}
@@ -1008,7 +1278,7 @@ export const MarketingPage: React.FC = () => {
 
             <Button
               onClick={handleGeneratePrompt}
-              disabled={!selectedFair || !aiDescription.trim()}
+              disabled={!headerFair || !aiDescription.trim()}
               className="w-full h-12 bg-brand-cyan text-brand-blue font-black uppercase tracking-widest rounded-2xl hover:bg-brand-cyan/90 transition-all disabled:opacity-40"
             >
               <Sparkles className="h-4 w-4 mr-2" />
@@ -1035,12 +1305,33 @@ export const MarketingPage: React.FC = () => {
                   rows={14}
                   className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white/60 text-xs font-mono leading-relaxed focus:outline-none resize-none"
                 />
-                <div className="p-3 bg-brand-cyan/10 border border-brand-cyan/20 rounded-xl text-xs text-brand-cyan">
-                  <strong>Próximo passo:</strong> Copie o prompt, cole no{" "}
-                  <a href="https://claude.ai" target="_blank" rel="noopener noreferrer" className="underline font-black text-white">
-                    Claude.ai
-                  </a>{" "}
-                  ou ChatGPT. Cole o HTML retornado no editor e vá em <strong className="text-white">Pré-visualização</strong>.
+                <div className="space-y-3">
+                  <p className="text-white/40 text-[10px] font-black uppercase tracking-widest">Abrir no assistente de IA:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {AI_SERVICES.map((ai) => (
+                      <button
+                        key={ai.name}
+                        onClick={() => handleOpenAI(ai.url, ai.name)}
+                        className="flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-black transition-all hover:scale-[1.03] active:scale-[0.97]"
+                        style={{
+                          color: ai.color,
+                          borderColor: `${ai.color}40`,
+                          backgroundColor: `${ai.color}12`,
+                        }}
+                        onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = `${ai.color}22`; (e.currentTarget as HTMLButtonElement).style.borderColor = `${ai.color}80`; }}
+                        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = `${ai.color}12`; (e.currentTarget as HTMLButtonElement).style.borderColor = `${ai.color}40`; }}
+                      >
+                        {ai.icon}
+                        {ai.name}
+                        <ExternalLink className="h-3 w-3 opacity-50" />
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-white/25 text-[10px] leading-relaxed">
+                    Clicar em qualquer IA copia o prompt automaticamente — cole com{" "}
+                    <kbd className="bg-white/10 px-1.5 py-0.5 rounded text-white/40 font-mono">Ctrl+V</kbd>{" "}
+                    na janela que abrir. Depois cole o HTML gerado no editor.
+                  </p>
                 </div>
               </div>
             )}
@@ -1061,7 +1352,7 @@ export const MarketingPage: React.FC = () => {
                 <div className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-1.5 text-left">
                   <p>
                     <span className="text-white/30 font-black uppercase tracking-widest text-xs">Feira: </span>
-                    <span className="text-white font-bold">{selectedFair?.name ?? "—"}</span>
+                    <span className="text-white font-bold">{headerFair?.name ?? "—"}</span>
                   </p>
                   {locationParts && (
                     <p>
