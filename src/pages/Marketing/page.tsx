@@ -53,6 +53,8 @@ import {
   MousePointerClick,
   Inbox,
   ExternalLink,
+  Clipboard,
+  Info,
 } from "lucide-react";
 import { LogoLoading } from "@/components/LogoLoading";
 import type { Fair } from "@/interfaces/fairs";
@@ -585,48 +587,138 @@ const AI_SERVICES = [
 
 const generateAIPrompt = (fair: Fair, userDescription: string): string => {
   const { name, fullLocation, dateRange, time, mapsUrl } = fairInfo(fair);
-  return `Você é um especialista em email marketing B2B. Crie um email HTML profissional e persuasivo para a ExpoMultiMix.
+  const monthYear = new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+  return `Você é uma especialista sênior em email marketing B2B com mais de 10 anos de experiência em eventos comerciais de grande porte. Você domina design moderno, copywriting persuasivo e as melhores práticas de entregabilidade.
 
-## Identidade Visual da ExpoMultiMix
-- Cor primária: #1E3A8A (azul escuro institucional)
-- Cor secundária: #2563EB (azul vibrante)
-- Cor de destaque: #F97316 (laranja — use para botões CTA e destaques)
-- Cor de sucesso: #10B981 (verde — use com moderação)
-- Fundo externo: #f4f4f4, fundo do card: #ffffff
-- Logo URL: https://static.wixstatic.com/media/88e022_551e4ef3cf61439fad4f84eca702a829~mv2.png/v1/crop/x_0,y_190,w_2084,h_1301/fill/w_536,h_340,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/EMM2024%20logo%20br_Prancheta%201.png
-- Tom de voz: Profissional, empolgante, focado em negócios, acolhedor
+## Missão
+Crie um email de marketing completo para a ${name}. Você deve gerar o TÍTULO INTERNO da campanha, o SUBJECT LINE e o HTML do email.
 
-## Dados da Feira (USE EXATAMENTE — não invente)
+## Identidade Visual da ExpoMultiMix (SIGA RIGOROSAMENTE)
+
+### Paleta de Cores
+- Fundo do email: #0A1628 (navy escuro) — use como background do <body> e do wrapper externo
+- Cards e seções internas: background rgba(255,255,255,0.05), border 1px solid rgba(255,255,255,0.1) — efeito glassmorphism adaptado para email
+- Botão CTA principal: background #E91E63 (rosa vibrante), texto #FFFFFF, uppercase, font-weight 900, border-radius 8px, padding 16px 40px
+- Botão CTA secundário: background transparent, border 2px solid rgba(255,255,255,0.3), texto #FFFFFF, border-radius 8px
+- Destaque de informação: #00BCD4 (ciano) — datas, locais, subtítulos em destaque
+- Urgência/badge: #FF7043 (laranja) — contagens regressivas, vagas limitadas
+- Texto principal: #FFFFFF
+- Texto secundário: rgba(255,255,255,0.75)
+- Texto de apoio: rgba(255,255,255,0.45)
+- Separadores decorativos: linha de 1px com gradiente de transparente → rgba(255,255,255,0.15) → transparente
+
+### Logo (use exatamente esta URL no atributo src do <img>)
+https://static.wixstatic.com/media/88e022_551e4ef3cf61439fad4f84eca702a829~mv2.png/v1/crop/x_0,y_190,w_2084,h_1301/fill/w_536,h_340,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/EMM2024%20logo%20br_Prancheta%201.png
+
+### Diretrizes de Design
+- Layout dark glassmorphism: cards semitransparentes com borda sutil sobre fundo navy profundo
+- Tipografia: Arial, Helvetica, sans-serif — títulos em 28–36px bold/900, subtítulos em 16–18px 700, corpo em 14–16px 400, line-height 1.65
+- Padding interno dos cards: mínimo 32px horizontal, 24px vertical
+- Espaçamento entre seções: 24–32px
+- Imagens decorativas opcionais: use gradientes CSS inline ou emojis Unicode para ícones (sem imagens externas além do logo)
+- Single-column layout, max-width 600px, centralizado com margin: 0 auto
+
+## Dados da Feira (COPIE EXATAMENTE — não altere, não invente)
 - Nome: ${name}
 - Local completo: ${fullLocation}
 - Data: ${dateRange || "a confirmar"}
 - Horário: ${time || "a confirmar"}
 ${mapsUrl !== "#" ? `- Google Maps: ${mapsUrl}` : ""}
 
-## Conteúdo solicitado
+## Personalização
+Use {{VISITOR_NAME}} onde quiser o nome do destinatário. O sistema substitui automaticamente antes do envio.
+Exemplo de saudação: "Olá, {{VISITOR_NAME}}! Sentimos a sua falta na ${name}."
+
+## O que criar
 ${userDescription}
 
-## Requisitos Técnicos OBRIGATÓRIOS
-1. HTML completo com <!DOCTYPE html>, <head> com charset UTF-8 e viewport meta, e <body>
-2. TODOS os estilos inline — NENHUM bloco <style> ou CSS externo
-3. Estrutura de tabelas HTML (table, tr, td) para compatibilidade máxima
-4. Max-width 600px centralizado
-5. Compatível com Gmail, Outlook 2016+, Apple Mail
-6. Responsivo para mobile
-7. Logo da ExpoMultiMix no cabeçalho com a URL acima
-8. Nome, data e local da feira SEMPRE visíveis no cabeçalho do email
+## Estrutura recomendada do email
+1. Header com logo + gradiente de fundo
+2. Headline principal impactante (máx 10 palavras, em destaque)
+3. Saudação personalizada com {{VISITOR_NAME}}
+4. Proposta de valor em 2–3 bullet points visuais (use ✓ ou ► ou entidades HTML)
+5. Card de detalhes da feira (data 📅, local 📍, horário 🕐) com fundo glassmorphism
+6. CTA principal em rosa (#E91E63) — texto urgente e direto
+7. Seção de benefícios ou depoimentos (opcional, conforme o pedido)
+8. CTA secundário com borda branca
+9. Rodapé com nome da feira, data e link de descadastro (placeholder)
 
-## FORMATO DE RETORNO (OBRIGATÓRIO)
-Retorne o HTML dentro de um bloco de código markdown, exatamente assim:
+## Boas práticas obrigatórias
+- Saudação pessoal com {{VISITOR_NAME}} nas primeiras linhas
+- Data, hora e local em destaque visual (próprio card ou linha colorida)
+- Senso de urgência genuíno quando aplicável
+- Máximo 1 assunto por parágrafo — sem blocos de texto denso
+- Tom profissional, empolgante e direto — sem exageros ou clichês
+
+## Requisitos Técnicos OBRIGATÓRIOS
+1. HTML completo com <!DOCTYPE html>, <head> (charset UTF-8, viewport meta, <title>), <body>
+2. TODOS os estilos inline — ZERO blocos <style> ou arquivos CSS externos
+3. Estrutura de tabelas HTML (table, tr, td) para compatibilidade máxima com Outlook 2016+
+4. background-color: #0A1628 no <body> e no table wrapper externo
+5. Logo da ExpoMultiMix no cabeçalho (URL exata acima), com alt="ExpoMultiMix"
+6. Nome, data e local da feira sempre visíveis e destacados
+7. Compatível com Gmail, Outlook 2016+, Apple Mail, mobile
+8. Nenhum JavaScript, nenhum CSS externo, nenhuma fonte do Google Fonts
+
+## FORMATO DE RETORNO — SIGA EXATAMENTE (não adicione nada fora desta estrutura)
+
+TITULO: [nome interno da campanha para o histórico, ex: "Remarketing ${name} — ${monthYear}"]
+ASSUNTO: [subject line — máx 60 caracteres, atraente, sem palavras spam como "grátis", "clique aqui", "promoção"]
 
 \`\`\`html
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
+...
+</html>
+\`\`\``;
+};
+
+const generateRevisionPrompt = (originalPrompt: string, currentHtml: string, comment: string): string => {
+  const hasHtml = currentHtml.trim().length > 0;
+  return `Você é uma especialista sênior em email marketing B2B. Preciso que revise o email abaixo incorporando as alterações solicitadas.
+
+## Contexto original (identidade visual, paleta e dados da feira — mantenha tudo isso)
+${originalPrompt}
+
+---
+${hasHtml ? `## HTML atual
+\`\`\`html
+${currentHtml}
+\`\`\`
+
+` : ""}## Alterações solicitadas
+${comment}
+
+## Regras de revisão
+- Incorpore SOMENTE as alterações pedidas acima — não mude o que não foi solicitado
+- Mantenha a paleta dark glassmorphism, os dados da feira e a estrutura geral
+- Se o TITULO e o ASSUNTO não foram pedidos para mudar, retorne os mesmos
+
+## FORMATO DE RETORNO — SIGA EXATAMENTE
+
+TITULO: [mesmo título ou novo se solicitado]
+ASSUNTO: [mesmo subject ou novo se solicitado]
+
+\`\`\`html
+<!DOCTYPE html>
+<html lang="pt-BR">
 ...
 </html>
 \`\`\`
 
-Coloque TODO o HTML dentro desse bloco. Não adicione texto, comentários ou explicações fora do bloco de código.`;
+Não adicione texto fora desta estrutura.`;
+};
+
+const parseAIResponse = (text: string): { title?: string; subject?: string; html?: string } => {
+  const titleMatch = text.match(/^TITULO:\s*(.+)$/m);
+  const subjectMatch = text.match(/^ASSUNTO:\s*(.+)$/m);
+  const htmlMatch = text.match(/```html\s*([\s\S]*?)```/);
+  const strip = (s?: string) => s?.trim().replace(/^["'\[]|["'\]]$/g, "").trim();
+  return {
+    title: strip(titleMatch?.[1]),
+    subject: strip(subjectMatch?.[1]),
+    html: htmlMatch?.[1]?.trim(),
+  };
 };
 
 // ─── Component ─────────────────────────────────────────────────────────────────
@@ -654,6 +746,10 @@ export const MarketingPage: React.FC = () => {
   const [aiDescription, setAiDescription] = useState("");
   const [generatedPrompt, setGeneratedPrompt] = useState("");
   const [promptCopied, setPromptCopied] = useState(false);
+  const [revisionComment, setRevisionComment] = useState("");
+  const [revisionPrompt, setRevisionPrompt] = useState("");
+  const [aiResponseInput, setAiResponseInput] = useState("");
+  const [showPasteArea, setShowPasteArea] = useState(false);
 
   // Campaign history + account stats
   const [campaigns, setCampaigns] = useState<import("@/service/marketing.service").Campaign[]>([]);
@@ -710,6 +806,38 @@ export const MarketingPage: React.FC = () => {
     window.open(url, "_blank", "noopener,noreferrer");
     toast.success(`Prompt copiado — cole no ${name}`, { description: "Use Ctrl+V (ou Cmd+V) para colar." });
   }, [generatedPrompt]);
+
+  const handleGenerateRevision = useCallback(() => {
+    if (!revisionComment.trim()) { toast.error("Descreva as alterações que você quer"); return; }
+    const originalContext = generatedPrompt || (headerFair ? generateAIPrompt(headerFair, "Usar como referência de contexto e identidade visual") : "");
+    setRevisionPrompt(generateRevisionPrompt(originalContext, htmlContent, revisionComment));
+    setRevisionComment("");
+    toast.success("Prompt de revisão gerado — clique em uma IA para copiar e abrir");
+  }, [revisionComment, generatedPrompt, htmlContent, headerFair]);
+
+  const handleOpenRevisionAI = useCallback(async (url: string, name: string) => {
+    await navigator.clipboard.writeText(revisionPrompt);
+    window.open(url, "_blank", "noopener,noreferrer");
+    toast.success(`Prompt copiado — cole no ${name}`, { description: "Use Ctrl+V (ou Cmd+V) para colar." });
+  }, [revisionPrompt]);
+
+  const handleApplyAIResponse = useCallback(() => {
+    if (!aiResponseInput.trim()) { toast.error("Cole a resposta da IA antes de aplicar"); return; }
+    const parsed = parseAIResponse(aiResponseInput);
+    if (!parsed.html && !parsed.title && !parsed.subject) {
+      toast.error("Não foi possível extrair os dados — verifique se a IA retornou no formato TITULO / ASSUNTO / ```html```");
+      return;
+    }
+    if (parsed.title) setTitle(parsed.title);
+    if (parsed.subject) setSubject(parsed.subject);
+    if (parsed.html) setHtmlContent(parsed.html);
+    setAiResponseInput("");
+    setShowPasteArea(false);
+    setActiveTab("preview");
+    toast.success("Resposta aplicada!", {
+      description: [parsed.title && "título", parsed.subject && "assunto", parsed.html && "HTML"].filter(Boolean).join(", ") + " preenchidos automaticamente.",
+    });
+  }, [aiResponseInput]);
 
   const openConfirmDialog = (audience: "all" | "absent") => {
     if (!headerFair) { toast.error("Selecione uma feira no cabeçalho da página"); return; }
@@ -898,11 +1026,36 @@ export const MarketingPage: React.FC = () => {
         </div>
       </div>
 
-      {/* ── Step 2: Template selector ── */}
+      {/* ── Step 2: Template selector + Gerar com IA ── */}
       <div className="glass-card border-white/5 shadow-2xl rounded-[32px] p-6 lg:p-8">
-        <div className="flex items-center gap-3 mb-5">
+        <div className="flex items-center gap-3 mb-1">
           <span className="bg-brand-pink text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black shrink-0">2</span>
-          <h2 className="text-sm font-black text-white uppercase tracking-widest">Escolher Template</h2>
+          <h2 className="text-sm font-black text-white uppercase tracking-widest">Conteúdo do Email</h2>
+        </div>
+        <p className="text-white/30 text-xs mb-5 ml-9">Gere com IA ou escolha um template como ponto de partida <span className="text-white/20">(opcional)</span></p>
+
+        {/* ── Gerar com IA — destaque principal ── */}
+        <button
+          onClick={() => setShowAIDialog(true)}
+          className="w-full flex items-center gap-4 p-5 rounded-2xl border border-brand-cyan/30 bg-brand-cyan/8 hover:bg-brand-cyan/15 hover:border-brand-cyan/50 transition-all group mb-5 text-left"
+        >
+          <div className="bg-brand-cyan/20 rounded-2xl p-3 shrink-0 group-hover:bg-brand-cyan/30 transition-colors">
+            <Sparkles className="h-6 w-6 text-brand-cyan" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-brand-cyan font-black uppercase tracking-widest text-sm">Gerar com IA</p>
+            <p className="text-white/40 text-xs mt-0.5">
+              Descreva o email em português — a IA gera título, assunto e HTML completo com design dark glassmorphism
+            </p>
+          </div>
+          <ChevronRight className="h-5 w-5 text-brand-cyan/40 group-hover:text-brand-cyan/70 shrink-0 transition-colors" />
+        </button>
+
+        {/* ── Divider ── */}
+        <div className="flex items-center gap-3 mb-5">
+          <div className="flex-1 h-px bg-white/8" />
+          <span className="text-white/20 text-[10px] font-black uppercase tracking-widest">ou use um template</span>
+          <div className="flex-1 h-px bg-white/8" />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
@@ -912,7 +1065,7 @@ export const MarketingPage: React.FC = () => {
               <button
                 key={tpl.id}
                 onClick={() => handleSelectTemplate(tpl)}
-                disabled={!selectedFairId}
+                disabled={!headerFair}
                 className={`group relative flex flex-col items-start gap-2 p-4 rounded-2xl border text-left transition-all active:scale-[0.97] disabled:opacity-30 disabled:cursor-not-allowed ${
                   isSelected
                     ? "bg-brand-pink/15 border-brand-pink/40 shadow-lg shadow-brand-pink/10"
@@ -945,8 +1098,8 @@ export const MarketingPage: React.FC = () => {
           })}
         </div>
 
-        {!selectedFairId && (
-          <p className="mt-3 text-white/25 text-xs text-center">Selecione uma feira no passo 1 para habilitar os templates</p>
+        {!headerFair && (
+          <p className="mt-3 text-white/20 text-xs text-center">Selecione uma feira no cabeçalho para habilitar os templates</p>
         )}
       </div>
 
@@ -985,6 +1138,51 @@ export const MarketingPage: React.FC = () => {
 
         {activeTab === "editor" && (
           <div className="space-y-5">
+
+            {/* ── Paste AI response ── */}
+            <div className="rounded-2xl border border-brand-cyan/20 overflow-hidden">
+              <button
+                onClick={() => setShowPasteArea(!showPasteArea)}
+                className="w-full flex items-center justify-between px-4 py-3 bg-brand-cyan/8 hover:bg-brand-cyan/12 transition-colors text-left"
+              >
+                <span className="flex items-center gap-2 text-brand-cyan text-xs font-black uppercase tracking-widest">
+                  <Clipboard className="h-3.5 w-3.5" />
+                  Colar resposta da IA
+                </span>
+                <ChevronRight className={`h-3.5 w-3.5 text-brand-cyan/60 transition-transform duration-200 ${showPasteArea ? "rotate-90" : ""}`} />
+              </button>
+              {showPasteArea && (
+                <div className="px-4 pb-4 pt-3 bg-brand-cyan/5 space-y-3 border-t border-brand-cyan/10">
+                  <p className="text-white/35 text-[10px] leading-relaxed">
+                    Cole aqui a resposta completa da IA — o sistema extrai automaticamente o <span className="text-white/60">título</span>, o <span className="text-white/60">assunto</span> e o <span className="text-white/60">HTML</span>.
+                  </p>
+                  <textarea
+                    value={aiResponseInput}
+                    onChange={(e) => setAiResponseInput(e.target.value)}
+                    rows={7}
+                    placeholder={"TITULO: Remarketing Feira — Maio 2026\nASSUNTO: Você perdeu a maior feira do Norte\n\n```html\n<!DOCTYPE html>...\n```"}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-3 text-white/80 text-xs font-mono leading-relaxed placeholder:text-white/15 focus:outline-none focus:border-brand-cyan/40 focus:ring-2 focus:ring-brand-cyan/10 transition-all resize-none overflow-x-auto"
+                  />
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={handleApplyAIResponse}
+                      disabled={!aiResponseInput.trim()}
+                      className="flex-1 h-9 bg-brand-cyan text-brand-blue text-xs font-black uppercase tracking-widest rounded-xl hover:bg-brand-cyan/90 transition-all disabled:opacity-40 cursor-pointer"
+                    >
+                      <Check className="h-3.5 w-3.5 mr-1.5" />
+                      Aplicar
+                    </Button>
+                    <button
+                      onClick={() => { setShowPasteArea(false); setAiResponseInput(""); }}
+                      className="px-4 text-xs text-white/30 hover:text-white/60 font-bold transition-colors"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
             <div>
               <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-2">Nome Interno da Campanha</p>
               <Input
@@ -1007,22 +1205,13 @@ export const MarketingPage: React.FC = () => {
             </div>
 
             <div>
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-white/40 text-xs font-black uppercase tracking-widest">Conteúdo HTML</p>
-                <button
-                  onClick={() => setShowAIDialog(true)}
-                  className="flex items-center gap-1 text-xs text-brand-cyan hover:text-white font-black uppercase tracking-widest transition-colors"
-                >
-                  <Sparkles className="h-3 w-3" />
-                  Gerar com IA
-                </button>
-              </div>
+              <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-2">Conteúdo HTML</p>
               <textarea
                 value={htmlContent}
                 onChange={(e) => setHtmlContent(e.target.value)}
                 rows={18}
                 placeholder={selectedTemplateId ? "" : "Escolha um template acima ou cole seu HTML aqui..."}
-                className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white/80 text-xs font-mono leading-relaxed placeholder:text-white/20 focus:outline-none focus:border-brand-pink/50 focus:ring-4 focus:ring-brand-pink/10 transition-all resize-none"
+                className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white/80 text-xs font-mono leading-relaxed placeholder:text-white/20 focus:outline-none focus:border-brand-pink/50 focus:ring-4 focus:ring-brand-pink/10 transition-all resize-none overflow-x-auto"
               />
             </div>
           </div>
@@ -1049,6 +1238,68 @@ export const MarketingPage: React.FC = () => {
                 <p className="text-white/25 text-xs text-center">
                   Visualização isolada — representa fielmente como o email aparecerá nos clientes de email.
                 </p>
+
+                {/* ── Revision request ── */}
+                <div className="mt-2 pt-5 border-t border-white/5 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-brand-cyan/60" />
+                    <span className="text-white/50 font-black text-[10px] uppercase tracking-widest">Solicitar alterações com IA</span>
+                  </div>
+                  <textarea
+                    value={revisionComment}
+                    onChange={(e) => setRevisionComment(e.target.value)}
+                    placeholder='Ex: "Mude o botão CTA para laranja, aumente o título, remova a seção de depoimentos..."'
+                    rows={3}
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white text-sm placeholder:text-white/20 focus:outline-none focus:border-brand-cyan/50 focus:ring-4 focus:ring-brand-cyan/10 transition-all resize-none"
+                  />
+                  <Button
+                    onClick={handleGenerateRevision}
+                    disabled={!revisionComment.trim()}
+                    className="w-full h-10 bg-brand-cyan/10 border border-brand-cyan/20 text-brand-cyan font-black uppercase tracking-widest rounded-2xl hover:bg-brand-cyan/20 transition-all disabled:opacity-40 cursor-pointer"
+                  >
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    Gerar Prompt de Revisão
+                  </Button>
+
+                  {revisionPrompt && (
+                    <div className="space-y-3 pt-1">
+                      <div className="flex items-center justify-between">
+                        <p className="text-white/40 text-[10px] font-black uppercase tracking-widest">Abrir no assistente de IA:</p>
+                        <button
+                          onClick={async () => {
+                            await navigator.clipboard.writeText(revisionPrompt);
+                            toast.success("Prompt de revisão copiado!");
+                          }}
+                          className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-white/30 hover:text-white/60 transition-colors"
+                        >
+                          <Copy className="h-3 w-3" />
+                          Copiar prompt
+                        </button>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {AI_SERVICES.map((ai) => (
+                          <button
+                            key={ai.name}
+                            onClick={() => handleOpenRevisionAI(ai.url, ai.name)}
+                            className="flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-black transition-all hover:scale-[1.03] active:scale-[0.97]"
+                            style={{ color: ai.color, borderColor: `${ai.color}40`, backgroundColor: `${ai.color}12` }}
+                            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = `${ai.color}22`; (e.currentTarget as HTMLButtonElement).style.borderColor = `${ai.color}80`; }}
+                            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = `${ai.color}12`; (e.currentTarget as HTMLButtonElement).style.borderColor = `${ai.color}40`; }}
+                          >
+                            {ai.icon}
+                            {ai.name}
+                            <ExternalLink className="h-3 w-3 opacity-50" />
+                          </button>
+                        ))}
+                      </div>
+                      <p className="text-white/20 text-[10px]">
+                        Clicar copia o prompt de revisão — cole com{" "}
+                        <kbd className="bg-white/10 px-1.5 py-0.5 rounded text-white/40 font-mono">Ctrl+V</kbd>{" "}
+                        na IA. Depois cole o HTML revisado no editor.
+                      </p>
+                    </div>
+                  )}
+                </div>
               </>
             ) : (
               <div className="h-64 flex items-center justify-center border border-white/5 rounded-2xl">
@@ -1111,41 +1362,60 @@ export const MarketingPage: React.FC = () => {
 
         {/* Account stats bar */}
         {accountStats && (
-          <div className="glass-card rounded-2xl p-4 flex flex-wrap items-center gap-6">
-            <div className="flex items-center gap-2 shrink-0">
-              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-              <span className="text-white/40 text-xs font-black uppercase tracking-widest">Brevo {accountStats.plan.name}</span>
+          <div className="glass-card rounded-2xl p-4 space-y-3">
+            {/* Plan + quick metrics row */}
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                <span className="text-white/40 text-xs font-black uppercase tracking-widest">Brevo {accountStats.plan.name}</span>
+                <span className="text-white/20 text-[9px]">· ciclo até {new Date(accountStats.plan.periodEnd).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}</span>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="text-center">
+                  <p className={`text-base font-black leading-none ${accountStats.last30Days.deliveryRate >= 95 ? "text-green-400" : accountStats.last30Days.deliveryRate >= 85 ? "text-yellow-400" : "text-red-400"}`}>
+                    {accountStats.last30Days.deliveryRate.toFixed(1)}%
+                  </p>
+                  <p className="text-white/30 text-[8px] uppercase tracking-widest mt-0.5">Entrega/30d</p>
+                </div>
+                <div className="text-center">
+                  <p className={`text-base font-black leading-none ${accountStats.last30Days.openRate >= 30 ? "text-green-400" : accountStats.last30Days.openRate >= 15 ? "text-yellow-400" : "text-red-400"}`}>
+                    {accountStats.last30Days.openRate.toFixed(1)}%
+                  </p>
+                  <p className="text-white/30 text-[8px] uppercase tracking-widest mt-0.5">Abertura/30d</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-base font-black leading-none text-white/60">{accountStats.last30Days.sent.toLocaleString("pt-BR")}</p>
+                  <p className="text-white/30 text-[8px] uppercase tracking-widest mt-0.5">Enviados/30d</p>
+                </div>
+              </div>
             </div>
-            <div className="flex-1 min-w-[160px]">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-white/30 text-[9px] font-black uppercase tracking-widest">Créditos restantes</span>
-                <span className="text-white/60 text-xs font-bold">
-                  {accountStats.credits.remaining.toLocaleString("pt-BR")} / {accountStats.credits.total.toLocaleString("pt-BR")}
+
+            {/* Credits bar */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-white/30 text-[9px] font-black uppercase tracking-widest">Créditos de email</span>
+                <span className="text-white/50 text-[10px] font-bold">
+                  <span className="text-brand-cyan">{accountStats.credits.remaining.toLocaleString("pt-BR")}</span>
+                  <span className="text-white/30"> disponíveis de </span>
+                  <span className="text-white/60">{accountStats.credits.total.toLocaleString("pt-BR")}</span>
                 </span>
               </div>
-              <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-brand-cyan rounded-full transition-all"
-                  style={{ width: `${Math.round((accountStats.credits.remaining / accountStats.credits.total) * 100)}%` }}
-                />
+              <div className="h-2 bg-white/5 rounded-full overflow-hidden flex">
+                {accountStats.credits.used > 0 && (
+                  <div
+                    className="h-full bg-brand-pink/50 transition-all duration-1000"
+                    style={{ width: `${Math.round((accountStats.credits.used / accountStats.credits.total) * 100)}%` }}
+                  />
+                )}
+                <div className="h-full bg-brand-cyan/70 transition-all duration-1000 flex-1 rounded-r-full" />
               </div>
-            </div>
-            <div className="flex items-center gap-5 shrink-0">
-              <div className="text-center">
-                <p className={`text-lg font-black ${accountStats.last30Days.deliveryRate >= 95 ? "text-green-400" : accountStats.last30Days.deliveryRate >= 85 ? "text-yellow-400" : "text-red-400"}`}>
-                  {accountStats.last30Days.deliveryRate.toFixed(1)}%
-                </p>
-                <p className="text-white/30 text-[9px] uppercase tracking-widest">Entrega</p>
-              </div>
-              <div className="text-center">
-                <p className={`text-lg font-black ${accountStats.last30Days.openRate >= 30 ? "text-green-400" : accountStats.last30Days.openRate >= 15 ? "text-yellow-400" : "text-red-400"}`}>
-                  {accountStats.last30Days.openRate.toFixed(1)}%
-                </p>
-                <p className="text-white/30 text-[9px] uppercase tracking-widest">Abertura</p>
-              </div>
-              <div className="text-center">
-                <p className="text-lg font-black text-white/60">{accountStats.last30Days.sent}</p>
-                <p className="text-white/30 text-[9px] uppercase tracking-widest">Enviados/30d</p>
+              <div className="flex justify-between mt-1">
+                <span className="text-white/20 text-[8px]">
+                  {accountStats.credits.used.toLocaleString("pt-BR")} utilizados ({Math.round((accountStats.credits.used / accountStats.credits.total) * 100)}%)
+                </span>
+                <span className="text-brand-cyan/50 text-[8px] font-bold">
+                  {Math.round((accountStats.credits.remaining / accountStats.credits.total) * 100)}% disponível
+                </span>
               </div>
             </div>
           </div>
@@ -1196,14 +1466,38 @@ export const MarketingPage: React.FC = () => {
                         </div>
                       ) : campaignStats ? (
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                          <div className="bg-white/5 rounded-xl p-3 text-center">
+
+                          {/* Entrega */}
+                          <div className="bg-white/5 rounded-xl p-3 text-center relative group/card">
+                            <div className="absolute top-2 right-2 opacity-0 group-hover/card:opacity-100 transition-opacity">
+                              <div className="relative group/tip">
+                                <Info className="h-3 w-3 text-white/30 hover:text-white/60 cursor-help transition-colors" />
+                                <div className="absolute bottom-full right-0 mb-2 w-56 p-3 bg-[#0A1628] border border-white/15 rounded-xl text-left text-[10px] text-white/60 leading-relaxed opacity-0 group-hover/tip:opacity-100 transition-opacity pointer-events-none z-50 shadow-2xl">
+                                  <p className="font-black text-white/80 mb-1">Taxa de Entrega</p>
+                                  <p>% dos emails que chegaram na caixa de entrada. <span className="text-brand-cyan">Ex: 96% = 960 de 1.000 entregues.</span></p>
+                                  <p className="mt-1 text-white/40">≥95% ótimo · 85–95% ok · &lt;85% investigar lista</p>
+                                </div>
+                              </div>
+                            </div>
                             <p className={`text-xl font-black ${campaignStats.delivery.deliveryRate >= 95 ? "text-green-400" : campaignStats.delivery.deliveryRate >= 85 ? "text-yellow-400" : "text-red-400"}`}>
                               {campaignStats.delivery.deliveryRate.toFixed(1)}%
                             </p>
                             <p className="text-white/30 text-[9px] uppercase tracking-widest mt-0.5">Taxa de Entrega</p>
                             <p className="text-white/40 text-xs mt-1">{campaignStats.delivery.delivered}/{campaignStats.delivery.queued}</p>
                           </div>
-                          <div className="bg-white/5 rounded-xl p-3 text-center">
+
+                          {/* Abertura */}
+                          <div className="bg-white/5 rounded-xl p-3 text-center relative group/card">
+                            <div className="absolute top-2 right-2 opacity-0 group-hover/card:opacity-100 transition-opacity">
+                              <div className="relative group/tip">
+                                <Info className="h-3 w-3 text-white/30 hover:text-white/60 cursor-help transition-colors" />
+                                <div className="absolute bottom-full right-0 mb-2 w-56 p-3 bg-[#0A1628] border border-white/15 rounded-xl text-left text-[10px] text-white/60 leading-relaxed opacity-0 group-hover/tip:opacity-100 transition-opacity pointer-events-none z-50 shadow-2xl">
+                                  <p className="font-black text-white/80 mb-1">Open Rate</p>
+                                  <p>% de destinatários únicos que abriram o email. <span className="text-brand-cyan">Ex: 30% = 300 pessoas de 1.000 entregues abriram.</span></p>
+                                  <p className="mt-1 text-white/40">≥30% excelente · 15–30% bom · &lt;15% revisar subject</p>
+                                </div>
+                              </div>
+                            </div>
                             <TrendingUp className={`h-4 w-4 mx-auto mb-1 ${campaignStats.engagement.openRate >= 30 ? "text-green-400" : campaignStats.engagement.openRate >= 15 ? "text-yellow-400" : "text-red-400"}`} />
                             <p className={`text-xl font-black ${campaignStats.engagement.openRate >= 30 ? "text-green-400" : campaignStats.engagement.openRate >= 15 ? "text-yellow-400" : "text-red-400"}`}>
                               {campaignStats.engagement.openRate.toFixed(1)}%
@@ -1211,7 +1505,19 @@ export const MarketingPage: React.FC = () => {
                             <p className="text-white/30 text-[9px] uppercase tracking-widest mt-0.5">Abertura</p>
                             <p className="text-white/40 text-xs mt-1">{campaignStats.engagement.uniqueOpens} únicos</p>
                           </div>
-                          <div className="bg-white/5 rounded-xl p-3 text-center">
+
+                          {/* Cliques */}
+                          <div className="bg-white/5 rounded-xl p-3 text-center relative group/card">
+                            <div className="absolute top-2 right-2 opacity-0 group-hover/card:opacity-100 transition-opacity">
+                              <div className="relative group/tip">
+                                <Info className="h-3 w-3 text-white/30 hover:text-white/60 cursor-help transition-colors" />
+                                <div className="absolute bottom-full right-0 mb-2 w-56 p-3 bg-[#0A1628] border border-white/15 rounded-xl text-left text-[10px] text-white/60 leading-relaxed opacity-0 group-hover/tip:opacity-100 transition-opacity pointer-events-none z-50 shadow-2xl">
+                                  <p className="font-black text-white/80 mb-1">Click Rate</p>
+                                  <p>% de destinatários que clicaram em algum link. <span className="text-brand-cyan">Ex: 5% = 50 pessoas de 1.000 entregues clicaram no CTA.</span></p>
+                                  <p className="mt-1 text-white/40">≥5% excelente · 2–5% bom · &lt;2% revisar CTA</p>
+                                </div>
+                              </div>
+                            </div>
                             <MousePointerClick className={`h-4 w-4 mx-auto mb-1 ${campaignStats.engagement.clickRate >= 5 ? "text-green-400" : campaignStats.engagement.clickRate >= 2 ? "text-yellow-400" : "text-red-400"}`} />
                             <p className={`text-xl font-black ${campaignStats.engagement.clickRate >= 5 ? "text-green-400" : campaignStats.engagement.clickRate >= 2 ? "text-yellow-400" : "text-red-400"}`}>
                               {campaignStats.engagement.clickRate.toFixed(1)}%
@@ -1219,13 +1525,28 @@ export const MarketingPage: React.FC = () => {
                             <p className="text-white/30 text-[9px] uppercase tracking-widest mt-0.5">Cliques</p>
                             <p className="text-white/40 text-xs mt-1">{campaignStats.engagement.uniqueClicks} únicos</p>
                           </div>
-                          <div className="bg-white/5 rounded-xl p-3 text-center">
+
+                          {/* Bounces + Spam */}
+                          <div className="bg-white/5 rounded-xl p-3 text-center relative group/card">
+                            <div className="absolute top-2 right-2 opacity-0 group-hover/card:opacity-100 transition-opacity">
+                              <div className="relative group/tip">
+                                <Info className="h-3 w-3 text-white/30 hover:text-white/60 cursor-help transition-colors" />
+                                <div className="absolute bottom-full right-0 mb-2 w-60 p-3 bg-[#0A1628] border border-white/15 rounded-xl text-left text-[10px] text-white/60 leading-relaxed opacity-0 group-hover/tip:opacity-100 transition-opacity pointer-events-none z-50 shadow-2xl">
+                                  <p className="font-black text-white/80 mb-1">Bounces + Spam</p>
+                                  <p><span className="text-brand-orange">Hard bounce:</span> endereço inválido permanentemente (ex: email digitado errado).</p>
+                                  <p className="mt-1"><span className="text-brand-orange">Spam:</span> destinatário marcou como indesejado — prejudica a reputação do remetente.</p>
+                                  <p className="mt-1 text-white/40">Ideal: zero. Acima de 2% pode bloquear envios futuros.</p>
+                                  <p className="mt-1 text-white/30">Descadastr.: {campaignStats.engagement.unsubscribed} pessoa(s) cancelaram</p>
+                                </div>
+                              </div>
+                            </div>
                             <p className={`text-xl font-black ${(campaignStats.delivery.hardBounces + campaignStats.delivery.spam) === 0 ? "text-green-400" : "text-red-400"}`}>
                               {campaignStats.delivery.hardBounces + campaignStats.delivery.spam}
                             </p>
                             <p className="text-white/30 text-[9px] uppercase tracking-widest mt-0.5">Bounces + Spam</p>
                             <p className="text-white/40 text-xs mt-1">{campaignStats.engagement.unsubscribed} descad.</p>
                           </div>
+
                         </div>
                       ) : null}
                     </div>
@@ -1272,7 +1593,7 @@ export const MarketingPage: React.FC = () => {
                 onChange={(e) => setAiDescription(e.target.value)}
                 placeholder={`Ex: "Lembrete que a feira começa amanhã, tom urgente e empolgante, com CTA para confirmar presença."`}
                 rows={4}
-                className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white text-sm placeholder:text-white/20 focus:outline-none focus:border-brand-cyan/50 focus:ring-4 focus:ring-brand-cyan/10 transition-all resize-none"
+                className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white text-sm placeholder:text-white/10 focus:outline-none focus:border-brand-cyan/50 focus:ring-4 focus:ring-brand-cyan/10 transition-all resize-none"
               />
             </div>
 

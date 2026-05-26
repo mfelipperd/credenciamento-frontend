@@ -223,10 +223,10 @@ export const MainLayout: React.FC = () => {
           </div>
         </header>
 
-        <main className="grow p-6 bg-brand-blue relative">
+        <main className="grow p-6 bg-brand-blue relative overflow-x-hidden">
           {/* Decorative background elements */}
-          <div className="absolute top-0 right-0 w-96 h-96 bg-brand-pink/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2" />
-          <div className="absolute bottom-0 left-0 w-96 h-96 bg-brand-cyan/5 blur-[120px] rounded-full translate-y-1/2 -translate-x-1/2" />
+          <div className="absolute top-0 right-0 w-96 h-96 bg-brand-pink/5 blur-[120px] rounded-full -translate-y-1/2" />
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-brand-cyan/5 blur-[120px] rounded-full translate-y-1/2" />
           
           <div className="relative z-10">
             <Outlet />
