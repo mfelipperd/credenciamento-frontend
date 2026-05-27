@@ -4,7 +4,7 @@ import { useFair, useUpdateFair, useDeleteFair, useToggleFairActive } from "@/ho
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useExpensesService } from "@/service/expenses.service";
 import { useFairService } from "@/service/fair.service";
-import { OverheadExpenseForm } from "@/pages/Expenses/components/OverheadExpenseForm";
+import { ExpenseForm } from "@/pages/Expenses/components/ExpenseForm";
 import type { AllocatedOverheadExpense, CreateOverheadExpenseForm, UpdateOverheadExpenseForm } from "@/interfaces/finance";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -498,26 +498,27 @@ export default function FairDetailPage() {
 
       {/* Modal de Formulário Despesa Overhead */}
       {isOverheadFormOpen && (
-        <OverheadExpenseForm
+        <ExpenseForm
           isOpen={isOverheadFormOpen}
           onClose={() => {
             setIsOverheadFormOpen(false);
             setEditingOverhead(null);
           }}
-          onSubmit={(data) => {
+          onSubmit={(submittedData) => {
             if (editingOverhead && !("isInitialTemplate" in editingOverhead)) {
               updateOverheadMutation.mutate({
                 overheadId: editingOverhead.id,
-                data: data as UpdateOverheadExpenseForm,
+                data: submittedData.payload as UpdateOverheadExpenseForm,
               });
             } else {
-              createOverheadMutation.mutate(data as CreateOverheadExpenseForm);
+              createOverheadMutation.mutate(submittedData.payload as CreateOverheadExpenseForm);
             }
           }}
           expense={editingOverhead}
           accounts={accounts || []}
           fairsList={fairsList || []}
           isLoading={createOverheadMutation.isPending || updateOverheadMutation.isPending}
+          defaultShared={true}
         />
       )}
 

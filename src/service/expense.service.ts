@@ -3,15 +3,17 @@ import type {
   CreateExpenseForm,
   UpdateExpenseForm,
   ExpenseFilters,
-  FinanceCategory,
-  CreateFinanceCategoryForm,
-  UpdateFinanceCategoryForm,
   Account,
   CreateAccountForm,
   UpdateAccountForm,
   ExpenseTotalByCategory,
   ExpenseTotalByAccount,
 } from "@/interfaces/finance";
+import type {
+  FinanceCategory,
+  CreateCategoryDto,
+  UpdateCategoryDto,
+} from "@/interfaces/categories";
 
 // Este arquivo agora serve apenas para exportar tipos
 // Todas as requisições são feitas diretamente pelos hooks do React Query
@@ -21,8 +23,8 @@ export type {
   UpdateExpenseForm,
   ExpenseFilters,
   FinanceCategory,
-  CreateFinanceCategoryForm,
-  UpdateFinanceCategoryForm,
+  CreateCategoryDto,
+  UpdateCategoryDto,
   Account,
   CreateAccountForm,
   UpdateAccountForm,

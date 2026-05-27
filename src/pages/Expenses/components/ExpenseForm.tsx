@@ -397,6 +397,7 @@ export function ExpenseForm({
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <DialogContent
+        aria-describedby={undefined}
         className={`transition-all duration-300 ${
           isExpanded ? "max-w-3xl w-[95vw]" : "max-w-lg w-[95vw]"
         } bg-slate-950 border border-white/10 text-white p-0 rounded-2xl shadow-2xl overflow-hidden flex flex-col`}
