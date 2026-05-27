@@ -23,11 +23,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { OverheadExpensesTable } from "./components/OverheadExpensesTable";
-import { OverheadExpenseForm } from "./components/OverheadExpenseForm";
 import type {
   Expense,
   CreateExpenseForm,
-  UpdateExpenseForm,
   CreateOverheadExpenseForm,
   UpdateOverheadExpenseForm,
   AllocatedOverheadExpense,
@@ -36,15 +34,14 @@ import type {
 export default function ExpensesPage() {
   const [, , fairId] = useSearchParams();
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [isOverheadFormOpen, setIsOverheadFormOpen] = useState(false);
+  const [defaultShared, setDefaultShared] = useState(false);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [isChartsOpen, setIsChartsOpen] = useState(false);
   
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
   const [expenseToDelete, setExpenseToDelete] = useState<Expense | null>(null);
   const [overheadToDelete, setOverheadToDelete] = useState<AllocatedOverheadExpense | null>(null);
-  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
-  const [editingOverheadExpense, setEditingOverheadExpense] = useState<AllocatedOverheadExpense | null>(null);
+  const [editingExpense, setEditingExpense] = useState<Expense | AllocatedOverheadExpense | null>(null);
   const [showCashFlowModal, setShowCashFlowModal] = useState(false);
 
   const expensesService = useExpensesService();
@@ -126,7 +123,6 @@ export default function ExpensesPage() {
       toast.success("Despesa overhead criada com sucesso!");
       queryClient.invalidateQueries({ queryKey: ["expenses", fairId] });
       queryClient.invalidateQueries({ queryKey: ["expenses-total", fairId] });
-      setIsOverheadFormOpen(false);
     },
     onError: (error) => {
       console.error("Erro ao criar despesa overhead:", error);
@@ -142,8 +138,6 @@ export default function ExpensesPage() {
       toast.success("Despesa overhead atualizada com sucesso!");
       queryClient.invalidateQueries({ queryKey: ["expenses", fairId] });
       queryClient.invalidateQueries({ queryKey: ["expenses-total", fairId] });
-      setIsOverheadFormOpen(false);
-      setEditingOverheadExpense(null);
     },
     onError: (error) => {
       console.error("Erro ao atualizar despesa overhead:", error);
@@ -166,29 +160,11 @@ export default function ExpensesPage() {
     },
   });
 
-  // Handlers
-  const handleCreateExpense = (data: CreateExpenseForm) => {
-    const expenseData = {
-      ...data,
-      fairId: fairId!,
-    };
-    createExpenseMutation.mutate(expenseData);
-  };
-
-  const handleUpdateExpense = (id: string, data: UpdateExpenseForm) => {
-    updateExpenseMutation.mutate({ id, data, fairId: fairId! }, {
-      onSuccess: () => {
-        setEditingExpense(null);
-        setIsFormOpen(false);
-      },
-    });
-  };
-
   const handleDeleteExpense = (id: string) => {
     deleteExpenseMutation.mutate(id);
   };
 
-  const handleEditExpense = (expense: Expense) => {
+  const handleEditExpense = (expense: Expense | AllocatedOverheadExpense) => {
     setEditingExpense(expense);
     setIsFormOpen(true);
   };
@@ -200,11 +176,59 @@ export default function ExpensesPage() {
   const handleCloseForm = () => {
     setIsFormOpen(false);
     setEditingExpense(null);
+    setDefaultShared(false);
   };
 
-  const handleCloseOverheadForm = () => {
-    setIsOverheadFormOpen(false);
-    setEditingOverheadExpense(null);
+  const handleFormSubmit = async (data: {
+    type: "direct" | "overhead";
+    payload: CreateExpenseForm | CreateOverheadExpenseForm;
+    previousType?: "direct" | "overhead";
+    previousId?: string;
+  }) => {
+    const { type, payload, previousType, previousId } = data;
+
+    if (previousId) {
+      if (previousType !== type) {
+        // Conversão de tipo de despesa ao salvar
+        try {
+          if (previousType === "direct") {
+            await deleteExpenseMutation.mutateAsync(previousId);
+            await createOverheadExpenseMutation.mutateAsync(payload as CreateOverheadExpenseForm);
+          } else {
+            await deleteOverheadExpenseMutation.mutateAsync(previousId);
+            await createExpenseMutation.mutateAsync(payload as CreateExpenseForm);
+          }
+          setIsFormOpen(false);
+          setEditingExpense(null);
+        } catch (error) {
+          console.error("Erro ao converter tipo de despesa:", error);
+        }
+      } else {
+        // Atualização sem mudança de tipo
+        if (type === "direct") {
+          updateExpenseMutation.mutate({ id: previousId, data: payload as CreateExpenseForm, fairId: fairId! }, {
+            onSuccess: () => {
+              setIsFormOpen(false);
+              setEditingExpense(null);
+            }
+          });
+        } else {
+          updateOverheadExpenseMutation.mutate({ id: previousId, data: payload as CreateOverheadExpenseForm }, {
+            onSuccess: () => {
+              setIsFormOpen(false);
+              setEditingExpense(null);
+            }
+          });
+        }
+      }
+    } else {
+      // Criação normal
+      if (type === "direct") {
+        createExpenseMutation.mutate(payload as CreateExpenseForm);
+      } else {
+        createOverheadExpenseMutation.mutate(payload as CreateOverheadExpenseForm);
+      }
+    }
   };
 
   const formatCurrency = (value: number) => {
@@ -278,10 +302,10 @@ export default function ExpensesPage() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 bg-slate-900/90 backdrop-blur-xl border border-white/10 rounded-xl text-white">
-              <DropdownMenuItem onClick={() => setIsFormOpen(true)} className="cursor-pointer hover:bg-white/10 rounded-lg p-2.5">
+              <DropdownMenuItem onClick={() => { setDefaultShared(false); setIsFormOpen(true); }} className="cursor-pointer hover:bg-white/10 rounded-lg p-2.5">
                 Despesa Direta
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setIsOverheadFormOpen(true)} className="cursor-pointer hover:bg-white/10 rounded-lg p-2.5">
+              <DropdownMenuItem onClick={() => { setDefaultShared(true); setIsFormOpen(true); }} className="cursor-pointer hover:bg-white/10 rounded-lg p-2.5">
                 Despesa Overhead (Rateada)
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -440,8 +464,7 @@ export default function ExpensesPage() {
                 expenses={expenses?.allocatedOverhead || []}
                 isLoading={isLoading}
                 onEdit={(expense) => {
-                  setEditingOverheadExpense(expense);
-                  setIsOverheadFormOpen(true);
+                  handleEditExpense(expense);
                 }}
                 onDelete={(expense) => setOverheadToDelete(expense)}
               />
@@ -450,22 +473,23 @@ export default function ExpensesPage() {
         </TabsContent>
       </Tabs>
 
-      {/* Modal de Formulário Despesa Direta */}
+      {/* Modal de Formulário Unificado */}
       <ExpenseForm
         isOpen={isFormOpen}
         onClose={handleCloseForm}
-        onSubmit={(data) => {
-          if (editingExpense) {
-            handleUpdateExpense(editingExpense.id, data as UpdateExpenseForm);
-          } else {
-            handleCreateExpense(data as CreateExpenseForm);
-          }
-        }}
+        onSubmit={handleFormSubmit}
         expense={editingExpense}
         categories={categories || []}
         accounts={accounts || []}
+        fairsList={fairsList || []}
+        defaultShared={defaultShared}
         isLoading={
-          createExpenseMutation.isPending || updateExpenseMutation.isPending
+          createExpenseMutation.isPending ||
+          updateExpenseMutation.isPending ||
+          createOverheadExpenseMutation.isPending ||
+          updateOverheadExpenseMutation.isPending ||
+          deleteExpenseMutation.isPending ||
+          deleteOverheadExpenseMutation.isPending
         }
         fairId={fairId}
         onCategoryCreated={() => {
@@ -476,29 +500,6 @@ export default function ExpensesPage() {
         onAccountCreated={() => {
           queryClient.refetchQueries({ queryKey: ["accounts"] });
         }}
-      />
-
-      {/* Modal de Formulário Despesa Overhead */}
-      <OverheadExpenseForm
-        isOpen={isOverheadFormOpen}
-        onClose={handleCloseOverheadForm}
-        onSubmit={(data) => {
-          if (editingOverheadExpense) {
-            updateOverheadExpenseMutation.mutate({
-              id: editingOverheadExpense.id,
-              data: data as UpdateOverheadExpenseForm,
-            });
-          } else {
-            createOverheadExpenseMutation.mutate(data as CreateOverheadExpenseForm);
-          }
-        }}
-        expense={editingOverheadExpense}
-        accounts={accounts || []}
-        fairsList={fairsList || []}
-        isLoading={
-          createOverheadExpenseMutation.isPending ||
-          updateOverheadExpenseMutation.isPending
-        }
       />
 
       {/* Modal de Detalhes despesa direta */}

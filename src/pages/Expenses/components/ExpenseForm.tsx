@@ -7,13 +7,13 @@ import {
   Tag,
   Building,
   Plus,
-  ChevronDown,
-  ChevronUp,
+  Check,
+  AlertCircle,
+  Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { ControlledInput } from "@/components/ControlledInput";
 import {
   Dialog,
@@ -30,45 +30,70 @@ import {
 } from "@/components/ui/select";
 import type {
   Expense,
-  CreateExpenseForm,
-  UpdateExpenseForm,
   ExpenseCategory,
   Account,
-  CreateAccountForm,
+  OverheadExpense,
+  AllocatedOverheadExpense,
+  OverheadAllocation,
+  CreateExpenseForm,
+  CreateOverheadExpenseForm,
 } from "@/interfaces/finance";
 import { AccountType } from "@/interfaces/finance";
-import type { FinanceCategory, CreateCategoryDto } from "@/interfaces/categories";
 import { useExpensesService } from "@/service/expenses.service";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { maskCurrencyBRL, unmaskCurrencyBRL } from "@/utils/masks";
+import type { Fair } from "@/interfaces/fairs";
 
 // Schema de validação
-const expenseSchema = z.object({
-  categoryId: z.string().min(1, "Categoria é obrigatória"),
-  accountId: z.string().min(1, "Conta bancária é obrigatória"),
-  descricao: z
-    .string()
-    .max(500, "Descrição deve ter no máximo 500 caracteres")
-    .optional(),
-  valorDisplay: z.string().min(1, "Valor é obrigatório"),
-  data: z.string().min(1, "Data é obrigatória"),
-  observacoes: z.string().optional(),
-});
+const expenseSchema = z
+  .object({
+    isShared: z.boolean(),
+    categoryId: z.string().optional(),
+    categoria: z.string().optional(),
+    accountId: z.string().min(1, "Conta bancária é obrigatória"),
+    descricao: z
+      .string()
+      .max(500, "Descrição deve ter no máximo 500 caracteres")
+      .optional(),
+    valorDisplay: z.string().min(1, "Valor é obrigatório"),
+    data: z.string().min(1, "Data é obrigatória"),
+    observacoes: z.string().optional(),
+  })
+  .refine(
+    (data) => {
+      if (data.isShared) {
+        return !!data.categoria && data.categoria.trim() !== "";
+      } else {
+        return !!data.categoryId && data.categoryId.trim() !== "";
+      }
+    },
+    {
+      message: "Categoria é obrigatória",
+      path: ["categoryId"],
+    }
+  );
 
 type ExpenseFormData = z.infer<typeof expenseSchema>;
 
 interface ExpenseFormProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: CreateExpenseForm | UpdateExpenseForm) => void;
-  expense?: Expense | null;
-  categories: ExpenseCategory[];
-  accounts: Account[];
+  onSubmit: (data: {
+    type: "direct" | "overhead";
+    payload: CreateExpenseForm | CreateOverheadExpenseForm;
+    previousType?: "direct" | "overhead";
+    previousId?: string;
+  }) => void;
+  expense?: Expense | AllocatedOverheadExpense | OverheadExpense | null;
+  categories?: ExpenseCategory[];
+  accounts?: Account[];
+  fairsList?: Fair[];
   isLoading?: boolean;
   fairId?: string;
   onCategoryCreated?: () => void;
   onAccountCreated?: () => void;
+  defaultShared?: boolean;
 }
 
 export function ExpenseForm({
@@ -76,25 +101,38 @@ export function ExpenseForm({
   onClose,
   onSubmit,
   expense,
-  categories,
-  accounts,
+  categories = [],
+  accounts = [],
+  fairsList = [],
   isLoading = false,
   fairId,
   onCategoryCreated,
   onAccountCreated,
+  defaultShared = false,
 }: ExpenseFormProps) {
+  const [isShared, setIsShared] = useState(defaultShared);
   const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [showAccountForm, setShowAccountForm] = useState(false);
   const [isCreatingCategory, setIsCreatingCategory] = useState(false);
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
 
+  const [selectedFairs, setSelectedFairs] = useState<Record<string, boolean>>({});
+  const [fairPercentages, setFairPercentages] = useState<Record<string, number>>({});
+
   const expensesService = useExpensesService();
   const queryClient = useQueryClient();
+
+  // Console.log das categorias recebidas via prop (do endpoint)
+  useEffect(() => {
+    console.log("[ExpenseForm] categories recebidas do endpoint:", categories);
+  }, [categories]);
 
   const form = useForm<ExpenseFormData>({
     resolver: zodResolver(expenseSchema),
     defaultValues: {
+      isShared: defaultShared,
       categoryId: "",
+      categoria: "",
       accountId: "",
       descricao: "",
       valorDisplay: "R$ 0,00",
@@ -103,22 +141,85 @@ export function ExpenseForm({
     },
   });
 
-  // Preenche o formulário quando editar
   useEffect(() => {
     if (expense) {
+      const isOverhead =
+        "allocations" in expense ||
+        "feirasRateadas" in expense ||
+        !("categoryId" in expense);
+
+      setIsShared(isOverhead);
+
+      const initialFairs: Record<string, number> = {};
+      const initialChecked: Record<string, boolean> = {};
+
+      if (isOverhead) {
+        if ("feirasRateadas" in expense && expense.feirasRateadas) {
+          (expense as AllocatedOverheadExpense).feirasRateadas.forEach((f) => {
+            initialFairs[f.fairId] = parseFloat((f.percentual * 100).toFixed(2));
+            initialChecked[f.fairId] = true;
+          });
+        } else if ("allocations" in expense && expense.allocations) {
+          (expense as OverheadExpense).allocations.forEach(
+            (alloc: OverheadAllocation) => {
+              initialFairs[alloc.fairId] = parseFloat(
+                (alloc.percentual * 100).toFixed(2)
+              );
+              initialChecked[alloc.fairId] = true;
+            }
+          );
+        }
+      } else if (fairId) {
+        initialFairs[fairId] = 100;
+        initialChecked[fairId] = true;
+      }
+
+      setSelectedFairs(initialChecked);
+      setFairPercentages(initialFairs);
+
+      const categoryVal =
+        "categoria" in expense
+          ? (expense as AllocatedOverheadExpense).categoria
+          : "";
+      const categoryIdVal =
+        "categoryId" in expense ? (expense as Expense).categoryId : "";
+
+      const accountIdVal =
+        "accountId" in expense
+          ? (expense as Expense).accountId
+          : (expense as AllocatedOverheadExpense).account?.id ?? "";
+
+      const valorDisplay = new Intl.NumberFormat("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+      }).format(
+        "valorTotal" in expense
+          ? (expense as AllocatedOverheadExpense).valorTotal
+          : (expense as Expense).valor ?? 0
+      );
+
+      const observacoesVal =
+        "observacoes" in expense
+          ? ((expense as Expense | OverheadExpense).observacoes ?? "")
+          : "";
+
       form.reset({
-        categoryId: expense.categoryId,
-        accountId: expense.accountId,
-        descricao: expense.descricao || "",
-        valorDisplay: new Intl.NumberFormat("pt-BR", {
-          style: "currency",
-          currency: "BRL",
-        }).format(expense.valor),
-        data: expense.data,
-        observacoes: expense.observacoes || "",
+        isShared: isOverhead,
+        categoria: categoryVal ?? "",
+        categoryId: categoryIdVal ?? "",
+        accountId: accountIdVal,
+        descricao: expense.descricao ?? "",
+        valorDisplay,
+        data: expense.data ? expense.data.split("T")[0] : "",
+        observacoes: observacoesVal,
       });
     } else {
+      setIsShared(defaultShared);
+      setSelectedFairs(fairId ? { [fairId]: true } : {});
+      setFairPercentages(fairId ? { [fairId]: 100 } : {});
       form.reset({
+        isShared: defaultShared,
+        categoria: "",
         categoryId: "",
         accountId: "",
         descricao: "",
@@ -127,37 +228,112 @@ export function ExpenseForm({
         observacoes: "",
       });
     }
-  }, [expense, form]);
+    setShowCategoryForm(false);
+    setShowAccountForm(false);
+  }, [expense, form, fairId, isOpen, defaultShared]);
+
+  const selectedFairsList = (fairsList || []).filter((f) => !!selectedFairs[f.id]);
+  const availableFairsToAdd = (fairsList || []).filter((f) => !selectedFairs[f.id]);
+
+  const handleAddFair = (id: string) => {
+    if (!id) return;
+    setSelectedFairs((prev) => ({ ...prev, [id]: true }));
+    setFairPercentages((prev) => ({ ...prev, [id]: prev[id] || 0 }));
+  };
+
+  const handleRemoveFair = (id: string) => {
+    setSelectedFairs((prev) => ({ ...prev, [id]: false }));
+    setFairPercentages((prev) => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+  };
+
+  const handlePercentageChange = (id: string, value: string) => {
+    const val = parseFloat(value) || 0;
+    setFairPercentages((prev) => ({ ...prev, [id]: val }));
+  };
+
+  const handleDivideEqually = () => {
+    const activeIds = Object.keys(selectedFairs).filter((id) => selectedFairs[id]);
+    if (activeIds.length === 0) return;
+    const equalShare = parseFloat((100 / activeIds.length).toFixed(2));
+    const nextPercentages: Record<string, number> = {};
+    activeIds.forEach((id) => {
+      nextPercentages[id] = equalShare;
+    });
+    setFairPercentages(nextPercentages);
+  };
+
+  const totalPercentage = Object.keys(selectedFairs)
+    .filter((id) => selectedFairs[id])
+    .reduce((sum, id) => sum + (fairPercentages[id] || 0), 0);
+  const isPercentageSumValid = Math.abs(totalPercentage - 100) < 0.05;
 
   const handleSubmit = (data: ExpenseFormData) => {
-    // Converter valor mascarado para número em reais (não centavos)
     const valorEmCentavos = unmaskCurrencyBRL(data.valorDisplay);
-    const valorEmReais = valorEmCentavos / 100; // Converter centavos para reais
-    
-    // Garantir que a data esteja no formato ISO (YYYY-MM-DD)
-    const dataFormatada = data.data ? new Date(data.data).toISOString().split('T')[0] : data.data;
-    
-    const formData = {
-      ...data,
-      valor: valorEmReais,
-      data: dataFormatada,
-    };
-    
-    if (expense) {
-      // Atualizar despesa existente - remover campos desnecessários
-      const updateData: UpdateExpenseForm = {
-        categoryId: formData.categoryId,
-        accountId: formData.accountId,
-        descricao: formData.descricao,
-        valor: formData.valor,
-        data: formData.data,
-        observacoes: formData.observacoes,
-      };
-      onSubmit(updateData);
+    const valorEmReais = valorEmCentavos / 100;
+    const dataFormatada: string = data.data
+      ? new Date(data.data).toISOString().split("T")[0]
+      : "";
+
+    let payload: CreateExpenseForm | CreateOverheadExpenseForm;
+    let type: "direct" | "overhead";
+
+    if (isShared) {
+      type = "overhead";
+      const activeFairs = Object.keys(selectedFairs).filter((id) => selectedFairs[id]);
+
+      if (activeFairs.length === 0) {
+        toast.error("Selecione pelo menos uma feira.");
+        return;
+      }
+
+      if (!isPercentageSumValid) {
+        toast.error("A soma deve ser 100%");
+        return;
+      }
+
+      payload = {
+        categoria: data.categoria ?? "",
+        accountId: data.accountId,
+        descricao: data.descricao,
+        valor: valorEmReais,
+        data: dataFormatada,
+        observacoes: data.observacoes,
+        fairs: activeFairs.map((id) => ({
+          fairId: id,
+          percentual: (fairPercentages[id] || 0) / 100,
+        })),
+      } satisfies CreateOverheadExpenseForm;
     } else {
-      // Criar nova despesa
-      onSubmit(formData);
+      type = "direct";
+      payload = {
+        fairId: fairId ?? "",
+        categoryId: data.categoryId ?? "",
+        accountId: data.accountId,
+        descricao: data.descricao,
+        valor: valorEmReais,
+        data: dataFormatada,
+        observacoes: data.observacoes,
+      } satisfies CreateExpenseForm;
     }
+
+    let previousType: "direct" | "overhead" | undefined;
+    let previousId: string | undefined;
+
+    if (expense) {
+      previousId = expense.id;
+      previousType =
+        "allocations" in expense ||
+        "feirasRateadas" in expense ||
+        !("categoryId" in expense)
+          ? "overhead"
+          : "direct";
+    }
+
+    onSubmit({ type, payload, previousType, previousId });
   };
 
   const handleClose = () => {
@@ -165,570 +341,594 @@ export function ExpenseForm({
     onClose();
   };
 
-  // Watch do valor para o resumo
-  const valorDisplay = form.watch("valorDisplay");
-
-  const getAccountTypeLabel = (type: AccountType) => {
-    const labels = {
-      [AccountType.CORRENTE]: "Conta Corrente",
-      [AccountType.POUPANCA]: "Conta Poupança",
-      [AccountType.OUTRO]: "Outro",
-    };
-    return labels[type];
-  };
-
-  // Estados para os formulários inline
   const [categoryFormData, setCategoryFormData] = useState({
     name: "",
     global: false,
   });
+  const [accountFormData, setAccountFormData] = useState<{
+    nomeConta: string;
+    banco: string;
+    tipo: AccountType;
+  }>({ nomeConta: "", banco: "", tipo: AccountType.CORRENTE });
 
-  const [accountFormData, setAccountFormData] = useState({
-    nomeConta: "",
-    banco: "",
-    tipo: AccountType.CORRENTE as AccountType,
-  });
-
-  // Funções para criar categoria
   const handleCreateCategory = async () => {
     if (!categoryFormData.name.trim()) return;
-
     setIsCreatingCategory(true);
     try {
-      const categoryData: CreateCategoryDto = {
+      const newCategory = await expensesService.createFinanceCategory({
         nome: categoryFormData.name,
         global: categoryFormData.global,
         fairId: fairId,
         isRequired: false,
-      };
-
-      const newCategory = await expensesService.createFinanceCategory(
-        categoryData
-      );
-
-      // Reset do formulário
+      });
       setCategoryFormData({ name: "", global: false });
       setShowCategoryForm(false);
-
-      // Recarregar as categorias
-      await queryClient.refetchQueries({
-        queryKey: ["finance-categories", fairId],
-      });
+      await queryClient.refetchQueries({ queryKey: ["finance-categories", fairId] });
       onCategoryCreated?.();
-
-      // Selecionar automaticamente a nova categoria
-      if (newCategory && newCategory.id) {
-        form.setValue("categoryId", newCategory.id);
-      }
-
-      toast.success("Categoria criada com sucesso!");
-    } catch (error) {
-      console.error("Erro ao criar categoria:", error);
-      toast.error("Erro ao criar categoria. Tente novamente.");
+      if (newCategory?.id) form.setValue("categoryId", newCategory.id);
+      toast.success("Categoria criada!");
+    } catch {
+      toast.error("Erro ao criar categoria.");
     } finally {
       setIsCreatingCategory(false);
     }
   };
 
-  // Funções para criar conta
   const handleCreateAccount = async () => {
     if (!accountFormData.nomeConta.trim()) return;
-
     setIsCreatingAccount(true);
     try {
-      const accountData: CreateAccountForm = {
-        nomeConta: accountFormData.nomeConta,
-        banco: accountFormData.banco || undefined,
-        tipo: accountFormData.tipo,
-      };
-
-      const newAccount = await expensesService.createAccount(accountData);
-
-      // Reset do formulário
-      setAccountFormData({
-        nomeConta: "",
-        banco: "",
-        tipo: AccountType.CORRENTE as AccountType,
-      });
+      const newAccount = await expensesService.createAccount(accountFormData);
+      setAccountFormData({ nomeConta: "", banco: "", tipo: AccountType.CORRENTE });
       setShowAccountForm(false);
-
-      // Recarregar as contas
       await queryClient.invalidateQueries({ queryKey: ["accounts"] });
       onAccountCreated?.();
-
-      // Selecionar automaticamente a nova conta
-      if (newAccount && newAccount.id) {
-        form.setValue("accountId", newAccount.id);
-      }
-
-      toast.success("Conta bancária criada com sucesso!");
-    } catch (error) {
-      console.error("Erro ao criar conta:", error);
-      toast.error("Erro ao criar conta. Tente novamente.");
+      if (newAccount?.id) form.setValue("accountId", newAccount.id);
+      toast.success("Conta criada!");
+    } catch {
+      toast.error("Erro ao criar conta.");
     } finally {
       setIsCreatingAccount(false);
     }
   };
 
+  const isExpanded = isShared;
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-slate-950 border border-white/10 text-white p-0 rounded-2xl shadow-2xl">
-        <DialogHeader className="relative h-24 w-full flex items-end p-6 bg-linear-to-br from-[#00aacd] to-[#EB2970] overflow-hidden rounded-t-2xl">
+      <DialogContent
+        className={`transition-all duration-300 ${
+          isExpanded ? "max-w-3xl w-[95vw]" : "max-w-lg w-[95vw]"
+        } bg-slate-950 border border-white/10 text-white p-0 rounded-2xl shadow-2xl overflow-hidden flex flex-col`}
+        style={{ maxHeight: "min(92vh, 720px)" }}
+      >
+        {/* Header */}
+        <DialogHeader className="relative shrink-0 h-14 flex flex-row items-center justify-between px-6 bg-linear-to-br from-[#00aacd] to-[#EB2970] overflow-hidden rounded-t-2xl">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl pointer-events-none" />
-          <div className="relative z-10 w-full flex items-center justify-between">
-            <DialogTitle className="text-xl font-black text-white tracking-tight">
-              {expense ? "Editar Despesa Direta" : "Nova Despesa Direta"}
-            </DialogTitle>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={handleClose}
-              className="h-8 w-8 p-0 text-white/60 hover:text-white hover:bg-white/10 rounded-full"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
+          <DialogTitle className="text-base font-black text-white tracking-tight relative z-10">
+            {expense ? "Editar Lançamento" : "Novo Lançamento Financeiro"}
+          </DialogTitle>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleClose}
+            className="h-8 w-8 p-0 text-white/70 hover:text-white hover:bg-white/10 rounded-full relative z-10 cursor-pointer shrink-0"
+          >
+            <X className="h-4 w-4" />
+          </Button>
         </DialogHeader>
 
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="p-6 space-y-6 bg-slate-950 text-white">
-          {/* Categoria e Conta */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Categoria */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label
-                  htmlFor="categoryId"
-                  className="text-xs font-bold uppercase tracking-wider text-white/60"
-                >
-                  Categoria *
-                </Label>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowCategoryForm(!showCategoryForm)}
-                  className="h-8 w-8 p-0 text-brand-cyan hover:text-white hover:bg-white/10"
-                >
-                  <Plus className="w-4 h-4" />
-                </Button>
-              </div>
+        {/* Form */}
+        <form
+          onSubmit={form.handleSubmit(handleSubmit)}
+          className="flex-1 flex flex-col min-h-0"
+        >
+          {/* Body */}
+          <div className="flex-1 min-h-0 overflow-hidden">
+            <div
+              className={`h-full grid ${
+                isExpanded ? "grid-cols-1 md:grid-cols-[1fr_1px_1fr]" : "grid-cols-1"
+              }`}
+            >
+              {/* ── Coluna Esquerda ── */}
+              <div className="overflow-y-auto p-5 space-y-4">
+                {/* Toggle Rateio */}
+                <div className="flex items-center justify-between p-3.5 bg-white/3 border border-white/5 rounded-xl">
+                  <div>
+                    <p className="text-sm font-black text-white leading-tight">
+                      Compartilhar Custo (Rateio)
+                    </p>
+                    <p className="text-[10px] text-white/40 mt-0.5">
+                      Divida este custo entre feiras
+                    </p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={isShared}
+                    onChange={(e) => {
+                      setIsShared(e.target.checked);
+                      form.setValue("isShared", e.target.checked);
+                    }}
+                    className="w-10 h-5 bg-white/10 border border-white/10 rounded-full appearance-none checked:bg-brand-pink relative transition-all duration-300 before:content-[''] before:absolute before:w-4 before:h-4 before:bg-white before:rounded-full before:top-px before:left-px checked:before:translate-x-5 before:transition-all cursor-pointer shrink-0"
+                  />
+                </div>
 
-              <Select
-                value={form.watch("categoryId")}
-                onValueChange={(value) => form.setValue("categoryId", value)}
-              >
-                <SelectTrigger className="bg-white/5 border-white/10 text-white rounded-xl focus:border-brand-pink/50 focus:ring-brand-pink/20 placeholder:text-white/20">
-                  <SelectValue placeholder="Selecione uma categoria" />
-                </SelectTrigger>
-                <SelectContent className="bg-slate-900 border border-white/10 text-white">
-                  {categories.map((category) => (
-                    <SelectItem key={category.id} value={category.id} className="hover:bg-white/10 cursor-pointer">
-                      <div className="flex items-center gap-2">
-                        <Tag className="w-4 h-4 text-brand-cyan" />
-                        {category.name}
-                        {category.global && (
-                          <span className="text-xs text-white/40">
-                            (Global)
-                          </span>
-                        )}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              {/* Formulário inline para criar categoria */}
-              <div
-                className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                  showCategoryForm
-                    ? "max-h-96 opacity-100"
-                    : "max-h-0 opacity-0"
-                }`}
-              >
-                <div className="mt-3 p-4 border border-white/10 rounded-xl bg-white/3 space-y-3">
+                {/* Categoria */}
+                <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-bold text-white">
-                      Nova Categoria
-                    </h4>
+                    <Label className="text-[10px] font-bold uppercase tracking-wider text-white/60">
+                      Categoria *
+                    </Label>
+                    {!isShared && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowCategoryForm(true)}
+                        className="h-5 w-5 p-0 text-brand-cyan hover:text-white hover:bg-white/10 cursor-pointer"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                      </Button>
+                    )}
+                  </div>
+
+                  {isShared ? (
+                    /* Overhead: categoria é texto livre (vem do backend como string arbitrária) */
+                    <Input
+                      placeholder="Ex: Aluguel, Pessoal, TI..."
+                      {...form.register("categoria")}
+                      className="bg-white/5 border-white/10 text-white rounded-xl h-10 text-xs"
+                    />
+                  ) : (
+                    /* Direto: categoria vem do endpoint */
+                    <div className="relative">
+                      <Select
+                        value={form.watch("categoryId")}
+                        onValueChange={(value) =>
+                          form.setValue("categoryId", value)
+                        }
+                      >
+                        <SelectTrigger className="bg-white/5 border-white/10 text-white rounded-xl h-10 text-xs">
+                          <SelectValue placeholder="Selecione a categoria..." />
+                        </SelectTrigger>
+                        <SelectContent className="bg-slate-900 border border-white/10 text-white max-h-48 overflow-y-auto">
+                          {categories.length === 0 ? (
+                            <div className="px-3 py-4 text-center text-xs text-white/40">
+                              Nenhuma categoria cadastrada
+                            </div>
+                          ) : (
+                            categories.map((category) => (
+                              <SelectItem
+                                key={category.id}
+                                value={category.id}
+                                className="hover:bg-white/10 cursor-pointer text-xs"
+                              >
+                                <div className="flex items-center gap-1.5">
+                                  <Tag className="w-3.5 h-3.5 text-brand-cyan shrink-0" />
+                                  {category.name}
+                                </div>
+                              </SelectItem>
+                            ))
+                          )}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+
+                  {form.formState.errors.categoryId && (
+                    <p className="text-[10px] text-red-400">
+                      {form.formState.errors.categoryId.message}
+                    </p>
+                  )}
+                </div>
+
+                {/* Conta */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-[10px] font-bold uppercase tracking-wider text-white/60">
+                      Conta *
+                    </Label>
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
-                      onClick={() => setShowCategoryForm(false)}
-                      className="h-6 w-6 p-0 text-white/60 hover:text-white"
+                      onClick={() => setShowAccountForm(true)}
+                      className="h-5 w-5 p-0 text-brand-cyan hover:text-white hover:bg-white/10 cursor-pointer"
                     >
-                      {showCategoryForm ? (
-                        <ChevronUp className="w-4 h-4" />
-                      ) : (
-                        <ChevronDown className="w-4 h-4" />
-                      )}
+                      <Plus className="w-3.5 h-3.5" />
                     </Button>
                   </div>
-
-                  <div className="space-y-2">
-                    <Input
-                      placeholder="Nome da categoria"
-                      value={categoryFormData.name}
-                      onChange={(e) =>
-                        setCategoryFormData({
-                          ...categoryFormData,
-                          name: e.target.value,
-                        })
-                      }
-                      className="bg-white/5 border-white/10 text-white rounded-xl text-sm"
-                    />
-
-                    <div className="flex items-center space-x-2 text-white/80">
-                      <input
-                        type="checkbox"
-                        id="category-global"
-                        checked={categoryFormData.global}
-                        onChange={(e) =>
-                          setCategoryFormData({
-                            ...categoryFormData,
-                            global: e.target.checked,
-                          })
-                        }
-                        className="rounded border-white/10 bg-white/5 h-4 w-4 accent-brand-pink"
-                      />
-                      <label
-                        htmlFor="category-global"
-                        className="text-xs text-white/60 cursor-pointer"
-                      >
-                        Categoria global (disponível para todas as feiras)
-                      </label>
-                    </div>
-
-                    <Button
-                      type="button"
-                      onClick={handleCreateCategory}
-                      disabled={
-                        !categoryFormData.name.trim() || isCreatingCategory
-                      }
-                      className="w-full h-9 text-xs bg-linear-to-br from-[#00aacd] to-[#EB2970] font-bold text-white rounded-xl cursor-pointer"
-                      size="sm"
-                    >
-                      {isCreatingCategory ? (
-                        <div className="flex items-center gap-2">
-                          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
-                          Criando...
+                  <Select
+                    value={form.watch("accountId")}
+                    onValueChange={(val) => form.setValue("accountId", val)}
+                  >
+                    <SelectTrigger className="bg-white/5 border-white/10 text-white rounded-xl h-10 text-xs">
+                      <SelectValue placeholder="Selecione a conta..." />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-900 border border-white/10 text-white max-h-48 overflow-y-auto">
+                      {accounts.length === 0 ? (
+                        <div className="px-3 py-4 text-center text-xs text-white/40">
+                          Nenhuma conta cadastrada
                         </div>
                       ) : (
-                        "Criar Categoria"
+                        accounts.map((account) => (
+                          <SelectItem
+                            key={account.id}
+                            value={account.id}
+                            className="hover:bg-white/10 cursor-pointer text-xs"
+                          >
+                            <div className="flex items-center gap-1.5">
+                              <Building className="w-3.5 h-3.5 text-brand-cyan shrink-0" />
+                              {account.nomeConta}
+                            </div>
+                          </SelectItem>
+                        ))
                       )}
-                    </Button>
+                    </SelectContent>
+                  </Select>
+                  {form.formState.errors.accountId && (
+                    <p className="text-[10px] text-red-400">
+                      {form.formState.errors.accountId.message}
+                    </p>
+                  )}
+                </div>
+
+                {/* Descrição */}
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] font-bold uppercase tracking-wider text-white/60">
+                    Descrição
+                  </Label>
+                  <Input
+                    placeholder="Descrição da despesa"
+                    {...form.register("descricao")}
+                    className="bg-white/5 border-white/10 text-white rounded-xl h-10 text-xs"
+                  />
+                </div>
+
+                {/* Valor + Data */}
+                <div className="grid grid-cols-2 gap-3">
+                  <ControlledInput
+                    control={form.control}
+                    name="valorDisplay"
+                    label="Valor *"
+                    placeholder="0,00"
+                    mask={maskCurrencyBRL}
+                  />
+                  <div className="space-y-1.5">
+                    <Label className="text-[10px] font-bold uppercase tracking-wider text-white/60">
+                      Data *
+                    </Label>
+                    <Input
+                      type="date"
+                      {...form.register("data")}
+                      className="bg-white/5 border-white/10 text-white rounded-xl h-10 text-xs"
+                    />
                   </div>
+                </div>
+
+                {/* Observações */}
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] font-bold uppercase tracking-wider text-white/60">
+                    Observações
+                  </Label>
+                  <Input
+                    placeholder="Observações adicionais..."
+                    {...form.register("observacoes")}
+                    className="bg-white/5 border-white/10 text-white rounded-xl h-10 text-xs"
+                  />
                 </div>
               </div>
 
-              {form.formState.errors.categoryId && (
-                <p className="text-sm text-red-400">
-                  {form.formState.errors.categoryId.message}
-                </p>
+              {/* Divisória vertical (apenas quando expandido) */}
+              {isExpanded && (
+                <div className="hidden md:block w-px bg-white/10 my-5" />
               )}
-            </div>
 
-            {/* Conta Bancária */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label
-                  htmlFor="accountId"
-                  className="text-xs font-bold uppercase tracking-wider text-white/60"
-                >
-                  Conta Bancária *
-                </Label>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowAccountForm(!showAccountForm)}
-                  className="h-8 w-8 p-0 text-brand-cyan hover:text-white hover:bg-white/10"
-                >
-                  <Plus className="w-4 h-4" />
-                </Button>
-              </div>
+              {/* ── Coluna Direita: Rateio ── */}
+              {isExpanded && (
+                <div className="overflow-y-auto p-5 flex flex-col gap-4">
+                  <Label className="text-[10px] font-bold uppercase tracking-wider text-white/60 shrink-0">
+                    Feiras no Rateio
+                  </Label>
 
-              <Select
-                value={form.watch("accountId")}
-                onValueChange={(value) => form.setValue("accountId", value)}
-              >
-                <SelectTrigger className="bg-white/5 border-white/10 text-white rounded-xl focus:border-brand-pink/50 focus:ring-brand-pink/20 placeholder:text-white/20">
-                  <SelectValue placeholder="Selecione uma conta" />
-                </SelectTrigger>
-                <SelectContent className="bg-slate-900 border border-white/10 text-white">
-                  {accounts.map((account) => (
-                    <SelectItem key={account.id} value={account.id} className="hover:bg-white/10 cursor-pointer">
-                      <div className="flex items-center gap-2">
-                        <Building className="w-4 h-4 text-brand-cyan" />
-                        {account.nomeConta}
-                        {account.banco && (
-                          <span className="text-xs text-white/40">
-                            ({account.banco} -{" "}
-                            {getAccountTypeLabel(account.tipo)})
-                          </span>
-                        )}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              {/* Formulário inline para criar conta */}
-              <div
-                className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                  showAccountForm ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
-                }`}
-              >
-                <div className="mt-3 p-4 border border-white/10 rounded-xl bg-white/3 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-bold text-white">
-                      Nova Conta Bancária
-                    </h4>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setShowAccountForm(false)}
-                      className="h-6 w-6 p-0 text-white/60 hover:text-white"
-                    >
-                      {showAccountForm ? (
-                        <ChevronUp className="w-4 h-4" />
-                      ) : (
-                        <ChevronDown className="w-4 h-4" />
-                      )}
-                    </Button>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Input
-                      placeholder="Nome da conta"
-                      value={accountFormData.nomeConta}
-                      onChange={(e) =>
-                        setAccountFormData({
-                          ...accountFormData,
-                          nomeConta: e.target.value,
-                        })
-                      }
-                      className="bg-white/5 border-white/10 text-white rounded-xl text-sm"
-                    />
-
-                    <Input
-                      placeholder="Banco (opcional)"
-                      value={accountFormData.banco}
-                      onChange={(e) =>
-                        setAccountFormData({
-                          ...accountFormData,
-                          banco: e.target.value,
-                        })
-                      }
-                      className="bg-white/5 border-white/10 text-white rounded-xl text-sm"
-                    />
-
-                    <Select
-                      value={accountFormData.tipo}
-                      onValueChange={(value) =>
-                        setAccountFormData({
-                          ...accountFormData,
-                          tipo: value as AccountType,
-                        })
-                      }
-                    >
-                      <SelectTrigger className="bg-white/5 border-white/10 text-white rounded-xl text-sm">
-                        <SelectValue placeholder="Tipo de conta" />
+                  {/* Adicionar feira */}
+                  {availableFairsToAdd.length > 0 ? (
+                    <Select onValueChange={handleAddFair} value="">
+                      <SelectTrigger className="bg-white/5 border-white/10 text-white rounded-xl h-10 text-xs shrink-0">
+                        <SelectValue placeholder="Adicionar feira..." />
                       </SelectTrigger>
-                      <SelectContent className="bg-slate-900 border border-white/10 text-white">
-                        <SelectItem value={AccountType.CORRENTE}>
-                          Conta Corrente
-                        </SelectItem>
-                        <SelectItem value={AccountType.POUPANCA}>
-                          Conta Poupança
-                        </SelectItem>
-                        <SelectItem value={AccountType.OUTRO}>Outro</SelectItem>
+                      <SelectContent className="bg-slate-900 border border-white/10 text-white max-h-48 overflow-y-auto">
+                        {availableFairsToAdd.map((fair) => (
+                          <SelectItem
+                            key={fair.id}
+                            value={fair.id}
+                            className="hover:bg-white/10 cursor-pointer text-xs"
+                          >
+                            {fair.name}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
+                  ) : (
+                    <div className="p-2 border border-dashed border-white/10 rounded-xl text-[10px] text-center text-white/40">
+                      Todas as feiras adicionadas
+                    </div>
+                  )}
 
-                    <Button
-                      type="button"
-                      onClick={handleCreateAccount}
-                      disabled={
-                        !accountFormData.nomeConta.trim() || isCreatingAccount
-                      }
-                      className="w-full h-9 text-xs bg-linear-to-br from-[#00aacd] to-[#EB2970] font-bold text-white rounded-xl cursor-pointer"
-                      size="sm"
-                    >
-                      {isCreatingAccount ? (
-                        <div className="flex items-center gap-2">
-                          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
-                          Criando...
-                        </div>
-                      ) : (
-                        "Criar Conta"
+                  {/* Lista de feiras selecionadas */}
+                  <div className="flex-1 space-y-2 min-h-0">
+                    {selectedFairsList.length === 0 ? (
+                      <div className="flex items-center justify-center border border-dashed border-white/10 rounded-xl p-6 text-center min-h-[80px]">
+                        <p className="text-xs text-white/40 font-medium">
+                          Nenhuma feira selecionada.
+                        </p>
+                      </div>
+                    ) : (
+                      selectedFairsList.map((fair) => {
+                        const percentage = fairPercentages[fair.id] ?? 0;
+                        return (
+                          <div
+                            key={fair.id}
+                            className="flex items-center justify-between gap-3 p-2.5 bg-slate-900/40 border border-white/5 rounded-xl"
+                          >
+                            <span className="text-xs font-semibold text-white/80 truncate flex-1">
+                              {fair.name}
+                            </span>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <Input
+                                type="number"
+                                value={percentage || ""}
+                                placeholder="0"
+                                min="0"
+                                max="100"
+                                onChange={(e) =>
+                                  handlePercentageChange(fair.id, e.target.value)
+                                }
+                                className="bg-white/5 border-white/10 text-white rounded-lg w-16 text-right h-8 text-xs"
+                              />
+                              <span className="text-[10px] text-white/60">%</span>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleRemoveFair(fair.id)}
+                                className="h-8 w-8 p-0 text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-lg"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </Button>
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+
+                  {/* Totalizador */}
+                  <div className="shrink-0 pt-3 border-t border-white/10 space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      {selectedFairsList.length > 0 && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={handleDivideEqually}
+                          className="border-white/10 bg-white/5 text-white/80 hover:bg-white/10 rounded-xl font-bold h-8 text-xs px-3"
+                        >
+                          Dividir igualmente
+                        </Button>
                       )}
-                    </Button>
+                      <div className="flex items-center gap-1.5 text-xs ml-auto">
+                        <span className="text-white/60">Soma:</span>
+                        <span
+                          className={`font-black flex items-center gap-1 text-sm ${
+                            isPercentageSumValid ? "text-green-400" : "text-red-400"
+                          }`}
+                        >
+                          {totalPercentage.toFixed(1)}%
+                          {isPercentageSumValid ? (
+                            <Check className="w-4 h-4" />
+                          ) : (
+                            <AlertCircle className="w-4 h-4" />
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                    {!isPercentageSumValid && selectedFairsList.length > 0 && (
+                      <p className="text-[10px] text-red-400/80 font-medium leading-tight">
+                        * A soma dos percentuais deve ser 100%
+                      </p>
+                    )}
                   </div>
                 </div>
-              </div>
-
-              {form.formState.errors.accountId && (
-                <p className="text-sm text-red-400">
-                  {form.formState.errors.accountId.message}
-                </p>
               )}
             </div>
           </div>
 
-          {/* Descrição */}
-          <div className="space-y-2">
-            <Label
-              htmlFor="descricao"
-              className="text-xs font-bold uppercase tracking-wider text-white/60"
-            >
-              Descrição
-            </Label>
-            <Input
-              id="descricao"
-              placeholder="Descrição da despesa (opcional)"
-              {...form.register("descricao")}
-              className="bg-white/5 border-white/10 text-white rounded-xl focus:border-brand-pink/50 focus:ring-brand-pink/20 placeholder:text-white/20"
-            />
-            {form.formState.errors.descricao && (
-              <p className="text-sm text-red-400">
-                {form.formState.errors.descricao.message}
-              </p>
-            )}
-          </div>
-
-          {/* Valor e Data */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <ControlledInput
-                control={form.control}
-                name="valorDisplay"
-                label="Valor (R$) *"
-                placeholder="0,00"
-                mask={maskCurrencyBRL}
-              />
-              {form.formState.errors.valorDisplay && (
-                <p className="text-sm text-red-400">
-                  {form.formState.errors.valorDisplay.message}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label
-                htmlFor="data"
-                className="text-xs font-bold uppercase tracking-wider text-white/60"
-              >
-                Data *
-              </Label>
-              <Input
-                id="data"
-                type="date"
-                {...form.register("data")}
-                className="bg-white/5 border-white/10 text-white rounded-xl focus:border-brand-pink/50 focus:ring-brand-pink/20 placeholder:text-white/20 h-10"
-                onChange={(e) => {
-                  form.setValue("data", e.target.value);
-                }}
-              />
-              {form.formState.errors.data && (
-                <p className="text-sm text-red-400">
-                  {form.formState.errors.data.message}
-                </p>
-              )}
-            </div>
-          </div>
-
-          {/* Observações */}
-          <div className="space-y-2">
-            <Label
-              htmlFor="observacoes"
-              className="text-xs font-bold uppercase tracking-wider text-white/60"
-            >
-              Observações
-            </Label>
-            <Textarea
-              id="observacoes"
-              placeholder="Observações adicionais (opcional)"
-              rows={3}
-              {...form.register("observacoes")}
-              className="bg-white/5 border-white/10 text-white rounded-xl focus:border-brand-pink/50 focus:ring-brand-pink/20 placeholder:text-white/20"
-            />
-            {form.formState.errors.observacoes && (
-              <p className="text-sm text-red-400">
-                {form.formState.errors.observacoes.message}
-              </p>
-            )}
-          </div>
-
-          {/* Resumo */}
-          {valorDisplay && valorDisplay !== "R$ 0,00" && (
-            <div className="p-4 bg-white/5 border border-white/10 rounded-xl space-y-2">
-              <h4 className="text-sm font-bold text-white">
-                Resumo da Despesa
-              </h4>
-              <div className="grid grid-cols-2 gap-2 text-xs text-white/60">
-                <p>
-                  <strong>Valor:</strong> <span className="text-red-400 font-bold">{valorDisplay}</span>
-                </p>
-                <p>
-                  <strong>Data:</strong>{" "}
-                  {form.watch("data")
-                    ? new Date(form.watch("data")).toLocaleDateString("pt-BR")
-                    : "Não selecionada"}
-                </p>
-                {form.watch("categoryId") && (
-                  <p>
-                    <strong>Categoria:</strong>{" "}
-                    {
-                      categories.find((c) => c.id === form.watch("categoryId"))
-                        ?.name
-                    }
-                  </p>
-                )}
-                {form.watch("accountId") && (
-                  <p>
-                    <strong>Conta:</strong>{" "}
-                    {
-                      accounts.find((a) => a.id === form.watch("accountId"))
-                        ?.nomeConta
-                    }
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Botões */}
-          <div className="flex gap-3 justify-end pt-4">
+          {/* Footer */}
+          <div className="shrink-0 px-5 py-4 border-t border-white/10 flex justify-end gap-3 bg-slate-950">
             <Button
               type="button"
               variant="outline"
               onClick={handleClose}
-              disabled={isLoading}
-              className="border-white/10 bg-white/5 text-white/80 hover:bg-white/10 rounded-xl font-bold h-11"
+              className="border-white/10 text-white/60 hover:text-white rounded-xl px-5 font-bold h-10 text-xs"
             >
               Cancelar
             </Button>
             <Button
               type="submit"
-              disabled={isLoading}
-              className="bg-linear-to-br from-[#00aacd] to-[#EB2970] text-white rounded-xl px-6 font-bold shadow-lg shadow-pink-500/20 transition-all hover:scale-105 active:scale-95 h-11 border-none cursor-pointer"
+              disabled={isLoading || (isShared && !isPercentageSumValid)}
+              className="bg-linear-to-br from-[#00aacd] to-[#EB2970] text-white rounded-xl px-7 font-bold h-10 text-xs shadow-lg shadow-pink-500/20 hover:scale-105 transition-transform active:scale-95 disabled:opacity-60 disabled:scale-100"
             >
-              {isLoading ? (
-                <div className="flex items-center gap-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  Salvando...
-                </div>
-              ) : expense ? (
-                "Atualizar Despesa"
-              ) : (
-                "Criar Despesa"
-              )}
+              {isLoading ? "Salvando..." : expense ? "Atualizar" : "Salvar"}
             </Button>
           </div>
         </form>
+
+        {/* Overlay: Nova Categoria */}
+        {showCategoryForm && (
+          <div className="absolute inset-0 bg-slate-950/98 backdrop-blur-md p-6 flex flex-col justify-center z-30 rounded-2xl space-y-4">
+            <div className="flex items-center justify-between">
+              <h4 className="text-sm font-black text-white uppercase tracking-wider">
+                Nova Categoria
+              </h4>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowCategoryForm(false)}
+                className="h-7 w-7 p-0 text-white/60 hover:text-white rounded-full"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+            <div className="space-y-3">
+              <div className="space-y-1">
+                <Label className="text-[10px] font-bold uppercase tracking-wider text-white/60">
+                  Nome
+                </Label>
+                <Input
+                  placeholder="Nome da categoria"
+                  value={categoryFormData.name}
+                  onChange={(e) =>
+                    setCategoryFormData({ ...categoryFormData, name: e.target.value })
+                  }
+                  className="bg-white/5 border-white/10 text-white rounded-xl text-xs h-10"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="category-global"
+                  checked={categoryFormData.global}
+                  onChange={(e) =>
+                    setCategoryFormData({
+                      ...categoryFormData,
+                      global: e.target.checked,
+                    })
+                  }
+                  className="rounded border-white/10 bg-white/5 h-4 w-4 accent-brand-pink"
+                />
+                <label
+                  htmlFor="category-global"
+                  className="text-[10px] text-white/60 cursor-pointer"
+                >
+                  Disponível para todas as feiras
+                </label>
+              </div>
+              <div className="flex gap-2 pt-1">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowCategoryForm(false)}
+                  className="flex-1 h-10 text-xs border-white/10 text-white/60 hover:text-white rounded-xl"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleCreateCategory}
+                  disabled={!categoryFormData.name.trim() || isCreatingCategory}
+                  className="flex-1 h-10 text-xs bg-linear-to-br from-[#00aacd] to-[#EB2970] font-bold text-white rounded-xl"
+                >
+                  {isCreatingCategory ? "Criando..." : "Criar Categoria"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Overlay: Nova Conta */}
+        {showAccountForm && (
+          <div className="absolute inset-0 bg-slate-950/98 backdrop-blur-md p-6 flex flex-col justify-center z-30 rounded-2xl space-y-4">
+            <div className="flex items-center justify-between">
+              <h4 className="text-sm font-black text-white uppercase tracking-wider">
+                Nova Conta Bancária
+              </h4>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowAccountForm(false)}
+                className="h-7 w-7 p-0 text-white/60 hover:text-white rounded-full"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+            <div className="space-y-3">
+              <div className="space-y-1">
+                <Label className="text-[10px] font-bold uppercase tracking-wider text-white/60">
+                  Identificação
+                </Label>
+                <Input
+                  placeholder="Nome da conta"
+                  value={accountFormData.nomeConta}
+                  onChange={(e) =>
+                    setAccountFormData({
+                      ...accountFormData,
+                      nomeConta: e.target.value,
+                    })
+                  }
+                  className="bg-white/5 border-white/10 text-white rounded-xl text-xs h-10"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[10px] font-bold uppercase tracking-wider text-white/60">
+                  Banco
+                </Label>
+                <Input
+                  placeholder="Nome do banco"
+                  value={accountFormData.banco}
+                  onChange={(e) =>
+                    setAccountFormData({ ...accountFormData, banco: e.target.value })
+                  }
+                  className="bg-white/5 border-white/10 text-white rounded-xl text-xs h-10"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[10px] font-bold uppercase tracking-wider text-white/60">
+                  Tipo
+                </Label>
+                <div className="flex gap-2">
+                  {Object.values(AccountType).map((type) => (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() =>
+                        setAccountFormData({ ...accountFormData, tipo: type })
+                      }
+                      className={`flex-1 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all ${
+                        accountFormData.tipo === type
+                          ? "bg-brand-pink text-white shadow-md"
+                          : "bg-white/5 text-white/60 hover:bg-white/10"
+                      }`}
+                    >
+                      {type}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="flex gap-2 pt-1">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowAccountForm(false)}
+                  className="flex-1 h-10 text-xs border-white/10 text-white/60 hover:text-white rounded-xl"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleCreateAccount}
+                  disabled={!accountFormData.nomeConta.trim() || isCreatingAccount}
+                  className="flex-1 h-10 text-xs bg-linear-to-br from-[#00aacd] to-[#EB2970] font-bold text-white rounded-xl"
+                >
+                  {isCreatingAccount ? "Criando..." : "Criar Conta"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
