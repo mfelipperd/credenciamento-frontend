@@ -236,22 +236,22 @@ export interface CreateClientForm {
 
 // Enums para tipos de conta
 export const AccountType = {
-  CORRENTE: "CORRENTE",
-  POUPANCA: "POUPANCA",
-  OUTRO: "OUTRO",
+  CORRENTE: "corrente",
+  POUPANCA: "poupanca",
+  OUTRO: "outro",
 } as const;
 
 export type AccountType = (typeof AccountType)[keyof typeof AccountType];
 
-// Interfaces para categorias financeiras
-export interface FinanceCategory {
+// Interfaces para categorias financeiras das despesas diretas
+export interface ExpenseCategory {
   id: string;
-  name: string; // Mudou de 'nome' para 'name' para consistência com a API
+  name: string;
   parentId?: string;
   global: boolean;
   fairId?: string;
-  parent?: FinanceCategory;
-  children?: FinanceCategory[];
+  parent?: ExpenseCategory;
+  children?: ExpenseCategory[];
   createdAt: string;
   updatedAt: string;
 }
@@ -318,7 +318,7 @@ export interface Expense {
 
   // Relacionamentos
   fair?: Fair;
-  category?: FinanceCategory;
+  category?: ExpenseCategory;
   account?: Account;
 }
 
@@ -364,3 +364,77 @@ export interface RevenueStats {
   totalRevenues: number;
   averagePerRevenue: number;
 }
+
+// Interfaces para despesas overhead
+export interface OverheadAllocation {
+  id: string;
+  overheadExpenseId: string;
+  fairId: string;
+  percentual: number;
+  fair?: Fair;
+}
+
+export interface OverheadExpense {
+  id: string;
+  categoria: string;
+  accountId?: string;
+  descricao?: string;
+  valor: number;
+  data: string;
+  observacoes?: string;
+  createdAt: string;
+  updatedAt: string;
+  account?: Account | null;
+  allocations: OverheadAllocation[];
+}
+
+export interface AllocatedOverheadExpense {
+  id: string;
+  categoria: string;
+  descricao?: string;
+  data: string;
+  valorTotal: number;
+  percentualDesteFair: number;
+  valorAlocado: number;
+  account: {
+    id: string;
+    nomeConta: string;
+    banco?: string;
+  } | null;
+  feirasRateadas: Array<{
+    fairId: string;
+    fairName: string;
+    percentual: number;
+  }>;
+}
+
+export interface FairExpensesResponse {
+  directExpenses: Expense[];
+  allocatedOverhead: AllocatedOverheadExpense[];
+  summary: {
+    totalDireto: number;
+    totalRateado: number;
+    totalGeral: number;
+  };
+}
+
+export interface FairExpensesTotalResponse {
+  totalDireto: number;
+  totalRateado: number;
+  totalGeral: number;
+}
+
+export interface CreateOverheadExpenseForm {
+  categoria: string;
+  accountId: string;
+  descricao?: string;
+  valor: number;
+  data: string;
+  observacoes?: string;
+  fairs: Array<{
+    fairId: string;
+    percentual?: number;
+  }>;
+}
+
+export interface UpdateOverheadExpenseForm extends Partial<CreateOverheadExpenseForm> {}

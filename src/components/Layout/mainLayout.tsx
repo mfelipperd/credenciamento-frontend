@@ -7,6 +7,9 @@ import {
   Settings,
   Menu,
   ChevronRight,
+  ChevronDown,
+  Search,
+  Check,
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { SimpleFooter } from "../Footer";
@@ -19,13 +22,8 @@ import { useCookie } from "@/hooks/useCookie";
 import { EUserRole } from "@/enums/user.enum";
 import { Sidebar } from "./Sidebar";
 import { LogoLoading } from "../LogoLoading";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../ui/select";
+import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
 
 export const MainLayout: React.FC = () => {
   const { data: fairs, isLoading: loading } = useFairs();
@@ -39,9 +37,9 @@ export const MainLayout: React.FC = () => {
     days: 30,
   });
 
-  // Header mostra apenas feiras ativas — marketing usa todas para remarketing
+  // Header mostra todas as feiras (com filtros no select) — marketing usa todas para remarketing
   const availableFairs = useMemo(() => {
-    const list = (fairs || []).filter((fair: any) => fair.isActive);
+    const list = fairs || [];
     if (!user) return [];
     if (user.role === EUserRole.ADMIN) return list;
     return list.filter((fair: any) => availableFairIds.length === 0 || availableFairIds.includes(fair.id));
@@ -58,13 +56,94 @@ export const MainLayout: React.FC = () => {
 
   const [selectedId, setSelectedId] = useState(getInitialFairId);
 
+  // Filtros locais para a busca de feiras no popover
+  const [isFairPopoverOpen, setIsFairPopoverOpen] = useState(false);
+  const [fairSearchText, setFairSearchText] = useState("");
+  const [selectedYearFilter, setSelectedYearFilter] = useState<string>("all");
+  const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>("all"); // "all", "active", "inactive"
+
+  // Extrai anos únicos a partir das datas em que a feira acontece (startDate, endDate, startDateTime, endDateTime)
+  const uniqueYears = useMemo(() => {
+    const yearsSet = new Set<string>();
+    availableFairs.forEach((fair: any) => {
+      const datesToTry = [
+        fair.startDate,
+        fair.endDate,
+        fair.startDateTime,
+        fair.endDateTime
+      ];
+      
+      datesToTry.forEach((dateStr) => {
+        if (dateStr) {
+          try {
+            const yearStr = dateStr.split("-")[0];
+            if (yearStr && yearStr.length === 4 && !isNaN(Number(yearStr))) {
+              yearsSet.add(yearStr);
+            } else {
+              const year = new Date(dateStr).getFullYear().toString();
+              if (year && year !== "NaN" && year.length === 4) {
+                yearsSet.add(year);
+              }
+            }
+          } catch (e) {
+            // ignore
+          }
+        }
+      });
+    });
+    return Array.from(yearsSet).sort((a, b) => b.localeCompare(a));
+  }, [availableFairs]);
+
+  // Filtra as feiras baseado na pesquisa por texto, status e ano do acontecimento
+  const filteredFairs = useMemo(() => {
+    return availableFairs.filter((fair: any) => {
+      if (fairSearchText.trim()) {
+        const matchesName = fair.name.toLowerCase().includes(fairSearchText.toLowerCase());
+        if (!matchesName) return false;
+      }
+
+      if (selectedYearFilter !== "all") {
+        const hasMatchingEventYear = [
+          fair.startDate,
+          fair.endDate,
+          fair.startDateTime,
+          fair.endDateTime
+        ].some((dateStr) => {
+          if (!dateStr) return false;
+          try {
+            const yearStr = dateStr.split("-")[0];
+            if (yearStr && yearStr.length === 4 && !isNaN(Number(yearStr))) {
+              return yearStr === selectedYearFilter;
+            }
+            const year = new Date(dateStr).getFullYear().toString();
+            return year === selectedYearFilter;
+          } catch (e) {
+            return false;
+          }
+        });
+
+        if (!hasMatchingEventYear) return false;
+      }
+
+      if (selectedStatusFilter === "active") {
+        if (!fair.isActive) return false;
+      } else if (selectedStatusFilter === "inactive") {
+        if (fair.isActive) return false;
+      }
+
+      return true;
+    });
+  }, [availableFairs, fairSearchText, selectedYearFilter, selectedStatusFilter]);
+
   const handleSelectChange = (id: string) => {
     setSelectedId(id);
     setSavedFairId(id);
     setSearchParams({ fairId: id });
   };
 
-  // const selectedFair = availableFairs.find((f: any) => f.id === selectedId);
+  const selectedFair = useMemo(() => {
+    return availableFairs.find((f: any) => f.id === selectedId);
+  }, [availableFairs, selectedId]);
 
   const search = `?fairId=${selectedId}`;
 
@@ -146,24 +225,153 @@ export const MainLayout: React.FC = () => {
                 <div className="h-6 w-px bg-white/10 hidden sm:block shrink-0"></div>
 
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="bg-green-400 rounded-full h-2 w-2 shrink-0 shadow-[0_0_10px_rgba(74,222,128,0.5)] hidden xs:block"></div>
+                  <div className={cn(
+                    "rounded-full h-2 w-2 shrink-0 hidden xs:block transition-all duration-300",
+                    selectedFair?.isActive
+                      ? "bg-green-400 shadow-[0_0_10px_rgba(74,222,128,0.5)]"
+                      : "bg-white/20"
+                  )}></div>
                   
-                  <Select value={selectedId} onValueChange={handleSelectChange}>
-                    <SelectTrigger className="h-9 sm:h-10 bg-white/5 border-white/5 text-white text-[10px] sm:text-xs font-black uppercase tracking-widest hover:bg-white/10 transition-all rounded-2xl px-3 sm:px-4 cursor-pointer min-w-0 max-w-[180px] sm:max-w-none">
-                      <SelectValue placeholder="Selecione uma feira" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-brand-blue border-white/10 text-white">
-                      {availableFairs.map((fair: any) => (
-                        <SelectItem
-                          key={fair.id}
-                          value={fair.id}
-                          className="text-[10px] sm:text-xs font-black uppercase tracking-widest focus:bg-white/10 focus:text-white"
-                        >
-                          {fair.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Popover open={isFairPopoverOpen} onOpenChange={setIsFairPopoverOpen}>
+                    <PopoverTrigger asChild>
+                      <button className="h-9 sm:h-10 bg-white/5 border border-white/10 text-white text-[10px] sm:text-xs font-black uppercase tracking-widest hover:bg-white/10 transition-all rounded-2xl px-3 sm:px-4 cursor-pointer flex items-center gap-2 max-w-[180px] sm:max-w-none">
+                        <span className="truncate">
+                          {selectedFair ? selectedFair.name : "Selecione uma feira"}
+                        </span>
+                        <ChevronDown className="w-4 h-4 opacity-50 shrink-0" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-80 mt-2 bg-slate-950 border border-white/10 text-white p-4 rounded-2xl shadow-2xl z-50">
+                      <div className="space-y-4">
+                        <div className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50 border-b border-white/5 pb-2">
+                          Filtrar Feiras
+                        </div>
+                        
+                        {/* Campo de Busca */}
+                        <div className="relative">
+                          <Search className="absolute left-3 top-2.5 h-4 w-4 text-white/30" />
+                          <Input
+                            placeholder="Buscar feira pelo nome..."
+                            value={fairSearchText}
+                            onChange={(e) => setFairSearchText(e.target.value)}
+                            className="pl-9 bg-white/5 border-white/10 text-white rounded-xl text-xs h-9 focus:border-brand-pink/50 focus:ring-brand-pink/20"
+                          />
+                        </div>
+
+                        {/* Status (Ativas / Inativas / Todas) */}
+                        <div className="space-y-1.5">
+                          <div className="text-[9px] font-black uppercase tracking-wider text-white/40">Status</div>
+                          <div className="flex gap-1.5 bg-white/5 p-1 rounded-xl border border-white/5">
+                            <button
+                              type="button"
+                              onClick={() => setSelectedStatusFilter("all")}
+                              className={cn(
+                                "flex-1 text-[9px] font-black uppercase tracking-wider py-1.5 rounded-lg transition-all cursor-pointer",
+                                selectedStatusFilter === "all" ? "bg-white/10 text-white" : "text-white/40 hover:text-white/75"
+                              )}
+                            >
+                              Todas
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setSelectedStatusFilter("active")}
+                              className={cn(
+                                "flex-1 text-[9px] font-black uppercase tracking-wider py-1.5 rounded-lg transition-all cursor-pointer",
+                                selectedStatusFilter === "active" ? "bg-white/10 text-green-400" : "text-white/40 hover:text-white/75"
+                              )}
+                            >
+                              Ativas
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setSelectedStatusFilter("inactive")}
+                              className={cn(
+                                "flex-1 text-[9px] font-black uppercase tracking-wider py-1.5 rounded-lg transition-all cursor-pointer",
+                                selectedStatusFilter === "inactive" ? "bg-white/10 text-white/60" : "text-white/40 hover:text-white/75"
+                              )}
+                            >
+                              Inativas
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Filtro por Ano */}
+                        <div className="space-y-1.5">
+                          <div className="text-[9px] font-black uppercase tracking-wider text-white/40">Ano</div>
+                          <div className="flex flex-wrap gap-1 max-h-24 overflow-y-auto pr-1">
+                            <button
+                              type="button"
+                              onClick={() => setSelectedYearFilter("all")}
+                              className={cn(
+                                "text-[9px] font-bold py-1 px-2.5 rounded-lg border transition-all cursor-pointer",
+                                selectedYearFilter === "all"
+                                  ? "bg-linear-to-br from-[#00aacd] to-[#EB2970] border-none text-white"
+                                  : "border-white/10 bg-white/5 text-white/60 hover:bg-white/10 hover:text-white"
+                              )}
+                            >
+                              Todos
+                            </button>
+                            {uniqueYears.map((year) => (
+                              <button
+                                key={year}
+                                type="button"
+                                onClick={() => setSelectedYearFilter(year)}
+                                className={cn(
+                                  "text-[9px] font-bold py-1 px-2.5 rounded-lg border transition-all cursor-pointer",
+                                  selectedYearFilter === year
+                                    ? "bg-linear-to-br from-[#00aacd] to-[#EB2970] border-none text-white"
+                                    : "border-white/10 bg-white/5 text-white/60 hover:bg-white/10 hover:text-white"
+                                )}
+                              >
+                                {year}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Listagem das Feiras Filtradas */}
+                        <div className="space-y-1.5">
+                          <div className="text-[9px] font-black uppercase tracking-wider text-white/40">Feiras ({filteredFairs.length})</div>
+                          <div className="max-h-48 overflow-y-auto space-y-1 pr-1 border border-white/5 bg-white/3 rounded-xl p-1.5">
+                            {filteredFairs.length > 0 ? (
+                              filteredFairs.map((fair: any) => {
+                                const isSelected = fair.id === selectedId;
+                                return (
+                                  <button
+                                    key={fair.id}
+                                    type="button"
+                                    onClick={() => {
+                                      handleSelectChange(fair.id);
+                                      setIsFairPopoverOpen(false);
+                                    }}
+                                    className={cn(
+                                      "w-full text-left px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-between gap-2 cursor-pointer",
+                                      isSelected
+                                        ? "bg-white/10 text-white border border-white/10"
+                                        : "text-white/60 hover:bg-white/5 hover:text-white"
+                                    )}
+                                  >
+                                    <span className="truncate flex-1">{fair.name}</span>
+                                    <div className="flex items-center gap-1.5 shrink-0">
+                                      <span className={cn(
+                                        "h-1.5 w-1.5 rounded-full",
+                                        fair.isActive ? "bg-green-400 shadow-[0_0_6px_rgba(74,222,128,0.5)]" : "bg-white/20"
+                                      )} />
+                                      {isSelected && <Check className="w-3.5 h-3.5 text-brand-pink shrink-0" />}
+                                    </div>
+                                  </button>
+                                );
+                              })
+                            ) : (
+                              <div className="text-center py-4 text-[9px] font-bold text-white/30 uppercase tracking-wider">
+                                Nenhuma feira encontrada
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                 </div>
               </div>
             </div>

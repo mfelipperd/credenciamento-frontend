@@ -1,12 +1,12 @@
 import { useState } from "react";
 import {
-  Eye,
   Edit,
   Trash2,
   Calendar,
   DollarSign,
   Tag,
   Building,
+  Info,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,29 +19,31 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { Expense } from "@/interfaces/finance";
+import type { AllocatedOverheadExpense } from "@/interfaces/finance";
 import { getCategoryColor } from "@/utils/categoryColors";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
 
-interface ExpensesTableProps {
-  expenses: Expense[];
+interface OverheadExpensesTableProps {
+  expenses: AllocatedOverheadExpense[];
   isLoading: boolean;
-  onEdit: (expense: Expense) => void;
-  onView: (expense: Expense) => void;
-  onDelete: (expense: Expense) => void;
+  onEdit: (expense: AllocatedOverheadExpense) => void;
+  onDelete: (expense: AllocatedOverheadExpense) => void;
 }
 
-export function ExpensesTable({
+export function OverheadExpensesTable({
   expenses,
   isLoading,
   onEdit,
-  onView,
   onDelete,
-}: ExpensesTableProps) {
-  const [sortField, setSortField] = useState<keyof Expense>("data");
+}: OverheadExpensesTableProps) {
+  const [sortField, setSortField] = useState<keyof AllocatedOverheadExpense>("data");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
-
-  const handleSort = (field: keyof Expense) => {
+  const handleSort = (field: keyof AllocatedOverheadExpense) => {
     if (sortField === field) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
@@ -78,7 +80,7 @@ export function ExpensesTable({
     return new Date(dateString).toLocaleDateString("pt-BR");
   };
 
-  const getSortIcon = (field: keyof Expense) => {
+  const getSortIcon = (field: keyof AllocatedOverheadExpense) => {
     if (sortField !== field) return null;
     return sortDirection === "asc" ? "↑" : "↓";
   };
@@ -105,10 +107,10 @@ export function ExpensesTable({
       <div className="text-center py-12 bg-white/3 border border-white/5 rounded-xl backdrop-blur-md">
         <Building className="mx-auto h-12 w-12 text-white/20 animate-pulse" />
         <h3 className="mt-4 text-sm font-bold text-white uppercase tracking-wider">
-          Nenhuma despesa encontrada
+          Nenhum custo overhead alocado
         </h3>
         <p className="mt-1 text-xs text-white/40">
-          Comece criando sua primeira despesa.
+          Esta feira não possui custos fixos compartilhados no momento.
         </p>
       </div>
     );
@@ -141,16 +143,36 @@ export function ExpensesTable({
             </TableHead>
             <TableHead
               className="cursor-pointer hover:bg-white/5 text-white/40 text-[10px] font-black uppercase tracking-wider text-white h-11"
-              onClick={() => handleSort("valor")}
+              onClick={() => handleSort("valorTotal")}
             >
               <div className="flex items-center gap-2">
                 <DollarSign className="w-4 h-4" />
-                Valor
-                {getSortIcon("valor")}
+                Valor Total (100%)
+                {getSortIcon("valorTotal")}
+              </div>
+            </TableHead>
+            <TableHead
+              className="cursor-pointer hover:bg-white/5 text-white/40 text-[10px] font-black uppercase tracking-wider text-white h-11"
+              onClick={() => handleSort("percentualDesteFair")}
+            >
+              <div className="flex items-center gap-2">
+                % Deste Fair
+                {getSortIcon("percentualDesteFair")}
+              </div>
+            </TableHead>
+            <TableHead
+              className="cursor-pointer hover:bg-white/5 text-white/40 text-[10px] font-black uppercase tracking-wider text-white h-11"
+              onClick={() => handleSort("valorAlocado")}
+            >
+              <div className="flex items-center gap-2">
+                <DollarSign className="w-4 h-4" />
+                Valor Alocado
+                {getSortIcon("valorAlocado")}
               </div>
             </TableHead>
             <TableHead className="text-white/40 text-[10px] font-black uppercase tracking-wider text-white h-11">Categoria</TableHead>
             <TableHead className="text-white/40 text-[10px] font-black uppercase tracking-wider text-white h-11">Conta</TableHead>
+            <TableHead className="text-white/40 text-[10px] font-black uppercase tracking-wider text-white h-11">Rateio</TableHead>
             <TableHead className="text-white/40 text-[10px] font-black uppercase tracking-wider text-white text-right h-11">Ações</TableHead>
           </TableRow>
         </TableHeader>
@@ -165,18 +187,24 @@ export function ExpensesTable({
               </TableCell>
               <TableCell className="text-white font-semibold">
                 <div
-                  className="max-w-[200px] truncate"
+                  className="max-w-[180px] truncate"
                   title={expense.descricao || "Sem descrição"}
                 >
                   {expense.descricao || "Sem descrição"}
                 </div>
               </TableCell>
+              <TableCell className="text-white/50 font-medium">
+                {formatCurrency(expense.valorTotal)}
+              </TableCell>
+              <TableCell className="font-semibold text-white/80">
+                {(expense.percentualDesteFair * 100).toFixed(0)}%
+              </TableCell>
               <TableCell className="font-bold text-red-400">
-                {formatCurrency(expense.valor)}
+                {formatCurrency(expense.valorAlocado)}
               </TableCell>
               <TableCell>
-                <Badge className={`text-xs ${getCategoryColor(expense.category?.name || "")}`}>
-                  {expense.category?.name || "N/A"}
+                <Badge className={`text-xs ${getCategoryColor(expense.categoria || "")}`}>
+                  {expense.categoria || "N/A"}
                 </Badge>
               </TableCell>
               <TableCell>
@@ -184,16 +212,35 @@ export function ExpensesTable({
                   {expense.account?.nomeConta || "N/A"}
                 </Badge>
               </TableCell>
+              <TableCell>
+                <HoverCard>
+                  <HoverCardTrigger asChild>
+                    <Button variant="ghost" className="h-8 gap-1 p-1 text-[#00BCD4] hover:bg-white/5 rounded-lg transition-colors font-semibold">
+                      <Info className="w-4 h-4" />
+                      <span>{expense.feirasRateadas?.length || 0} feiras</span>
+                    </Button>
+                  </HoverCardTrigger>
+                  <HoverCardContent className="w-85 p-4 bg-slate-950 border border-white/10 text-white rounded-xl shadow-2xl backdrop-blur-xl z-50">
+                    <h5 className="font-black text-[10px] uppercase tracking-wider text-white/50 mb-3 border-b border-white/5 pb-2">
+                      Detalhamento do Rateio
+                    </h5>
+                    <div className="space-y-2">
+                      {expense.feirasRateadas?.map((rateio) => (
+                        <div key={rateio.fairId} className="flex justify-between items-center text-xs">
+                          <span className="truncate max-w-[180px] text-white/70">
+                            {rateio.fairName}
+                          </span>
+                          <span className="font-bold text-white">
+                            {(rateio.percentual * 100).toFixed(0)}% ({formatCurrency(expense.valorTotal * rateio.percentual)})
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </HoverCardContent>
+                </HoverCard>
+              </TableCell>
               <TableCell className="text-right">
                 <div className="flex items-center justify-end space-x-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => onView(expense)}
-                    className="h-8 w-8 p-0 border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white transition-all duration-200"
-                  >
-                    <Eye className="w-4 h-4" />
-                  </Button>
                   <Button
                     size="sm"
                     variant="outline"

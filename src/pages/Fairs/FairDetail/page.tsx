@@ -1,6 +1,11 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useFair, useUpdateFair, useDeleteFair, useToggleFairActive } from "@/hooks/useFairs";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useExpensesService } from "@/service/expenses.service";
+import { useFairService } from "@/service/fair.service";
+import { OverheadExpenseForm } from "@/pages/Expenses/components/OverheadExpenseForm";
+import type { AllocatedOverheadExpense, CreateOverheadExpenseForm, UpdateOverheadExpenseForm } from "@/interfaces/finance";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -45,7 +50,7 @@ import {
   ToggleRight,
   AlertTriangle,
 } from "lucide-react";
-import type { UpdateFairForm, DaySchedule, StandConfiguration, FairStatus } from "@/interfaces/fairs";
+import type { Fair, UpdateFairForm, DaySchedule, StandConfiguration, FairStatus } from "@/interfaces/fairs";
 import { toast } from "sonner";
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
@@ -181,6 +186,88 @@ export default function FairDetailPage() {
   const [editing, setEditing] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const saving = updateMutation.isPending;
+
+  // Estado e hooks para despesas overhead / rateio
+  const [isOverheadFormOpen, setIsOverheadFormOpen] = useState(false);
+  const [editingOverhead, setEditingOverhead] = useState<AllocatedOverheadExpense | null>(null);
+  const [overheadToDelete, setOverheadToDelete] = useState<AllocatedOverheadExpense | null>(null);
+
+  const expensesService = useExpensesService();
+  const fairService = useFairService();
+  const queryClient = useQueryClient();
+
+  // Query para buscar despesas (inclui rateio overhead)
+  const { data: expensesData, isLoading: expensesLoading } = useQuery({
+    queryKey: ["expenses", id],
+    queryFn: () => expensesService.getExpenses({ fairId: id! }),
+    enabled: !!id,
+  });
+
+  // Query para buscar contas bancárias
+  const { data: accounts } = useQuery({
+    queryKey: ["accounts"],
+    queryFn: () => expensesService.getAccounts(),
+  });
+
+  // Query para buscar lista de todas as feiras
+  const { data: fairsList } = useQuery({
+    queryKey: ["fairs"],
+    queryFn: () => fairService.getFairs(),
+  });
+
+  // Mutation para criar despesa overhead
+  const createOverheadMutation = useMutation({
+    mutationFn: (data: CreateOverheadExpenseForm) =>
+      expensesService.createOverheadExpense(data),
+    onSuccess: () => {
+      toast.success("Despesa overhead criada com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ["expenses", id] });
+      queryClient.invalidateQueries({ queryKey: ["expenses-total", id] });
+      queryClient.invalidateQueries({ queryKey: ["fairs", id] });
+      queryClient.invalidateQueries({ queryKey: ["fairs"] });
+      setIsOverheadFormOpen(false);
+    },
+    onError: (error) => {
+      console.error("Erro ao criar despesa overhead:", error);
+      toast.error("Erro ao criar despesa overhead. Tente novamente.");
+    },
+  });
+
+  // Mutation para atualizar despesa overhead
+  const updateOverheadMutation = useMutation({
+    mutationFn: ({ overheadId, data }: { overheadId: string; data: UpdateOverheadExpenseForm }) =>
+      expensesService.updateOverheadExpense(overheadId, data),
+    onSuccess: () => {
+      toast.success("Despesa overhead atualizada com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ["expenses", id] });
+      queryClient.invalidateQueries({ queryKey: ["expenses-total", id] });
+      queryClient.invalidateQueries({ queryKey: ["fairs", id] });
+      queryClient.invalidateQueries({ queryKey: ["fairs"] });
+      setIsOverheadFormOpen(false);
+      setEditingOverhead(null);
+    },
+    onError: (error) => {
+      console.error("Erro ao atualizar despesa overhead:", error);
+      toast.error("Erro ao atualizar despesa overhead. Tente novamente.");
+    },
+  });
+
+  // Mutation para deletar despesa overhead
+  const deleteOverheadMutation = useMutation({
+    mutationFn: (overheadId: string) => expensesService.deleteOverheadExpense(overheadId),
+    onSuccess: () => {
+      toast.success("Despesa overhead removida com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ["expenses", id] });
+      queryClient.invalidateQueries({ queryKey: ["expenses-total", id] });
+      queryClient.invalidateQueries({ queryKey: ["fairs", id] });
+      queryClient.invalidateQueries({ queryKey: ["fairs"] });
+      setOverheadToDelete(null);
+    },
+    onError: (error) => {
+      console.error("Erro ao remover despesa overhead:", error);
+      toast.error("Erro ao remover despesa overhead. Tente novamente.");
+    },
+  });
 
   const startEdit = (s: string) => setEditing(s);
   const cancelEdit = () => setEditing(null);
@@ -383,6 +470,89 @@ export default function FairDetailPage() {
         onCancel={cancelEdit}
         onSave={(data) => save("stands", data)}
       />
+
+      {/* ── Seção 7: Rateio de Custos (Overhead) ─────────────────────────── */}
+      <OverheadSection
+        fair={fair}
+        expenses={expensesData?.allocatedOverhead || []}
+        isLoading={expensesLoading}
+        onAdd={() => {
+          setEditingOverhead({
+            isInitialTemplate: true,
+            allocations: [
+              {
+                fairId: fair.id,
+                percentual: 1.0,
+              }
+            ],
+            data: new Date().toISOString().split("T")[0],
+          } as any);
+          setIsOverheadFormOpen(true);
+        }}
+        onEdit={(expense) => {
+          setEditingOverhead(expense);
+          setIsOverheadFormOpen(true);
+        }}
+        onDelete={(expense) => setOverheadToDelete(expense)}
+      />
+
+      {/* Modal de Formulário Despesa Overhead */}
+      {isOverheadFormOpen && (
+        <OverheadExpenseForm
+          isOpen={isOverheadFormOpen}
+          onClose={() => {
+            setIsOverheadFormOpen(false);
+            setEditingOverhead(null);
+          }}
+          onSubmit={(data) => {
+            if (editingOverhead && !("isInitialTemplate" in editingOverhead)) {
+              updateOverheadMutation.mutate({
+                overheadId: editingOverhead.id,
+                data: data as UpdateOverheadExpenseForm,
+              });
+            } else {
+              createOverheadMutation.mutate(data as CreateOverheadExpenseForm);
+            }
+          }}
+          expense={editingOverhead}
+          accounts={accounts || []}
+          fairsList={fairsList || []}
+          isLoading={createOverheadMutation.isPending || updateOverheadMutation.isPending}
+        />
+      )}
+
+      {/* Dialog de Confirmação de Exclusão Despesa Overhead */}
+      <AlertDialog open={!!overheadToDelete} onOpenChange={() => setOverheadToDelete(null)}>
+        <AlertDialogContent className="bg-brand-blue border-white/10">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-red-400" /> Excluir rateio de custo?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-white/50">
+              O rateio da despesa overhead <strong className="text-white">{overheadToDelete?.descricao || "Sem descrição"}</strong> será excluído permanentemente para todas as feiras associadas.
+              Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              className="bg-white/5 border-white/10 text-white hover:bg-white/10"
+              onClick={() => setOverheadToDelete(null)}
+            >
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700 text-white"
+              onClick={() => {
+                if (overheadToDelete) {
+                  deleteOverheadMutation.mutate(overheadToDelete.id);
+                }
+              }}
+            >
+              Excluir permanentemente
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
@@ -1077,5 +1247,129 @@ function StandsSection({ fair, isEditing, isSaving, onEdit, onCancel, onSave }: 
         </div>
       )}
     </SectionCard>
+  );
+}
+
+// ─── SEÇÃO: RATEIO DE CUSTOS OVERHEAD ──────────────────────────────────────────
+
+interface OverheadSectionProps {
+  fair: Fair;
+  expenses: AllocatedOverheadExpense[];
+  isLoading: boolean;
+  onAdd: () => void;
+  onEdit: (expense: AllocatedOverheadExpense) => void;
+  onDelete: (expense: AllocatedOverheadExpense) => void;
+}
+
+function OverheadSection({
+  fair,
+  expenses,
+  isLoading,
+  onAdd,
+  onEdit,
+  onDelete,
+}: OverheadSectionProps) {
+  return (
+    <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
+      <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/8">
+        <h3 className="flex items-center gap-2 text-sm font-bold text-white/80 uppercase tracking-widest">
+          <span className="text-white/40"><DollarSign className="h-4 w-4" /></span>
+          Rateio de Custos (Overhead)
+        </h3>
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={onAdd}
+          className="h-8 text-white/40 hover:text-white hover:bg-white/10"
+        >
+          <Plus className="h-3.5 w-3.5 mr-1" /> Adicionar Rateio
+        </Button>
+      </div>
+      <div className="p-5 space-y-4">
+        {isLoading ? (
+          <div className="space-y-2">
+            <Skeleton className="h-12 w-full bg-white/5 rounded-xl" />
+            <Skeleton className="h-12 w-full bg-white/5 rounded-xl" />
+          </div>
+        ) : expenses.length === 0 ? (
+          <p className="text-sm text-white/30 italic text-center py-4">
+            Nenhum custo overhead rateado para esta feira.
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {expenses.map((item) => (
+              <div
+                key={item.id}
+                className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 bg-white/3 border border-white/5 rounded-xl hover:border-white/10 transition-all"
+              >
+                <div className="space-y-1.5 flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-white/5 text-white/70 border border-white/10">
+                      {item.categoria}
+                    </span>
+                    <span className="text-xs text-white/40">{fmtDate(item.data)}</span>
+                  </div>
+                  <p className="font-semibold text-sm text-white truncate">
+                    {item.descricao || "Sem descrição"}
+                  </p>
+                  {item.feirasRateadas && item.feirasRateadas.length > 1 && (
+                    <div className="text-[11px] text-white/30 flex items-center gap-1.5 flex-wrap">
+                      <span>Divisão do custo:</span>
+                      {item.feirasRateadas.map((fr) => (
+                        <span
+                          key={fr.fairId}
+                          className={`px-1.5 py-0.5 rounded bg-white/3 border border-white/5 ${
+                            fr.fairId === fair.id ? "text-brand-cyan font-bold" : ""
+                          }`}
+                        >
+                          {fr.fairName}: {(fr.percentual * 100).toFixed(0)}%
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between md:justify-end gap-6 pt-3 md:pt-0 border-t md:border-t-0 border-white/5">
+                  <div className="text-left md:text-right">
+                    <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest">
+                      Total: {fmtCurrency(item.valorTotal)}
+                    </p>
+                    <div className="flex items-center gap-1 mt-0.5">
+                      <span className="text-xs text-brand-pink font-semibold bg-brand-pink/10 px-1.5 py-0.5 rounded border border-brand-pink/20">
+                        {(item.percentualDesteFair * 100).toFixed(1)}%
+                      </span>
+                      <span className="text-sm font-black text-white">
+                        {fmtCurrency(item.valorAlocado)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => onEdit(item)}
+                      className="h-8 w-8 p-0 text-white/40 hover:text-white hover:bg-white/10"
+                    >
+                      <Edit2 className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => onDelete(item)}
+                      className="h-8 w-8 p-0 text-red-400/60 hover:text-red-400 hover:bg-red-500/10"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

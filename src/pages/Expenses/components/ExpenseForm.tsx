@@ -32,12 +32,12 @@ import type {
   Expense,
   CreateExpenseForm,
   UpdateExpenseForm,
-  FinanceCategory,
+  ExpenseCategory,
   Account,
-  CreateFinanceCategoryForm,
   CreateAccountForm,
 } from "@/interfaces/finance";
 import { AccountType } from "@/interfaces/finance";
+import type { FinanceCategory, CreateCategoryDto } from "@/interfaces/categories";
 import { useExpensesService } from "@/service/expenses.service";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -63,7 +63,7 @@ interface ExpenseFormProps {
   onClose: () => void;
   onSubmit: (data: CreateExpenseForm | UpdateExpenseForm) => void;
   expense?: Expense | null;
-  categories: FinanceCategory[];
+  categories: ExpenseCategory[];
   accounts: Account[];
   isLoading?: boolean;
   fairId?: string;
@@ -195,10 +195,11 @@ export function ExpenseForm({
 
     setIsCreatingCategory(true);
     try {
-      const categoryData: CreateFinanceCategoryForm = {
-        name: categoryFormData.name,
+      const categoryData: CreateCategoryDto = {
+        nome: categoryFormData.name,
         global: categoryFormData.global,
-        fairId: fairId, // Sempre incluir fairId quando disponível
+        fairId: fairId,
+        isRequired: false,
       };
 
       const newCategory = await expensesService.createFinanceCategory(
@@ -271,24 +272,26 @@ export function ExpenseForm({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <div className="flex items-center justify-between">
-            <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white">
-              {expense ? "Editar Despesa" : "Nova Despesa"}
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-slate-950 border border-white/10 text-white p-0 rounded-2xl shadow-2xl">
+        <DialogHeader className="relative h-24 w-full flex items-end p-6 bg-linear-to-br from-[#00aacd] to-[#EB2970] overflow-hidden rounded-t-2xl">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+          <div className="relative z-10 w-full flex items-center justify-between">
+            <DialogTitle className="text-xl font-black text-white tracking-tight">
+              {expense ? "Editar Despesa Direta" : "Nova Despesa Direta"}
             </DialogTitle>
             <Button
+              type="button"
               variant="ghost"
               size="sm"
               onClick={handleClose}
-              className="h-8 w-8 p-0"
+              className="h-8 w-8 p-0 text-white/60 hover:text-white hover:bg-white/10 rounded-full"
             >
               <X className="h-4 w-4" />
             </Button>
           </div>
         </DialogHeader>
 
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="p-6 space-y-6 bg-slate-950 text-white">
           {/* Categoria e Conta */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Categoria */}
@@ -296,7 +299,7 @@ export function ExpenseForm({
               <div className="flex items-center justify-between">
                 <Label
                   htmlFor="categoryId"
-                  className="text-gray-900 dark:text-gray-100"
+                  className="text-xs font-bold uppercase tracking-wider text-white/60"
                 >
                   Categoria *
                 </Label>
@@ -305,7 +308,7 @@ export function ExpenseForm({
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowCategoryForm(!showCategoryForm)}
-                  className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                  className="h-8 w-8 p-0 text-brand-cyan hover:text-white hover:bg-white/10"
                 >
                   <Plus className="w-4 h-4" />
                 </Button>
@@ -315,17 +318,17 @@ export function ExpenseForm({
                 value={form.watch("categoryId")}
                 onValueChange={(value) => form.setValue("categoryId", value)}
               >
-                <SelectTrigger>
+                <SelectTrigger className="bg-white/5 border-white/10 text-white rounded-xl focus:border-brand-pink/50 focus:ring-brand-pink/20 placeholder:text-white/20">
                   <SelectValue placeholder="Selecione uma categoria" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-slate-900 border border-white/10 text-white">
                   {categories.map((category) => (
-                    <SelectItem key={category.id} value={category.id}>
+                    <SelectItem key={category.id} value={category.id} className="hover:bg-white/10 cursor-pointer">
                       <div className="flex items-center gap-2">
-                        <Tag className="w-4 h-4" />
+                        <Tag className="w-4 h-4 text-brand-cyan" />
                         {category.name}
                         {category.global && (
-                          <span className="text-xs text-gray-500">
+                          <span className="text-xs text-white/40">
                             (Global)
                           </span>
                         )}
@@ -343,9 +346,9 @@ export function ExpenseForm({
                     : "max-h-0 opacity-0"
                 }`}
               >
-                <div className="mt-3 p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 space-y-3">
+                <div className="mt-3 p-4 border border-white/10 rounded-xl bg-white/3 space-y-3">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-medium text-gray-900 dark:text-white">
+                    <h4 className="text-sm font-bold text-white">
                       Nova Categoria
                     </h4>
                     <Button
@@ -353,7 +356,7 @@ export function ExpenseForm({
                       variant="ghost"
                       size="sm"
                       onClick={() => setShowCategoryForm(false)}
-                      className="h-6 w-6 p-0"
+                      className="h-6 w-6 p-0 text-white/60 hover:text-white"
                     >
                       {showCategoryForm ? (
                         <ChevronUp className="w-4 h-4" />
@@ -373,10 +376,10 @@ export function ExpenseForm({
                           name: e.target.value,
                         })
                       }
-                      className="text-sm"
+                      className="bg-white/5 border-white/10 text-white rounded-xl text-sm"
                     />
 
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2 text-white/80">
                       <input
                         type="checkbox"
                         id="category-global"
@@ -387,11 +390,11 @@ export function ExpenseForm({
                             global: e.target.checked,
                           })
                         }
-                        className="rounded border-gray-300"
+                        className="rounded border-white/10 bg-white/5 h-4 w-4 accent-brand-pink"
                       />
                       <label
                         htmlFor="category-global"
-                        className="text-xs text-gray-600 dark:text-gray-400"
+                        className="text-xs text-white/60 cursor-pointer"
                       >
                         Categoria global (disponível para todas as feiras)
                       </label>
@@ -403,7 +406,7 @@ export function ExpenseForm({
                       disabled={
                         !categoryFormData.name.trim() || isCreatingCategory
                       }
-                      className="w-full h-8 text-xs"
+                      className="w-full h-9 text-xs bg-linear-to-br from-[#00aacd] to-[#EB2970] font-bold text-white rounded-xl cursor-pointer"
                       size="sm"
                     >
                       {isCreatingCategory ? (
@@ -420,7 +423,7 @@ export function ExpenseForm({
               </div>
 
               {form.formState.errors.categoryId && (
-                <p className="text-sm text-red-600 dark:text-red-400">
+                <p className="text-sm text-red-400">
                   {form.formState.errors.categoryId.message}
                 </p>
               )}
@@ -431,7 +434,7 @@ export function ExpenseForm({
               <div className="flex items-center justify-between">
                 <Label
                   htmlFor="accountId"
-                  className="text-gray-900 dark:text-gray-100"
+                  className="text-xs font-bold uppercase tracking-wider text-white/60"
                 >
                   Conta Bancária *
                 </Label>
@@ -440,7 +443,7 @@ export function ExpenseForm({
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowAccountForm(!showAccountForm)}
-                  className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                  className="h-8 w-8 p-0 text-brand-cyan hover:text-white hover:bg-white/10"
                 >
                   <Plus className="w-4 h-4" />
                 </Button>
@@ -450,17 +453,17 @@ export function ExpenseForm({
                 value={form.watch("accountId")}
                 onValueChange={(value) => form.setValue("accountId", value)}
               >
-                <SelectTrigger>
+                <SelectTrigger className="bg-white/5 border-white/10 text-white rounded-xl focus:border-brand-pink/50 focus:ring-brand-pink/20 placeholder:text-white/20">
                   <SelectValue placeholder="Selecione uma conta" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-slate-900 border border-white/10 text-white">
                   {accounts.map((account) => (
-                    <SelectItem key={account.id} value={account.id}>
+                    <SelectItem key={account.id} value={account.id} className="hover:bg-white/10 cursor-pointer">
                       <div className="flex items-center gap-2">
-                        <Building className="w-4 h-4" />
+                        <Building className="w-4 h-4 text-brand-cyan" />
                         {account.nomeConta}
                         {account.banco && (
-                          <span className="text-xs text-gray-500">
+                          <span className="text-xs text-white/40">
                             ({account.banco} -{" "}
                             {getAccountTypeLabel(account.tipo)})
                           </span>
@@ -477,9 +480,9 @@ export function ExpenseForm({
                   showAccountForm ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
                 }`}
               >
-                <div className="mt-3 p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 space-y-3">
+                <div className="mt-3 p-4 border border-white/10 rounded-xl bg-white/3 space-y-3">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-medium text-gray-900 dark:text-white">
+                    <h4 className="text-sm font-bold text-white">
                       Nova Conta Bancária
                     </h4>
                     <Button
@@ -487,7 +490,7 @@ export function ExpenseForm({
                       variant="ghost"
                       size="sm"
                       onClick={() => setShowAccountForm(false)}
-                      className="h-6 w-6 p-0"
+                      className="h-6 w-6 p-0 text-white/60 hover:text-white"
                     >
                       {showAccountForm ? (
                         <ChevronUp className="w-4 h-4" />
@@ -507,7 +510,7 @@ export function ExpenseForm({
                           nomeConta: e.target.value,
                         })
                       }
-                      className="text-sm"
+                      className="bg-white/5 border-white/10 text-white rounded-xl text-sm"
                     />
 
                     <Input
@@ -519,7 +522,7 @@ export function ExpenseForm({
                           banco: e.target.value,
                         })
                       }
-                      className="text-sm"
+                      className="bg-white/5 border-white/10 text-white rounded-xl text-sm"
                     />
 
                     <Select
@@ -531,10 +534,10 @@ export function ExpenseForm({
                         })
                       }
                     >
-                      <SelectTrigger className="text-sm">
+                      <SelectTrigger className="bg-white/5 border-white/10 text-white rounded-xl text-sm">
                         <SelectValue placeholder="Tipo de conta" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-slate-900 border border-white/10 text-white">
                         <SelectItem value={AccountType.CORRENTE}>
                           Conta Corrente
                         </SelectItem>
@@ -551,7 +554,7 @@ export function ExpenseForm({
                       disabled={
                         !accountFormData.nomeConta.trim() || isCreatingAccount
                       }
-                      className="w-full h-8 text-xs"
+                      className="w-full h-9 text-xs bg-linear-to-br from-[#00aacd] to-[#EB2970] font-bold text-white rounded-xl cursor-pointer"
                       size="sm"
                     >
                       {isCreatingAccount ? (
@@ -568,7 +571,7 @@ export function ExpenseForm({
               </div>
 
               {form.formState.errors.accountId && (
-                <p className="text-sm text-red-600 dark:text-red-400">
+                <p className="text-sm text-red-400">
                   {form.formState.errors.accountId.message}
                 </p>
               )}
@@ -579,7 +582,7 @@ export function ExpenseForm({
           <div className="space-y-2">
             <Label
               htmlFor="descricao"
-              className="text-gray-900 dark:text-gray-100"
+              className="text-xs font-bold uppercase tracking-wider text-white/60"
             >
               Descrição
             </Label>
@@ -587,10 +590,10 @@ export function ExpenseForm({
               id="descricao"
               placeholder="Descrição da despesa (opcional)"
               {...form.register("descricao")}
-              className="text-gray-900 dark:text-gray-100"
+              className="bg-white/5 border-white/10 text-white rounded-xl focus:border-brand-pink/50 focus:ring-brand-pink/20 placeholder:text-white/20"
             />
             {form.formState.errors.descricao && (
-              <p className="text-sm text-red-600 dark:text-red-400">
+              <p className="text-sm text-red-400">
                 {form.formState.errors.descricao.message}
               </p>
             )}
@@ -607,7 +610,7 @@ export function ExpenseForm({
                 mask={maskCurrencyBRL}
               />
               {form.formState.errors.valorDisplay && (
-                <p className="text-sm text-red-600 dark:text-red-400">
+                <p className="text-sm text-red-400">
                   {form.formState.errors.valorDisplay.message}
                 </p>
               )}
@@ -616,7 +619,7 @@ export function ExpenseForm({
             <div className="space-y-2">
               <Label
                 htmlFor="data"
-                className="text-gray-900 dark:text-gray-100"
+                className="text-xs font-bold uppercase tracking-wider text-white/60"
               >
                 Data *
               </Label>
@@ -624,14 +627,13 @@ export function ExpenseForm({
                 id="data"
                 type="date"
                 {...form.register("data")}
-                className="text-gray-900 dark:text-gray-100"
+                className="bg-white/5 border-white/10 text-white rounded-xl focus:border-brand-pink/50 focus:ring-brand-pink/20 placeholder:text-white/20 h-10"
                 onChange={(e) => {
-                  console.log("Data alterada:", e.target.value);
                   form.setValue("data", e.target.value);
                 }}
               />
               {form.formState.errors.data && (
-                <p className="text-sm text-red-600 dark:text-red-400">
+                <p className="text-sm text-red-400">
                   {form.formState.errors.data.message}
                 </p>
               )}
@@ -642,7 +644,7 @@ export function ExpenseForm({
           <div className="space-y-2">
             <Label
               htmlFor="observacoes"
-              className="text-gray-900 dark:text-gray-100"
+              className="text-xs font-bold uppercase tracking-wider text-white/60"
             >
               Observações
             </Label>
@@ -651,10 +653,10 @@ export function ExpenseForm({
               placeholder="Observações adicionais (opcional)"
               rows={3}
               {...form.register("observacoes")}
-              className="text-gray-900 dark:text-gray-100"
+              className="bg-white/5 border-white/10 text-white rounded-xl focus:border-brand-pink/50 focus:ring-brand-pink/20 placeholder:text-white/20"
             />
             {form.formState.errors.observacoes && (
-              <p className="text-sm text-red-600 dark:text-red-400">
+              <p className="text-sm text-red-400">
                 {form.formState.errors.observacoes.message}
               </p>
             )}
@@ -662,13 +664,13 @@ export function ExpenseForm({
 
           {/* Resumo */}
           {valorDisplay && valorDisplay !== "R$ 0,00" && (
-            <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-              <h4 className="font-medium text-gray-900 dark:text-white mb-2">
+            <div className="p-4 bg-white/5 border border-white/10 rounded-xl space-y-2">
+              <h4 className="text-sm font-bold text-white">
                 Resumo da Despesa
               </h4>
-              <div className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
+              <div className="grid grid-cols-2 gap-2 text-xs text-white/60">
                 <p>
-                  <strong>Valor:</strong> {valorDisplay}
+                  <strong>Valor:</strong> <span className="text-red-400 font-bold">{valorDisplay}</span>
                 </p>
                 <p>
                   <strong>Data:</strong>{" "}
@@ -705,13 +707,14 @@ export function ExpenseForm({
               variant="outline"
               onClick={handleClose}
               disabled={isLoading}
+              className="border-white/10 bg-white/5 text-white/80 hover:bg-white/10 rounded-xl font-bold h-11"
             >
               Cancelar
             </Button>
             <Button
               type="submit"
               disabled={isLoading}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-linear-to-br from-[#00aacd] to-[#EB2970] text-white rounded-xl px-6 font-bold shadow-lg shadow-pink-500/20 transition-all hover:scale-105 active:scale-95 h-11 border-none cursor-pointer"
             >
               {isLoading ? (
                 <div className="flex items-center gap-2">

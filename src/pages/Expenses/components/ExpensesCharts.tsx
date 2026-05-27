@@ -3,8 +3,8 @@ import { useExpensesService } from "@/service/expenses.service";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PieChart, TrendingUp, DollarSign, Eye, EyeOff } from "lucide-react";
-import { useState } from "react";
-import type { ExpenseTotalByCategory, Expense } from "@/interfaces/finance";
+import { useState, useMemo } from "react";
+import type { ExpenseTotalByCategory, Expense, AccountType } from "@/interfaces/finance";
 
 interface ExpensesChartsProps {
   fairId: string;
@@ -23,11 +23,45 @@ export function ExpensesCharts({ fairId }: ExpensesChartsProps) {
 
 
   // Query para buscar despesas individuais
-  const { data: expenses } = useQuery({
+  const { data: expensesData } = useQuery({
     queryKey: ["expenses-list", fairId],
     queryFn: () => expensesService.getExpenses({ fairId, page: 1, pageSize: 1000 }),
     enabled: !!fairId,
   });
+
+  const expenses = useMemo(() => {
+    if (!expensesData) return [];
+    const direct = expensesData.directExpenses || [];
+    const overhead = (expensesData.allocatedOverhead || []).map((item) => ({
+      id: item.id,
+      fairId: fairId,
+      categoryId: item.categoria,
+      accountId: item.account?.id || "",
+      descricao: item.descricao,
+      valor: item.valorAlocado,
+      data: item.data,
+      category: {
+        id: item.categoria,
+        name: item.categoria,
+        global: true,
+        createdAt: item.data,
+        updatedAt: item.data,
+      },
+      account: item.account
+        ? {
+            id: item.account.id,
+            nomeConta: item.account.nomeConta,
+            banco: item.account.banco,
+            tipo: "CORRENTE" as AccountType,
+            createdAt: item.data,
+            updatedAt: item.data,
+          }
+        : undefined,
+      createdAt: item.data,
+      updatedAt: item.data,
+    }));
+    return [...direct, ...overhead];
+  }, [expensesData, fairId]);
 
   const formatCurrency = (value: number | string) => {
     // Converter string para número
@@ -215,43 +249,42 @@ export function ExpensesCharts({ fairId }: ExpensesChartsProps) {
     <div className="space-y-6">
       {/* Resumo Geral */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card>
+        <Card className="glass-card border border-white/5 bg-white/3 backdrop-blur-md rounded-2xl relative overflow-hidden">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-200">
+            <CardTitle className="text-[10px] font-black uppercase tracking-[0.15em] text-white/50">
               Total de Despesas
             </CardTitle>
-            <DollarSign className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+            <DollarSign className="h-4 w-4 text-white/70" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600 dark:text-red-400">
+            <div className="text-2xl font-black text-red-400 tracking-tight">
               {formatCurrency(totalExpenses)}
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="glass-card border border-white/5 bg-white/3 backdrop-blur-md rounded-2xl relative overflow-hidden">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-200">
+            <CardTitle className="text-[10px] font-black uppercase tracking-[0.15em] text-white/50">
               Categorias
             </CardTitle>
-            <PieChart className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+            <PieChart className="h-4 w-4 text-white/70" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-gray-900 dark:text-white">
+            <div className="text-2xl font-black text-white tracking-tight">
               {totalsByCategory?.length || 0}
             </div>
           </CardContent>
         </Card>
-
       </div>
 
       {/* Gráficos */}
       <div className="grid grid-cols-1 gap-6">
         {/* Despesas por Categoria */}
-        <Card>
+        <Card className="glass-card border border-white/5 bg-white/3 backdrop-blur-md rounded-2xl relative overflow-hidden">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <PieChart className="w-5 h-5" />
+            <CardTitle className="text-base text-white font-bold flex items-center gap-2">
+              <PieChart className="w-5 h-5 text-brand-pink" />
               Despesas por Categoria
             </CardTitle>
           </CardHeader>
@@ -304,9 +337,9 @@ export function ExpensesCharts({ fairId }: ExpensesChartsProps) {
                     return (
                       <div 
                         key={item.categoryId} 
-                        className="border rounded-lg p-3 relative overflow-hidden backdrop-blur-sm transition-all duration-300 hover:scale-[1.02] hover:shadow-lg cursor-pointer"
+                        className="border rounded-xl p-3 relative overflow-hidden backdrop-blur-sm transition-all duration-300 hover:scale-[1.01] hover:shadow-lg cursor-pointer"
                         style={{
-                          background: `linear-gradient(90deg, ${color}15 0%, ${color}15 ${percentage}%, rgba(255,255,255,0.1) ${percentage}%, rgba(255,255,255,0.05) 100%)`,
+                          background: `linear-gradient(90deg, ${color}15 0%, ${color}15 ${percentage}%, rgba(255,255,255,0.05) ${percentage}%, rgba(255,255,255,0.02) 100%)`,
                           borderColor: `${color}30`,
                           boxShadow: `0 4px 6px -1px ${color}10, 0 2px 4px -1px ${color}05`
                         }}
@@ -320,33 +353,33 @@ export function ExpensesCharts({ fairId }: ExpensesChartsProps) {
                               className="w-3 h-3 rounded-full"
                               style={{ backgroundColor: getRandomColor(index) }}
                             />
-                            <span className="text-sm text-gray-800 dark:text-gray-100 font-medium">
+                            <span className="text-sm text-white font-semibold">
                               {getCategoryName(item.categoryId, item.categoryName)}
                             </span>
-                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                            <span className="text-xs text-white/40">
                               ({categoryExpenses.length} itens)
                             </span>
                           </div>
                           <div className="flex items-center gap-2">
                             <div className="text-right">
-                              <div className="font-medium text-gray-900 dark:text-white">
+                              <div className="font-semibold text-white">
                                 {formatCurrency(item.total)}
                               </div>
-                              <div className="text-xs text-gray-600 dark:text-gray-300">
+                              <div className="text-xs text-white/50">
                                 {getPercentage(item.total, totalExpenses || 0)}%
                               </div>
                             </div>
                             {isExpanded ? (
-                              <EyeOff className="w-4 h-4 text-gray-500" />
+                              <EyeOff className="w-4 h-4 text-white/40" />
                             ) : (
-                              <Eye className="w-4 h-4 text-gray-500" />
+                              <Eye className="w-4 h-4 text-white/40" />
                             )}
                           </div>
                         </div>
                         
                         {/* Itens da categoria */}
                         {isExpanded && categoryExpenses.length > 0 && (
-                          <div className="mt-3 space-y-2 border-t pt-3">
+                          <div className="mt-3 space-y-2 border-t border-white/10 pt-3">
                             {categoryExpenses
                               .sort((a, b) => b.valor - a.valor) // Ordenar por valor decrescente
                               .map((expense) => {
@@ -354,7 +387,7 @@ export function ExpensesCharts({ fairId }: ExpensesChartsProps) {
                                 return (
                                   <div
                                     key={expense.id}
-                                    className="flex items-center justify-between text-xs bg-white dark:bg-gray-700 rounded p-2 relative overflow-hidden"
+                                    className="flex items-center justify-between text-xs bg-slate-950/40 border border-white/5 rounded-xl p-2.5 relative overflow-hidden"
                                   >
                                     {/* Barra de progresso de fundo */}
                                     <div 
@@ -365,22 +398,22 @@ export function ExpensesCharts({ fairId }: ExpensesChartsProps) {
                                     />
                                     
                                     <div className="flex-1 min-w-0 relative z-10">
-                                      <div className="font-medium text-gray-900 dark:text-white truncate">
+                                      <div className="font-semibold text-white truncate">
                                         {expense.descricao}
                                       </div>
-                                      <div className="text-gray-500 dark:text-gray-400">
+                                      <div className="text-white/40">
                                         {new Date(expense.data).toLocaleDateString('pt-BR')}
                                       </div>
                                     </div>
                                     <div className="text-right ml-2 relative z-10">
-                                      <div className="font-medium text-gray-900 dark:text-white">
+                                      <div className="font-semibold text-white">
                                         {formatCurrency(expense.valor)}
                                       </div>
                                       <div className="text-xs font-semibold" style={{ color: color }}>
                                         {expensePercentage}% da categoria
                                       </div>
                                       {expense.observacoes && (
-                                        <div className="text-gray-500 dark:text-gray-400 truncate max-w-[100px]">
+                                        <div className="text-white/30 truncate max-w-[100px]">
                                           {expense.observacoes}
                                         </div>
                                       )}
@@ -396,53 +429,52 @@ export function ExpensesCharts({ fairId }: ExpensesChartsProps) {
                 </div>
               </div>
             ) : (
-              <div className="text-center py-8 text-gray-600 dark:text-gray-300">
+              <div className="text-center py-8 text-white/40 text-sm">
                 Nenhuma despesa encontrada para gerar gráficos
               </div>
             )}
           </CardContent>
         </Card>
-
       </div>
 
-      {/* Estatísticas Adicionais */}
+      {/* Estatísticas Detalhadas */}
       {totalsByCategory && totalsByCategory.length > 0 && (
-        <Card>
+        <Card className="glass-card border border-white/5 bg-white/3 backdrop-blur-md rounded-2xl relative overflow-hidden">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="w-5 h-5" />
+            <CardTitle className="text-base text-white font-bold flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-brand-cyan" />
               Estatísticas Detalhadas
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                <div className="text-2xl font-black text-red-400">
                   {formatCurrency(
                     Math.max(...totalsByCategory.map((item) => item.total))
                   )}
                 </div>
-                <div className="text-sm text-gray-700 dark:text-gray-200">
+                <div className="text-xs font-bold uppercase tracking-wider text-white/50 mt-1">
                   Maior Despesa por Categoria
                 </div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                <div className="text-2xl font-black text-green-400">
                   {formatCurrency(
                     Math.min(...totalsByCategory.map((item) => item.total))
                   )}
                 </div>
-                <div className="text-sm text-gray-700 dark:text-gray-200">
+                <div className="text-xs font-bold uppercase tracking-wider text-white/50 mt-1">
                   Menor Despesa por Categoria
                 </div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                <div className="text-2xl font-black text-blue-400">
                   {formatCurrency(
                     totalExpenses / (totalsByCategory.length || 1)
                   )}
                 </div>
-                <div className="text-sm text-gray-700 dark:text-gray-200">
+                <div className="text-xs font-bold uppercase tracking-wider text-white/50 mt-1">
                   Média por Categoria
                 </div>
               </div>

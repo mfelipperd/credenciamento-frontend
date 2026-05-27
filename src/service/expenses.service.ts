@@ -5,15 +5,19 @@ import type {
   CreateExpenseForm,
   UpdateExpenseForm,
   ExpenseFilters,
-  FinanceCategory,
-  CreateFinanceCategoryForm,
-  UpdateFinanceCategoryForm,
+  ExpenseCategory,
   Account,
   CreateAccountForm,
   UpdateAccountForm,
   ExpenseTotalByCategory,
   ExpenseTotalByAccount,
+  FairExpensesResponse,
+  FairExpensesTotalResponse,
+  OverheadExpense,
+  CreateOverheadExpenseForm,
+  UpdateOverheadExpenseForm,
 } from "@/interfaces/finance";
+import type { FinanceCategory, CreateCategoryDto, UpdateCategoryDto } from "@/interfaces/categories";
 
 import { AppEndpoints } from "@/constants/AppEndpoints";
 
@@ -25,7 +29,7 @@ export const useExpensesService = () => {
 
   const getExpenses = async (
     filters: ExpenseFilters
-  ): Promise<Expense[] | undefined> => {
+  ): Promise<FairExpensesResponse | undefined> => {
     const { fairId, ...otherFilters } = filters;
     const params = new URLSearchParams();
 
@@ -38,10 +42,12 @@ export const useExpensesService = () => {
 
     const queryString = params.toString() ? `?${params.toString()}` : "";
 
-    return handleRequest<Expense[]>({
+    const result = await handleRequest<FairExpensesResponse>({
       request: () =>
         api.get(`${AppEndpoints.FINANCE.EXPENSES_BY_FAIR(fairId)}${queryString}`),
     });
+
+    return result;
   };
 
   const getExpenseDetail = async (
@@ -92,8 +98,8 @@ export const useExpensesService = () => {
 
   const getExpensesTotal = async (
     fairId: string
-  ): Promise<number | undefined> => {
-    return handleRequest<number>({
+  ): Promise<FairExpensesTotalResponse | undefined> => {
+    return handleRequest<FairExpensesTotalResponse>({
       request: () => api.get(AppEndpoints.FINANCE.EXPENSES_TOTAL(fairId)),
     });
   };
@@ -120,16 +126,10 @@ export const useExpensesService = () => {
 
   const getFinanceCategoriesByFair = async (
     fairId: string
-  ): Promise<FinanceCategory[] | undefined> => {
-    const response = await handleRequest<FinanceCategory[]>({
+  ): Promise<ExpenseCategory[] | undefined> => {
+    return handleRequest<ExpenseCategory[]>({
       request: () => api.get(AppEndpoints.FINANCE.CATEGORIES_BY_FAIR(fairId)),
     });
-
-    // Mapear campo 'name' do backend para 'nome' da interface
-    return response?.map((category) => ({
-      ...category,
-      name: (category as any).name || category.name || "Sem nome",
-    }));
   };
 
   const getFinanceCategory = async (
@@ -141,36 +141,20 @@ export const useExpensesService = () => {
   };
 
   const createFinanceCategory = async (
-    data: CreateFinanceCategoryForm
+    data: CreateCategoryDto
   ): Promise<FinanceCategory | undefined> => {
-    // Mapear campos para o formato esperado pelo backend
-    const mappedData = {
-      name: data.name,
-      global: data.global,
-      fairId: data.fairId, // Sempre incluir fairId quando disponível
-      ...(data.parentId && { parentId: data.parentId }),
-    };
-
     return handleRequest<FinanceCategory>({
-      request: () => api.post(AppEndpoints.FINANCE.CATEGORIES, mappedData),
+      request: () => api.post(AppEndpoints.FINANCE.CATEGORIES, data),
       successMessage: "Categoria criada com sucesso!",
     });
   };
 
   const updateFinanceCategory = async (
     id: string,
-    data: UpdateFinanceCategoryForm
+    data: UpdateCategoryDto
   ): Promise<FinanceCategory | undefined> => {
-    // Mapear campos para o formato esperado pelo backend
-    const mappedData = {
-      ...(data.name && { name: data.name }),
-      ...(data.global !== undefined && { global: data.global }),
-      ...(data.fairId && { fairId: data.fairId }),
-      ...(data.parentId && { parentId: data.parentId }),
-    };
-
     return handleRequest<FinanceCategory>({
-      request: () => api.patch(AppEndpoints.FINANCE.CATEGORY_BY_ID(id), mappedData),
+      request: () => api.patch(AppEndpoints.FINANCE.CATEGORY_BY_ID(id), data),
       successMessage: "Categoria atualizada com sucesso!",
     });
   };
@@ -199,15 +183,8 @@ export const useExpensesService = () => {
   const createAccount = async (
     data: CreateAccountForm
   ): Promise<Account | undefined> => {
-    // Mapear campos para o formato esperado pelo backend
-    const mappedData = {
-      nomeConta: data.nomeConta, // Manter nomeConta se o backend aceitar
-      banco: data.banco,
-      tipo: data.tipo.toLowerCase(), // Converter para minúsculas: CORRENTE -> corrente
-    };
-
     return handleRequest<Account>({
-      request: () => api.post(AppEndpoints.FINANCE.ACCOUNTS, mappedData),
+      request: () => api.post(AppEndpoints.FINANCE.ACCOUNTS, data),
       successMessage: "Conta bancária criada com sucesso!",
     });
   };
@@ -216,15 +193,8 @@ export const useExpensesService = () => {
     id: string,
     data: UpdateAccountForm
   ): Promise<Account | undefined> => {
-    // Mapear campos para o formato esperado pelo backend
-    const mappedData = {
-      ...(data.nomeConta && { nomeConta: data.nomeConta }),
-      ...(data.banco && { banco: data.banco }),
-      ...(data.tipo && { tipo: data.tipo.toLowerCase() }), // Converter para minúsculas
-    };
-
     return handleRequest<Account>({
-      request: () => api.patch(AppEndpoints.FINANCE.ACCOUNT_BY_ID(id), mappedData),
+      request: () => api.patch(AppEndpoints.FINANCE.ACCOUNT_BY_ID(id), data),
       successMessage: "Conta bancária atualizada com sucesso!",
     });
   };
@@ -236,6 +206,48 @@ export const useExpensesService = () => {
     });
   };
 
+  // ===== DESPESAS OVERHEAD =====
+
+  const getOverheadExpenses = async (): Promise<OverheadExpense[] | undefined> => {
+    return handleRequest<OverheadExpense[]>({
+      request: () => api.get(AppEndpoints.FINANCE.OVERHEAD_EXPENSES),
+    });
+  };
+
+  const getOverheadExpenseDetail = async (
+    id: string
+  ): Promise<OverheadExpense | undefined> => {
+    return handleRequest<OverheadExpense>({
+      request: () => api.get(AppEndpoints.FINANCE.OVERHEAD_EXPENSE_BY_ID(id)),
+    });
+  };
+
+  const createOverheadExpense = async (
+    data: CreateOverheadExpenseForm
+  ): Promise<OverheadExpense | undefined> => {
+    return handleRequest<OverheadExpense>({
+      request: () => api.post(AppEndpoints.FINANCE.OVERHEAD_EXPENSES, data),
+      successMessage: "Despesa overhead criada com sucesso!",
+    });
+  };
+
+  const updateOverheadExpense = async (
+    id: string,
+    data: UpdateOverheadExpenseForm
+  ): Promise<OverheadExpense | undefined> => {
+    return handleRequest<OverheadExpense>({
+      request: () => api.patch(AppEndpoints.FINANCE.OVERHEAD_EXPENSE_BY_ID(id), data),
+      successMessage: "Despesa overhead atualizada com sucesso!",
+    });
+  };
+
+  const deleteOverheadExpense = async (id: string): Promise<void> => {
+    await handleRequest<{ success: boolean }>({
+      request: () => api.delete(AppEndpoints.FINANCE.OVERHEAD_EXPENSE_BY_ID(id)),
+      successMessage: "Despesa overhead removida com sucesso!",
+    });
+  };
+
   return {
     // Despesas
     getExpenses,
@@ -243,6 +255,13 @@ export const useExpensesService = () => {
     createExpense,
     updateExpense,
     deleteExpense,
+
+    // Despesas Overhead
+    getOverheadExpenses,
+    getOverheadExpenseDetail,
+    createOverheadExpense,
+    updateOverheadExpense,
+    deleteOverheadExpense,
 
     // Relatórios
     getExpensesTotal,

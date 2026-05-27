@@ -8,6 +8,7 @@ import type {
   CreateClientForm,
   EntryModelType,
   RevenueStats,
+  UpdateExpenseForm,
 } from "@/interfaces/finance";
 
 import { AppEndpoints } from "@/constants/AppEndpoints";
@@ -378,7 +379,7 @@ export const useUpdateExpense = () => {
   const api = useAxio();
 
   return useMutation({
-    mutationFn: async ({ id, data, fairId }: { id: string; data: any; fairId: string }) => {
+    mutationFn: async ({ id, data, fairId }: { id: string; data: UpdateExpenseForm; fairId: string }) => {
       const response = await api.patch(AppEndpoints.FINANCE.EXPENSE_BY_ID(fairId, id), data);
       return response.data;
     },
