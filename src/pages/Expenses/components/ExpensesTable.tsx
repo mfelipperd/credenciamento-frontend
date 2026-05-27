@@ -7,6 +7,7 @@ import {
   DollarSign,
   Tag,
   Building,
+  ArrowRightLeft,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +29,7 @@ interface ExpensesTableProps {
   onEdit: (expense: Expense) => void;
   onView: (expense: Expense) => void;
   onDelete: (expense: Expense) => void;
+  onConvertToOverhead?: (expense: Expense) => void;
 }
 
 export function ExpensesTable({
@@ -36,6 +38,7 @@ export function ExpensesTable({
   onEdit,
   onView,
   onDelete,
+  onConvertToOverhead,
 }: ExpensesTableProps) {
   const [sortField, setSortField] = useState<keyof Expense>("data");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
@@ -151,7 +154,7 @@ export function ExpensesTable({
             </TableHead>
             <TableHead className="text-white/40 text-[10px] font-black uppercase tracking-wider h-11">Categoria</TableHead>
             <TableHead className="text-white/40 text-[10px] font-black uppercase tracking-wider h-11">Conta</TableHead>
-            <TableHead className="text-white/40 text-[10px] font-black uppercase tracking-wider text-right h-11">Ações</TableHead>
+            <TableHead className="text-white/40 text-[10px] font-black uppercase tracking-wider text-right h-11 min-w-[140px]">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -191,6 +194,7 @@ export function ExpensesTable({
                     variant="outline"
                     onClick={() => onView(expense)}
                     className="h-8 w-8 p-0 border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white transition-all duration-200"
+                    title="Ver detalhes"
                   >
                     <Eye className="w-4 h-4" />
                   </Button>
@@ -199,14 +203,27 @@ export function ExpensesTable({
                     variant="outline"
                     onClick={() => onEdit(expense)}
                     className="h-8 w-8 p-0 border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white transition-all duration-200"
+                    title="Editar"
                   >
                     <Edit className="w-4 h-4" />
                   </Button>
+                  {onConvertToOverhead && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => onConvertToOverhead(expense)}
+                      className="h-8 w-8 p-0 border-white/10 bg-white/5 text-amber-400 hover:bg-amber-500/20 hover:text-amber-300 transition-all duration-200"
+                      title="Converter para Overhead"
+                    >
+                      <ArrowRightLeft className="w-4 h-4" />
+                    </Button>
+                  )}
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => onDelete(expense)}
                     className="h-8 w-8 p-0 border-white/10 bg-white/5 text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-all duration-200"
+                    title="Excluir"
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>

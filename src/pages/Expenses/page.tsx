@@ -23,12 +23,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { OverheadExpensesTable } from "./components/OverheadExpensesTable";
+import { ConvertToOverheadDialog } from "./components/ConvertToOverheadDialog";
+import type { ConvertToOverheadPayload } from "./components/ConvertToOverheadDialog";
 import type {
   Expense,
   CreateExpenseForm,
   CreateOverheadExpenseForm,
   UpdateOverheadExpenseForm,
   AllocatedOverheadExpense,
+  OverheadExpense,
 } from "@/interfaces/finance";
 
 export default function ExpensesPage() {
@@ -41,7 +44,8 @@ export default function ExpensesPage() {
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
   const [expenseToDelete, setExpenseToDelete] = useState<Expense | null>(null);
   const [overheadToDelete, setOverheadToDelete] = useState<AllocatedOverheadExpense | null>(null);
-  const [editingExpense, setEditingExpense] = useState<Expense | AllocatedOverheadExpense | null>(null);
+  const [editingExpense, setEditingExpense] = useState<Expense | OverheadExpense | AllocatedOverheadExpense | null>(null);
+  const [expenseToConvert, setExpenseToConvert] = useState<Expense | null>(null);
   const [showCashFlowModal, setShowCashFlowModal] = useState(false);
 
   const expensesService = useExpensesService();
@@ -79,6 +83,12 @@ export default function ExpensesPage() {
     queryKey: ["expenses-total", fairId],
     queryFn: () => expensesService.getExpensesTotal(fairId!),
     enabled: !!fairId,
+  });
+
+  // Query para categorias overhead (finance_categories globais)
+  const { data: overheadCategories } = useQuery({
+    queryKey: ["overhead-categories"],
+    queryFn: () => expensesService.getOverheadCategories(),
   });
 
   // Mutation para criar despesa direta
@@ -160,13 +170,39 @@ export default function ExpensesPage() {
     },
   });
 
+  // Mutation para converter despesa direta em overhead
+  const convertToOverheadMutation = useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: ConvertToOverheadPayload }) =>
+      expensesService.convertExpenseToOverhead(id, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["expenses", fairId] });
+      queryClient.invalidateQueries({ queryKey: ["expenses-total", fairId] });
+      setExpenseToConvert(null);
+    },
+    onError: (error) => {
+      console.error("Erro ao converter despesa:", error);
+      toast.error("Erro ao converter despesa. Tente novamente.");
+    },
+  });
+
   const handleDeleteExpense = (id: string) => {
     deleteExpenseMutation.mutate(id);
   };
 
-  const handleEditExpense = (expense: Expense | AllocatedOverheadExpense) => {
+  const handleEditExpense = (expense: Expense) => {
     setEditingExpense(expense);
     setIsFormOpen(true);
+  };
+
+  // Ao editar overhead, busca o OverheadExpense completo (com allocations) em vez de usar o AllocatedOverheadExpense
+  const handleEditOverheadExpense = async (expense: AllocatedOverheadExpense) => {
+    const full = await expensesService.getOverheadExpenseDetail(expense.id);
+    setEditingExpense(full ?? expense);
+    setIsFormOpen(true);
+  };
+
+  const handleConvertToOverhead = (expenseId: string, payload: ConvertToOverheadPayload) => {
+    convertToOverheadMutation.mutate({ id: expenseId, payload });
   };
 
   const handleViewExpense = (expense: Expense) => {
@@ -449,6 +485,7 @@ export default function ExpensesPage() {
                 onEdit={handleEditExpense}
                 onView={handleViewExpense}
                 onDelete={(expense) => setExpenseToDelete(expense)}
+                onConvertToOverhead={(expense) => setExpenseToConvert(expense)}
               />
             </CardContent>
           </Card>
@@ -463,9 +500,7 @@ export default function ExpensesPage() {
               <OverheadExpensesTable
                 expenses={expenses?.allocatedOverhead || []}
                 isLoading={isLoading}
-                onEdit={(expense) => {
-                  handleEditExpense(expense);
-                }}
+                onEdit={handleEditOverheadExpense}
                 onDelete={(expense) => setOverheadToDelete(expense)}
               />
             </CardContent>
@@ -480,6 +515,7 @@ export default function ExpensesPage() {
         onSubmit={handleFormSubmit}
         expense={editingExpense}
         categories={categories || []}
+        overheadCategories={overheadCategories || []}
         accounts={accounts || []}
         fairsList={fairsList || []}
         defaultShared={defaultShared}
@@ -555,6 +591,17 @@ export default function ExpensesPage() {
           }
         }}
         isLoading={deleteOverheadExpenseMutation.isPending}
+      />
+
+      {/* Dialog de conversão direta → overhead */}
+      <ConvertToOverheadDialog
+        isOpen={!!expenseToConvert}
+        onClose={() => setExpenseToConvert(null)}
+        expense={expenseToConvert}
+        fairs={fairsList || []}
+        overheadCategories={overheadCategories || []}
+        onConfirm={handleConvertToOverhead}
+        isLoading={convertToOverheadMutation.isPending}
       />
 
       {/* Modal de fluxo de caixa */}

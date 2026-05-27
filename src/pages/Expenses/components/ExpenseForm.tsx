@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/select";
 import type {
   Expense,
-  ExpenseCategory,
+  DirectExpenseCategory,
   Account,
   OverheadExpense,
   AllocatedOverheadExpense,
@@ -38,6 +38,7 @@ import type {
   CreateExpenseForm,
   CreateOverheadExpenseForm,
 } from "@/interfaces/finance";
+import type { FinanceCategory } from "@/interfaces/categories";
 import { AccountType } from "@/interfaces/finance";
 import { useExpensesService } from "@/service/expenses.service";
 import { useQueryClient } from "@tanstack/react-query";
@@ -86,7 +87,8 @@ interface ExpenseFormProps {
     previousId?: string;
   }) => void;
   expense?: Expense | AllocatedOverheadExpense | OverheadExpense | null;
-  categories?: ExpenseCategory[];
+  categories?: DirectExpenseCategory[];
+  overheadCategories?: FinanceCategory[];
   accounts?: Account[];
   fairsList?: Fair[];
   isLoading?: boolean;
@@ -102,6 +104,7 @@ export function ExpenseForm({
   onSubmit,
   expense,
   categories = [],
+  overheadCategories = [],
   accounts = [],
   fairsList = [],
   isLoading = false,
@@ -475,12 +478,37 @@ export function ExpenseForm({
                   </div>
 
                   {isShared ? (
-                    /* Overhead: categoria é texto livre (vem do backend como string arbitrária) */
-                    <Input
-                      placeholder="Ex: Aluguel, Pessoal, TI..."
-                      {...form.register("categoria")}
-                      className="bg-white/5 border-white/10 text-white rounded-xl h-10 text-xs"
-                    />
+                    /* Overhead: Select das finance_categories globais; fallback para texto livre */
+                    overheadCategories.length > 0 ? (
+                      <Select
+                        value={form.watch("categoria")}
+                        onValueChange={(val) => form.setValue("categoria", val)}
+                      >
+                        <SelectTrigger className="bg-white/5 border-white/10 text-white rounded-xl h-10 text-xs">
+                          <SelectValue placeholder="Selecione a categoria..." />
+                        </SelectTrigger>
+                        <SelectContent className="bg-slate-900 border border-white/10 text-white max-h-48 overflow-y-auto">
+                          {overheadCategories.map((cat) => (
+                            <SelectItem
+                              key={cat.id}
+                              value={cat.nome}
+                              className="hover:bg-white/10 cursor-pointer text-xs"
+                            >
+                              <div className="flex items-center gap-1.5">
+                                <Tag className="w-3.5 h-3.5 text-brand-cyan shrink-0" />
+                                {cat.nome}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Input
+                        placeholder="Ex: Aluguel, Pessoal, TI..."
+                        {...form.register("categoria")}
+                        className="bg-white/5 border-white/10 text-white rounded-xl h-10 text-xs"
+                      />
+                    )
                   ) : (
                     /* Direto: categoria vem do endpoint */
                     <div className="relative">

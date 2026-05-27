@@ -3,6 +3,7 @@ import type {
   CreateExpenseForm,
   UpdateExpenseForm,
   ExpenseFilters,
+  DirectExpenseCategory,
   Account,
   CreateAccountForm,
   UpdateAccountForm,
@@ -11,6 +12,7 @@ import type {
 } from "@/interfaces/finance";
 import type {
   FinanceCategory,
+  OverheadCategory,
   CreateCategoryDto,
   UpdateCategoryDto,
 } from "@/interfaces/categories";
@@ -22,7 +24,9 @@ export type {
   CreateExpenseForm,
   UpdateExpenseForm,
   ExpenseFilters,
+  DirectExpenseCategory,
   FinanceCategory,
+  OverheadCategory,
   CreateCategoryDto,
   UpdateCategoryDto,
   Account,

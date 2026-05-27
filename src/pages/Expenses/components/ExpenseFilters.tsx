@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import type { ExpenseCategory, Account, ExpenseFilters } from "@/interfaces/finance";
+import type { DirectExpenseCategory, Account, ExpenseFilters } from "@/interfaces/finance";
 
 export interface AppliedFilters {
   categoryId?: string;
@@ -30,7 +30,7 @@ export interface AppliedFilters {
 }
 
 interface ExpenseFiltersProps {
-  categories: ExpenseCategory[];
+  categories: DirectExpenseCategory[];
   accounts: Account[];
   onApplyFilters: (filters: AppliedFilters) => void;
 }

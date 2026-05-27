@@ -243,28 +243,22 @@ export const AccountType = {
 
 export type AccountType = (typeof AccountType)[keyof typeof AccountType];
 
-// Interfaces para categorias financeiras das despesas diretas
-export interface ExpenseCategory {
+// Categorias de despesas DIRETAS — tabela `categories`, campo `name`
+// Endpoint: GET /categories/fair/:fairId
+export interface DirectExpenseCategory {
   id: string;
-  name: string;
+  name: string;          // ← "name" (tabela `categories`)
   parentId?: string;
   global: boolean;
   fairId?: string;
-  parent?: ExpenseCategory;
-  children?: ExpenseCategory[];
+  parent?: DirectExpenseCategory;
+  children?: DirectExpenseCategory[];
   createdAt: string;
   updatedAt: string;
 }
 
-export interface CreateFinanceCategoryForm {
-  name: string; // Mudou de 'nome' para 'name' para consistência com a API
-  parentId?: string;
-  global: boolean;
-  fairId?: string;
-}
-
-export interface UpdateFinanceCategoryForm
-  extends Partial<CreateFinanceCategoryForm> {}
+/** @deprecated Use DirectExpenseCategory */
+export type ExpenseCategory = DirectExpenseCategory;
 
 // Interface para análise de fluxo de caixa
 export interface CashFlowAnalysis {
@@ -318,7 +312,7 @@ export interface Expense {
 
   // Relacionamentos
   fair?: Fair;
-  category?: ExpenseCategory;
+  category?: DirectExpenseCategory;
   account?: Account;
 }
 

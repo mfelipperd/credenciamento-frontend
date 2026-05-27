@@ -85,6 +85,8 @@ export const AppEndpoints = {
     EXPENSES_BY_ACCOUNT: (fairId: string) => `/fairs/${fairId}/expenses/total-by-account`,
     OVERHEAD_EXPENSES: "/overhead-expenses",
     OVERHEAD_EXPENSE_BY_ID: (id: string) => `/overhead-expenses/${id}`,
+    OVERHEAD_CATEGORIES: "/overhead-expenses/categories",
+    EXPENSE_CONVERT_TO_OVERHEAD: (id: string) => `/expenses/${id}/convert-to-overhead`,
   },
   MARKETING: {
     EMAILS_ABSENT: "/emails/marketing/absent-visitors",

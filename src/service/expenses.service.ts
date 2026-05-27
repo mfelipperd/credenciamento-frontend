@@ -5,7 +5,7 @@ import type {
   CreateExpenseForm,
   UpdateExpenseForm,
   ExpenseFilters,
-  ExpenseCategory,
+  DirectExpenseCategory,
   Account,
   CreateAccountForm,
   UpdateAccountForm,
@@ -126,9 +126,17 @@ export const useExpensesService = () => {
 
   const getFinanceCategoriesByFair = async (
     fairId: string
-  ): Promise<ExpenseCategory[] | undefined> => {
-    return handleRequest<ExpenseCategory[]>({
+  ): Promise<DirectExpenseCategory[] | undefined> => {
+    return handleRequest<DirectExpenseCategory[]>({
       request: () => api.get(AppEndpoints.FINANCE.CATEGORIES_BY_FAIR(fairId)),
+    });
+  };
+
+  // ===== CATEGORIAS OVERHEAD =====
+
+  const getOverheadCategories = async (): Promise<FinanceCategory[] | undefined> => {
+    return handleRequest<FinanceCategory[]>({
+      request: () => api.get(AppEndpoints.FINANCE.OVERHEAD_CATEGORIES),
     });
   };
 
@@ -248,6 +256,24 @@ export const useExpensesService = () => {
     });
   };
 
+  // ===== CONVERSÃO: DESPESA DIRETA → OVERHEAD =====
+
+  interface ConvertToOverheadPayload {
+    financeCategoryId?: string;
+    fairs: Array<{ fairId: string; percentual?: number }>;
+  }
+
+  const convertExpenseToOverhead = async (
+    id: string,
+    payload: ConvertToOverheadPayload
+  ): Promise<OverheadExpense | undefined> => {
+    return handleRequest<OverheadExpense>({
+      request: () =>
+        api.post(AppEndpoints.FINANCE.EXPENSE_CONVERT_TO_OVERHEAD(id), payload),
+      successMessage: "Despesa convertida para overhead com sucesso!",
+    });
+  };
+
   return {
     // Despesas
     getExpenses,
@@ -262,6 +288,8 @@ export const useExpensesService = () => {
     createOverheadExpense,
     updateOverheadExpense,
     deleteOverheadExpense,
+    getOverheadCategories,
+    convertExpenseToOverhead,
 
     // Relatórios
     getExpensesTotal,
