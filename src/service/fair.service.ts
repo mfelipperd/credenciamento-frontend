@@ -15,15 +15,12 @@ export const useFairService = () => {
   // Listar todas as feiras
   const getFairs = async (filters?: FairFilters): Promise<Fair[] | undefined> => {
     const params = new URLSearchParams();
-    
-    if (filters?.page) params.append("page", filters.page.toString());
-    if (filters?.pageSize) params.append("pageSize", filters.pageSize.toString());
-    if (filters?.search) params.append("search", filters.search);
+
+    // Filtros suportados pela API nova (fairs_changes.md)
+    if (filters?.status) params.append("status", filters.status);
+    if (filters?.uf) params.append("uf", filters.uf);
+    // isActive ainda suportado para compatibilidade retroativa
     if (filters?.isActive !== undefined) params.append("isActive", filters.isActive.toString());
-    if (filters?.city) params.append("city", filters.city);
-    if (filters?.state) params.append("state", filters.state);
-    if (filters?.startDate) params.append("startDate", filters.startDate);
-    if (filters?.endDate) params.append("endDate", filters.endDate);
 
     const queryString = params.toString();
     const url = `${AppEndpoints.FAIRS.BASE}${queryString ? `?${queryString}` : ""}`;
@@ -88,12 +85,12 @@ export const useFairService = () => {
     const activeFairs = fairs.filter(fair => fair.isActive);
     const inactiveFairs = fairs.filter(fair => !fair.isActive);
     
-    const totalExpectedRevenue = fairs.reduce((sum, fair) => sum + (fair.expectedRevenue || 0), 0);
-    const totalExpectedProfit = fairs.reduce((sum, fair) => sum + (fair.expectedProfit || 0), 0);
-    
-    const fairsWithProfitMargin = fairs.filter(fair => fair.expectedProfitMargin && fair.expectedProfitMargin > 0);
-    const averageProfitMargin = fairsWithProfitMargin.length > 0 
-      ? fairsWithProfitMargin.reduce((sum, fair) => sum + (fair.expectedProfitMargin || 0), 0) / fairsWithProfitMargin.length
+    const totalExpectedRevenue = fairs.reduce((sum, fair) => sum + Number(fair.expectedRevenue || 0), 0);
+    const totalExpectedProfit = fairs.reduce((sum, fair) => sum + Number(fair.expectedProfit || 0), 0);
+
+    const fairsWithProfitMargin = fairs.filter(fair => fair.expectedProfitMargin && Number(fair.expectedProfitMargin) > 0);
+    const averageProfitMargin = fairsWithProfitMargin.length > 0
+      ? fairsWithProfitMargin.reduce((sum, fair) => sum + Number(fair.expectedProfitMargin || 0), 0) / fairsWithProfitMargin.length
       : 0;
 
     return {

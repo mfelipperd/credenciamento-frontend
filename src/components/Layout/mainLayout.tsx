@@ -88,8 +88,9 @@ export const MainLayout: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [availableFairs.length]); // Apenas quando a lista de feiras deixar de estar vazia
 
-  // Aguarda as feiras serem carregadas e o fairId ser definido antes de renderizar
-  if (availableFairs.length === 0 || !selectedId) {
+  // Só bloqueia a renderização enquanto o carregamento inicial estiver em progresso
+  // Se houver erro ou feiras vazias, renderiza o layout mesmo assim para não travar
+  if (loading && availableFairs.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-brand-blue">
         <LogoLoading size={80} />

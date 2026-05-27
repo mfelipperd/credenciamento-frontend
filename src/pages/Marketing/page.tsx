@@ -63,7 +63,7 @@ import type { Fair } from "@/interfaces/fairs";
 
 // ─── Date helpers ──────────────────────────────────────────────────────────────
 
-const fmt = (d?: string): string => {
+const fmt = (d?: string | null): string => {
   if (!d) return "";
   const [y, m, day] = d.split("-");
   return `${day}/${m}/${y}`;

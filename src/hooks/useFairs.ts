@@ -12,8 +12,12 @@ export const useFairs = (filters?: FairFilters) => {
   const fairService = useFairService();
 
   return useQuery({
-    queryKey: ["fairs", filters],
-    queryFn: () => fairService.getFairs(filters),
+    queryKey: ["fairs", filters ?? null],
+    queryFn: async () => {
+      const result = await fairService.getFairs(filters);
+      // React Query v5 não aceita undefined — retorna [] como fallback seguro
+      return result ?? [];
+    },
   });
 };
 
@@ -23,7 +27,10 @@ export const useFair = (id: string) => {
 
   return useQuery({
     queryKey: ["fairs", id],
-    queryFn: () => fairService.getFairById(id),
+    queryFn: async () => {
+      const result = await fairService.getFairById(id);
+      return result ?? null;
+    },
     enabled: !!id,
   });
 };
