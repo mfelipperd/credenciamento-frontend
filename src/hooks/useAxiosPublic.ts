@@ -18,30 +18,19 @@ export const useAxiosPublic = (): AxiosInstance => {
 
     const inst = axios.create(config);
 
-        // Interceptor para adicionar headers compatíveis com middleware
     inst.interceptors.request.use(
       (request) => {
-        console.log('🌐 useAxiosPublic interceptor - URL:', request.url);
-        
-        // Aplica estratégias de compatibilidade para rotas protegidas
         if (needsMiddlewareHeaders(request.url || '')) {
-          console.log('�️ Rota protegida detectada, aplicando middleware compat');
           request = enhanceRequestForBackendMiddleware(request);
-        } else {
-          console.log('🔓 Rota não protegida, sem middleware');
         }
         return request;
       },
       (error) => Promise.reject(error)
     );
 
-    // Interceptor de resposta (opcional)
     inst.interceptors.response.use(
       (response) => response,
-      (error) => {
-        // Aqui você pode tratar erros comuns, ex: mostrar toast, etc
-        return Promise.reject(error);
-      }
+      (error) => Promise.reject(error)
     );
 
     return inst;

@@ -86,19 +86,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const isSucessPage = location.pathname.startsWith("/sucess");
     
     if (user && user.role === EUserRole.CONSULTANT) {
-      // Debug: verificar dados do usuário
-      console.log("🔍 Debug AuthProvider - Usuário consultor:", {
-        user,
-        fairIds: user.fairIds,
-        fairIdsLength: user.fairIds?.length || 0,
-        location: location.pathname
-      });
-      
       // Se o usuário é um consultor, verificar se tem feiras associadas
       const userFairIds = user.fairIds || [];
       
       if (userFairIds.length === 0) {
-        console.log("❌ Usuário consultor sem feiras associadas");
         // Se não tem feiras associadas, redirecionar para login com mensagem
         navigate("/login", {
           replace: true,

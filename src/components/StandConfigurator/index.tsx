@@ -67,13 +67,6 @@ export const StandConfigurator: React.FC<StandConfiguratorProps> = ({
     setError("");
 
     try {
-      // Enviando dados para API
-      console.log("Enviando dados para API:", {
-        fairId: fairId,
-        totalStands: count,
-        price: 1500,
-      });
-
       await configureStands({
         fairId: fairId,
         totalStands: count,

@@ -33,20 +33,12 @@ export const useRequiredExpenses = (fairId: string) => {
               const totalStands = 32; // Quantidade total de stands
               const totalArea = totalStands * averageStandArea; // 288m² total
         
-        console.log('Required expenses data:', {
-          totalValue,
-          totalArea,
-          requiredExpenses: requiredExpenses.length,
-          requiredCategories: requiredCategories.length
-        });
-        
         return {
           totalValue,
           totalArea,
           expenses: requiredExpenses
         };
       } catch (error) {
-        console.log('Error fetching required expenses:', error);
         return { totalValue: 0, totalArea: 1, expenses: [] };
       }
     },

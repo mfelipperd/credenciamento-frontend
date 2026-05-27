@@ -21,7 +21,7 @@ export const useDashboardController = () => {
   useEffect(() => {
     // Só faz requisições se fairId existe e é diferente do último fetch
     if (fairId && hasFetchedRef.current !== fairId) {
-      console.log("Dashboard: Atualizando dados para novo fairId:", fairId);
+
       hasFetchedRef.current = fairId;
       
       // Executa as chamadas em paralelo

@@ -260,6 +260,18 @@ export interface DirectExpenseCategory {
 /** @deprecated Use DirectExpenseCategory */
 export type ExpenseCategory = DirectExpenseCategory;
 
+export interface CreateFinanceCategoryForm {
+  name: string;
+  parentId?: string;
+  global?: boolean;
+}
+
+export interface UpdateFinanceCategoryForm {
+  name?: string;
+  parentId?: string;
+  global?: boolean;
+}
+
 // Interface para análise de fluxo de caixa
 export interface CashFlowAnalysis {
   fairId: string;

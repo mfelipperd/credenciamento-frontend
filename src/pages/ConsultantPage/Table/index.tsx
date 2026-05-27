@@ -800,7 +800,7 @@ export const EnhancedTableConsultant = () => {
             <Button
               disabled={page === 1 || loading}
               onClick={() => {
-                console.log("🔍 Botão Anterior clicado - página atual:", page);
+
                 setPage((p) => p - 1);
               }}
               className="relative"
@@ -825,7 +825,7 @@ export const EnhancedTableConsultant = () => {
                 (paginationMeta && page >= paginationMeta.totalPages) || loading
               }
               onClick={() => {
-                console.log("🔍 Botão Próxima clicado - página atual:", page);
+
                 setPage((p) => p + 1);
               }}
               className="relative"

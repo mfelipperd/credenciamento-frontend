@@ -35,14 +35,14 @@ export function ExpensesCharts({ fairId }: ExpensesChartsProps) {
     const overhead = (expensesData.allocatedOverhead || []).map((item) => ({
       id: item.id,
       fairId: fairId,
-      categoryId: item.categoria,
+      categoryId: item.category?.nome ?? "",
       accountId: item.account?.id || "",
-      descricao: item.descricao,
+      descricao: item.descricao ?? undefined,
       valor: item.valorAlocado,
       data: item.data,
       category: {
-        id: item.categoria,
-        name: item.categoria,
+        id: item.category?.nome ?? "",
+        name: item.category?.nome ?? "",
         global: true,
         createdAt: item.data,
         updatedAt: item.data,
@@ -97,7 +97,7 @@ export function ExpensesCharts({ fairId }: ExpensesChartsProps) {
       return sum + value;
     }, 0);
     
-    console.log('Calculated total:', total, 'from data:', data);
+
     return isFinite(total) ? total : 0;
   };
 
@@ -236,13 +236,13 @@ export function ExpensesCharts({ fairId }: ExpensesChartsProps) {
   const totalExpenses = getTotalExpenses(totalsByCategory);
 
   // Debug logs
-  console.log('totalsByCategory:', totalsByCategory);
-  console.log('totalExpenses:', totalExpenses);
+
+
   
   if (totalsByCategory && totalsByCategory.length > 0) {
-    console.log('First category item:', totalsByCategory[0]);
-    console.log('First category total:', totalsByCategory[0].total);
-    console.log('Percentage calculation:', getPercentage(totalsByCategory[0].total, totalExpenses));
+
+
+
   }
 
   return (

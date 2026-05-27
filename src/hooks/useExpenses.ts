@@ -30,11 +30,7 @@ export const useExpenses = (filters: ExpenseFilters) => {
 
       const queryString = params.toString() ? `?${params.toString()}` : "";
       const fullUrl = `/fairs/${fairId}/expenses${queryString}`;
-      console.log('🔍 Fetching expenses from:', fullUrl);
-      console.log('🔍 fairId:', fairId);
-      
       const response = await api.get(fullUrl);
-      console.log('🔍 Expenses data received:', response.data);
       return response.data;
     },
     enabled: !!filters.fairId,
