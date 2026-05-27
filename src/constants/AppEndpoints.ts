@@ -118,6 +118,17 @@ export const AppEndpoints = {
     ABSENT_VISITORS: "/dashboard/absent-visitors",
     CONVERSIONS_HOW_DID_YOU_KNOW: "/dashboard/conversions/how-did-you-know",
   },
+  CHARTS: {
+    FAIR_KPI:                (fairId: string) => `/charts/fair/${fairId}/kpi`,
+    EXPENSES_BY_CATEGORY:    (fairId: string) => `/charts/fair/${fairId}/expenses-by-category`,
+    REVENUES_BY_STATUS:      (fairId: string) => `/charts/fair/${fairId}/revenues-by-status`,
+    REVENUE_FORECAST:        (fairId: string) => `/charts/fair/${fairId}/revenue-forecast`,
+    VISITORS_TIMELINE:       (fairId: string) => `/charts/fair/${fairId}/visitors-timeline`,
+    CHECKINS_BY_HOUR:        (fairId: string) => `/charts/fair/${fairId}/checkins-by-hour`,
+    COMPARE:                 (fairIds: string[]) => `/charts/compare?fairIds=${fairIds.join(",")}`,
+    COMPARE_MARGINS:         (fairIds: string[]) => `/charts/compare/margins?fairIds=${fairIds.join(",")}`,
+    COMPARE_EXPENSES:        (fairIds: string[]) => `/charts/compare/expenses-breakdown?fairIds=${fairIds.join(",")}`,
+  },
   FAIR_PARTNERS: {
     BASE: "/fair-partners",
     BY_FAIR: (fairId: string) => `/fair-partners/fair/${fairId}`,
