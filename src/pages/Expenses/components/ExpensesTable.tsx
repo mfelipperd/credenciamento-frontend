@@ -120,7 +120,7 @@ export function ExpensesTable({
         <TableHeader>
           <TableRow className="border-b border-white/10 hover:bg-transparent">
             <TableHead
-              className="cursor-pointer hover:bg-white/5 text-white/40 text-[10px] font-black uppercase tracking-wider text-white h-11"
+              className="cursor-pointer hover:bg-white/5 text-white/40 text-[10px] font-black uppercase tracking-wider h-11"
               onClick={() => handleSort("data")}
             >
               <div className="flex items-center gap-2">
@@ -130,7 +130,7 @@ export function ExpensesTable({
               </div>
             </TableHead>
             <TableHead
-              className="cursor-pointer hover:bg-white/5 text-white/40 text-[10px] font-black uppercase tracking-wider text-white h-11"
+              className="cursor-pointer hover:bg-white/5 text-white/40 text-[10px] font-black uppercase tracking-wider h-11"
               onClick={() => handleSort("descricao")}
             >
               <div className="flex items-center gap-2">
@@ -140,7 +140,7 @@ export function ExpensesTable({
               </div>
             </TableHead>
             <TableHead
-              className="cursor-pointer hover:bg-white/5 text-white/40 text-[10px] font-black uppercase tracking-wider text-white h-11"
+              className="cursor-pointer hover:bg-white/5 text-white/40 text-[10px] font-black uppercase tracking-wider h-11"
               onClick={() => handleSort("valor")}
             >
               <div className="flex items-center gap-2">
@@ -149,9 +149,9 @@ export function ExpensesTable({
                 {getSortIcon("valor")}
               </div>
             </TableHead>
-            <TableHead className="text-white/40 text-[10px] font-black uppercase tracking-wider text-white h-11">Categoria</TableHead>
-            <TableHead className="text-white/40 text-[10px] font-black uppercase tracking-wider text-white h-11">Conta</TableHead>
-            <TableHead className="text-white/40 text-[10px] font-black uppercase tracking-wider text-white text-right h-11">Ações</TableHead>
+            <TableHead className="text-white/40 text-[10px] font-black uppercase tracking-wider h-11">Categoria</TableHead>
+            <TableHead className="text-white/40 text-[10px] font-black uppercase tracking-wider h-11">Conta</TableHead>
+            <TableHead className="text-white/40 text-[10px] font-black uppercase tracking-wider text-right h-11">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

@@ -122,7 +122,7 @@ export function OverheadExpensesTable({
         <TableHeader>
           <TableRow className="border-b border-white/10 hover:bg-transparent">
             <TableHead
-              className="cursor-pointer hover:bg-white/5 text-white/40 text-[10px] font-black uppercase tracking-wider text-white h-11"
+              className="cursor-pointer hover:bg-white/5 text-white/40 text-[10px] font-black uppercase tracking-wider h-11"
               onClick={() => handleSort("data")}
             >
               <div className="flex items-center gap-2">
@@ -132,7 +132,7 @@ export function OverheadExpensesTable({
               </div>
             </TableHead>
             <TableHead
-              className="cursor-pointer hover:bg-white/5 text-white/40 text-[10px] font-black uppercase tracking-wider text-white h-11"
+              className="cursor-pointer hover:bg-white/5 text-white/40 text-[10px] font-black uppercase tracking-wider h-11"
               onClick={() => handleSort("descricao")}
             >
               <div className="flex items-center gap-2">
@@ -142,7 +142,7 @@ export function OverheadExpensesTable({
               </div>
             </TableHead>
             <TableHead
-              className="cursor-pointer hover:bg-white/5 text-white/40 text-[10px] font-black uppercase tracking-wider text-white h-11"
+              className="cursor-pointer hover:bg-white/5 text-white/40 text-[10px] font-black uppercase tracking-wider h-11"
               onClick={() => handleSort("valorTotal")}
             >
               <div className="flex items-center gap-2">
@@ -152,7 +152,7 @@ export function OverheadExpensesTable({
               </div>
             </TableHead>
             <TableHead
-              className="cursor-pointer hover:bg-white/5 text-white/40 text-[10px] font-black uppercase tracking-wider text-white h-11"
+              className="cursor-pointer hover:bg-white/5 text-white/40 text-[10px] font-black uppercase tracking-wider h-11"
               onClick={() => handleSort("percentualDesteFair")}
             >
               <div className="flex items-center gap-2">
@@ -161,7 +161,7 @@ export function OverheadExpensesTable({
               </div>
             </TableHead>
             <TableHead
-              className="cursor-pointer hover:bg-white/5 text-white/40 text-[10px] font-black uppercase tracking-wider text-white h-11"
+              className="cursor-pointer hover:bg-white/5 text-white/40 text-[10px] font-black uppercase tracking-wider h-11"
               onClick={() => handleSort("valorAlocado")}
             >
               <div className="flex items-center gap-2">
@@ -170,10 +170,10 @@ export function OverheadExpensesTable({
                 {getSortIcon("valorAlocado")}
               </div>
             </TableHead>
-            <TableHead className="text-white/40 text-[10px] font-black uppercase tracking-wider text-white h-11">Categoria</TableHead>
-            <TableHead className="text-white/40 text-[10px] font-black uppercase tracking-wider text-white h-11">Conta</TableHead>
-            <TableHead className="text-white/40 text-[10px] font-black uppercase tracking-wider text-white h-11">Rateio</TableHead>
-            <TableHead className="text-white/40 text-[10px] font-black uppercase tracking-wider text-white text-right h-11">Ações</TableHead>
+            <TableHead className="text-white/40 text-[10px] font-black uppercase tracking-wider h-11">Categoria</TableHead>
+            <TableHead className="text-white/40 text-[10px] font-black uppercase tracking-wider h-11">Conta</TableHead>
+            <TableHead className="text-white/40 text-[10px] font-black uppercase tracking-wider h-11">Rateio</TableHead>
+            <TableHead className="text-white/40 text-[10px] font-black uppercase tracking-wider text-right h-11">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -215,7 +215,7 @@ export function OverheadExpensesTable({
               <TableCell>
                 <HoverCard>
                   <HoverCardTrigger asChild>
-                    <Button variant="ghost" className="h-8 gap-1 p-1 text-[#00BCD4] hover:bg-white/5 rounded-lg transition-colors font-semibold">
+                    <Button variant="ghost" className="h-8 gap-1 p-1 text-brand-cyan hover:bg-white/5 rounded-lg transition-colors font-semibold">
                       <Info className="w-4 h-4" />
                       <span>{expense.feirasRateadas?.length || 0} feiras</span>
                     </Button>
