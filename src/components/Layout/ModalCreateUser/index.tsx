@@ -37,10 +37,11 @@ export const CreateUserModal = () => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogTrigger className="flex items-center gap-2 text-gray-700 hover:text-gray-900 cursor-pointer">
-        <p className="flex items-center gap-2 text-gray-700 hover:text-gray-900 cursor-pointer">
-          <PlusIcon size={16} /> Criar Usuário
-        </p>
+      <DialogTrigger asChild>
+        <button className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider text-white/60 hover:bg-white/8 hover:text-white transition-all cursor-pointer">
+          <PlusIcon className="h-3.5 w-3.5 shrink-0" />
+          <span>Novo Usuário</span>
+        </button>
       </DialogTrigger>
       <DialogContent className="p-6 rounded-lg shadow-lg">
         <Form {...form}>

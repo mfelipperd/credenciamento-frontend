@@ -17,7 +17,6 @@ import { useUserSession } from "@/hooks/useUserSession";
 import { useAuth } from "@/hooks/useAuth";
 import { CreateUserModal } from "./ModalCreateUser";
 import { ModalCreateFair } from "./ModalCreateFair";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { useCookie } from "@/hooks/useCookie";
 import { EUserRole } from "@/enums/user.enum";
 import { Sidebar } from "./Sidebar";
@@ -178,7 +177,8 @@ export const MainLayout: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex bg-background">
+    // App shell: altura travada no viewport — somente o <main> faz scroll
+    <div className="h-screen flex overflow-hidden bg-background">
       {/* Sidebar */}
       <Sidebar
         isOpen={isSidebarOpen}
@@ -186,11 +186,11 @@ export const MainLayout: React.FC = () => {
         onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
         search={search}
       />
-      
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Header Principal */}
-        <header className="sticky top-0 z-40 w-full bg-brand-blue/80 backdrop-blur-md border-b border-white/5 shadow-xl">
+
+      {/* Coluna direita: cresce para preencher, não faz scroll */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* Header — fica fixo no topo naturalmente (acima do scroll container) */}
+        <header className="shrink-0 z-40 w-full bg-brand-blue/80 backdrop-blur-md border-b border-white/5 shadow-xl">
           <div className="px-4 h-16 sm:h-20 flex items-center justify-between gap-4">
             {/* Lado Esquerdo */}
             <div className="flex items-center gap-3 min-w-0">
@@ -204,13 +204,19 @@ export const MainLayout: React.FC = () => {
               </button>
 
               <div className="flex items-center gap-4 min-w-0">
+                {/* Logo: sempre visível no mobile; no desktop só quando a sidebar está recolhida
+                    (quando aberta, o logo já aparece no header da sidebar) */}
                 <img
                   src="/logo.png"
                   alt="Logo"
-                  className="h-7 sm:h-9 w-auto shrink-0 hidden xs:block"
+                  className={cn(
+                    "h-7 sm:h-9 w-auto shrink-0",
+                    // mobile: hidden xs → visible; desktop: oculto quando sidebar aberta
+                    isSidebarOpen ? "hidden xs:hidden lg:hidden" : "hidden xs:block"
+                  )}
                 />
 
-                {/* Desktop: expandir sidebar quando estiver fechado */}
+                {/* Desktop: botão para expandir a sidebar quando recolhida */}
                 {!isSidebarOpen && (
                   <button
                     onClick={() => setIsSidebarOpen(true)}
@@ -222,7 +228,11 @@ export const MainLayout: React.FC = () => {
                   </button>
                 )}
 
-                <div className="h-6 w-px bg-white/10 hidden sm:block shrink-0"></div>
+                {/* Separador: só aparece quando há logo ou botão à esquerda */}
+                <div className={cn(
+                  "h-6 w-px bg-white/10 shrink-0",
+                  isSidebarOpen ? "hidden sm:hidden lg:hidden" : "hidden sm:block"
+                )}></div>
 
                 <div className="flex items-center gap-2.5 min-w-0">
                   <div className={cn(
@@ -386,9 +396,7 @@ export const MainLayout: React.FC = () => {
                 </span>
               </div>
 
-              <div className="flex items-center gap-1.5 sm:gap-2 bg-white/5 p-1 rounded-2xl border border-white/5">
-                <ThemeToggle />
-                
+              <div className="flex items-center gap-1 sm:gap-1.5">
                 <button
                   onClick={() => window.location.reload()}
                   className="p-2 rounded-xl h-9 w-9 flex items-center justify-center hover:bg-white/10 transition-all text-white/60 hover:text-white group relative"
@@ -408,20 +416,26 @@ export const MainLayout: React.FC = () => {
                       <Settings className="h-4 w-4" />
                     </button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-56 mt-2 bg-white border-white/5 p-2 rounded-2xl shadow-2xl mr-4" align="end">
-                    <div className="space-y-1">
-                      <div className="px-3 py-2 border-b border-black/5 mb-1 md:hidden">
-                        <p className="text-[10px] text-black/40 font-black uppercase tracking-widest">Usuário</p>
-                        <p className="text-sm font-bold truncate">{user?.email}</p>
-                      </div>
+                  <PopoverContent className="w-60 mt-2 bg-slate-950 border border-white/10 p-2 rounded-2xl shadow-2xl" align="end">
+                    {/* Cabeçalho — usuário conectado */}
+                    <div className="px-3 py-2.5 mb-1 border-b border-white/5">
+                      <p className="text-[9px] font-black uppercase tracking-[0.2em] text-white/30 mb-0.5">Conectado como</p>
+                      <p className="text-xs font-bold text-white truncate">{user?.email}</p>
+                    </div>
+
+                    {/* Ações */}
+                    <div className="space-y-0.5 py-1">
                       <ModalCreateFair />
                       <CreateUserModal />
-                      <div className="h-px bg-black/5 my-1"></div>
+                    </div>
+
+                    {/* Separador + Logout */}
+                    <div className="border-t border-white/5 mt-1 pt-1">
                       <button
                         onClick={signOut}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 text-red-500 hover:bg-red-50 rounded-xl transition-all font-bold text-sm"
+                        className="w-full flex items-center gap-2.5 px-3 py-2.5 text-red-400 hover:bg-red-500/10 rounded-xl transition-all text-xs font-black uppercase tracking-wider"
                       >
-                        <LogOut size={16} />
+                        <LogOut className="h-3.5 w-3.5 shrink-0" />
                         <span>Encerrar Sessão</span>
                       </button>
                     </div>
@@ -432,18 +446,20 @@ export const MainLayout: React.FC = () => {
           </div>
         </header>
 
-        <main className="grow p-6 bg-brand-blue relative overflow-x-hidden">
+        {/* Área de conteúdo — ÚNICO elemento que faz scroll */}
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-6 bg-brand-blue relative">
           {/* Decorative background elements */}
-          <div className="absolute top-0 right-0 w-96 h-96 bg-brand-pink/5 blur-[120px] rounded-full -translate-y-1/2" />
-          <div className="absolute bottom-0 left-0 w-96 h-96 bg-brand-cyan/5 blur-[120px] rounded-full translate-y-1/2" />
-          
+          <div className="absolute top-0 right-0 w-96 h-96 bg-brand-pink/5 blur-[120px] rounded-full -translate-y-1/2 pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-brand-cyan/5 blur-[120px] rounded-full translate-y-1/2 pointer-events-none" />
+
           <div className="relative z-10">
             <Outlet />
           </div>
+
+          <div className="border-t border-white/5 mt-12">
+            <SimpleFooter />
+          </div>
         </main>
-        <div className="bg-brand-blue border-t border-white/5">
-          <SimpleFooter />
-        </div>
       </div>
     </div>
   );

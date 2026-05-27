@@ -359,7 +359,50 @@ export interface RevenueStats {
   averagePerRevenue: number;
 }
 
-// Interfaces para despesas overhead
+// ─── Rateio de despesa direta (finance_expenses com isOverhead=true) ────────────
+export interface FairAllocation {
+  id: string;
+  fairId: string;
+  percentual: number;
+  fair: { id: string; name: string };
+}
+
+// ─── Overhead alocado — sistema novo (finance_expenses + expense_fair_allocations) ─
+export interface AllocatedDirect {
+  id: string;
+  /** Campo "name" (tabela `categories`) */
+  category: { id: string; name: string } | null;
+  descricao: string | null;
+  data: string;
+  valorTotal: number;
+  percentualDesteFair: number;
+  valorAlocado: number;
+  account: { id: string; nomeConta: string; banco: string } | null;
+  feirasRateadas: Array<{ fairId: string; fairName: string; percentual: number }>;
+  source: "direct_overhead";
+}
+
+// ─── Overhead alocado — sistema legado (overhead_expenses) ───────────────────
+export interface AllocatedLegacy {
+  id: string;
+  /** Campo "nome" (tabela `finance_categories`) */
+  category: { id: string; nome: string } | null;
+  descricao: string | null;
+  data: string;
+  valorTotal: number;
+  percentualDesteFair: number;
+  valorAlocado: number;
+  account: { id: string; nomeConta: string; banco: string } | null;
+  feirasRateadas: Array<{ fairId: string; fairName: string; percentual: number }>;
+}
+
+/** @deprecated Use AllocatedLegacy */
+export interface AllocatedOverheadExpense extends AllocatedLegacy {
+  /** @deprecated Use category?.nome */
+  categoria?: string;
+}
+
+// ─── Interfaces para despesas overhead (tabela overhead_expenses) ────────────
 export interface OverheadAllocation {
   id: string;
   overheadExpenseId: string;
@@ -382,34 +425,26 @@ export interface OverheadExpense {
   allocations: OverheadAllocation[];
 }
 
-export interface AllocatedOverheadExpense {
-  id: string;
-  categoria: string;
-  descricao?: string;
-  data: string;
-  valorTotal: number;
-  percentualDesteFair: number;
-  valorAlocado: number;
-  account: {
-    id: string;
-    nomeConta: string;
-    banco?: string;
-  } | null;
-  feirasRateadas: Array<{
-    fairId: string;
-    fairName: string;
-    percentual: number;
-  }>;
-}
-
 export interface FairExpensesResponse {
   directExpenses: Expense[];
-  allocatedOverhead: AllocatedOverheadExpense[];
+  /** Sistema legado: overhead_expenses */
+  allocatedOverhead: AllocatedLegacy[];
+  /** Sistema novo: finance_expenses com isOverhead=true */
+  allocatedDirect: AllocatedDirect[];
   summary: {
     totalDireto: number;
     totalRateado: number;
     totalGeral: number;
   };
+}
+
+// ─── DTO para setar rateio (isOverhead) ──────────────────────────────────────
+export interface SetOverheadDto {
+  /** Omitir percentual em todos os itens → backend divide igualmente */
+  fairs: Array<{
+    fairId: string;
+    percentual?: number;
+  }>;
 }
 
 export interface FairExpensesTotalResponse {

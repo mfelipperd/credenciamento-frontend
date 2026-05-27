@@ -66,7 +66,7 @@ export function ExpenseDetailModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-5xl w-[95vw] max-h-[90vh] overflow-y-auto bg-slate-950 border border-white/10 text-white p-0 rounded-2xl shadow-2xl">
+      <DialogContent className="remove-x max-w-5xl w-[95vw] max-h-[90vh] overflow-y-auto bg-slate-950 border border-white/10 text-white p-0 rounded-2xl shadow-2xl">
         <DialogHeader className="relative h-24 w-full flex items-end p-6 bg-linear-to-br from-[#00aacd] to-[#EB2970] overflow-hidden rounded-t-2xl">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl pointer-events-none" />
           <div className="relative z-10 w-full flex items-center justify-between">

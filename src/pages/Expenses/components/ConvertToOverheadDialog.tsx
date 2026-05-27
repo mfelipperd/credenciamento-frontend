@@ -45,6 +45,8 @@ interface ConvertToOverheadDialogProps {
   overheadCategories: FinanceCategory[];
   onConfirm: (expenseId: string, payload: ConvertToOverheadPayload) => void;
   isLoading: boolean;
+  /** ID da feira atual — pré-selecionada ao abrir */
+  currentFairId?: string;
 }
 
 export function ConvertToOverheadDialog({
@@ -55,6 +57,7 @@ export function ConvertToOverheadDialog({
   overheadCategories,
   onConfirm,
   isLoading,
+  currentFairId,
 }: ConvertToOverheadDialogProps) {
   const [selectedFairs, setSelectedFairs] = useState<Record<string, boolean>>({});
   const [fairPercentages, setFairPercentages] = useState<Record<string, number>>({});
@@ -65,15 +68,17 @@ export function ConvertToOverheadDialog({
    */
   const [manualMode, setManualMode] = useState(false);
 
-  // Reset ao abrir com nova despesa
+  // Reset ao abrir — pré-seleciona a feira corrente
   useEffect(() => {
     if (isOpen && expense) {
-      setSelectedFairs({});
+      const initialSelected: Record<string, boolean> = {};
+      if (currentFairId) initialSelected[currentFairId] = true;
+      setSelectedFairs(initialSelected);
       setFairPercentages({});
       setFinanceCategoryId("");
       setManualMode(false);
     }
-  }, [isOpen, expense?.id]);
+  }, [isOpen, expense?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const activeFairIds = Object.keys(selectedFairs).filter((id) => selectedFairs[id]);
   const availableFairs = fairs.filter((f) => !selectedFairs[f.id]);

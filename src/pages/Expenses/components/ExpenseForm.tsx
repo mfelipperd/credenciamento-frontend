@@ -33,11 +33,11 @@ import type {
   DirectExpenseCategory,
   Account,
   OverheadExpense,
-  AllocatedOverheadExpense,
   OverheadAllocation,
   CreateExpenseForm,
   CreateOverheadExpenseForm,
 } from "@/interfaces/finance";
+import type { CombinedOverheadEntry } from "./OverheadExpensesTable";
 import type { FinanceCategory } from "@/interfaces/categories";
 import { AccountType } from "@/interfaces/finance";
 import { useExpensesService } from "@/service/expenses.service";
@@ -86,7 +86,7 @@ interface ExpenseFormProps {
     previousType?: "direct" | "overhead";
     previousId?: string;
   }) => void;
-  expense?: Expense | AllocatedOverheadExpense | OverheadExpense | null;
+  expense?: Expense | OverheadExpense | CombinedOverheadEntry | null;
   categories?: DirectExpenseCategory[];
   overheadCategories?: FinanceCategory[];
   accounts?: Account[];
@@ -158,7 +158,7 @@ export function ExpenseForm({
 
       if (isOverhead) {
         if ("feirasRateadas" in expense && expense.feirasRateadas) {
-          (expense as AllocatedOverheadExpense).feirasRateadas.forEach((f) => {
+          (expense as CombinedOverheadEntry).feirasRateadas.forEach((f) => {
             initialFairs[f.fairId] = parseFloat((f.percentual * 100).toFixed(2));
             initialChecked[f.fairId] = true;
           });
@@ -180,24 +180,32 @@ export function ExpenseForm({
       setSelectedFairs(initialChecked);
       setFairPercentages(initialFairs);
 
-      const categoryVal =
-        "categoria" in expense
-          ? (expense as AllocatedOverheadExpense).categoria
-          : "";
+      // Extrai nome de categoria para despesas overhead (legado usa "categoria"
+      // ou "category.nome"; sistema novo usa "category.name")
+      const categoryVal = (() => {
+        if ("categoria" in expense && (expense as { categoria?: string }).categoria)
+          return (expense as { categoria: string }).categoria;
+        if ("category" in expense && expense.category) {
+          const cat = expense.category as { nome?: string; name?: string };
+          return cat.nome ?? cat.name ?? "";
+        }
+        return "";
+      })();
+
       const categoryIdVal =
         "categoryId" in expense ? (expense as Expense).categoryId : "";
 
       const accountIdVal =
         "accountId" in expense
           ? (expense as Expense).accountId
-          : (expense as AllocatedOverheadExpense).account?.id ?? "";
+          : (expense as CombinedOverheadEntry).account?.id ?? "";
 
       const valorDisplay = new Intl.NumberFormat("pt-BR", {
         style: "currency",
         currency: "BRL",
       }).format(
         "valorTotal" in expense
-          ? (expense as AllocatedOverheadExpense).valorTotal
+          ? (expense as CombinedOverheadEntry).valorTotal
           : (expense as Expense).valor ?? 0
       );
 
@@ -401,7 +409,7 @@ export function ExpenseForm({
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <DialogContent
         aria-describedby={undefined}
-        className={`transition-all duration-300 ${
+        className={`remove-x transition-all duration-300 ${
           isExpanded ? "max-w-3xl w-[95vw]" : "max-w-lg w-[95vw]"
         } bg-slate-950 border border-white/10 text-white p-0 rounded-2xl shadow-2xl overflow-hidden flex flex-col`}
         style={{ maxHeight: "min(92vh, 720px)" }}

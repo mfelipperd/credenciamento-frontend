@@ -188,41 +188,45 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, onToggle, sea
         </div>
       </div>
 
-      {/* Desktop Sidebar - fixed for branding */}
+      {/* Desktop Sidebar — ocupa h-full do app-shell, só a nav faz scroll interno */}
       <div className={cn(
-        "hidden lg:block bg-brand-blue shadow-2xl transition-all duration-500 ease-in-out border-r border-white/5 flex-col",
+        "hidden lg:flex flex-col h-full bg-brand-blue transition-all duration-500 ease-in-out shrink-0",
+        // sem border-r aqui — a borda vertical fica só no <nav>, abaixo do header
         isOpen ? "w-72" : "w-0 overflow-hidden opacity-0"
       )}>
-        {/* Header */}
-        <div className="flex items-center justify-between p-7 border-b border-white/5 bg-white/2">
-          <div className="flex items-center gap-3">
+        {/* Header — mesma altura + mesma border-b do header principal
+            → os dois juntos formam UMA linha horizontal contínua (topo do "L")
+            Sem border-r aqui: sem retângulo em volta da logo */}
+        <div className="flex items-center justify-between px-5 h-16 sm:h-20 shrink-0 border-b border-white/5">
+          <div className="flex items-center gap-3 min-w-0">
             <img
               src="/logo.png"
               alt="Logo"
-              className="h-9 w-auto"
+              className="h-8 sm:h-9 w-auto shrink-0"
             />
-            <div className={cn("transition-opacity duration-300", isOpen ? "opacity-100" : "opacity-0")}>
-              <h2 className="text-2xl font-black text-white uppercase tracking-tighter leading-none">
-                Menu
-              </h2>
-              <p className="text-[11px] text-white/50 font-black uppercase tracking-[0.2em] mt-1.5">
+            <div className={cn(
+              "transition-all duration-300 overflow-hidden",
+              isOpen ? "opacity-100 max-w-xs" : "opacity-0 max-w-0"
+            )}>
+              <p className="text-[10px] text-white/40 font-black uppercase tracking-[0.2em] whitespace-nowrap">
                 Navegação
               </p>
             </div>
           </div>
-          {/* Toggle button — fecha o sidebar */}
+          {/* Botão recolher */}
           <button
             onClick={onToggle}
-            className="p-2 rounded-xl hover:bg-white/10 transition-all text-white/40 hover:text-white shrink-0"
+            className="p-2 rounded-xl hover:bg-white/10 transition-all text-white/30 hover:text-white shrink-0"
             aria-label="Recolher menu"
             title="Recolher menu"
           >
-            <ChevronLeft className="h-5 w-5" />
+            <ChevronLeft className="h-4 w-4" />
           </button>
         </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 p-6">
+        {/* Navigation — border-r + rounded-tr-2xl: a borda vertical começa aqui
+            e faz a curva arredondada no canto do "L" */}
+        <nav className="flex-1 overflow-y-auto p-6 border-r border-white/8">
           <div className="space-y-2">
             {filteredItems.map((item) => {
               const isActive = location.pathname === item.href;

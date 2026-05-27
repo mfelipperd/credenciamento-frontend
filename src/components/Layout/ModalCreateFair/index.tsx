@@ -110,10 +110,10 @@ export function ModalCreateFair() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <div className="flex items-center gap-2 text-foreground hover:text-blue-600 cursor-pointer transition-colors p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-950">
-          <Plus size={14} />
-          <span className="text-sm font-medium">Nova Feira</span>
-        </div>
+        <button className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider text-white/60 hover:bg-white/8 hover:text-white transition-all cursor-pointer">
+          <Plus className="h-3.5 w-3.5 shrink-0" />
+          <span>Nova Feira</span>
+        </button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-white/20 dark:border-gray-700/30 text-gray-900 dark:text-gray-100 shadow-2xl">
         <DialogHeader>

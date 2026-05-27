@@ -16,6 +16,8 @@ import type {
   OverheadExpense,
   CreateOverheadExpenseForm,
   UpdateOverheadExpenseForm,
+  SetOverheadDto,
+  AllocatedDirect,
 } from "@/interfaces/finance";
 import type { FinanceCategory, CreateCategoryDto, UpdateCategoryDto } from "@/interfaces/categories";
 
@@ -256,7 +258,7 @@ export const useExpensesService = () => {
     });
   };
 
-  // ===== CONVERSÃO: DESPESA DIRETA → OVERHEAD =====
+  // ===== CONVERSÃO: DESPESA DIRETA → OVERHEAD LEGADO =====
 
   interface ConvertToOverheadPayload {
     financeCategoryId?: string;
@@ -274,6 +276,36 @@ export const useExpensesService = () => {
     });
   };
 
+  // ===== RATEIO (isOverhead) — SISTEMA NOVO =====
+
+  /**
+   * Marca uma despesa direta como overhead e define o rateio entre feiras.
+   * Pode ser chamado várias vezes — cada chamada substitui o rateio anterior.
+   * POST /expenses/:id/set-overhead
+   */
+  const setOverhead = async (
+    id: string,
+    payload: SetOverheadDto
+  ): Promise<AllocatedDirect | undefined> => {
+    return handleRequest<AllocatedDirect>({
+      request: () =>
+        api.post(AppEndpoints.FINANCE.EXPENSE_SET_OVERHEAD(id), payload),
+      successMessage: "Rateio definido com sucesso!",
+    });
+  };
+
+  /**
+   * Remove o flag isOverhead — a despesa volta para despesas diretas.
+   * DELETE /expenses/:id/set-overhead
+   */
+  const unsetOverhead = async (id: string): Promise<Expense | undefined> => {
+    return handleRequest<Expense>({
+      request: () =>
+        api.delete(AppEndpoints.FINANCE.EXPENSE_SET_OVERHEAD(id)),
+      successMessage: "Rateio removido. Despesa voltou para diretas.",
+    });
+  };
+
   return {
     // Despesas
     getExpenses,
@@ -282,7 +314,7 @@ export const useExpensesService = () => {
     updateExpense,
     deleteExpense,
 
-    // Despesas Overhead
+    // Despesas Overhead (legado)
     getOverheadExpenses,
     getOverheadExpenseDetail,
     createOverheadExpense,
@@ -290,6 +322,10 @@ export const useExpensesService = () => {
     deleteOverheadExpense,
     getOverheadCategories,
     convertExpenseToOverhead,
+
+    // Rateio — sistema novo (isOverhead)
+    setOverhead,
+    unsetOverhead,
 
     // Relatórios
     getExpensesTotal,

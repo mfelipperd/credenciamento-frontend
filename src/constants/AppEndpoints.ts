@@ -78,14 +78,20 @@ export const AppEndpoints = {
     REVENUE_ATTACHMENTS: (id: string) => `/finance/revenues/${id}/attachments`,
     REVENUE_ATTACHMENT_BY_ID: (revenueId: string, attachmentId: string) => `/finance/revenues/${revenueId}/attachments/${attachmentId}`,
     EXPENSES: "/expenses",
+    /** Despesa por ID no contexto da feira (PATCH/DELETE via fairId) */
     EXPENSE_BY_ID: (fairId: string, id: string) => `/fairs/${fairId}/expenses/${id}`,
+    /** Acesso direto a uma despesa por ID, sem contexto de feira (GET) */
+    EXPENSE_SIMPLE_BY_ID: (id: string) => `/expenses/${id}`,
     EXPENSES_BY_FAIR: (fairId: string) => `/fairs/${fairId}/expenses`,
     EXPENSES_TOTAL: (fairId: string) => `/fairs/${fairId}/expenses/total`,
     EXPENSES_BY_CATEGORY: (fairId: string) => `/fairs/${fairId}/expenses/total-by-category`,
     EXPENSES_BY_ACCOUNT: (fairId: string) => `/fairs/${fairId}/expenses/total-by-account`,
+    /** Marcar despesa como overhead com rateio (isOverhead=true) — sistema novo */
+    EXPENSE_SET_OVERHEAD: (id: string) => `/expenses/${id}/set-overhead`,
     OVERHEAD_EXPENSES: "/overhead-expenses",
     OVERHEAD_EXPENSE_BY_ID: (id: string) => `/overhead-expenses/${id}`,
     OVERHEAD_CATEGORIES: "/overhead-expenses/categories",
+    /** Converter despesa direta para overhead_expenses (sistema legado) */
     EXPENSE_CONVERT_TO_OVERHEAD: (id: string) => `/expenses/${id}/convert-to-overhead`,
   },
   MARKETING: {

@@ -1,37 +1,50 @@
-import { useState } from "react";
 import {
+  MoreHorizontal,
   Edit,
   Trash2,
-  Calendar,
-  DollarSign,
-  Tag,
   Building,
+  ArrowRightLeft,
   Info,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { AllocatedOverheadExpense } from "@/interfaces/finance";
-import { getCategoryColor } from "@/utils/categoryColors";
 import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/components/ui/hover-card";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import type { AllocatedLegacy, AllocatedDirect } from "@/interfaces/finance";
+import { getCategoryColor } from "@/utils/categoryColors";
+
+/** Entrada unificada para a tabela overhead — cobre legado e sistema novo */
+export type CombinedOverheadEntry =
+  | (AllocatedLegacy & { source?: undefined })
+  | AllocatedDirect;
+
+/** Extrai o nome de categoria tanto do legado (nome) quanto do novo (name) */
+function getCategoryName(entry: CombinedOverheadEntry): string {
+  if (!entry.category) return "N/A";
+  return (
+    (entry.category as { name?: string; nome?: string }).name ||
+    (entry.category as { name?: string; nome?: string }).nome ||
+    "N/A"
+  );
+}
 
 interface OverheadExpensesTableProps {
-  expenses: AllocatedOverheadExpense[];
+  expenses: CombinedOverheadEntry[];
   isLoading: boolean;
-  onEdit: (expense: AllocatedOverheadExpense) => void;
-  onDelete: (expense: AllocatedOverheadExpense) => void;
+  onEdit: (expense: CombinedOverheadEntry) => void;
+  onDelete: (expense: CombinedOverheadEntry) => void;
+  onView?: (expense: CombinedOverheadEntry) => void;
 }
 
 export function OverheadExpensesTable({
@@ -39,63 +52,33 @@ export function OverheadExpensesTable({
   isLoading,
   onEdit,
   onDelete,
+  onView,
 }: OverheadExpensesTableProps) {
-  const [sortField, setSortField] = useState<keyof AllocatedOverheadExpense>("data");
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const formatCurrency = (value: number) =>
+    new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
 
-  const handleSort = (field: keyof AllocatedOverheadExpense) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-    } else {
-      setSortField(field);
-      setSortDirection("desc");
-    }
-  };
+  const formatDate = (dateString: string) =>
+    new Date(dateString).toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "short",
+    });
 
-  const sortedExpenses = [...expenses].sort((a, b) => {
-    const aValue = a[sortField];
-    const bValue = b[sortField];
-
-    if (aValue === null || aValue === undefined) return 1;
-    if (bValue === null || bValue === undefined) return -1;
-
-    let comparison = 0;
-    if (typeof aValue === "string" && typeof bValue === "string") {
-      comparison = aValue.localeCompare(bValue);
-    } else if (typeof aValue === "number" && typeof bValue === "number") {
-      comparison = aValue - bValue;
-    }
-
-    return sortDirection === "asc" ? comparison : -comparison;
-  });
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-    }).format(value);
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("pt-BR");
-  };
-
-  const getSortIcon = (field: keyof AllocatedOverheadExpense) => {
-    if (sortField !== field) return null;
-    return sortDirection === "asc" ? "↑" : "↓";
-  };
+  const sorted = [...expenses].sort(
+    (a, b) => new Date(b.data).getTime() - new Date(a.data).getTime()
+  );
 
   if (isLoading) {
     return (
-      <div className="space-y-3">
+      <div className="space-y-2">
         {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="flex items-center space-x-4">
-            <Skeleton className="h-4 w-[100px]" />
-            <Skeleton className="h-4 w-[150px]" />
-            <Skeleton className="h-4 w-[100px]" />
-            <Skeleton className="h-4 w-[100px]" />
-            <Skeleton className="h-4 w-[100px]" />
-            <Skeleton className="h-4 w-[80px]" />
+          <div key={i} className="flex items-center gap-4 px-4 py-3 rounded-xl bg-white/3">
+            <Skeleton className="h-4 w-14" />
+            <div className="flex-1 space-y-1.5">
+              <Skeleton className="h-3.5 w-48" />
+              <Skeleton className="h-3 w-24" />
+            </div>
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-8 w-8 rounded-lg" />
           </div>
         ))}
       </div>
@@ -104,165 +87,162 @@ export function OverheadExpensesTable({
 
   if (expenses.length === 0) {
     return (
-      <div className="text-center py-12 bg-white/3 border border-white/5 rounded-xl backdrop-blur-md">
-        <Building className="mx-auto h-12 w-12 text-white/20 animate-pulse" />
-        <h3 className="mt-4 text-sm font-bold text-white uppercase tracking-wider">
+      <div className="text-center py-16 bg-white/3 border border-white/5 rounded-xl">
+        <Building className="mx-auto h-10 w-10 text-white/20 mb-3" />
+        <p className="text-sm font-bold text-white/50 uppercase tracking-wider">
           Nenhum custo overhead alocado
-        </h3>
-        <p className="mt-1 text-xs text-white/40">
-          Esta feira não possui custos fixos compartilhados no momento.
+        </p>
+        <p className="mt-1 text-xs text-white/30">
+          Esta feira não possui custos fixos compartilhados.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="glass-card border border-white/10 bg-slate-950/20 rounded-xl overflow-hidden">
-      <Table>
-        <TableHeader>
-          <TableRow className="border-b border-white/10 hover:bg-transparent">
-            <TableHead
-              className="cursor-pointer hover:bg-white/5 text-white/40 text-[10px] font-black uppercase tracking-wider h-11"
-              onClick={() => handleSort("data")}
-            >
-              <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4" />
-                Data
-                {getSortIcon("data")}
-              </div>
-            </TableHead>
-            <TableHead
-              className="cursor-pointer hover:bg-white/5 text-white/40 text-[10px] font-black uppercase tracking-wider h-11"
-              onClick={() => handleSort("descricao")}
-            >
-              <div className="flex items-center gap-2">
-                <Tag className="w-4 h-4" />
-                Descrição
-                {getSortIcon("descricao")}
-              </div>
-            </TableHead>
-            <TableHead
-              className="cursor-pointer hover:bg-white/5 text-white/40 text-[10px] font-black uppercase tracking-wider h-11"
-              onClick={() => handleSort("valorTotal")}
-            >
-              <div className="flex items-center gap-2">
-                <DollarSign className="w-4 h-4" />
-                Valor Total (100%)
-                {getSortIcon("valorTotal")}
-              </div>
-            </TableHead>
-            <TableHead
-              className="cursor-pointer hover:bg-white/5 text-white/40 text-[10px] font-black uppercase tracking-wider h-11"
-              onClick={() => handleSort("percentualDesteFair")}
-            >
-              <div className="flex items-center gap-2">
-                % Deste Fair
-                {getSortIcon("percentualDesteFair")}
-              </div>
-            </TableHead>
-            <TableHead
-              className="cursor-pointer hover:bg-white/5 text-white/40 text-[10px] font-black uppercase tracking-wider h-11"
-              onClick={() => handleSort("valorAlocado")}
-            >
-              <div className="flex items-center gap-2">
-                <DollarSign className="w-4 h-4" />
-                Valor Alocado
-                {getSortIcon("valorAlocado")}
-              </div>
-            </TableHead>
-            <TableHead className="text-white/40 text-[10px] font-black uppercase tracking-wider h-11">Categoria</TableHead>
-            <TableHead className="text-white/40 text-[10px] font-black uppercase tracking-wider h-11">Conta</TableHead>
-            <TableHead className="text-white/40 text-[10px] font-black uppercase tracking-wider h-11">Rateio</TableHead>
-            <TableHead className="text-white/40 text-[10px] font-black uppercase tracking-wider text-right h-11">Ações</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {sortedExpenses.map((expense) => (
-            <TableRow
-              key={expense.id}
-              className="border-b border-white/5 hover:bg-white/3 transition-colors"
-            >
-              <TableCell className="font-medium text-white/80">
-                {formatDate(expense.data)}
-              </TableCell>
-              <TableCell className="text-white font-semibold">
-                <div
-                  className="max-w-[180px] truncate"
-                  title={expense.descricao || "Sem descrição"}
+    <div className="space-y-1.5">
+      {sorted.map((expense) => {
+        const categoryName = getCategoryName(expense);
+        const isNew = expense.source === "direct_overhead";
+
+        return (
+          <div
+            key={expense.id}
+            onClick={() => onView?.(expense)}
+            className="group flex items-center gap-3 px-4 py-3.5 rounded-xl bg-white/3 hover:bg-white/6 border border-white/5 hover:border-white/10 cursor-pointer transition-all duration-150"
+          >
+            {/* Data */}
+            <div className="text-[11px] font-semibold text-white/40 w-14 shrink-0 text-center">
+              {formatDate(expense.data)}
+            </div>
+
+            {/* Separador */}
+            <div className="w-px h-8 bg-white/8 shrink-0" />
+
+            {/* Descrição + Categoria + Sistema */}
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-white truncate leading-tight">
+                {expense.descricao || "Sem descrição"}
+              </p>
+              <div className="flex items-center gap-2 mt-1 flex-wrap">
+                <Badge
+                  className={`text-[10px] px-1.5 py-0 h-4 ${getCategoryColor(categoryName)}`}
                 >
-                  {expense.descricao || "Sem descrição"}
-                </div>
-              </TableCell>
-              <TableCell className="text-white/50 font-medium">
-                {formatCurrency(expense.valorTotal)}
-              </TableCell>
-              <TableCell className="font-semibold text-white/80">
-                {(expense.percentualDesteFair * 100).toFixed(0)}%
-              </TableCell>
-              <TableCell className="font-bold text-red-400">
+                  {categoryName}
+                </Badge>
+                {expense.account?.nomeConta && (
+                  <span className="text-[10px] text-white/30">
+                    {expense.account.nomeConta}
+                  </span>
+                )}
+                {isNew ? (
+                  <Badge className="text-[10px] h-4 px-1.5 py-0 bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 gap-1">
+                    <ArrowRightLeft className="w-2.5 h-2.5" />
+                    Rateio
+                  </Badge>
+                ) : (
+                  <Badge className="text-[10px] h-4 px-1.5 py-0 bg-white/5 border border-white/10 text-white/30">
+                    Legado
+                  </Badge>
+                )}
+              </div>
+            </div>
+
+            {/* Valores */}
+            <div className="text-right shrink-0 hidden sm:block">
+              <p className="text-sm font-black text-red-400 tabular-nums">
                 {formatCurrency(expense.valorAlocado)}
-              </TableCell>
-              <TableCell>
-                <Badge className={`text-xs ${getCategoryColor(expense.categoria || "")}`}>
-                  {expense.categoria || "N/A"}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                <Badge variant="secondary" className="text-xs bg-white/5 border border-white/10 text-white/80 hover:bg-white/10">
-                  {expense.account?.nomeConta || "N/A"}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                <HoverCard>
-                  <HoverCardTrigger asChild>
-                    <Button variant="ghost" className="h-8 gap-1 p-1 text-brand-cyan hover:bg-white/5 rounded-lg transition-colors font-semibold">
-                      <Info className="w-4 h-4" />
-                      <span>{expense.feirasRateadas?.length || 0} feiras</span>
-                    </Button>
-                  </HoverCardTrigger>
-                  <HoverCardContent className="w-85 p-4 bg-slate-950 border border-white/10 text-white rounded-xl shadow-2xl backdrop-blur-xl z-50">
-                    <h5 className="font-black text-[10px] uppercase tracking-wider text-white/50 mb-3 border-b border-white/5 pb-2">
-                      Detalhamento do Rateio
-                    </h5>
-                    <div className="space-y-2">
-                      {expense.feirasRateadas?.map((rateio) => (
-                        <div key={rateio.fairId} className="flex justify-between items-center text-xs">
-                          <span className="truncate max-w-[180px] text-white/70">
-                            {rateio.fairName}
-                          </span>
-                          <span className="font-bold text-white">
-                            {(rateio.percentual * 100).toFixed(0)}% ({formatCurrency(expense.valorTotal * rateio.percentual)})
-                          </span>
-                        </div>
-                      ))}
+              </p>
+              <p className="text-[10px] text-white/30 tabular-nums">
+                {(expense.percentualDesteFair * 100).toFixed(0)}% de{" "}
+                {formatCurrency(expense.valorTotal)}
+              </p>
+            </div>
+
+            {/* Popover de rateio entre feiras */}
+            <Popover>
+              <PopoverTrigger
+                asChild
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0 text-white/30 hover:text-cyan-400 hover:bg-cyan-500/10 rounded-lg opacity-0 group-hover:opacity-100 transition-all shrink-0"
+                  title={`${expense.feirasRateadas?.length || 0} feiras no rateio`}
+                >
+                  <Info className="w-4 h-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent
+                align="end"
+                className="w-72 p-4 bg-slate-950 border border-white/10 text-white rounded-xl shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <h5 className="font-black text-[10px] uppercase tracking-wider text-white/50 mb-3 border-b border-white/5 pb-2">
+                  Rateio entre{" "}
+                  {expense.feirasRateadas?.length || 0} feiras
+                </h5>
+                <div className="space-y-2">
+                  {expense.feirasRateadas?.map((rateio) => (
+                    <div
+                      key={rateio.fairId}
+                      className="flex justify-between items-center"
+                    >
+                      <span className="text-xs text-white/60 truncate max-w-[160px]">
+                        {rateio.fairName}
+                      </span>
+                      <span className="text-xs font-bold text-white tabular-nums">
+                        {(rateio.percentual * 100).toFixed(0)}%{" "}
+                        <span className="text-white/40 font-normal">
+                          ({formatCurrency(expense.valorTotal * rateio.percentual)})
+                        </span>
+                      </span>
                     </div>
-                  </HoverCardContent>
-                </HoverCard>
-              </TableCell>
-              <TableCell className="text-right">
-                <div className="flex items-center justify-end space-x-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => onEdit(expense)}
-                    className="h-8 w-8 p-0 border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white transition-all duration-200"
-                  >
-                    <Edit className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => onDelete(expense)}
-                    className="h-8 w-8 p-0 border-white/10 bg-white/5 text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-all duration-200"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+                  ))}
                 </div>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+              </PopoverContent>
+            </Popover>
+
+            {/* Menu de ações */}
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                asChild
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0 text-white/30 hover:text-white hover:bg-white/10 rounded-lg opacity-0 group-hover:opacity-100 transition-all shrink-0"
+                >
+                  <MoreHorizontal className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                className="bg-slate-900/95 backdrop-blur-xl border border-white/10 text-white rounded-xl w-40 p-1"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <DropdownMenuItem
+                  onClick={() => onEdit(expense)}
+                  className="cursor-pointer hover:bg-white/8 rounded-lg text-xs gap-2 px-3 py-2"
+                >
+                  <Edit className="w-3.5 h-3.5 text-white/60" />
+                  Editar
+                </DropdownMenuItem>
+                <DropdownMenuSeparator className="bg-white/8 my-1" />
+                <DropdownMenuItem
+                  onClick={() => onDelete(expense)}
+                  className="cursor-pointer hover:bg-red-500/10 rounded-lg text-xs gap-2 px-3 py-2 text-red-400"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  Excluir
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        );
+      })}
     </div>
   );
 }

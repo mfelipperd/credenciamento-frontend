@@ -30,9 +30,9 @@ import type {
   CreateExpenseForm,
   CreateOverheadExpenseForm,
   UpdateOverheadExpenseForm,
-  AllocatedOverheadExpense,
   OverheadExpense,
 } from "@/interfaces/finance";
+import type { CombinedOverheadEntry } from "./components/OverheadExpensesTable";
 
 export default function ExpensesPage() {
   const [, , fairId] = useSearchParams();
@@ -43,8 +43,8 @@ export default function ExpensesPage() {
   
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
   const [expenseToDelete, setExpenseToDelete] = useState<Expense | null>(null);
-  const [overheadToDelete, setOverheadToDelete] = useState<AllocatedOverheadExpense | null>(null);
-  const [editingExpense, setEditingExpense] = useState<Expense | OverheadExpense | AllocatedOverheadExpense | null>(null);
+  const [overheadToDelete, setOverheadToDelete] = useState<CombinedOverheadEntry | null>(null);
+  const [editingExpense, setEditingExpense] = useState<Expense | OverheadExpense | CombinedOverheadEntry | null>(null);
   const [expenseToConvert, setExpenseToConvert] = useState<Expense | null>(null);
   const [showCashFlowModal, setShowCashFlowModal] = useState(false);
 
@@ -194,10 +194,19 @@ export default function ExpensesPage() {
     setIsFormOpen(true);
   };
 
-  // Ao editar overhead, busca o OverheadExpense completo (com allocations) em vez de usar o AllocatedOverheadExpense
-  const handleEditOverheadExpense = async (expense: AllocatedOverheadExpense) => {
-    const full = await expensesService.getOverheadExpenseDetail(expense.id);
-    setEditingExpense(full ?? expense);
+  // Ao editar overhead, busca a entidade completa dependendo do sistema (legado ou novo)
+  const handleEditOverheadExpense = async (expense: CombinedOverheadEntry) => {
+    if (expense.source === "direct_overhead") {
+      // Sistema novo: a despesa vive em finance_expenses; edita como despesa direta
+      const full = fairId
+        ? await expensesService.getExpenseDetail(fairId, expense.id)
+        : undefined;
+      setEditingExpense(full ?? null);
+    } else {
+      // Sistema legado: busca OverheadExpense com allocations
+      const full = await expensesService.getOverheadExpenseDetail(expense.id);
+      setEditingExpense(full ?? expense);
+    }
     setIsFormOpen(true);
   };
 
@@ -276,7 +285,7 @@ export default function ExpensesPage() {
 
   if (!fairId) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-brand-blue">
+      <div className="min-h-full flex items-center justify-center bg-brand-blue">
         <div className="text-center space-y-4">
           <Building className="w-16 h-16 text-white/20 mx-auto animate-pulse" />
           <p className="text-white/60 font-semibold tracking-wide">
@@ -288,14 +297,22 @@ export default function ExpensesPage() {
   }
 
   const directCount = expenses?.directExpenses?.length || 0;
-  const overheadCount = expenses?.allocatedOverhead?.length || 0;
+  const overheadCount =
+    (expenses?.allocatedOverhead?.length || 0) +
+    (expenses?.allocatedDirect?.length || 0);
   const totalCount = directCount + overheadCount;
+
+  // Lista unificada para a aba overhead (legado + sistema novo)
+  const combinedOverhead: CombinedOverheadEntry[] = [
+    ...(expenses?.allocatedOverhead || []),
+    ...(expenses?.allocatedDirect || []),
+  ];
 
   const totalValue = totalExpenses?.totalGeral || 0;
   const averageValue = totalCount > 0 ? totalValue / totalCount : 0;
 
   return (
-    <div className="min-h-screen text-white space-y-8 pb-12">
+    <div className="text-white space-y-8 pb-12">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -458,20 +475,24 @@ export default function ExpensesPage() {
 
       {/* Abas e Tabelas de Despesas */}
       <Tabs defaultValue="direct" className="space-y-6">
-        <TabsList className="bg-white/5 backdrop-blur-md border border-white/10 p-1.5 rounded-xl gap-1 w-fit">
-          <TabsTrigger 
-            value="direct" 
-            className="rounded-lg px-6 py-2.5 text-xs font-black uppercase tracking-wider text-white/60 transition-all duration-200 data-[state=active]:bg-linear-to-br data-[state=active]:from-[#00aacd] data-[state=active]:to-[#EB2970] data-[state=active]:text-white hover:text-white cursor-pointer"
-          >
-            Despesas Diretas ({directCount})
-          </TabsTrigger>
-          <TabsTrigger 
-            value="overhead" 
-            className="rounded-lg px-6 py-2.5 text-xs font-black uppercase tracking-wider text-white/60 transition-all duration-200 data-[state=active]:bg-linear-to-br data-[state=active]:from-[#00aacd] data-[state=active]:to-[#EB2970] data-[state=active]:text-white hover:text-white cursor-pointer"
-          >
-            Custos Overhead Rateados ({overheadCount})
-          </TabsTrigger>
-        </TabsList>
+        <div className="flex justify-center">
+          <TabsList className="bg-white/5 backdrop-blur-md border border-white/10 p-1.5 rounded-2xl gap-1 h-auto">
+            <TabsTrigger
+              value="direct"
+              className="rounded-xl px-6 py-2.5 text-xs font-black uppercase tracking-wider text-white/50 transition-all duration-200 data-[state=active]:bg-linear-to-br data-[state=active]:from-[#00aacd] data-[state=active]:to-[#EB2970] data-[state=active]:text-white data-[state=active]:shadow-lg hover:text-white cursor-pointer"
+            >
+              Diretas&nbsp;
+              <span className="opacity-60">({directCount})</span>
+            </TabsTrigger>
+            <TabsTrigger
+              value="overhead"
+              className="rounded-xl px-6 py-2.5 text-xs font-black uppercase tracking-wider text-white/50 transition-all duration-200 data-[state=active]:bg-linear-to-br data-[state=active]:from-[#00aacd] data-[state=active]:to-[#EB2970] data-[state=active]:text-white data-[state=active]:shadow-lg hover:text-white cursor-pointer"
+            >
+              Overhead&nbsp;
+              <span className="opacity-60">({overheadCount})</span>
+            </TabsTrigger>
+          </TabsList>
+        </div>
         
         <TabsContent value="direct" className="outline-hidden">
           <Card className="glass-card border border-white/5 rounded-2xl p-6 overflow-hidden">
@@ -498,7 +519,7 @@ export default function ExpensesPage() {
             </CardHeader>
             <CardContent className="p-0 overflow-x-auto">
               <OverheadExpensesTable
-                expenses={expenses?.allocatedOverhead || []}
+                expenses={combinedOverhead}
                 isLoading={isLoading}
                 onEdit={handleEditOverheadExpense}
                 onDelete={(expense) => setOverheadToDelete(expense)}
@@ -565,24 +586,33 @@ export default function ExpensesPage() {
         onClose={() => setOverheadToDelete(null)}
         expense={
           overheadToDelete
-            ? {
-                id: overheadToDelete.id,
-                fairId: fairId || "",
-                categoryId: "",
-                accountId: "",
-                descricao: overheadToDelete.descricao || "Sem descrição",
-                valor: overheadToDelete.valorTotal,
-                data: overheadToDelete.data,
-                category: {
-                  id: "",
-                  name: overheadToDelete.categoria || "N/A",
-                  global: true,
+            ? (() => {
+                // Extrai nome de categoria compatível com legado e sistema novo
+                const cat = overheadToDelete.category;
+                const categoryName = cat
+                  ? (cat as { nome?: string; name?: string }).nome ??
+                    (cat as { nome?: string; name?: string }).name ??
+                    "N/A"
+                  : "N/A";
+                return {
+                  id: overheadToDelete.id,
+                  fairId: fairId || "",
+                  categoryId: "",
+                  accountId: "",
+                  descricao: overheadToDelete.descricao || "Sem descrição",
+                  valor: overheadToDelete.valorTotal,
+                  data: overheadToDelete.data,
+                  category: {
+                    id: cat?.id ?? "",
+                    name: categoryName,
+                    global: true,
+                    createdAt: "",
+                    updatedAt: "",
+                  },
                   createdAt: "",
                   updatedAt: "",
-                },
-                createdAt: "",
-                updatedAt: "",
-              }
+                };
+              })()
             : null
         }
         onConfirm={() => {
@@ -602,6 +632,7 @@ export default function ExpensesPage() {
         overheadCategories={overheadCategories || []}
         onConfirm={handleConvertToOverhead}
         isLoading={convertToOverheadMutation.isPending}
+        currentFairId={fairId}
       />
 
       {/* Modal de fluxo de caixa */}
