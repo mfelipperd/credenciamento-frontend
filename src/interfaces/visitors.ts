@@ -33,6 +33,29 @@ export interface AbsentVisitor {
   email: string;
 }
 
+export interface VisitorLookupFairHistory {
+  fairId: string;
+  fairName: string;
+  fairYear: number;
+  state: string;
+  registrationDate: string;
+}
+
+export interface VisitorLookupResult {
+  registrationCode: string;
+  name: string;
+  email: string;
+  phone: string;
+  company: string;
+  cnpj: string;
+  role: string;
+  segment: string;
+  city: string;
+  state: string;
+  missingFields: string[];
+  fairHistory: VisitorLookupFairHistory[];
+}
+
 export interface CheckinPerHourResponse {
   hours: string[]; // Ex: ["08:00", "09:00", ..., "18:00"]
   data: {

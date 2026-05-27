@@ -8,7 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { useSearchParams } from "@/hooks/useSearchParams";
 import { usePublicFormService } from "@/service/publicform.service";
-import { CheckCircle2, Loader2, MapPin, Save } from "lucide-react";
+import { CheckCircle2, ChevronDown, ChevronUp, History, Loader2, MapPin, Save, Search, X } from "lucide-react";
 import {
   credenciamentoSchema,
   defaultVisitorCnpj,
@@ -18,8 +18,21 @@ import { maskCEP, maskCNPJ, maskPhoneBR, unmaskString } from "@/utils/masks";
 import { isValidCNPJ } from "@/utils/isValidCnpj";
 import { toast } from "sonner";
 import { ControlledNativeSelect } from "@/components/ControlledSelectV2";
-import type { Visitor as IVisistor } from "@/interfaces/visitors";
+import type { Visitor as IVisistor, VisitorLookupResult } from "@/interfaces/visitors";
 import { useVisitorsService } from "@/service/visitors.service";
+
+// Mapping from API missingFields values to form field names
+const MISSING_FIELD_MAP: Record<string, string> = {
+  phone: "phone",
+  company: "company",
+  cnpj: "cnpj",
+  city: "city",
+  state: "state",
+  address: "street",
+  complement: "",
+  role: "",
+  segment: "",
+};
 
 const setoresOpcoes = [
   "Brinquedos",
@@ -40,7 +53,17 @@ export const FormularioCredenciamento: React.FC = () => {
   const [isFetchingCep, setIsFetchingCep] = useState(false);
   const [, , fairId] = useSearchParams();
 
-  const { getVisitorById, visitor, checkinVisitor } = useVisitorsService();
+  // Lookup state
+  const [lookupOpen, setLookupOpen] = useState(false);
+  const [lookupName, setLookupName] = useState("");
+  const [lookupPhone, setLookupPhone] = useState("");
+  const [lookupResults, setLookupResults] = useState<VisitorLookupResult[]>([]);
+  const [isLookingUp, setIsLookingUp] = useState(false);
+  const [sourceFairId, setSourceFairId] = useState<string | null>(null);
+  const [warningFields, setWarningFields] = useState<string[]>([]);
+  const [selectedLookup, setSelectedLookup] = useState<VisitorLookupResult | null>(null);
+
+  const { getVisitorById, visitor, checkinVisitor, lookupVisitor } = useVisitorsService();
   const { create, loading } = usePublicFormService();
   const currentFairId = fairId;
   const [currentStep, setCurrentStep] = useState<number>(1);
@@ -177,17 +200,15 @@ export const FormularioCredenciamento: React.FC = () => {
 
     if (data.ingresso === "lojista") {
       if (!data.cnpj) {
-        setError("cnpj", {
-          type: "manual",
-          message: "CNPJ é obrigatório para lojistas",
-        });
+        setError("cnpj", { type: "manual", message: "CNPJ é obrigatório para lojistas" });
+        setCurrentStep(2);
+        toast.error("CNPJ obrigatório. Verifique o passo 2.");
         return;
       }
       if (!isValidCNPJ(data.cnpj)) {
-        setError("cnpj", {
-          type: "manual",
-          message: "CNPJ inválido segundo algoritmo",
-        });
+        setError("cnpj", { type: "manual", message: "CNPJ inválido — verifique os dígitos" });
+        setCurrentStep(2);
+        toast.error("CNPJ inválido. Corrija o campo destacado no passo 2.");
         return;
       }
     }
@@ -208,6 +229,7 @@ export const FormularioCredenciamento: React.FC = () => {
         ingresso: isRep
           ? "representante-comercial"
           : ("lojista" as "lojista" | "representante-comercial"),
+        ...(sourceFairId ? { sourceFairId } : {}),
       };
 
       const result = await create(payload);
@@ -242,7 +264,24 @@ export const FormularioCredenciamento: React.FC = () => {
     }
 
     const isValid = await trigger(fieldsToValidate);
-    if (isValid) setCurrentStep((prev) => prev + 1);
+    if (!isValid) return;
+
+    // Extra CNPJ algorithm check — zod só valida o tamanho (18 chars da máscara)
+    if (currentStep === 2 && watch("ingresso") === "lojista") {
+      const cnpjVal = watch("cnpj");
+      if (!cnpjVal) {
+        setError("cnpj", { type: "manual", message: "CNPJ é obrigatório para lojistas" });
+        toast.error("Informe o CNPJ para continuar.");
+        return;
+      }
+      if (!isValidCNPJ(cnpjVal)) {
+        setError("cnpj", { type: "manual", message: "CNPJ inválido — verifique os dígitos" });
+        toast.error("CNPJ inválido. Corrija o campo antes de continuar.");
+        return;
+      }
+    }
+
+    setCurrentStep((prev) => prev + 1);
   };
 
   const prevStep = () => setCurrentStep((prev) => prev - 1);
@@ -283,6 +322,68 @@ export const FormularioCredenciamento: React.FC = () => {
     checkinVisitor,
     handlePrint,
   ]);
+
+  // Lookup handlers
+  const handleLookupSearch = async () => {
+    const filled = [lookupName.trim(), lookupPhone.trim()].filter(Boolean);
+    if (filled.length < 2) {
+      toast.error("Informe nome e telefone para buscar.");
+      return;
+    }
+    setIsLookingUp(true);
+    try {
+      const results = await lookupVisitor({
+        name: lookupName,
+        phone: unmaskString(lookupPhone),
+      });
+      setLookupResults(results || []);
+      if (!results || results.length === 0) {
+        toast.info("Nenhum visitante encontrado. Prossiga com o cadastro normal.");
+      }
+    } catch {
+      toast.error("Erro ao buscar visitante.");
+    } finally {
+      setIsLookingUp(false);
+    }
+  };
+
+  const handleSelectLookup = (result: VisitorLookupResult) => {
+    setSelectedLookup(result);
+    if (result.name) setValue("name", result.name);
+    if (result.email) setValue("email", result.email);
+    if (result.phone) setValue("phone", maskPhoneBR(unmaskString(result.phone)));
+    if (result.company) setValue("company", result.company);
+    if (result.cnpj) setValue("cnpj", maskCNPJ(unmaskString(result.cnpj)));
+    if (result.city) setValue("city", result.city);
+    if (result.state) setValue("state", result.state);
+
+    // Track source fair for the POST payload
+    const srcId = result.fairHistory?.[0]?.fairId ?? null;
+    setSourceFairId(srcId);
+
+    // Highlight missing fields
+    const formWarnings = (result.missingFields ?? [])
+      .map((f) => MISSING_FIELD_MAP[f] ?? "")
+      .filter(Boolean);
+    setWarningFields(formWarnings);
+
+    setLookupOpen(false);
+    setLookupResults([]);
+    toast.success(`Dados de ${result.name} carregados! Complete os campos em destaque.`);
+  };
+
+  const handleClearLookup = () => {
+    setSelectedLookup(null);
+    setSourceFairId(null);
+    setWarningFields([]);
+    setLookupName("");
+    setLookupPhone("");
+    setLookupResults([]);
+    setLookupOpen(false);
+  };
+
+  const isWarning = (field: string) => warningFields.includes(field);
+  const warnCls = "border-amber-400/70 focus-visible:ring-amber-400/50 bg-amber-400/5";
 
   const setoresSelecionados = watch("sectors") || [];
   const ingresso = watch("ingresso");
@@ -384,8 +485,18 @@ export const FormularioCredenciamento: React.FC = () => {
     );
   }
 
+  // Captura erros silenciosos do react-hook-form e redireciona para o passo correto
+  const onValidationError = (errors: Record<string, unknown>) => {
+    const step2Fields = ["name", "email", "company", "cnpj", "phone", "zipCode", "howDidYouKnow", "street", "neighborhood", "city", "state"];
+    const hasStep2Error = Object.keys(errors).some((f) => step2Fields.includes(f));
+    if (hasStep2Error && currentStep === 3) {
+      setCurrentStep(2);
+      toast.error("Corrija os campos destacados no passo 2 antes de finalizar.");
+    }
+  };
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} key={`form-${fairId}`} className="space-y-8">
+    <form onSubmit={handleSubmit(onSubmit, onValidationError)} key={`form-${fairId}`} className="space-y-8">
       {/* STEP INDICATOR COMPACT */}
       <div className="flex items-center justify-center gap-4 mb-4">
         {[1, 2, 3].map((s) => (
@@ -470,6 +581,166 @@ export const FormularioCredenciamento: React.FC = () => {
 
       {currentStep === 2 && (
         <div className="animate-in fade-in slide-in-from-bottom-4 zoom-in-95 duration-500 space-y-6">
+
+          {/* ── VISITOR LOOKUP PANEL ── */}
+          <div className={cn(
+            "rounded-[24px] border transition-all duration-300 overflow-hidden",
+            selectedLookup
+              ? "border-brand-cyan/30 bg-brand-cyan/5"
+              : "border-white/10 bg-white/3"
+          )}>
+            {/* Banner / header */}
+            <div className="flex items-center justify-between px-6 py-4">
+              <div className="flex items-center gap-3">
+                <div className={cn(
+                  "w-8 h-8 rounded-xl flex items-center justify-center",
+                  selectedLookup ? "bg-brand-cyan/20" : "bg-white/5"
+                )}>
+                  <History className={cn("h-4 w-4", selectedLookup ? "text-brand-cyan" : "text-white/30")} />
+                </div>
+                <div>
+                  {selectedLookup ? (
+                    <div>
+                      <p className="text-[10px] font-black text-brand-cyan uppercase tracking-widest">
+                        Dados reaproveitados
+                      </p>
+                      <p className="text-xs text-white/70 font-medium">
+                        {selectedLookup.name}
+                        {selectedLookup.fairHistory?.[0] && (
+                          <span className="text-white/30 ml-1">
+                            — {selectedLookup.fairHistory[0].fairName} ({selectedLookup.fairHistory[0].fairYear})
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  ) : (
+                    <div>
+                      <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Reaproveitamento de dados</p>
+                      <p className="text-xs text-white/25 font-medium">Este visitante já participou de feiras anteriores?</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {selectedLookup && (
+                  <button
+                    type="button"
+                    onClick={handleClearLookup}
+                    className="p-1.5 rounded-lg hover:bg-white/10 text-white/30 hover:text-white/60 transition-colors"
+                    title="Limpar dados reaproveitados"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setLookupOpen((v) => !v)}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white/50 hover:text-white/80 text-[10px] font-black uppercase tracking-widest transition-all"
+                >
+                  <Search className="h-3 w-3" />
+                  {lookupOpen ? "Fechar" : "Verificar"}
+                  {lookupOpen ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                </button>
+              </div>
+            </div>
+
+            {/* Search panel */}
+            {lookupOpen && (
+              <div className="px-6 pb-6 border-t border-white/5 pt-5 space-y-5 animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="grid grid-cols-12 gap-4">
+                  <div className="col-span-12 lg:col-span-5 flex flex-col gap-1.5">
+                    <label className="text-white/30 font-black text-[9px] uppercase tracking-widest ml-1">Nome</label>
+                    <input
+                      type="text"
+                      value={lookupName}
+                      onChange={(e) => setLookupName(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleLookupSearch()}
+                      placeholder="Nome do visitante"
+                      className="flex h-10 w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/20 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-cyan/50 transition-colors"
+                    />
+                  </div>
+                  <div className="col-span-12 lg:col-span-5 flex flex-col gap-1.5">
+                    <label className="text-white/30 font-black text-[9px] uppercase tracking-widest ml-1">Telefone</label>
+                    <input
+                      type="text"
+                      value={lookupPhone}
+                      onChange={(e) => setLookupPhone(maskPhoneBR(e.target.value))}
+                      onKeyDown={(e) => e.key === "Enter" && handleLookupSearch()}
+                      placeholder="(00) 0 0000-0000"
+                      className="flex h-10 w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/20 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-cyan/50 transition-colors"
+                    />
+                  </div>
+                  <div className="col-span-12 lg:col-span-2 flex items-end">
+                    <Button
+                      type="button"
+                      onClick={handleLookupSearch}
+                      disabled={isLookingUp}
+                      className="w-full h-10 rounded-xl bg-brand-cyan/80 hover:bg-brand-cyan text-white font-black text-[10px] uppercase tracking-widest gap-2"
+                    >
+                      {isLookingUp ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Search className="h-4 w-4" />
+                      )}
+                      {isLookingUp ? "" : "Buscar"}
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Results */}
+                {lookupResults.length > 0 && (
+                  <div className="space-y-3">
+                    <p className="text-[9px] font-black text-white/30 uppercase tracking-widest">
+                      {lookupResults.length} resultado{lookupResults.length !== 1 ? "s" : ""} encontrado{lookupResults.length !== 1 ? "s" : ""}
+                    </p>
+                    <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+                      {lookupResults.map((r) => (
+                        <button
+                          key={r.registrationCode}
+                          type="button"
+                          onClick={() => handleSelectLookup(r)}
+                          className="w-full text-left p-4 rounded-2xl border border-white/10 bg-white/3 hover:bg-brand-cyan/10 hover:border-brand-cyan/30 transition-all duration-200 group"
+                        >
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="space-y-1 min-w-0">
+                              <p className="text-sm font-black text-white group-hover:text-brand-cyan transition-colors truncate">{r.name}</p>
+                              <p className="text-[10px] text-white/40 font-medium truncate">{r.company} {r.cnpj ? `— ${r.cnpj}` : ""}</p>
+                              <div className="flex flex-wrap gap-1.5 mt-2">
+                                {r.fairHistory?.slice(0, 3).map((h) => (
+                                  <span key={h.fairId} className="text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/5 text-white/30">
+                                    {h.fairName} {h.fairYear}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                            <div className="shrink-0 text-right space-y-1">
+                              {r.missingFields?.length > 0 && (
+                                <span className="text-[8px] font-black uppercase tracking-wider px-2 py-1 rounded-full bg-amber-400/10 text-amber-400 border border-amber-400/20">
+                                  {r.missingFields.length} campo{r.missingFields.length !== 1 ? "s" : ""} incompleto{r.missingFields.length !== 1 ? "s" : ""}
+                                </span>
+                              )}
+                              <p className="text-[9px] text-brand-cyan/60 font-black uppercase tracking-widest">Usar dados →</p>
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Missing fields legend */}
+          {warningFields.length > 0 && (
+            <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-400/5 border border-amber-400/20">
+              <div className="w-2 h-2 rounded-full bg-amber-400 shrink-0" />
+              <p className="text-[10px] font-black text-amber-400/80 uppercase tracking-widest">
+                Campos em laranja estão incompletos — complete-os antes de prosseguir
+              </p>
+            </div>
+          )}
+
           <div className="glass-card p-8 rounded-[32px] border border-white/10 shadow-xl">
             <div className="flex items-center gap-3 mb-8 border-b border-white/5 pb-4">
                <span className="text-brand-cyan font-black text-[10px] uppercase tracking-[0.4em]">Passo 02</span>
@@ -490,24 +761,32 @@ export const FormularioCredenciamento: React.FC = () => {
               {ingresso === "lojista" ? (
                 <>
                   <div className="col-span-12 lg:col-span-8 flex flex-col gap-1.5">
-                    <label className="text-white/30 font-black text-[9px] uppercase tracking-widest ml-1">Nome da Empresa</label>
-                    <ControlledInput control={control} name="company" placeholder="Razão Social" />
+                    <label className={cn("font-black text-[9px] uppercase tracking-widest ml-1", isWarning("company") ? "text-amber-400/80" : "text-white/30")}>
+                      Nome da Empresa {isWarning("company") && <span className="text-amber-400">*</span>}
+                    </label>
+                    <ControlledInput control={control} name="company" placeholder="Razão Social" className={isWarning("company") ? warnCls : undefined} />
                   </div>
                   <div className="col-span-12 lg:col-span-4 flex flex-col gap-1.5 animate-in fade-in slide-in-from-top-4 duration-500">
-                    <label className="text-white/30 font-black text-[9px] uppercase tracking-widest ml-1">CNPJ Ativo</label>
-                    <ControlledInput control={control} name="cnpj" placeholder="00.000.000/0000-00" mask={maskCNPJ} />
+                    <label className={cn("font-black text-[9px] uppercase tracking-widest ml-1", isWarning("cnpj") ? "text-amber-400/80" : "text-white/30")}>
+                      CNPJ Ativo {isWarning("cnpj") && <span className="text-amber-400">*</span>}
+                    </label>
+                    <ControlledInput control={control} name="cnpj" placeholder="00.000.000/0000-00" mask={maskCNPJ} className={isWarning("cnpj") ? warnCls : undefined} />
                   </div>
                 </>
               ) : (
                 <div className="col-span-12 lg:col-span-12 flex flex-col gap-1.5">
-                  <label className="text-white/30 font-black text-[9px] uppercase tracking-widest ml-1">Nome da Empresa</label>
-                  <ControlledInput control={control} name="company" placeholder="Razão Social" />
+                  <label className={cn("font-black text-[9px] uppercase tracking-widest ml-1", isWarning("company") ? "text-amber-400/80" : "text-white/30")}>
+                    Nome da Empresa {isWarning("company") && <span className="text-amber-400">*</span>}
+                  </label>
+                  <ControlledInput control={control} name="company" placeholder="Razão Social" className={isWarning("company") ? warnCls : undefined} />
                 </div>
               )}
 
               <div className="col-span-12 lg:col-span-4 flex flex-col gap-1.5">
-                <label className="text-white/30 font-black text-[9px] uppercase tracking-widest ml-1">WhatsApp</label>
-                <ControlledInput control={control} name="phone" placeholder="(00) 0 0000-0000" mask={maskPhoneBR} />
+                <label className={cn("font-black text-[9px] uppercase tracking-widest ml-1", isWarning("phone") ? "text-amber-400/80" : "text-white/30")}>
+                  WhatsApp {isWarning("phone") && <span className="text-amber-400">*</span>}
+                </label>
+                <ControlledInput control={control} name="phone" placeholder="(00) 0 0000-0000" mask={maskPhoneBR} className={isWarning("phone") ? warnCls : undefined} />
               </div>
 
               <div className="col-span-12 lg:col-span-4 flex flex-col gap-1.5">
@@ -548,13 +827,17 @@ export const FormularioCredenciamento: React.FC = () => {
               </div>
 
               <div className="col-span-12 lg:col-span-9 flex flex-col gap-1.5">
-                <label className="text-white/30 font-black text-[9px] uppercase tracking-widest ml-1">Logradouro</label>
-                <ControlledInput control={control} name="street" placeholder="Rua, Av, Travessa..." />
+                <label className={cn("font-black text-[9px] uppercase tracking-widest ml-1", isWarning("street") ? "text-amber-400/80" : "text-white/30")}>
+                  Logradouro {isWarning("street") && <span className="text-amber-400">*</span>}
+                </label>
+                <ControlledInput control={control} name="street" placeholder="Rua, Av, Travessa..." className={isWarning("street") ? warnCls : undefined} />
               </div>
 
               <div className="col-span-12 lg:col-span-3 flex flex-col gap-1.5">
-                <label className="text-white/30 font-black text-[9px] uppercase tracking-widest ml-1">UF</label>
-                <ControlledInput control={control} name="state" placeholder="Ex: AM" />
+                <label className={cn("font-black text-[9px] uppercase tracking-widest ml-1", isWarning("state") ? "text-amber-400/80" : "text-white/30")}>
+                  UF {isWarning("state") && <span className="text-amber-400">*</span>}
+                </label>
+                <ControlledInput control={control} name="state" placeholder="Ex: AM" className={isWarning("state") ? warnCls : undefined} />
               </div>
 
               <div className="col-span-12 lg:col-span-5 flex flex-col gap-1.5">
@@ -563,8 +846,10 @@ export const FormularioCredenciamento: React.FC = () => {
               </div>
 
               <div className="col-span-12 lg:col-span-7 flex flex-col gap-1.5">
-                <label className="text-white/30 font-black text-[9px] uppercase tracking-widest ml-1">Cidade</label>
-                <ControlledInput control={control} name="city" placeholder="Cidade" />
+                <label className={cn("font-black text-[9px] uppercase tracking-widest ml-1", isWarning("city") ? "text-amber-400/80" : "text-white/30")}>
+                  Cidade {isWarning("city") && <span className="text-amber-400">*</span>}
+                </label>
+                <ControlledInput control={control} name="city" placeholder="Cidade" className={isWarning("city") ? warnCls : undefined} />
               </div>
             </div>
           </div>

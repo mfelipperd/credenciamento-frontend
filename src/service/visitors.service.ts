@@ -4,6 +4,7 @@ import type {
   CheckinPerHourResponse,
   Visitor,
   VisitorEdit,
+  VisitorLookupResult,
 } from "@/interfaces/visitors";
 import { useState, useCallback, useMemo } from "react";
 import { AppEndpoints } from "@/constants/AppEndpoints";
@@ -261,6 +262,26 @@ export const useVisitorsService = () => {
     },
     [api, setLoading]
   );
+  const lookupVisitor = useCallback(
+    async (params: { name?: string; phone?: string; cnpj?: string; email?: string }) => {
+      const queryParams: Record<string, string> = {};
+      if (params.name?.trim()) queryParams.name = params.name.trim();
+      if (params.phone?.trim()) queryParams.phone = params.phone.trim();
+      if (params.cnpj?.trim()) queryParams.cnpj = params.cnpj.trim();
+      if (params.email?.trim()) queryParams.email = params.email.trim();
+
+      const result = await handleRequest({
+        request: () =>
+          api.get<VisitorLookupResult[]>(AppEndpoints.VISITORS.LOOKUP, {
+            params: queryParams,
+          }),
+        setLoading,
+      });
+      return (result as VisitorLookupResult[] | undefined) ?? [];
+    },
+    [api, setLoading]
+  );
+
   const exportVisitorsPdf = useCallback(
     async (fairId: string) => {
       try {
@@ -311,6 +332,7 @@ export const useVisitorsService = () => {
       setVisitor,
       updateVisitor,
       exportVisitorsPdf,
+      lookupVisitor,
     }),
     [
       getVisitors,
@@ -328,6 +350,7 @@ export const useVisitorsService = () => {
       setVisitor,
       updateVisitor,
       exportVisitorsPdf,
+      lookupVisitor,
     ]
   );
 };
