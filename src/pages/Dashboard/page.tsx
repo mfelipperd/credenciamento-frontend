@@ -74,7 +74,7 @@ export const Dashboard = () => {
       {/* ROW 2 — KPI Resultado */}
       <section className="space-y-3">
         <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30">Resultado & Visitantes</p>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
           <KpiCard
             label="Lucro Projetado"
             value={kpi ? currency(kpi.resultado.lucroProjetado) : "—"}
@@ -105,6 +105,13 @@ export const Dashboard = () => {
             value={kpi ? currency(kpi.visitantes.custoPorVisitante) : "—"}
             subtext="Despesas ÷ inscritos"
             accentColor="#775DD0"
+            loading={kpiLoading}
+          />
+          <KpiCard
+            label="Custo por Stand"
+            value={kpi ? currency(kpi.visitantes.custoPorStand) : "—"}
+            subtext="Montagem ÷ stands ocupados"
+            accentColor="#FF4560"
             loading={kpiLoading}
           />
         </div>

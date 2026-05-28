@@ -35,5 +35,6 @@ export interface FairKpi {
     checkins: number;
     taxaComparecimento: number;
     custoPorVisitante: number;
+    custoPorStand: number;
   };
 }
