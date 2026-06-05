@@ -65,6 +65,48 @@ export interface AvailablePercentage {
   totalPercentage: number;
 }
 
+// ─── Financial Overview (GET /fair-partners/fair/:fairId/financial-overview) ──
+
+export type PartnerAlertType =
+  | "overdraw"
+  | "pending_exceeds_balance"
+  | "inactive"
+  | "withdrawal_in_unprofitable_fair";
+
+export interface PartnerAlert {
+  type: PartnerAlertType;
+  message: string;
+}
+
+export interface PartnerFinancialOverviewItem {
+  partnerId: string;
+  partnerName: string;
+  partnerEmail?: string;
+  percentage: number;
+  projectedEarnings: number;
+  sacadoAprovado: number;
+  sacadoPendente: number;
+  saldoDisponivel: number;
+  saldoConsiderandoPendentes: number;
+  valorExcedente: number;
+  isOverdrawn: boolean;
+  taxaSaque: number;
+  alertas: PartnerAlert[];
+}
+
+export interface FairFinancialOverview {
+  fairId: string;
+  lucroFeira: number;
+  isProfitable: boolean;
+  percentagemEmpresa: number;
+  totalSacado: number;
+  totalPendente: number;
+  totalDisponivelSocios: number;
+  sociosEmExcesso: string[];
+  sociosComPendentes: string[];
+  socios: PartnerFinancialOverviewItem[];
+}
+
 // Filtros para listagem
 export interface FairPartnerFilters {
   fairId?: string;

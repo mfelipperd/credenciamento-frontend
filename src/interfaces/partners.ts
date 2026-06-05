@@ -92,6 +92,48 @@ export interface PartnerDistribution {
   share: number;
 }
 
+// ─── Complete Dashboard (GET /partners/:id/complete-dashboard) ────────────────
+
+export interface PartnerFairBreakdown {
+  fairId: string;
+  fairName: string;
+  percentage: number;
+  projectedEarnings: number;
+  sacadoAprovado: number;
+  sacadoPendente: number;
+  saldoDisponivel: number;
+  saldoConsiderandoPendentes: number;
+  isOverdrawn: boolean;
+}
+
+export interface PartnerCompleteDashboardTotals {
+  projecaoGlobal: number;
+  sacado: number;
+  pendente: number;
+  saldo: number;
+  isOverdrawn: boolean;
+  taxaSaqueGlobal: number;
+}
+
+export interface PartnerWithdrawalItem {
+  id: string;
+  amount: number;
+  status: string;
+  fairId?: string;
+  fairName?: string;
+  reason?: string;
+  createdAt: string;
+  approvedAt?: string;
+}
+
+export interface PartnerCompleteDashboardData {
+  partnerId: string;
+  partnerName: string;
+  totais: PartnerCompleteDashboardTotals;
+  feiras: PartnerFairBreakdown[];
+  ultimosSaques: PartnerWithdrawalItem[];
+}
+
 // Filtros para listagem
 export interface PartnerFilters {
   page?: number;

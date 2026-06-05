@@ -9,6 +9,8 @@ import type {
   EntryModelType,
   RevenueStats,
   UpdateExpenseForm,
+  Brand,
+  ClientImage,
 } from "@/interfaces/finance";
 
 import { AppEndpoints } from "@/constants/AppEndpoints";
@@ -154,13 +156,14 @@ export const useEntryModel = (id: string) => {
 };
 
 // Hook para buscar clientes
-export const useClients = (q?: string) => {
+export const useClients = (fairId?: string, q?: string) => {
   const api = useAxio();
-  
+
   return useQuery({
-    queryKey: ["finance", "clients", "query", q],
+    queryKey: ["finance", "clients", "query", fairId, q],
     queryFn: async () => {
       const params = new URLSearchParams();
+      if (fairId) params.append("fairId", fairId);
       if (q) params.append("q", q);
 
       const queryString = params.toString() ? `?${params.toString()}` : "";
@@ -373,6 +376,68 @@ export const useDeleteClient = () => {
   });
 };
 
+export const useAddBrand = () => {
+  const queryClient = useQueryClient();
+  const api = useAxio();
+
+  return useMutation({
+    mutationFn: async ({ clientId, name, logo }: { clientId: string; name: string; logo: File }) => {
+      const formData = new FormData();
+      formData.append("name", name);
+      formData.append("logo", logo);
+      const response = await api.post(AppEndpoints.FINANCE.CLIENT_BRANDS(clientId), formData);
+      return response.data as Brand;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["finance", "clients"] });
+      toast.success("Marca adicionada com sucesso!");
+    },
+    onError: (error) => {
+      toast.error("Erro ao adicionar marca: " + error.message);
+    },
+  });
+};
+
+export const useUpdateBrand = () => {
+  const queryClient = useQueryClient();
+  const api = useAxio();
+
+  return useMutation({
+    mutationFn: async ({ id, name, logo }: { id: string; name?: string; logo?: File }) => {
+      const formData = new FormData();
+      if (name) formData.append("name", name);
+      if (logo) formData.append("logo", logo);
+      const response = await api.patch(AppEndpoints.FINANCE.BRAND_BY_ID(id), formData);
+      return response.data as Brand;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["finance", "clients"] });
+      toast.success("Marca atualizada com sucesso!");
+    },
+    onError: (error) => {
+      toast.error("Erro ao atualizar marca: " + error.message);
+    },
+  });
+};
+
+export const useDeleteBrand = () => {
+  const queryClient = useQueryClient();
+  const api = useAxio();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await api.delete(AppEndpoints.FINANCE.BRAND_BY_ID(id));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["finance", "clients"] });
+      toast.success("Marca removida com sucesso!");
+    },
+    onError: (error) => {
+      toast.error("Erro ao remover marca: " + error.message);
+    },
+  });
+};
+
 // Hook para atualizar despesa
 export const useUpdateExpense = () => {
   const queryClient = useQueryClient();
@@ -393,6 +458,154 @@ export const useUpdateExpense = () => {
     },
     onError: (error) => {
       toast.error("Erro ao atualizar despesa: " + error.message);
+    },
+  });
+};
+
+// Hooks para imagens de clientes
+export const useClientImages = (clientId: string, fairId?: string) => {
+  const api = useAxio();
+
+  return useQuery({
+    queryKey: ["finance", "client-images", clientId, fairId],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (fairId) params.append("fairId", fairId);
+      const qs = params.toString();
+      const response = await api.get(
+        `${AppEndpoints.FINANCE.CLIENT_IMAGES(clientId)}${qs ? `?${qs}` : ""}`
+      );
+      return response.data as ClientImage[];
+    },
+    enabled: !!clientId,
+  });
+};
+
+export const useUploadClientImages = () => {
+  const queryClient = useQueryClient();
+  const api = useAxio();
+
+  return useMutation({
+    mutationFn: async ({
+      clientId,
+      fairId,
+      files,
+      caption,
+    }: {
+      clientId: string;
+      fairId: string;
+      files: File[];
+      caption?: string;
+    }) => {
+      const formData = new FormData();
+      files.forEach((f) => formData.append("images[]", f));
+      if (caption?.trim()) formData.append("caption", caption.trim());
+      const response = await api.post(
+        `${AppEndpoints.FINANCE.CLIENT_IMAGES(clientId)}?fairId=${fairId}`,
+        formData
+      );
+      return response.data as ClientImage[];
+    },
+    onSuccess: (_, { clientId }) => {
+      queryClient.invalidateQueries({ queryKey: ["finance", "client-images", clientId] });
+      toast.success("Fotos enviadas com sucesso!");
+    },
+    onError: (error: any) => {
+      toast.error("Erro ao enviar fotos: " + (error.response?.data?.message ?? error.message));
+    },
+  });
+};
+
+// Hooks para galeria de imagens da feira (sem vínculo com cliente)
+export const useFairImages = (fairId?: string) => {
+  const api = useAxio();
+
+  return useQuery({
+    queryKey: ["finance", "fair-images", fairId],
+    queryFn: async () => {
+      const qs = fairId ? `?fairId=${fairId}` : "";
+      const response = await api.get(`${AppEndpoints.FINANCE.CLIENT_IMAGES_ALL}${qs}`);
+      return response.data as ClientImage[];
+    },
+    enabled: !!fairId,
+  });
+};
+
+export const useUploadFairImages = () => {
+  const queryClient = useQueryClient();
+  const api = useAxio();
+
+  return useMutation({
+    mutationFn: async ({
+      fairId,
+      files,
+      caption,
+    }: {
+      fairId: string;
+      files: File[];
+      caption?: string;
+    }) => {
+      const formData = new FormData();
+      files.forEach((f) => formData.append("images[]", f));
+      if (caption?.trim()) formData.append("caption", caption.trim());
+      const response = await api.post(AppEndpoints.FAIR_IMAGES.UPLOAD(fairId), formData);
+      return response.data as ClientImage[];
+    },
+    onSuccess: (_, { fairId }) => {
+      queryClient.invalidateQueries({ queryKey: ["finance", "fair-images", fairId] });
+      toast.success("Imagens enviadas com sucesso!");
+    },
+    onError: (error: any) => {
+      toast.error("Erro ao enviar imagens: " + (error.response?.data?.message ?? error.message));
+    },
+  });
+};
+
+export const useDeleteFairImage = () => {
+  const queryClient = useQueryClient();
+  const api = useAxio();
+
+  return useMutation({
+    mutationFn: async ({ imageId }: { imageId: string; fairId: string }) => {
+      await api.delete(AppEndpoints.FINANCE.CLIENT_IMAGE_BY_ID(imageId));
+    },
+    onSuccess: (_, { fairId }) => {
+      queryClient.invalidateQueries({ queryKey: ["finance", "fair-images", fairId] });
+      toast.success("Imagem removida com sucesso!");
+    },
+    onError: (error: any) => {
+      toast.error("Erro ao remover imagem: " + (error.response?.data?.message ?? error.message));
+    },
+  });
+};
+
+export const useClientImagesByFair = (fairId?: string) => {
+  const api = useAxio();
+
+  return useQuery({
+    queryKey: ["finance", "client-images-by-fair", fairId],
+    queryFn: async () => {
+      const response = await api.get(AppEndpoints.FINANCE.CLIENT_IMAGES_BY_FAIR(fairId!));
+      return response.data as ClientImage[];
+    },
+    enabled: !!fairId,
+  });
+};
+
+export const useDeleteClientImage = () => {
+  const queryClient = useQueryClient();
+  const api = useAxio();
+
+  return useMutation({
+    mutationFn: async ({ imageId }: { imageId: string; clientId: string }) => {
+      await api.delete(AppEndpoints.FINANCE.CLIENT_IMAGE_BY_ID(imageId));
+    },
+    onSuccess: (_, { clientId }) => {
+      queryClient.invalidateQueries({ queryKey: ["finance", "client-images", clientId] });
+      toast.success("Foto removida com sucesso!");
+    },
+    onError: (error: any) => {
+      toast.error("Erro ao remover foto: " + (error.response?.data?.message ?? error.message));
     },
   });
 };

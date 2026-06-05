@@ -202,6 +202,26 @@ export const useDeletePartner = () => {
   });
 };
 
+export const useFairFinancialOverview = (fairId: string) => {
+  const fairPartnersService = useFairPartnersService();
+
+  return useQuery({
+    queryKey: ["fair-financial-overview", fairId],
+    queryFn: () => fairPartnersService.getFairFinancialOverview(fairId),
+    enabled: !!fairId,
+  });
+};
+
+export const usePartnerCompleteDashboard = (partnerId: string) => {
+  const fairPartnersService = useFairPartnersService();
+
+  return useQuery({
+    queryKey: ["partner-complete-dashboard", partnerId],
+    queryFn: () => fairPartnersService.getPartnerCompleteDashboard(partnerId),
+    enabled: !!partnerId,
+  });
+};
+
 // Hook para distribuição de lucros
 export const useDistributeProfit = () => {
   const queryClient = useQueryClient();

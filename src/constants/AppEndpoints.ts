@@ -41,6 +41,7 @@ export const AppEndpoints = {
     BY_ID: (id: string) => `/partners/${id}`,
     FINANCIAL_SUMMARY: (partnerId: string) => `/partners/${partnerId}/financial-summary`,
     AVAILABLE_PERCENTAGE: "/partners/available-percentage",
+    COMPLETE_DASHBOARD: (partnerId: string) => `/partners/${partnerId}/complete-dashboard`,
     WITHDRAWALS: (partnerId: string) => `/partners/${partnerId}/withdrawals`,
     WITHDRAWALS_BY_FAIR: (partnerId: string, fairId: string) => `/partners/${partnerId}/withdrawals/fair/${fairId}`,
     APPROVE_WITHDRAWAL: (id: string) => `/partners/withdrawals/${id}/approve`,
@@ -56,6 +57,14 @@ export const AppEndpoints = {
     CLIENT_BY_ID: (id: string) => `/finance/clients/${id}`,
     CLIENT_BY_EMAIL: (email: string) => `/finance/clients/email/${email}`,
     CLIENT_BY_CNPJ: (cnpj: string) => `/finance/clients/cnpj/${cnpj}`,
+    CLIENT_BRANDS: (clientId: string) => `/finance/clients/${clientId}/brands`,
+    BRANDS: "/finance/brands",
+    BRAND_BY_ID: (id: string) => `/finance/brands/${id}`,
+    CLIENT_IMAGES: (clientId: string) => `/finance/clients/${clientId}/images`,
+    CLIENT_IMAGES_ALL: "/finance/clients/images",
+    CLIENT_IMAGE_BY_ID: (imageId: string) => `/finance/clients/images/${imageId}`,
+    CLIENT_IMAGE_LINK_FAIR: (imageId: string, fairId: string) => `/finance/clients/images/${imageId}/link-fair/${fairId}`,
+    CLIENT_IMAGES_BY_FAIR: (fairId: string) => `/finance/clients/images/by-fair/${fairId}`,
     CATEGORIES: "/finance/categories",
     CATEGORY_BY_ID: (id: string) => `/finance/categories/${id}`,
     CATEGORIES_BY_FAIR: (fairId: string) => `/categories/fair/${fairId}`,
@@ -93,6 +102,9 @@ export const AppEndpoints = {
     OVERHEAD_CATEGORIES: "/overhead-expenses/categories",
     /** Converter despesa direta para overhead_expenses (sistema legado) */
     EXPENSE_CONVERT_TO_OVERHEAD: (id: string) => `/expenses/${id}/convert-to-overhead`,
+  },
+  FAIR_IMAGES: {
+    UPLOAD: (fairId: string) => `/fairs/${fairId}/images`,
   },
   MARKETING: {
     EMAILS_ABSENT: "/emails/marketing/absent-visitors",
@@ -138,5 +150,6 @@ export const AppEndpoints = {
     SUMMARY: (fairId: string) => `/fair-partners/fair/${fairId}/summary`,
     FINANCIAL_SUMMARY: (fairId: string, partnerId: string) => `/fair-partners/fair/${fairId}/partner/${partnerId}/financial-summary`,
     AVAILABLE_PERCENTAGE: (fairId: string) => `/fair-partners/fair/${fairId}/available-percentage`,
+    FINANCIAL_OVERVIEW: (fairId: string) => `/fair-partners/fair/${fairId}/financial-overview`,
   }
 } as const;

@@ -71,12 +71,41 @@ export interface ConfigureStandsResponse {
   price: number;
 }
 
+export interface Brand {
+  id: string;
+  clientId: string;
+  name: string;
+  logoUrl: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ClientImageFair {
+  id: string;
+  fairId: string;
+  createdAt: string;
+}
+
+export interface ClientImage {
+  id: string;
+  clientId: string;
+  registeredFairId: string;
+  url: string;
+  caption?: string;
+  fairs: ClientImageFair[];
+  createdAt: string;
+}
+
 export interface Client {
   id: string;
+  fairId?: string;
   name: string;
   cnpj?: string;
   email?: string;
   phone?: string;
+  responsavel?: string;
+  brands?: Brand[];
+  isParticipatingInFair?: boolean;
 }
 
 export interface EntryModel {
@@ -231,6 +260,7 @@ export interface CreateClientForm {
   cnpj?: string;
   email?: string;
   phone?: string;
+  responsavel?: string;
   fairId: string;
 }
 

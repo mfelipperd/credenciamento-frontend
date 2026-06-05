@@ -10,6 +10,7 @@ import type {
   CreateRevenueForm,
   EntryModel,
   Client,
+  Brand,
   CreateClientForm,
   Installment,
   EntryModelType,
@@ -77,8 +78,9 @@ export const useFinanceService = () => {
   };
 
   // Clients
-  const getClients = async (q?: string): Promise<Client[] | undefined> => {
+  const getClients = async (fairId?: string, q?: string): Promise<Client[] | undefined> => {
     const params = new URLSearchParams();
+    if (fairId) params.append("fairId", fairId);
     if (q) params.append("q", q);
 
     return handleRequest<Client[]>({
@@ -112,7 +114,37 @@ export const useFinanceService = () => {
   };
 
   const searchClients = async (q: string): Promise<Client[] | undefined> => {
-    return getClients(q);
+    return getClients(undefined, q);
+  };
+
+  // Brands
+  const addBrand = async (clientId: string, name: string, logo: File): Promise<Brand | undefined> => {
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("logo", logo);
+
+    return handleRequest<Brand>({
+      request: () => api.post(AppEndpoints.FINANCE.CLIENT_BRANDS(clientId), formData),
+      successMessage: "Marca adicionada com sucesso!",
+    });
+  };
+
+  const updateBrand = async (id: string, name?: string, logo?: File): Promise<Brand | undefined> => {
+    const formData = new FormData();
+    if (name) formData.append("name", name);
+    if (logo) formData.append("logo", logo);
+
+    return handleRequest<Brand>({
+      request: () => api.patch(AppEndpoints.FINANCE.BRAND_BY_ID(id), formData),
+      successMessage: "Marca atualizada com sucesso!",
+    });
+  };
+
+  const deleteBrand = async (id: string): Promise<void> => {
+    await handleRequest<{ success: boolean }>({
+      request: () => api.delete(AppEndpoints.FINANCE.BRAND_BY_ID(id)),
+      successMessage: "Marca removida com sucesso!",
+    });
   };
 
   const createClient = async (
@@ -435,6 +467,11 @@ export const useFinanceService = () => {
     createClient,
     updateClient,
     deleteClient,
+
+    // Brands
+    addBrand,
+    updateBrand,
+    deleteBrand,
 
     // Revenues
     getRevenues,

@@ -7,10 +7,12 @@ import type {
   FairPartnerSummary,
   FairPartnerFinancialSummary,
   AvailablePercentage,
+  FairFinancialOverview,
   Partner,
   CreatePartnerForm,
   UpdatePartnerForm,
 } from "@/interfaces/fair-partners";
+import type { PartnerCompleteDashboardData } from "@/interfaces/partners";
 
 import { AppEndpoints } from "@/constants/AppEndpoints";
 
@@ -111,6 +113,20 @@ export const useFairPartnersService = () => {
     });
   };
 
+  // Financial Overview
+  const getFairFinancialOverview = async (fairId: string): Promise<FairFinancialOverview | undefined> => {
+    return handleRequest<FairFinancialOverview>({
+      request: () => api.get(AppEndpoints.FAIR_PARTNERS.FINANCIAL_OVERVIEW(fairId)),
+    });
+  };
+
+  // Complete Dashboard
+  const getPartnerCompleteDashboard = async (partnerId: string): Promise<PartnerCompleteDashboardData | undefined> => {
+    return handleRequest<PartnerCompleteDashboardData>({
+      request: () => api.get(AppEndpoints.PARTNERS.COMPLETE_DASHBOARD(partnerId)),
+    });
+  };
+
   // Distribuição de Lucros
   const distributeProfit = async (fairId: string): Promise<any | undefined> => {
     return handleRequest<any>({
@@ -142,5 +158,9 @@ export const useFairPartnersService = () => {
     
     // Distribuição
     distributeProfit,
+
+    // Novos endpoints
+    getFairFinancialOverview,
+    getPartnerCompleteDashboard,
   };
 };

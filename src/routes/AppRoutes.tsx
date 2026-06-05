@@ -29,6 +29,7 @@ const WithdrawalsManagement = lazy(() => import("@/pages/Partners/WithdrawalsMan
 const UserManagementPage = lazy(() => import("@/pages/UserManagement/page"));
 const FairsPage = lazy(() => import("@/pages/Fairs/page"));
 const FairDetailPage = lazy(() => import("@/pages/Fairs/FairDetail/page"));
+const ClientsPage = lazy(() => import("@/pages/Clients/page").then(m => ({ default: m.ClientsPage })));
 
 const PageFallback = () => (
   <div className="flex items-center justify-center min-h-[60vh]">
@@ -106,6 +107,10 @@ export const AppRoutes = createBrowserRouter([
               {
                 path: "/user-management",
                 element: <AdminRouteGuard><Lazy><UserManagementPage /></Lazy></AdminRouteGuard>,
+              },
+              {
+                path: "/clientes",
+                element: <AdminRouteGuard><Lazy><ClientsPage /></Lazy></AdminRouteGuard>,
               },
               {
                 path: "/fairs",

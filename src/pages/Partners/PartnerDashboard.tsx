@@ -3,7 +3,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FinancialSummary } from "./components/FinancialSummary";
 import { WithdrawalForm } from "./components/WithdrawalForm";
 import { WithdrawalsList } from "./components/WithdrawalsList";
-import { Wallet, DollarSign, History } from "lucide-react";
+import { PartnerCompleteDashboardView } from "./components/PartnerCompleteDashboardView";
+import { Wallet, DollarSign, History, BarChart3 } from "lucide-react";
 import { useUserSession } from "@/hooks/useUserSession";
 import { usePartnerMe } from "@/hooks/usePartners";
 import { useSearchParams } from "@/hooks/useSearchParams";
@@ -51,7 +52,7 @@ export const PartnerDashboard: React.FC = () => {
       </div>
 
       <Tabs defaultValue="summary" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="summary" className="flex items-center gap-2">
             <Wallet className="h-4 w-4" />
             Resumo Financeiro
@@ -63,6 +64,10 @@ export const PartnerDashboard: React.FC = () => {
           <TabsTrigger value="history" className="flex items-center gap-2">
             <History className="h-4 w-4" />
             Histórico
+          </TabsTrigger>
+          <TabsTrigger value="all-fairs" className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            Todas as Feiras
           </TabsTrigger>
         </TabsList>
 
@@ -76,6 +81,10 @@ export const PartnerDashboard: React.FC = () => {
 
         <TabsContent value="history">
           <WithdrawalsList partnerId={partner.id} fairId={fairId || ""} />
+        </TabsContent>
+
+        <TabsContent value="all-fairs">
+          <PartnerCompleteDashboardView partnerId={partner.id} />
         </TabsContent>
       </Tabs>
     </div>

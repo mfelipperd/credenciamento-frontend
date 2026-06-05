@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Plus, Users, DollarSign, TrendingUp, Eye, Edit, Trash2, MoreHorizontal, UserCheck } from "lucide-react";
+import { Plus, Users, DollarSign, TrendingUp, Eye, Edit, Trash2, MoreHorizontal, UserCheck, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,6 +23,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { EUserRole } from "@/enums/user.enum";
 import { FairPartnerForm } from "./components/FairPartnerForm";
 import { PartnerView } from "./components/PartnerView";
+import { FairFinancialOverview } from "./components/FairFinancialOverview";
 import { toast } from "sonner";
 import { useSearchParams } from "react-router-dom";
 import type { FairPartner } from "@/interfaces/fair-partners";
@@ -146,6 +148,26 @@ export default function PartnersPage() {
           </Button>
         )}
       </div>
+
+      <Tabs defaultValue="socios">
+        <TabsList className="mb-2">
+          <TabsTrigger value="socios" className="flex items-center gap-2">
+            <Users className="w-4 h-4" />
+            Sócios
+          </TabsTrigger>
+          {isAdmin && (
+            <TabsTrigger value="financeiro" className="flex items-center gap-2">
+              <BarChart3 className="w-4 h-4" />
+              Visão Financeira
+            </TabsTrigger>
+          )}
+        </TabsList>
+
+        <TabsContent value="financeiro">
+          <FairFinancialOverview fairId={fairId} />
+        </TabsContent>
+
+        <TabsContent value="socios">
 
       {/* KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -392,6 +414,9 @@ export default function PartnersPage() {
           )}
         </DialogContent>
       </Dialog>
+
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

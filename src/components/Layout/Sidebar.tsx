@@ -12,6 +12,7 @@ import {
   Settings,
   X,
   ChevronLeft,
+  Store,
 } from "lucide-react";
 import { useUserSession } from "@/hooks/useUserSession";
 import { EUserRole } from "@/enums/user.enum";
@@ -46,6 +47,12 @@ const navigationItems = [
     name: "Receitas",
     href: "/financeiro/receitas",
     icon: DollarSign,
+    roles: [EUserRole.ADMIN],
+  },
+  {
+    name: "Expositores",
+    href: "/clientes",
+    icon: Store,
     roles: [EUserRole.ADMIN],
   },
   {

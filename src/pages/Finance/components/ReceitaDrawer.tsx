@@ -69,6 +69,7 @@ const createClientSchema = z.object({
   cnpj: z.string().optional(),
   email: z.string().email("Email inválido").optional().or(z.literal("")),
   phone: z.string().optional(),
+  responsavel: z.string().optional(),
   fairId: z.string().min(1, "FairId é obrigatório"),
 });
 
@@ -146,8 +147,8 @@ export function ReceitaDrawer({
   const installmentsCount = watch("installmentsCount");
   const standNumber = watch("standNumber");
 
-  // Query para buscar todos os clientes quando o formulário abrir
-  const { data: allClients = [], isLoading: isLoadingClients } = useClients();
+  // Query para buscar clientes da feira atual
+  const { data: allClients = [], isLoading: isLoadingClients } = useClients(fairId);
 
   // Query para buscar modelos de entrada
   const { data: entryModels = [] } = useEntryModels(fairId);
@@ -624,10 +625,15 @@ export function ReceitaDrawer({
 
             {selectedClient ? (
               <div className="flex items-center gap-2">
-                <div className="flex-1 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded">
-                  <span className="text-sm font-medium text-green-800 dark:text-green-200">
+                <div className="flex-1 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl">
+                  <p className="text-sm font-bold text-green-800 dark:text-green-200">
                     {selectedClient.name}
-                  </span>
+                  </p>
+                  {(selectedClient as any).cnpj && (
+                    <p className="text-xs text-green-600 dark:text-green-400 mt-0.5">
+                      {(selectedClient as any).cnpj}
+                    </p>
+                  )}
                 </div>
                 <Button
                   type="button"
@@ -659,15 +665,28 @@ export function ReceitaDrawer({
                 )}
 
                 {filteredClients.length > 0 && (
-                  <div className="max-h-32 overflow-y-auto border rounded p-2 space-y-1 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                  <div className="max-h-48 overflow-y-auto border rounded-xl divide-y divide-slate-100 dark:divide-white/5 bg-white dark:bg-slate-900 border-slate-200 dark:border-white/10">
                     {filteredClients.map((client: any) => (
                       <button
                         key={client.id}
                         type="button"
-                        className="w-full text-left p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-sm text-gray-900 dark:text-gray-100 transition-colors"
+                        className="w-full text-left px-3 py-2.5 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
                         onClick={() => handleClientSelect(client)}
                       >
-                        {client.name}
+                        <p className="text-sm font-medium text-slate-900 dark:text-white">
+                          {client.name}
+                        </p>
+                        <div className="flex gap-3 mt-0.5">
+                          {client.cnpj && (
+                            <span className="text-xs text-slate-400">{client.cnpj}</span>
+                          )}
+                          {client.email && (
+                            <span className="text-xs text-slate-400">{client.email}</span>
+                          )}
+                          {client.responsavel && (
+                            <span className="text-xs text-slate-400">Resp: {client.responsavel}</span>
+                          )}
+                        </div>
                       </button>
                     ))}
                   </div>
@@ -712,6 +731,12 @@ export function ReceitaDrawer({
                     name="phone"
                     label="Telefone"
                     placeholder="(00) 00000-0000"
+                  />
+                  <ControlledInput
+                    control={controlClient}
+                    name="responsavel"
+                    label="Responsável"
+                    placeholder="Nome do contato"
                   />
                 </div>
                 <div className="flex gap-2 mt-4 justify-end">
