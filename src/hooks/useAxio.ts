@@ -25,12 +25,17 @@ export const useAxio = (): AxiosInstance => {
         if (token) {
           request.headers.set("Authorization", `Bearer ${token}`);
         }
-        
+
+        // Para FormData o browser precisa definir o Content-Type com o boundary correto
+        if (request.data instanceof FormData) {
+          request.headers.delete("Content-Type");
+        }
+
         // Aplica estratégias de compatibilidade para rotas protegidas
         if (needsMiddlewareHeaders(request.url || "")) {
           request = enhanceRequestForBackendMiddleware(request);
         }
-        
+
         return request;
       },
       (error) => Promise.reject(error)

@@ -498,7 +498,7 @@ export const useUploadClientImages = () => {
       caption?: string;
     }) => {
       const formData = new FormData();
-      files.forEach((f) => formData.append("images[]", f));
+      files.forEach((f) => formData.append("images", f));
       if (caption?.trim()) formData.append("caption", caption.trim());
       const response = await api.post(
         `${AppEndpoints.FINANCE.CLIENT_IMAGES(clientId)}?fairId=${fairId}`,
@@ -546,7 +546,7 @@ export const useUploadFairImages = () => {
       caption?: string;
     }) => {
       const formData = new FormData();
-      files.forEach((f) => formData.append("images[]", f));
+      files.forEach((f) => formData.append("images", f));
       if (caption?.trim()) formData.append("caption", caption.trim());
       const response = await api.post(AppEndpoints.FAIR_IMAGES.UPLOAD(fairId), formData);
       return response.data as ClientImage[];
