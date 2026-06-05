@@ -334,15 +334,20 @@ export const FairForm: React.FC<FairFormProps> = ({
     if (data.longitude !== undefined) formData.longitude = data.longitude;
 
     // Datas e horários
+    const toHHmm = (t: string | undefined) => t?.trim().slice(0, 5) || undefined;
     if (strOr(data.startDate)) formData.startDate = strOr(data.startDate);
     if (strOr(data.endDate)) formData.endDate = strOr(data.endDate);
-    if (strOr(data.startTime)) formData.startTime = strOr(data.startTime);
-    if (strOr(data.endTime)) formData.endTime = strOr(data.endTime);
+    if (strOr(data.startTime)) formData.startTime = toHHmm(data.startTime);
+    if (strOr(data.endTime)) formData.endTime = toHHmm(data.endTime);
 
     // Day schedules (só envia se tiver entradas preenchidas)
     const validSchedules = daySchedules.filter((s) => s.date && s.startTime && s.endTime);
     if (validSchedules.length > 0) {
-      formData.daySchedules = validSchedules.map(({ id: _id, ...rest }) => rest);
+      formData.daySchedules = validSchedules.map(({ id: _id, ...rest }) => ({
+        ...rest,
+        startTime: rest.startTime.slice(0, 5),
+        endTime: rest.endTime.slice(0, 5),
+      }));
     }
 
     // Planejamento

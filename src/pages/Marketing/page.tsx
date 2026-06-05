@@ -623,7 +623,38 @@ https://static.wixstatic.com/media/88e022_551e4ef3cf61439fad4f84eca702a829~mv2.p
 - Padding interno dos cards: mínimo 32px horizontal, 24px vertical
 - Espaçamento entre seções: 24–32px
 - Imagens decorativas opcionais: use gradientes CSS inline ou emojis Unicode para ícones (sem imagens externas além do logo)
-- Single-column layout, max-width 600px, centralizado com margin: 0 auto
+
+### ESTRUTURA DE TABELAS OBRIGATÓRIA (crítico para o email preencher 100% da largura)
+A estrutura deve ser SEMPRE dois níveis de tabela — nunca coloque max-width na tabela externa:
+
+\`\`\`
+<body style="margin:0;padding:0;background-color:#0A1628;width:100%;">
+  <!-- TABELA EXTERNA: ocupa 100% da largura do cliente de email -->
+  <table role="presentation" border="0" cellspacing="0" cellpadding="0" width="100%" style="background-color:#0A1628;">
+    <tr>
+      <td align="center" style="padding:24px 12px;">
+        <!-- TABELA INTERNA: container de conteúdo limitado a 600px -->
+        <table role="presentation" border="0" cellspacing="0" cellpadding="0" width="600" style="max-width:600px;width:100%;">
+          <!-- todo o conteúdo do email vai aqui dentro -->
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+\`\`\`
+
+NUNCA faça: \`<table width="600" style="margin:0 auto">\` sem uma tabela externa de width="100%" envolvendo.
+
+### Responsividade Mobile-First (obrigatório)
+- O atributo width="600" na tabela interna é o máximo — em telas menores ela encolhe automaticamente graças ao width:100% no style
+- Imagens: sempre com style="max-width:100%;height:auto;display:block;" — nunca width fixo em px
+- Logo: max-width:180px no mobile, pode usar max-width:220px em desktop (defina o menor como padrão)
+- Botões CTA: padding generoso (mínimo 14px 32px), font-size mínimo 15px, toque fácil em mobile
+- Texto corpo: font-size mínimo 14px, line-height 1.6 — nunca menor que isso em mobile
+- Colunas multi-coluna: EVITAR — prefira single-column para garantir leitura em telas pequenas. Se usar duas colunas, cada td deve ter width="48%" e o layout deve ser legível mesmo colapsado
+- padding lateral dos cards: mínimo 20px em mobile (use padding no td, não no table)
+- Evite elementos com position:absolute ou float — quebram em clientes mobile
+- O email deve ser perfeitamente legível em telas de 320px de largura (iPhone SE) até 600px
 
 ## Dados da Feira (COPIE EXATAMENTE — não altere, não invente)
 - Nome: ${name}
@@ -660,8 +691,8 @@ ${userDescription}
 ## Requisitos Técnicos OBRIGATÓRIOS
 1. HTML completo com <!DOCTYPE html>, <head> (charset UTF-8, viewport meta, <title>), <body>
 2. TODOS os estilos inline — ZERO blocos <style> ou arquivos CSS externos
-3. Estrutura de tabelas HTML (table, tr, td) para compatibilidade máxima com Outlook 2016+
-4. background-color: #0A1628 no <body> e no table wrapper externo
+3. Estrutura de duas tabelas aninhadas conforme o modelo acima: externa width="100%" + interna width="600" max-width:600px
+4. background-color: #0A1628 no <body> E na tabela externa (width="100%") — NUNCA na tabela interna de 600px
 5. Logo da ExpoMultiMix no cabeçalho (URL exata acima), com alt="ExpoMultiMix"
 6. Nome, data e local da feira sempre visíveis e destacados
 7. Compatível com Gmail, Outlook 2016+, Apple Mail, mobile
@@ -1625,6 +1656,34 @@ export const MarketingPage: React.FC = () => {
                 </div>
               );
             })()}
+
+            {/* Suppressed contacts + sending insights */}
+            {(accountStats.suppressedContacts || accountStats.sendingInsights) && (
+              <div className="flex flex-wrap gap-3 pt-1 border-t border-white/5">
+                {accountStats.suppressedContacts && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-[9px] font-black uppercase tracking-widest text-white/30">Bloqueados</span>
+                    <span className="text-xs font-black text-brand-orange">{accountStats.suppressedContacts.total.toLocaleString("pt-BR")}</span>
+                    <span className="text-[9px] text-white/20">(bounce, spam, descad.)</span>
+                  </div>
+                )}
+                {accountStats.sendingInsights && accountStats.sendingInsights.bestDaysToSend.length > 0 && (
+                  <div className="flex items-center gap-2 ml-auto">
+                    <span className="text-[9px] font-black uppercase tracking-widest text-white/30">Melhores dias</span>
+                    <div className="flex items-center gap-1">
+                      {accountStats.sendingInsights.bestDaysToSend.slice(0, 3).map((day, i) => (
+                        <span
+                          key={day}
+                          className={`text-[9px] font-black px-1.5 py-0.5 rounded-md ${i === 0 ? "bg-brand-cyan/20 text-brand-cyan" : "bg-white/5 text-white/40"}`}
+                        >
+                          {day}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 
@@ -1657,8 +1716,14 @@ export const MarketingPage: React.FC = () => {
                         {campaign.sendTo === "all" ? "Todos" : "Ausentes"}
                       </Badge>
                       <div className="text-right hidden sm:block">
-                        <p className="text-xs text-white/60 font-bold">{campaign.totalQueued} emails</p>
-                        <p className="text-[9px] text-white/30">{targetFair?.name ?? sentDate}</p>
+                        <p className="text-xs text-white/60 font-bold">
+                          {(campaign.totalRecipients ?? campaign.totalQueued).toLocaleString("pt-BR")} emails
+                        </p>
+                        <p className="text-[9px] text-white/30">
+                          {campaign.suppressedByBrevo != null && campaign.suppressedByBrevo > 0
+                            ? `${campaign.suppressedByBrevo} bloqueados · ${targetFair?.name ?? sentDate}`
+                            : targetFair?.name ?? sentDate}
+                        </p>
                       </div>
                       <ChevronRight className={`h-4 w-4 text-white/30 transition-transform ${isSelected ? "rotate-90" : ""}`} />
                     </div>
@@ -1672,6 +1737,7 @@ export const MarketingPage: React.FC = () => {
                           <span className="text-white/40 text-xs">Carregando estatísticas...</span>
                         </div>
                       ) : campaignStats ? (
+                        <>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
 
                           {/* Entrega */}
@@ -1755,6 +1821,19 @@ export const MarketingPage: React.FC = () => {
                           </div>
 
                         </div>
+
+                        {/* Suppressed breakdown */}
+                        {campaignStats.campaign.suppressedByBrevo != null && campaignStats.campaign.suppressedByBrevo > 0 && (
+                          <div className="mt-3 flex items-center gap-2 px-1">
+                            <span className="text-[9px] font-black uppercase tracking-widest text-white/25">Total da lista</span>
+                            <span className="text-xs font-black text-white/50">{(campaignStats.campaign.totalRecipients ?? campaignStats.campaign.totalQueued).toLocaleString("pt-BR")}</span>
+                            <span className="text-white/20 text-[9px]">·</span>
+                            <span className="text-[9px] text-white/25">{campaignStats.campaign.totalQueued.toLocaleString("pt-BR")} enfileirados</span>
+                            <span className="text-white/20 text-[9px]">·</span>
+                            <span className="text-[9px] text-brand-orange/70">{campaignStats.campaign.suppressedByBrevo} bloqueados pela Brevo</span>
+                          </div>
+                        )}
+                        </>
                       ) : null}
                     </div>
                   )}

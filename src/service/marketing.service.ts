@@ -64,6 +64,8 @@ export interface Campaign {
   templateFairId: string;
   sendTo: "all" | "absent";
   totalQueued: number;
+  suppressedByBrevo?: number;
+  totalRecipients?: number;
   brevoTag: string;
   sentAt: string;
 }
@@ -92,6 +94,15 @@ export interface AccountStats {
     bounced: number;
     spam: number;
     unsubscribed: number;
+  };
+  suppressedContacts?: {
+    total: number;
+    note: string;
+  };
+  sendingInsights?: {
+    bestDaysToSend: string[];
+    dayBreakdown: { day: string; openRate: number }[];
+    note: string;
   };
 }
 

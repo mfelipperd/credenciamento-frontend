@@ -859,15 +859,21 @@ function ScheduleSection({ fair, isEditing, isSaving, onEdit, onCancel, onSave }
   const updateSchedule = (i: number, field: keyof DaySchedule, value: string) =>
     setSchedules((p) => { const u = [...p]; u[i] = { ...u[i], [field]: value }; return u; });
 
+  const toHHmm = (t: string) => t.trim().slice(0, 5);
+
   const handleSave = () => {
     const data: UpdateFairForm = {};
     if (startDate) data.startDate = startDate;
     if (endDate) data.endDate = endDate;
-    if (startTime) data.startTime = startTime;
-    if (endTime) data.endTime = endTime;
+    if (startTime) data.startTime = toHHmm(startTime);
+    if (endTime) data.endTime = toHHmm(endTime);
     const valid = schedules.filter((s) => s.date && s.startTime && s.endTime);
     if (valid.length > 0) {
-      data.daySchedules = valid.map(({ id: _id, ...rest }) => rest);
+      data.daySchedules = valid.map(({ id: _id, ...rest }) => ({
+        ...rest,
+        startTime: toHHmm(rest.startTime),
+        endTime: toHHmm(rest.endTime),
+      }));
     }
     onSave(data);
   };
