@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useMarketingService } from "@/service/marketing.service";
 import { useFairs } from "@/hooks/useFairs";
+import { useFairImages, useUploadFairImages, useDeleteFairImage } from "@/hooks/useFinance";
 import { useSearchParams } from "@/hooks/useSearchParams";
 import { toast } from "sonner";
 import {
@@ -57,6 +58,9 @@ import {
   Info,
   X,
   Edit,
+  Upload,
+  ImageIcon,
+  Trash2,
 } from "lucide-react";
 import { LogoLoading } from "@/components/LogoLoading";
 import type { Fair } from "@/interfaces/fairs";
@@ -95,7 +99,36 @@ const fairInfo = (fair?: Fair) => {
 const LOGO =
   "https://static.wixstatic.com/media/88e022_551e4ef3cf61439fad4f84eca702a829~mv2.png/v1/crop/x_0,y_190,w_2084,h_1301/fill/w_536,h_340,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/EMM2024%20logo%20br_Prancheta%201.png";
 
-const tplSaudade = (fair?: Fair): string => {
+const logoGridHtml = (logoUrls: string[], labelColor = "#9CA3AF"): string => {
+  if (!logoUrls || logoUrls.length === 0) return "";
+  const perRow = 5;
+  const rows: string[][] = [];
+  for (let i = 0; i < logoUrls.length; i += perRow) {
+    rows.push(logoUrls.slice(i, i + perRow));
+  }
+  const rowsHtml = rows
+    .map((row) => {
+      const w = Math.floor(100 / row.length);
+      const cells = row
+        .map(
+          (url) =>
+            `<td width="${w}%" style="text-align:center;padding:6px 8px;vertical-align:middle;">` +
+            `<img src="${url}" alt="Expositor" style="max-width:90px;max-height:60px;height:auto;display:block;margin:0 auto;"></td>`
+        )
+        .join("");
+      return `<tr>${cells}</tr>`;
+    })
+    .join("");
+  return (
+    `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-bottom:24px;">` +
+    `<tr><td>` +
+    `<p style="margin:0 0 12px;color:${labelColor};font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;text-align:center;">Expositores Participantes</p>` +
+    `<table role="presentation" width="100%" cellspacing="0" cellpadding="0">${rowsHtml}</table>` +
+    `</td></tr></table>`
+  );
+};
+
+const tplSaudade = (fair?: Fair, logoUrls: string[] = []): string => {
   const { name, fullLocation, dateRange, time } = fairInfo(fair);
   return `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -139,6 +172,7 @@ const tplSaudade = (fair?: Fair): string => {
           </td></tr>
         </table>
 
+        ${logoGridHtml(logoUrls)}
         <p style="margin:0;color:#9CA3AF;font-size:12px;text-align:center;border-top:1px solid #F3F4F6;padding-top:20px;">
           Equipe ${name} · gerencia@expomultimix.com.br
         </p>
@@ -151,7 +185,7 @@ const tplSaudade = (fair?: Fair): string => {
 </html>`;
 };
 
-const tplUrgencia = (fair?: Fair): string => {
+const tplUrgencia = (fair?: Fair, logoUrls: string[] = []): string => {
   const { name, fullLocation, dateRange, time } = fairInfo(fair);
   return `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -221,6 +255,7 @@ const tplUrgencia = (fair?: Fair): string => {
           </td></tr>
         </table>
 
+        ${logoGridHtml(logoUrls)}
         <p style="margin:0;color:#9CA3AF;font-size:12px;text-align:center;border-top:1px solid #F3F4F6;padding-top:20px;">
           Equipe ${name} · gerencia@expomultimix.com.br
         </p>
@@ -233,7 +268,7 @@ const tplUrgencia = (fair?: Fair): string => {
 </html>`;
 };
 
-const tplPalestras = (fair?: Fair): string => {
+const tplPalestras = (fair?: Fair, logoUrls: string[] = []): string => {
   const { name, fullLocation, dateRange, time } = fairInfo(fair);
   return `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -319,6 +354,7 @@ const tplPalestras = (fair?: Fair): string => {
           </td></tr>
         </table>
 
+        ${logoGridHtml(logoUrls)}
         <p style="margin:0;color:#9CA3AF;font-size:12px;text-align:center;border-top:1px solid #F3F4F6;padding-top:20px;">
           Equipe ${name} · gerencia@expomultimix.com.br
         </p>
@@ -331,7 +367,7 @@ const tplPalestras = (fair?: Fair): string => {
 </html>`;
 };
 
-const tplVip = (fair?: Fair): string => {
+const tplVip = (fair?: Fair, logoUrls: string[] = []): string => {
   const { name, fullLocation, dateRange, time, mapsUrl } = fairInfo(fair);
   return `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -385,6 +421,7 @@ const tplVip = (fair?: Fair): string => {
           </td></tr>
         </table>
 
+        ${logoGridHtml(logoUrls, "#B45309")}
         <p style="margin:0;color:#92400E;font-size:11px;text-align:center;letter-spacing:1px;">
           CONVITE INTRANSFERÍVEL · ${name.toUpperCase()}
         </p>
@@ -400,7 +437,7 @@ const tplVip = (fair?: Fair): string => {
 </html>`;
 };
 
-const tplNetworking = (fair?: Fair): string => {
+const tplNetworking = (fair?: Fair, logoUrls: string[] = []): string => {
   const { name, fullLocation, dateRange, time } = fairInfo(fair);
   return `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -464,6 +501,7 @@ const tplNetworking = (fair?: Fair): string => {
           </td></tr>
         </table>
 
+        ${logoGridHtml(logoUrls)}
         <p style="margin:0;color:#9CA3AF;font-size:12px;text-align:center;border-top:1px solid #F3F4F6;padding-top:20px;">
           Equipe ${name} · gerencia@expomultimix.com.br
         </p>
@@ -484,7 +522,7 @@ interface EmailTemplate {
   description: string;
   strategy: string;
   icon: React.ReactNode;
-  generate: (fair?: Fair) => string;
+  generate: (fair?: Fair, logoUrls?: string[]) => string;
 }
 
 const EMAIL_TEMPLATES: EmailTemplate[] = [
@@ -592,116 +630,176 @@ const AI_SERVICES = [
   },
 ];
 
-const generateAIPrompt = (fair: Fair, userDescription: string): string => {
+// ─── Fixed HTML blocks injected verbatim into the AI prompt ───────────────────
+// The AI is told to insert these exactly as-is, preventing it from reimplementing
+// critical sections (logos, fair details, footer) in unpredictable ways.
+
+const aiBlockFairDetails = (fair: Fair): string => {
   const { name, fullLocation, dateRange, time, mapsUrl } = fairInfo(fair);
+  const rows = [
+    dateRange
+      ? `<p style="margin:0 0 6px;color:#ffffff;font-size:15px;font-weight:700;">&#128197; ${dateRange}${time ? ` &middot; ${time}` : ""}</p>`
+      : "",
+    fullLocation
+      ? `<p style="margin:0 0 6px;color:rgba(255,255,255,0.75);font-size:13px;">&#128205; ${fullLocation}</p>`
+      : "",
+    mapsUrl !== "#"
+      ? `<p style="margin:0;font-size:12px;"><a href="${mapsUrl}" style="color:#00BCD4;text-decoration:none;">Ver no Google Maps &#8250;</a></p>`
+      : "",
+  ]
+    .filter(Boolean)
+    .join("\n    ");
+  return `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-bottom:24px;"><tr><td style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-left:3px solid #00BCD4;border-radius:0 8px 8px 0;padding:18px 20px;"><p style="margin:0 0 10px;color:#00BCD4;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;">${name}</p>
+    ${rows}</td></tr></table>`;
+};
+
+const aiBlockLogos = (logoUrls: string[]): string => {
+  if (!logoUrls || logoUrls.length === 0) return "";
+  const perRow = 5;
+  const rows: string[][] = [];
+  for (let i = 0; i < logoUrls.length; i += perRow) rows.push(logoUrls.slice(i, i + perRow));
+  const rowsHtml = rows
+    .map((row) => {
+      const w = Math.floor(100 / row.length);
+      const cells = row
+        .map(
+          (url) =>
+            `<td width="${w}%" style="text-align:center;padding:8px;vertical-align:middle;">` +
+            `<img src="${url}" alt="Expositor" style="max-width:90px;max-height:60px;height:auto;display:block;margin:0 auto;"></td>`
+        )
+        .join("");
+      return `<tr>${cells}</tr>`;
+    })
+    .join("");
+  return `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-bottom:24px;"><tr><td><p style="margin:0 0 12px;color:rgba(255,255,255,0.45);font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;text-align:center;">Marcas Participantes</p><table role="presentation" width="100%" cellspacing="0" cellpadding="0">${rowsHtml}</table></td></tr></table>`;
+};
+
+const aiBlockFooter = (fairName: string): string =>
+  `<tr><td style="padding:20px 40px 28px;text-align:center;border-top:1px solid rgba(255,255,255,0.08);"><p style="margin:0 0 4px;color:rgba(255,255,255,0.4);font-size:11px;font-weight:700;">${fairName}</p><p style="margin:0 0 8px;color:rgba(255,255,255,0.25);font-size:11px;">gerencia@expomultimix.com.br</p><p style="margin:0;font-size:10px;"><a href="#descadastro" style="color:rgba(255,255,255,0.25);text-decoration:underline;">Cancelar inscri&#231;&#227;o</a></p></td></tr>`;
+
+const generateAIPrompt = (fair: Fair, userDescription: string, logoUrls: string[] = []): string => {
+  const { name } = fairInfo(fair);
   const monthYear = new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
-  return `Você é uma especialista sênior em email marketing B2B com mais de 10 anos de experiência em eventos comerciais de grande porte. Você domina design moderno, copywriting persuasivo e as melhores práticas de entregabilidade.
+
+  const blockFairDetails = aiBlockFairDetails(fair);
+  const blockLogos = aiBlockLogos(logoUrls);
+  const blockFooter = aiBlockFooter(name);
+  const hasLogos = logoUrls.length > 0;
+
+  return `Você é especialista sênior em email marketing B2B com foco em feiras comerciais atacadistas. Domina design de email responsivo, copywriting para lojistas e entregabilidade.
 
 ## Missão
-Crie um email de marketing completo para a ${name}. Você deve gerar o TÍTULO INTERNO da campanha, o SUBJECT LINE e o HTML do email.
+Crie um email de marketing completo para a ${name}. Gere o TÍTULO INTERNO da campanha, o SUBJECT LINE e o HTML completo do email.
 
-## Identidade Visual da ExpoMultiMix (SIGA RIGOROSAMENTE)
+## Sobre a ExpoMultiMix (USE NO COPYWRITING — não invente informações)
+A ExpoMultiMix é a maior feira multissetorial atacadista do Norte do Brasil, focada em negócios B2B.
 
-### Paleta de Cores
-- Fundo do email: #0A1628 (navy escuro) — use como background do <body> e do wrapper externo
-- Cards e seções internas: background rgba(255,255,255,0.05), border 1px solid rgba(255,255,255,0.1) — efeito glassmorphism adaptado para email
-- Botão CTA principal: background #E91E63 (rosa vibrante), texto #FFFFFF, uppercase, font-weight 900, border-radius 8px, padding 16px 40px
-- Botão CTA secundário: background transparent, border 2px solid rgba(255,255,255,0.3), texto #FFFFFF, border-radius 8px
-- Destaque de informação: #00BCD4 (ciano) — datas, locais, subtítulos em destaque
-- Urgência/badge: #FF7043 (laranja) — contagens regressivas, vagas limitadas
-- Texto principal: #FFFFFF
-- Texto secundário: rgba(255,255,255,0.75)
-- Texto de apoio: rgba(255,255,255,0.45)
-- Separadores decorativos: linha de 1px com gradiente de transparente → rgba(255,255,255,0.15) → transparente
+**Segmentos:** utilidades domésticas, brinquedos, puericultura, artigos para festas, descartáveis, variedades e decoração.
 
-### Logo (use exatamente esta URL no atributo src do <img>)
-https://static.wixstatic.com/media/88e022_551e4ef3cf61439fad4f84eca702a829~mv2.png/v1/crop/x_0,y_190,w_2084,h_1301/fill/w_536,h_340,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/EMM2024%20logo%20br_Prancheta%201.png
+**Público exclusivo:** lojistas e empreendedores com CNPJ. Acesso proibido ao consumidor final.
 
-### Diretrizes de Design
-- Layout dark glassmorphism: cards semitransparentes com borda sutil sobre fundo navy profundo
-- Tipografia: Arial, Helvetica, sans-serif — títulos em 28–36px bold/900, subtítulos em 16–18px 700, corpo em 14–16px 400, line-height 1.65
-- Padding interno dos cards: mínimo 32px horizontal, 24px vertical
-- Espaçamento entre seções: 24–32px
-- Imagens decorativas opcionais: use gradientes CSS inline ou emojis Unicode para ícones (sem imagens externas além do logo)
+**Proposta de valor real (use no copywriting — nunca invente outras):**
+- Negociar diretamente com gerentes e diretores de fábricas e importadoras
+- Testar lançamentos antes de chegarem ao mercado
+- Condições de pagamento e descontos exclusivos para compradores
+- Networking com lojistas de toda a região
+- Entrada gratuita com credenciamento online
 
-### ESTRUTURA DE TABELAS OBRIGATÓRIA (crítico para o email preencher 100% da largura)
-A estrutura deve ser SEMPRE dois níveis de tabela — nunca coloque max-width na tabela externa:
-
-\`\`\`
-<body style="margin:0;padding:0;background-color:#0A1628;width:100%;">
-  <!-- TABELA EXTERNA: ocupa 100% da largura do cliente de email -->
-  <table role="presentation" border="0" cellspacing="0" cellpadding="0" width="100%" style="background-color:#0A1628;">
-    <tr>
-      <td align="center" style="padding:24px 12px;">
-        <!-- TABELA INTERNA: container de conteúdo limitado a 600px -->
-        <table role="presentation" border="0" cellspacing="0" cellpadding="0" width="600" style="max-width:600px;width:100%;">
-          <!-- todo o conteúdo do email vai aqui dentro -->
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-\`\`\`
-
-NUNCA faça: \`<table width="600" style="margin:0 auto">\` sem uma tabela externa de width="100%" envolvendo.
-
-### Responsividade Mobile-First (obrigatório)
-- O atributo width="600" na tabela interna é o máximo — em telas menores ela encolhe automaticamente graças ao width:100% no style
-- Imagens: sempre com style="max-width:100%;height:auto;display:block;" — nunca width fixo em px
-- Logo: max-width:180px no mobile, pode usar max-width:220px em desktop (defina o menor como padrão)
-- Botões CTA: padding generoso (mínimo 14px 32px), font-size mínimo 15px, toque fácil em mobile
-- Texto corpo: font-size mínimo 14px, line-height 1.6 — nunca menor que isso em mobile
-- Colunas multi-coluna: EVITAR — prefira single-column para garantir leitura em telas pequenas. Se usar duas colunas, cada td deve ter width="48%" e o layout deve ser legível mesmo colapsado
-- padding lateral dos cards: mínimo 20px em mobile (use padding no td, não no table)
-- Evite elementos com position:absolute ou float — quebram em clientes mobile
-- O email deve ser perfeitamente legível em telas de 320px de largura (iPhone SE) até 600px
-
-## Dados da Feira (COPIE EXATAMENTE — não altere, não invente)
-- Nome: ${name}
-- Local completo: ${fullLocation}
-- Data: ${dateRange || "a confirmar"}
-- Horário: ${time || "a confirmar"}
-${mapsUrl !== "#" ? `- Google Maps: ${mapsUrl}` : ""}
+**Tom:** falar com o LOJISTA — foco em compra, reposição de estoque, novidades do setor. Nunca mencionar consumidor final.
 
 ## Personalização
-Use {{VISITOR_NAME}} onde quiser o nome do destinatário. O sistema substitui automaticamente antes do envio.
-Exemplo de saudação: "Olá, {{VISITOR_NAME}}! Sentimos a sua falta na ${name}."
+Use {{VISITOR_NAME}} para o nome do destinatário — o sistema substitui antes do envio.
 
 ## O que criar
 ${userDescription}
 
-## Estrutura recomendada do email
-1. Header com logo + gradiente de fundo
-2. Headline principal impactante (máx 10 palavras, em destaque)
-3. Saudação personalizada com {{VISITOR_NAME}}
-4. Proposta de valor em 2–3 bullet points visuais (use ✓ ou ► ou entidades HTML)
-5. Card de detalhes da feira (data 📅, local 📍, horário 🕐) com fundo glassmorphism
-6. CTA principal em rosa (#E91E63) — texto urgente e direto
-7. Seção de benefícios ou depoimentos (opcional, conforme o pedido)
-8. CTA secundário com borda branca
-9. Rodapé com nome da feira, data e link de descadastro (placeholder)
+## ═══════════════════════════════════════════════════
+## BLOCOS FIXOS — COPIE LITERALMENTE, SEM ALTERAR NADA
+## ═══════════════════════════════════════════════════
+Os blocos abaixo foram gerados pelo sistema com dados reais da feira e logos das empresas expositoras.
+Você DEVE inseri-los no email exatamente como estão — não reescreva, não reformate, não corrija espaçamento.
+Alterar qualquer caractere desses blocos é um erro crítico.
 
-## Boas práticas obrigatórias
-- Saudação pessoal com {{VISITOR_NAME}} nas primeiras linhas
-- Data, hora e local em destaque visual (próprio card ou linha colorida)
-- Senso de urgência genuíno quando aplicável
-- Máximo 1 assunto por parágrafo — sem blocos de texto denso
-- Tom profissional, empolgante e direto — sem exageros ou clichês
+### BLOCO A — Detalhes da Feira
+Posição obrigatória: após a proposta de valor, antes do CTA principal.
+\`\`\`html
+${blockFairDetails}
+\`\`\`
+
+${hasLogos ? `### BLOCO B — Marcas Participantes (logos dos expositores)
+Posição obrigatória: imediatamente antes do rodapé.
+\`\`\`html
+${blockLogos}
+\`\`\`` : ""}
+
+### BLOCO ${hasLogos ? "C" : "B"} — Rodapé
+Posição obrigatória: último elemento dentro da tabela interna (600px). Inserir como <tr> direto dentro da tabela de conteúdo.
+\`\`\`html
+${blockFooter}
+\`\`\`
+
+## ═══════════════════════════════════
+## O QUE VOCÊ DEVE GERAR (restante)
+## ═══════════════════════════════════
+
+## Identidade Visual (SIGA RIGOROSAMENTE)
+
+### Paleta de Cores
+- Fundo externo e body: #0A1628 (navy escuro)
+- Cards internos: background rgba(255,255,255,0.05), border 1px solid rgba(255,255,255,0.1)
+- CTA principal: #E91E63 (rosa), texto #FFFFFF, font-weight 900
+- CTA secundário: border 2px solid rgba(255,255,255,0.3), texto #FFFFFF
+- Destaques (datas, locais): #00BCD4 (ciano)
+- Urgência/badges: #FF7043 (laranja)
+- Texto principal: #FFFFFF | Secundário: rgba(255,255,255,0.75) | Apoio: rgba(255,255,255,0.45)
+
+### Logo da ExpoMultiMix (use exatamente no src do img)
+https://static.wixstatic.com/media/88e022_551e4ef3cf61439fad4f84eca702a829~mv2.png/v1/crop/x_0,y_190,w_2084,h_1301/fill/w_536,h_340,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/EMM2024%20logo%20br_Prancheta%201.png
+
+### Estrutura de tabelas OBRIGATÓRIA
+\`\`\`
+<body style="margin:0;padding:0;background-color:#0A1628;width:100%;">
+  <table role="presentation" border="0" cellspacing="0" cellpadding="0" width="100%" style="background-color:#0A1628;">
+    <tr><td align="center" style="padding:24px 12px;">
+      <table role="presentation" border="0" cellspacing="0" cellpadding="0" width="600" style="max-width:600px;width:100%;">
+        <!-- Header, conteúdo, BLOCO A, CTA, BLOCO B (se houver), BLOCO C -->
+      </table>
+    </td></tr>
+  </table>
+</body>
+\`\`\`
+
+### Responsividade
+- Imagens: max-width:100%; height:auto; display:block
+- Logo: max-width:180px
+- CTAs: padding mínimo 14px 32px, font-size mínimo 15px
+- Texto: font-size mínimo 14px, line-height 1.6
+- Legível em 320px (iPhone SE) até 600px
+
+## Estrutura do email (ordem exata)
+1. Header: logo ExpoMultiMix + gradiente navy/ciano
+2. Headline impactante (máx 10 palavras)
+3. Saudação com {{VISITOR_NAME}}
+4. Proposta de valor focada em LOJISTA
+5. **BLOCO A** — detalhes da feira (copiar literalmente)
+6. CTA principal em rosa (#E91E63)
+7. Conteúdo adicional conforme o pedido (opcional)
+${hasLogos ? "8. **BLOCO B** — logos dos expositores (copiar literalmente)\n9. **BLOCO C** — rodapé (copiar literalmente)" : "8. **BLOCO B** — rodapé (copiar literalmente)"}
 
 ## Requisitos Técnicos OBRIGATÓRIOS
-1. HTML completo com <!DOCTYPE html>, <head> (charset UTF-8, viewport meta, <title>), <body>
-2. TODOS os estilos inline — ZERO blocos <style> ou arquivos CSS externos
-3. Estrutura de duas tabelas aninhadas conforme o modelo acima: externa width="100%" + interna width="600" max-width:600px
-4. background-color: #0A1628 no <body> E na tabela externa (width="100%") — NUNCA na tabela interna de 600px
-5. Logo da ExpoMultiMix no cabeçalho (URL exata acima), com alt="ExpoMultiMix"
-6. Nome, data e local da feira sempre visíveis e destacados
+1. HTML completo: <!DOCTYPE html>, <head> com charset UTF-8 e viewport meta, <body>
+2. Todos os estilos inline — zero <style> ou CSS externo
+3. Tabela externa width="100%" + tabela interna width="600" max-width:600px
+4. background-color:#0A1628 no <body> e na tabela externa — nunca na interna
+5. Logo da ExpoMultiMix no cabeçalho (URL exata acima), alt="ExpoMultiMix"
+6. Blocos fixos inseridos literalmente nas posições corretas
 7. Compatível com Gmail, Outlook 2016+, Apple Mail, mobile
-8. Nenhum JavaScript, nenhum CSS externo, nenhuma fonte do Google Fonts
+8. Zero JavaScript, zero CSS externo, zero Google Fonts
 
-## FORMATO DE RETORNO — SIGA EXATAMENTE (não adicione nada fora desta estrutura)
+## FORMATO DE RETORNO — SIGA EXATAMENTE
 
-TITULO: [nome interno da campanha para o histórico, ex: "Remarketing ${name} — ${monthYear}"]
-ASSUNTO: [subject line — máx 60 caracteres, atraente, sem palavras spam como "grátis", "clique aqui", "promoção"]
+TITULO: [nome interno, ex: "Remarketing ${name} — ${monthYear}"]
+ASSUNTO: [subject line — máx 60 caracteres, sem spam words]
 
 \`\`\`html
 <!DOCTYPE html>
@@ -775,6 +873,12 @@ export const MarketingPage: React.FC = () => {
   const [, , headerFairId] = useSearchParams();
   // headerFair = feira do cabeçalho = base para template e IA; selectedFairId = alvo de remarketing (opcional)
   const headerFair = fairs?.find((f) => f.id === headerFairId);
+  const { data: fairImages = [] } = useFairImages(headerFairId);
+  const logoUrls = fairImages.map((img) => img.url);
+  const uploadLogosMutation = useUploadFairImages();
+  const deleteLogoMutation = useDeleteFairImage();
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingLogos, setUploadingLogos] = useState(false);
 
   const [selectedFairId, setSelectedFairId] = useState<string>(""); // remarketing target (optional)
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
@@ -837,9 +941,35 @@ export const MarketingPage: React.FC = () => {
     setSelectedFairId(fairId);
   };
 
+  const handleLogoUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    if (!files.length || !headerFairId) return;
+    setUploadingLogos(true);
+    try {
+      await uploadLogosMutation.mutateAsync({ fairId: headerFairId, files });
+    } finally {
+      setUploadingLogos(false);
+      if (logoInputRef.current) logoInputRef.current.value = "";
+    }
+  }, [headerFairId, uploadLogosMutation]);
+
+  const handleLogoDelete = useCallback(async (imageId: string) => {
+    if (!headerFairId) return;
+    await deleteLogoMutation.mutateAsync({ imageId, fairId: headerFairId });
+  }, [headerFairId, deleteLogoMutation]);
+
+  const handleLogoDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    if (!headerFairId) return;
+    const files = Array.from(e.dataTransfer.files).filter((f) => f.type.startsWith("image/"));
+    if (!files.length) return;
+    const fakeEvent = { target: { files: files as unknown as FileList } } as React.ChangeEvent<HTMLInputElement>;
+    handleLogoUpload(fakeEvent);
+  }, [headerFairId, handleLogoUpload]);
+
   const handleSelectTemplate = (tpl: EmailTemplate) => {
     setSelectedTemplateId(tpl.id);
-    setHtmlContent(tpl.generate(headerFair));
+    setHtmlContent(tpl.generate(headerFair, logoUrls));
     setActiveTab("editor");
     setCard2Collapsed(true);
     toast.success(`Template "${tpl.name}" aplicado com dados de "${headerFair?.name ?? "feira do cabeçalho"}"`);
@@ -848,7 +978,7 @@ export const MarketingPage: React.FC = () => {
   const handleGeneratePrompt = () => {
     if (!headerFair) { toast.error("Selecione uma feira no cabeçalho da página"); return; }
     if (!aiDescription.trim()) { toast.error("Descreva o que você quer no email"); return; }
-    setGeneratedPrompt(generateAIPrompt(headerFair, aiDescription));
+    setGeneratedPrompt(generateAIPrompt(headerFair, aiDescription, logoUrls));
     setAiStep(2);
   };
 
@@ -1317,6 +1447,96 @@ export const MarketingPage: React.FC = () => {
               {!headerFair && (
                 <p className="mt-3 text-white/20 text-xs text-center">Selecione uma feira no cabeçalho para habilitar os templates</p>
               )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Logos dos Expositores ── */}
+      {headerFairId && (
+        <div className="glass-card border-white/5 shadow-2xl rounded-[32px] p-6 lg:p-8">
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-3">
+              <span className="bg-brand-pink text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black shrink-0">
+                <ImageIcon className="h-3 w-3" />
+              </span>
+              <h2 className="text-sm font-black text-white uppercase tracking-widest">Logos dos Expositores</h2>
+              <span className={`text-[9px] font-black px-2 py-0.5 rounded-full ${
+                fairImages.length > 0
+                  ? "bg-green-500/20 text-green-400"
+                  : "bg-white/8 text-white/30"
+              }`}>
+                {fairImages.length} logo{fairImages.length !== 1 ? "s" : ""}
+              </span>
+            </div>
+            <button
+              onClick={() => logoInputRef.current?.click()}
+              disabled={uploadingLogos || !headerFairId}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-cyan/10 hover:bg-brand-cyan/20 border border-brand-cyan/20 hover:border-brand-cyan/40 rounded-xl text-[10px] font-black uppercase tracking-widest text-brand-cyan transition-all disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
+            >
+              {uploadingLogos
+                ? <><LogoLoading size={12} minimal className="mr-1" />Enviando...</>
+                : <><Upload className="h-3 w-3" />Adicionar logos</>
+              }
+            </button>
+            <input
+              ref={logoInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={handleLogoUpload}
+            />
+          </div>
+
+          {fairImages.length > 0 ? (
+            <div className="flex flex-wrap gap-3">
+              {fairImages.map((img) => (
+                <div key={img.id} className="relative group">
+                  <div className="w-24 h-16 bg-white/5 border border-white/10 rounded-xl overflow-hidden flex items-center justify-center p-1.5">
+                    <img
+                      src={img.url}
+                      alt={img.caption || "Logo expositor"}
+                      className="max-w-full max-h-full object-contain"
+                    />
+                  </div>
+                  <button
+                    onClick={() => handleLogoDelete(img.id)}
+                    disabled={deleteLogoMutation.isPending}
+                    className="absolute -top-1.5 -right-1.5 bg-red-500 hover:bg-red-600 rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50 cursor-pointer"
+                    title="Remover logo"
+                  >
+                    <Trash2 className="h-2.5 w-2.5 text-white" />
+                  </button>
+                  {img.caption && (
+                    <p className="text-white/30 text-[9px] text-center mt-1 truncate max-w-[96px]">{img.caption}</p>
+                  )}
+                </div>
+              ))}
+
+              {/* Add more button as last item */}
+              <button
+                onClick={() => logoInputRef.current?.click()}
+                disabled={uploadingLogos}
+                className="w-24 h-16 bg-white/3 border border-dashed border-white/15 hover:border-brand-cyan/30 hover:bg-brand-cyan/5 rounded-xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer disabled:opacity-40"
+              >
+                <Upload className="h-4 w-4 text-white/25" />
+                <span className="text-white/25 text-[9px]">Adicionar</span>
+              </button>
+            </div>
+          ) : (
+            <div
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={handleLogoDrop}
+              onClick={() => logoInputRef.current?.click()}
+              className="border-2 border-dashed border-white/10 hover:border-brand-cyan/30 hover:bg-brand-cyan/5 rounded-2xl p-8 text-center cursor-pointer transition-all"
+            >
+              <Upload className="h-8 w-8 text-white/20 mx-auto mb-3" />
+              <p className="text-white/40 text-sm font-bold">Arraste logos ou clique para selecionar</p>
+              <p className="text-white/20 text-xs mt-1">PNG, JPG, SVG, WebP · Múltiplos arquivos</p>
+              <p className="text-white/15 text-[10px] mt-3">
+                Logos aparecem automaticamente nos templates e no prompt de IA
+              </p>
             </div>
           )}
         </div>
@@ -1898,15 +2118,34 @@ export const MarketingPage: React.FC = () => {
                     Selecione uma feira no cabeçalho para continuar.
                   </div>
                 ) : (
-                  <div className="flex items-center gap-3 p-3 bg-white/5 border border-white/8 rounded-xl">
-                    <div className="bg-brand-cyan/15 rounded-lg p-1.5 shrink-0">
-                      <Mail className="h-3.5 w-3.5 text-brand-cyan" />
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-3 p-3 bg-white/5 border border-white/8 rounded-xl">
+                      <div className="bg-brand-cyan/15 rounded-lg p-1.5 shrink-0">
+                        <Mail className="h-3.5 w-3.5 text-brand-cyan" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-white font-black text-xs truncate">{headerFair.name}</p>
+                        {locationParts && <p className="text-white/40 text-[10px] truncate">{locationParts}</p>}
+                      </div>
+                      <span className="text-[9px] font-black text-brand-cyan bg-brand-cyan/10 px-2 py-0.5 rounded-full shrink-0">base do email</span>
                     </div>
-                    <div className="min-w-0">
-                      <p className="text-white font-black text-xs truncate">{headerFair.name}</p>
-                      {locationParts && <p className="text-white/40 text-[10px] truncate">{locationParts}</p>}
-                    </div>
-                    <span className="text-[9px] font-black text-brand-cyan bg-brand-cyan/10 px-2 py-0.5 rounded-full shrink-0">base do email</span>
+
+                    {/* Logos status */}
+                    {logoUrls.length > 0 ? (
+                      <div className="flex items-center gap-2 p-2.5 bg-green-500/8 border border-green-500/20 rounded-xl">
+                        <Check className="h-3.5 w-3.5 text-green-400 shrink-0" />
+                        <p className="text-green-400 text-[10px] font-black uppercase tracking-widest">
+                          {logoUrls.length} logo{logoUrls.length !== 1 ? "s" : ""} de expositores incluídas no prompt
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="flex items-start gap-2 p-2.5 bg-brand-orange/8 border border-brand-orange/20 rounded-xl">
+                        <AlertTriangle className="h-3.5 w-3.5 text-brand-orange shrink-0 mt-0.5" />
+                        <p className="text-brand-orange text-[10px] leading-relaxed">
+                          <strong>Nenhuma logo encontrada para esta feira.</strong> Cadastre as logos dos expositores em <strong>Clientes → Galeria</strong> antes de gerar o email para que elas apareçam automaticamente.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
 
