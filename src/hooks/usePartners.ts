@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/query-keys";
 import { useAxio } from "@/hooks/useAxio";
 import { toast } from "sonner";
+import { getAxiosErrorMessage } from "@/utils/handleAxiosError";
 import { AppEndpoints } from "@/constants/AppEndpoints";
 import type {
   Partner,
@@ -100,7 +101,7 @@ export const useCreatePartner = () => {
       toast.success("Sócio criado com sucesso!");
     },
     onError: (error: unknown) => {
-      toast.error("Erro ao criar sócio: " + ((error as { response?: { data?: { message?: string } }; message?: string }).response?.data?.message || (error as { response?: { data?: { message?: string } }; message?: string }).message));
+      toast.error("Erro ao criar sócio: " + getAxiosErrorMessage(error));
     },
   });
 };
@@ -124,7 +125,7 @@ export const useUpdatePartner = () => {
       toast.success("Sócio atualizado com sucesso!");
     },
     onError: (error: unknown) => {
-      toast.error("Erro ao atualizar sócio: " + ((error as { response?: { data?: { message?: string } }; message?: string }).response?.data?.message || (error as { response?: { data?: { message?: string } }; message?: string }).message));
+      toast.error("Erro ao atualizar sócio: " + getAxiosErrorMessage(error));
     },
   });
 };
@@ -146,7 +147,7 @@ export const useDeletePartner = () => {
       toast.success("Sócio removido com sucesso!");
     },
     onError: (error: unknown) => {
-      toast.error("Erro ao remover sócio: " + ((error as { response?: { data?: { message?: string } }; message?: string }).response?.data?.message || (error as { response?: { data?: { message?: string } }; message?: string }).message));
+      toast.error("Erro ao remover sócio: " + getAxiosErrorMessage(error));
     },
   });
 };
@@ -168,7 +169,7 @@ export const useDistributeProfit = () => {
       toast.success("Lucros distribuídos com sucesso!");
     },
     onError: (error: unknown) => {
-      toast.error("Erro ao distribuir lucros: " + ((error as { response?: { data?: { message?: string } }; message?: string }).response?.data?.message || (error as { response?: { data?: { message?: string } }; message?: string }).message));
+      toast.error("Erro ao distribuir lucros: " + getAxiosErrorMessage(error));
     },
   });
 };

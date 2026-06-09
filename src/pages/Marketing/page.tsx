@@ -941,8 +941,7 @@ export const MarketingPage: React.FC = () => {
     setSelectedFairId(fairId);
   };
 
-  const handleLogoUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files ?? []);
+  const uploadFiles = useCallback(async (files: File[]) => {
     if (!files.length || !headerFairId) return;
     setUploadingLogos(true);
     try {
@@ -953,6 +952,11 @@ export const MarketingPage: React.FC = () => {
     }
   }, [headerFairId, uploadLogosMutation]);
 
+  const handleLogoUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    uploadFiles(files);
+  }, [uploadFiles]);
+
   const handleLogoDelete = useCallback(async (imageId: string) => {
     if (!headerFairId) return;
     await deleteLogoMutation.mutateAsync({ imageId, fairId: headerFairId });
@@ -962,10 +966,8 @@ export const MarketingPage: React.FC = () => {
     e.preventDefault();
     if (!headerFairId) return;
     const files = Array.from(e.dataTransfer.files).filter((f) => f.type.startsWith("image/"));
-    if (!files.length) return;
-    const fakeEvent = { target: { files: files as unknown as FileList } } as React.ChangeEvent<HTMLInputElement>;
-    handleLogoUpload(fakeEvent);
-  }, [headerFairId, handleLogoUpload]);
+    uploadFiles(files);
+  }, [headerFairId, uploadFiles]);
 
   const handleSelectTemplate = (tpl: EmailTemplate) => {
     setSelectedTemplateId(tpl.id);

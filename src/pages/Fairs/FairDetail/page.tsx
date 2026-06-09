@@ -189,7 +189,7 @@ export default function FairDetailPage() {
 
   // Estado e hooks para despesas overhead / rateio
   const [isOverheadFormOpen, setIsOverheadFormOpen] = useState(false);
-  const [editingOverhead, setEditingOverhead] = useState<AllocatedOverheadExpense | null>(null);
+  const [editingOverhead, setEditingOverhead] = useState<AllocatedOverheadExpense | { isInitialTemplate: true; allocations: { fairId: string; percentual: number }[]; data: string } | null>(null);
   const [overheadToDelete, setOverheadToDelete] = useState<AllocatedOverheadExpense | null>(null);
 
   const expensesService = useExpensesService();
@@ -486,8 +486,7 @@ export default function FairDetailPage() {
               }
             ],
             data: new Date().toISOString().split("T")[0],
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          } as any);
+          });
           setIsOverheadFormOpen(true);
         }}
         onEdit={(expense) => {
@@ -515,7 +514,7 @@ export default function FairDetailPage() {
               createOverheadMutation.mutate(submittedData.payload as CreateOverheadExpenseForm);
             }
           }}
-          expense={editingOverhead}
+          expense={editingOverhead && !("isInitialTemplate" in editingOverhead) ? editingOverhead : null}
           accounts={accounts || []}
           fairsList={fairsList || []}
           isLoading={createOverheadMutation.isPending || updateOverheadMutation.isPending}
@@ -870,8 +869,7 @@ function ScheduleSection({ fair, isEditing, isSaving, onEdit, onCancel, onSave }
     if (endTime) data.endTime = toHHmm(endTime);
     const valid = schedules.filter((s) => s.date && s.startTime && s.endTime);
     if (valid.length > 0) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      data.daySchedules = valid.map(({ id: _id, ...rest }) => ({
+      data.daySchedules = valid.map(({ id, ...rest }) => ({
         ...rest,
         startTime: toHHmm(rest.startTime),
         endTime: toHHmm(rest.endTime),

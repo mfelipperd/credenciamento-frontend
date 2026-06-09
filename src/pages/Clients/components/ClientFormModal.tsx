@@ -62,8 +62,7 @@ export function ClientFormModal({
     } else {
       reset({ name: "", cnpj: "", email: "", phone: "", responsavel: "" });
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editingClient, open]);
+  }, [editingClient, open, reset]);
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>

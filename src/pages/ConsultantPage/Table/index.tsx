@@ -72,12 +72,11 @@ export const EnhancedTableConsultant = () => {
     const urlLimit = Number(searchParams.get("limit")) || 50;
     const urlFairId = searchParams.get("fairId");
 
-    if (urlSearch !== search) setSearch(urlSearch);
-    if (urlPage !== page) setPage(urlPage);
-    if (urlLimit !== limit) setLimit(urlLimit);
-    if (urlFairId && urlFairId !== currentFairId) setSelectedFairId(urlFairId);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
+    setSearch(urlSearch);
+    setPage(urlPage);
+    setLimit(urlLimit);
+    if (urlFairId) setSelectedFairId(urlFairId);
+  }, [searchParams, setSelectedFairId]);
 
   // Hook React Query para visitantes paginados
   const {
@@ -137,8 +136,7 @@ export const EnhancedTableConsultant = () => {
     }, 500);
 
     return () => clearTimeout(timer);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search]);
+  }, [search, searchParams, setPage, setDebouncedSearch]);
 
   // Category filter from URL
   const categoryFilter = useMemo(() => {

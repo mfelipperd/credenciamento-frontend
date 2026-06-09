@@ -149,7 +149,7 @@ export function UserFormModal({ user, isOpen, onClose }: UserFormModalProps) {
   }, [user, isOpen, form]);
 
   // Função para remover máscaras dos dados
-  const removeMasks = (data: UserFormData) => {
+  const removeMasks = (data: Omit<UserFormData, "confirmPassword">) => {
     return {
       ...data,
       cpf: data.cpf ? data.cpf.replace(/\D/g, '') : undefined, // Remove tudo que não é dígito
@@ -161,11 +161,17 @@ export function UserFormModal({ user, isOpen, onClose }: UserFormModalProps) {
     try {
       setIsSubmitting(true);
 
-      const { confirmPassword: _confirmPassword, ...dataWithoutConfirm } = data; // eslint-disable-line @typescript-eslint/no-unused-vars
-      const cleanedData = removeMasks(dataWithoutConfirm);
+      const cleanedData = removeMasks({
+        name: data.name,
+        email: data.email,
+        cpf: data.cpf,
+        phone: data.phone,
+        role: data.role,
+        isActive: data.isActive,
+        password: data.password,
+        fairIds: data.fairIds,
+      });
       
-      console.log("🔍 Dados originais:", dataWithoutConfirm);
-      console.log("🧹 Dados limpos (sem máscaras):", cleanedData);
       
       const submitData = {
         ...cleanedData,
@@ -173,8 +179,6 @@ export function UserFormModal({ user, isOpen, onClose }: UserFormModalProps) {
         password: data.password || undefined, // Só incluir senha se preenchida
       };
       
-      console.log("📤 Payload final enviado:", submitData);
-
       if (isEditing && user) {
         // Editar usuário
         await updateUserMutation.mutateAsync({

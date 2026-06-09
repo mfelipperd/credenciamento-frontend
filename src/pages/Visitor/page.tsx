@@ -31,8 +31,7 @@ export const Visitor = () => {
     }
 
     setIsMobile(isMobileDevice());
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [checkinId, fairId]);
+  }, [checkinId, fairId, getVisitorById]);
 
   const handlePrint = useCallback(() => {
     if (!visitor) return;

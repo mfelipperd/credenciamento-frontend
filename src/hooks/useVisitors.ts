@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/query-keys";
 import { useAxio } from "@/hooks/useAxio";
 import { toast } from "sonner";
+import { getAxiosErrorMessage } from "@/utils/handleAxiosError";
 import { AppEndpoints } from "@/constants/AppEndpoints";
 import type {
   Visitor,
@@ -138,7 +139,7 @@ export const useCheckinVisitor = () => {
       toast.success("Check-in realizado com sucesso!");
     },
     onError: (error: unknown) => {
-      toast.error("Erro ao realizar check-in: " + ((error as { response?: { data?: { message?: string } }; message?: string }).response?.data?.message || (error as { response?: { data?: { message?: string } }; message?: string }).message));
+      toast.error("Erro ao realizar check-in: " + getAxiosErrorMessage(error));
     },
   });
 };
@@ -170,7 +171,7 @@ export const useUpdateVisitor = () => {
       toast.success("Visitante atualizado com sucesso!");
     },
     onError: (error: unknown) => {
-      toast.error("Erro ao atualizar visitante: " + ((error as { response?: { data?: { message?: string } }; message?: string }).response?.data?.message || (error as { response?: { data?: { message?: string } }; message?: string }).message));
+      toast.error("Erro ao atualizar visitante: " + getAxiosErrorMessage(error));
     },
   });
 };
@@ -191,7 +192,7 @@ export const useDeleteVisitor = () => {
       toast.success("Visitante removido com sucesso!");
     },
     onError: (error: unknown) => {
-      toast.error("Erro ao remover visitante: " + ((error as { response?: { data?: { message?: string } }; message?: string }).response?.data?.message || (error as { response?: { data?: { message?: string } }; message?: string }).message));
+      toast.error("Erro ao remover visitante: " + getAxiosErrorMessage(error));
     },
   });
 };

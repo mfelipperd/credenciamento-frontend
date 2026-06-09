@@ -461,8 +461,7 @@ export const FormularioCredenciamento: React.FC = () => {
       })
       .catch(() => {})
       .finally(() => setIsFetchingCep(false));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [zipCode]);
+  }, [zipCode, setValue, setIsFetchingCep]);
 
   useEffect(() => {
     // Adiciona uma verificação para evitar chamadas desnecessárias
@@ -473,8 +472,7 @@ export const FormularioCredenciamento: React.FC = () => {
 
       return () => clearTimeout(timeoutId);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [resgister?.registrationCode, fairId, visitor?.name]);
+  }, [resgister?.registrationCode, fairId, visitor?.name, getVisitorById]);
 
   // Validação inicial do fairId - após todos os hooks
   if (!fairId) {

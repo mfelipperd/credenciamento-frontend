@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/query-keys";
 import { useAxio } from "@/hooks/useAxio";
 import { toast } from "sonner";
+import { getAxiosErrorMessage } from "@/utils/handleAxiosError";
 import { AppEndpoints } from "@/constants/AppEndpoints";
 
 // Interfaces básicas (ajustar conforme necessário)
@@ -109,7 +110,7 @@ export const useCreateStand = () => {
       toast.success("Stand criado com sucesso!");
     },
     onError: (error: unknown) => {
-      toast.error("Erro ao criar stand: " + ((error as { response?: { data?: { message?: string } }; message?: string }).response?.data?.message || (error as { response?: { data?: { message?: string } }; message?: string }).message));
+      toast.error("Erro ao criar stand: " + getAxiosErrorMessage(error));
     },
   });
 };
@@ -134,7 +135,7 @@ export const useUpdateStand = () => {
       toast.success("Stand atualizado com sucesso!");
     },
     onError: (error: unknown) => {
-      toast.error("Erro ao atualizar stand: " + ((error as { response?: { data?: { message?: string } }; message?: string }).response?.data?.message || (error as { response?: { data?: { message?: string } }; message?: string }).message));
+      toast.error("Erro ao atualizar stand: " + getAxiosErrorMessage(error));
     },
   });
 };
@@ -157,7 +158,7 @@ export const useDeleteStand = () => {
       toast.success("Stand removido com sucesso!");
     },
     onError: (error: unknown) => {
-      toast.error("Erro ao remover stand: " + ((error as { response?: { data?: { message?: string } }; message?: string }).response?.data?.message || (error as { response?: { data?: { message?: string } }; message?: string }).message));
+      toast.error("Erro ao remover stand: " + getAxiosErrorMessage(error));
     },
   });
 };

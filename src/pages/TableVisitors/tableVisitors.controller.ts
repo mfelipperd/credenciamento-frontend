@@ -98,8 +98,7 @@ export const useTableVisitorsController = () => {
     } catch {
       // Erro já é tratado no service, apenas ignora aqui para não quebrar o fluxo
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fairId, debouncedSearch, searchField, currentPage, itemsPerPage, dateFrom, dateTo]);
+  }, [fairId, debouncedSearch, searchField, currentPage, itemsPerPage, dateFrom, dateTo, getVisitorsPaginated]);
 
   // Buscar dados quando parâmetros mudarem
   useEffect(() => {

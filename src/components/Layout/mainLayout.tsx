@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { Outlet, useSearchParams } from "react-router-dom";
 import { useFairs } from "@/hooks/useFairs";
 import {
@@ -80,6 +80,7 @@ export const MainLayout: React.FC = () => {
   };
 
   const [selectedId, setSelectedId] = useState(getInitialFairId);
+  const hasInitialized = useRef(false);
 
   // Filtros locais para a busca de feiras no popover
   const [isFairPopoverOpen, setIsFairPopoverOpen] = useState(false);
@@ -212,23 +213,28 @@ export const MainLayout: React.FC = () => {
 
   // Removido - o hook useFairs já faz o fetch automaticamente
 
-  // Sincroniza o selectedId apenas quando necessário
+  // Sincroniza o selectedId apenas quando a lista de feiras fica não-vazia pela primeira vez
   useEffect(() => {
-    if (availableFairs.length > 0) {
-      const newId = getInitialFairId();
+    if (availableFairs.length === 0 || hasInitialized.current) return;
+    hasInitialized.current = true;
 
-      // Só atualiza o estado local se mudou
-      if (newId && newId !== selectedId) {
-        setSelectedId(newId);
-      }
+    const urlFairId = searchParams.get("fairId");
+    const newId =
+      (urlFairId && availableFairs.find((f: Fair) => f.id === urlFairId) ? urlFairId : null) ??
+      (savedFairId && availableFairs.find((f: Fair) => f.id === savedFairId) ? savedFairId : null) ??
+      availableFairs[0]?.id ??
+      "";
 
-      // Só atualiza a URL se não houver fairId nela
-      if (newId && !searchParams.get("fairId")) {
-        setSearchParams({ fairId: newId }, { replace: true });
-      }
+    // Só atualiza o estado local se mudou
+    if (newId && newId !== selectedId) {
+      setSelectedId(newId);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [availableFairs.length]); // Apenas quando a lista de feiras deixar de estar vazia
+
+    // Só atualiza a URL se não houver fairId nela
+    if (newId && !urlFairId) {
+      setSearchParams({ fairId: newId }, { replace: true });
+    }
+  }, [availableFairs, searchParams, selectedId, savedFairId, setSearchParams]);
 
   // Só bloqueia a renderização enquanto o carregamento inicial estiver em progresso
   // Se houver erro ou feiras vazias, renderiza o layout mesmo assim para não travar

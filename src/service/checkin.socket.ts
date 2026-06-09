@@ -13,8 +13,8 @@ let socket: Socket | null = null;
 export function useCheckinSocket(
   onVisitorReceived: (visitor: Visitor) => void
 ) {
-  const socketUrl = import.meta.env.VITE_API_BASE_URL.replace(/^https/, "wss");
   useEffect(() => {
+    const socketUrl = import.meta.env.VITE_API_BASE_URL.replace(/^https/, "wss");
     if (!socket) {
       socket = io(socketUrl, {
         transports: ["websocket"],
@@ -37,6 +37,5 @@ export function useCheckinSocket(
       // opcional: manter conexão ativa ou não
       // socket?.disconnect(); // descomente se quiser encerrar ao desmontar
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [onVisitorReceived]);
 }

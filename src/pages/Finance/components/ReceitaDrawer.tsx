@@ -161,7 +161,7 @@ export function ReceitaDrawer({
     }
     
     const searchTerm = clientSearch.toLowerCase().trim();
-    return allClients.filter((client: { name: string; cnpj?: string; email?: string }) =>
+    return allClients.filter((client) =>
       client.name.toLowerCase().includes(searchTerm) ||
       client.cnpj?.toLowerCase().includes(searchTerm) ||
       client.email?.toLowerCase().includes(searchTerm)
@@ -185,16 +185,14 @@ export function ReceitaDrawer({
       setShowCreateClient(false);
       resetClient();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen]);
+  }, [isOpen, reset, resetClient]);
 
   // Atualiza o fairId no formulário de cliente quando disponível
   useEffect(() => {
     if (fairId) {
       setValueClient("fairId", fairId);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fairId]);
+  }, [fairId, setValueClient]);
 
   // Pré-seleciona o stand quando prefilledStandNumber está disponível
   useEffect(() => {
@@ -207,7 +205,7 @@ export function ReceitaDrawer({
           const availableStands = await standService.getAvailableStands(fairId);
           if (availableStands) {
             const stand = availableStands.find(
-              (s: { standNumber: number }) => s.standNumber === prefilledStandNumber
+              (s) => s.standNumber === prefilledStandNumber
             );
             if (stand) {
               setSelectedStand({ standNumber: prefilledStandNumber, stand });
@@ -220,8 +218,7 @@ export function ReceitaDrawer({
     };
 
     loadPrefilledStand();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [prefilledStandNumber, isOpen, fairId]);
+  }, [prefilledStandNumber, isOpen, fairId, standService, setValue]);
 
   // Calcula automaticamente o desconto quando o valor do contrato muda
   useEffect(() => {
@@ -333,7 +330,7 @@ export function ReceitaDrawer({
   };
 
   const handleEntryModelSelect = (entryModelId: string) => {
-    const model = entryModels.find((m: { id: string; name: string; baseValue: number; type: string }) => m.id === entryModelId);
+    const model = entryModels.find((m) => m.id === entryModelId);
     if (model) {
       setSelectedEntryModel({
         id: model.id,
@@ -670,7 +667,7 @@ export function ReceitaDrawer({
 
                 {filteredClients.length > 0 && (
                   <div className="max-h-48 overflow-y-auto border rounded-xl divide-y divide-slate-100 dark:divide-white/5 bg-white dark:bg-slate-900 border-slate-200 dark:border-white/10">
-                    {filteredClients.map((client: { id: string; name: string; cnpj?: string; email?: string; responsavel?: string }) => (
+                    {filteredClients.map((client) => (
                       <button
                         key={client.id}
                         type="button"
@@ -802,7 +799,7 @@ export function ReceitaDrawer({
                     <SelectValue placeholder="Selecione o tipo" />
                   </SelectTrigger>
                   <SelectContent>
-                    {entryModels.map((model: { id: string; name: string; baseValue: number }) => (
+                    {entryModels.map((model) => (
                       <SelectItem key={model.id} value={model.id}>
                         {model.name} — {formatCurrency(model.baseValue)}
                       </SelectItem>

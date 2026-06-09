@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/query-keys";
 import { useFairPartnersService } from "@/service/fair-partners.service";
 import { toast } from "sonner";
+import { getAxiosErrorMessage } from "@/utils/handleAxiosError";
 import type {
   UpdateFairPartnerForm,
   UpdatePartnerForm,
@@ -60,7 +61,7 @@ export const useCreateFairPartner = () => {
       toast.success("Sócio adicionado à feira com sucesso!");
     },
     onError: (error: unknown) => {
-      toast.error("Erro ao adicionar sócio à feira: " + ((error as { response?: { data?: { message?: string } }; message?: string }).response?.data?.message || (error as { response?: { data?: { message?: string } }; message?: string }).message));
+      toast.error("Erro ao adicionar sócio à feira: " + getAxiosErrorMessage(error));
     },
   });
 };
@@ -78,7 +79,7 @@ export const useUpdateFairPartner = () => {
       toast.success("Sócio da feira atualizado com sucesso!");
     },
     onError: (error: unknown) => {
-      toast.error("Erro ao atualizar sócio da feira: " + ((error as { response?: { data?: { message?: string } }; message?: string }).response?.data?.message || (error as { response?: { data?: { message?: string } }; message?: string }).message));
+      toast.error("Erro ao atualizar sócio da feira: " + getAxiosErrorMessage(error));
     },
   });
 };
@@ -96,7 +97,7 @@ export const useDeleteFairPartner = () => {
       toast.success("Sócio removido da feira com sucesso!");
     },
     onError: (error: unknown) => {
-      toast.error("Erro ao remover sócio da feira: " + ((error as { response?: { data?: { message?: string } }; message?: string }).response?.data?.message || (error as { response?: { data?: { message?: string } }; message?: string }).message));
+      toast.error("Erro ao remover sócio da feira: " + getAxiosErrorMessage(error));
     },
   });
 };
@@ -163,7 +164,7 @@ export const useCreatePartner = () => {
       toast.success("Sócio criado com sucesso!");
     },
     onError: (error: unknown) => {
-      toast.error("Erro ao criar sócio: " + ((error as { response?: { data?: { message?: string } }; message?: string }).response?.data?.message || (error as { response?: { data?: { message?: string } }; message?: string }).message));
+      toast.error("Erro ao criar sócio: " + getAxiosErrorMessage(error));
     },
   });
 };
@@ -181,7 +182,7 @@ export const useUpdatePartner = () => {
       toast.success("Sócio atualizado com sucesso!");
     },
     onError: (error: unknown) => {
-      toast.error("Erro ao atualizar sócio: " + ((error as { response?: { data?: { message?: string } }; message?: string }).response?.data?.message || (error as { response?: { data?: { message?: string } }; message?: string }).message));
+      toast.error("Erro ao atualizar sócio: " + getAxiosErrorMessage(error));
     },
   });
 };
@@ -197,7 +198,7 @@ export const useDeletePartner = () => {
       toast.success("Sócio removido com sucesso!");
     },
     onError: (error: unknown) => {
-      toast.error("Erro ao remover sócio: " + ((error as { response?: { data?: { message?: string } }; message?: string }).response?.data?.message || (error as { response?: { data?: { message?: string } }; message?: string }).message));
+      toast.error("Erro ao remover sócio: " + getAxiosErrorMessage(error));
     },
   });
 };
@@ -236,7 +237,7 @@ export const useDistributeProfit = () => {
       toast.success("Lucros distribuídos com sucesso!");
     },
     onError: (error: unknown) => {
-      toast.error("Erro ao distribuir lucros: " + ((error as { response?: { data?: { message?: string } }; message?: string }).response?.data?.message || (error as { response?: { data?: { message?: string } }; message?: string }).message));
+      toast.error("Erro ao distribuir lucros: " + getAxiosErrorMessage(error));
     },
   });
 };

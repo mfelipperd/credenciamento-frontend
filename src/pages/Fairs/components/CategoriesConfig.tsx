@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { CategoryCard } from "./CategoryCard";
 import { CategoryForm } from "./CategoryForm";
-import type { FinanceCategory } from "@/interfaces/categories";
+import type { FinanceCategory, CreateCategoryDto, UpdateCategoryDto } from "@/interfaces/categories";
 
 interface CategoriesConfigProps {
   fairId: string;
@@ -47,8 +47,7 @@ export function CategoriesConfig({ fairId }: CategoriesConfigProps) {
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleCreateCategory = async (data: any) => {
+  const handleCreateCategory = async (data: CreateCategoryDto) => {
     try {
       await createCategory(data);
       setShowForm(false);
@@ -57,10 +56,9 @@ export function CategoriesConfig({ fairId }: CategoriesConfigProps) {
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleUpdateCategory = async (data: any) => {
+  const handleUpdateCategory = async (data: UpdateCategoryDto) => {
     if (!editingCategory) return;
-    
+
     try {
       await updateCategory({ id: editingCategory.id, data });
       setEditingCategory(undefined);

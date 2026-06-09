@@ -17,7 +17,6 @@ type InputProps = Omit<
 interface PasswordInputProps<T extends FieldValues> extends InputProps {
   control: Control<T>;
   name: FieldPath<T>;
-  label?: string;
   /**
    * Função que recebe o valor digitado e retorna a versão mascarada.
    * Exemplo: (val) => applyPhoneMask(val)
@@ -28,7 +27,6 @@ interface PasswordInputProps<T extends FieldValues> extends InputProps {
 export function PasswordInput<T extends FieldValues>({
   control,
   name,
-  label: _label, // eslint-disable-line @typescript-eslint/no-unused-vars
   mask,
   ...inputProps
 }: PasswordInputProps<T>) {

@@ -1,4 +1,5 @@
 import { QueryClient } from "@tanstack/react-query";
+import axios from "axios";
 
 // Configuração centralizada do React Query
 export const queryClient = new QueryClient({
@@ -11,7 +12,7 @@ export const queryClient = new QueryClient({
       // Retry automático em caso de erro
       retry: (failureCount, error) => {
         // Não retry para erros 4xx (cliente)
-        if (error instanceof Error && 'status' in error && (error as Error & { status: number }).status >= 400 && (error as Error & { status: number }).status < 500) {
+        if (axios.isAxiosError(error) && error.response && error.response.status >= 400 && error.response.status < 500) {
           return false;
         }
         // Retry até 3 vezes para outros erros
@@ -28,7 +29,7 @@ export const queryClient = new QueryClient({
       // Retry automático para mutations
       retry: (failureCount, error) => {
         // Não retry para erros 4xx (cliente)
-        if (error instanceof Error && 'status' in error && (error as Error & { status: number }).status >= 400 && (error as Error & { status: number }).status < 500) {
+        if (axios.isAxiosError(error) && error.response && error.response.status >= 400 && error.response.status < 500) {
           return false;
         }
         // Retry até 2 vezes para outros erros
