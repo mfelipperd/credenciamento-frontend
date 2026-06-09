@@ -11,6 +11,8 @@ import { PencilLine, Trash2 } from "lucide-react";
 import { ConfirmDeleteModal } from "../ModalDelete";
 import { EditVisitorModal } from "../ModalEdit";
 import { useState, memo, useCallback } from "react";
+import { useUserSession } from "@/hooks/useUserSession";
+import { EUserRole } from "@/enums/user.enum";
 
 export interface VisitorTableProps {
   filteredData: Visitor[];
@@ -30,11 +32,13 @@ const VisitorRow = memo(
     onRowClick,
     onEditClick,
     onDeleteClick,
+    canDelete,
   }: {
     visitor: Visitor;
     onRowClick: (checkinId: string) => void;
     onEditClick: (visitor: Visitor) => void;
     onDeleteClick: (id: string) => void;
+    canDelete: boolean;
   }) => {
     const handleRowClick = useCallback(() => {
       onRowClick(visitor.registrationCode);
@@ -97,8 +101,9 @@ const VisitorRow = memo(
             {/* Botão Deletar */}
             <button
               onClick={handleDeleteClick}
-              className="p-2 bg-red-500/10 text-red-400 rounded-xl hover:bg-red-500 hover:text-white transition-all shadow-lg active:scale-90"
-              title="Deletar visitante"
+              disabled={!canDelete}
+              className="p-2 bg-red-500/10 text-red-400 rounded-xl hover:bg-red-500 hover:text-white transition-all shadow-lg active:scale-90 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-red-500/10 disabled:hover:text-red-400"
+              title={canDelete ? "Deletar visitante" : "Sem permissão para deletar"}
             >
               <Trash2 size={16} />
             </button>
@@ -122,6 +127,9 @@ export const VisitorTable: React.FC<VisitorTableProps> = memo(
     handleClick,
     reload,
   }) => {
+    const { user } = useUserSession();
+    const canDelete = user?.role !== EUserRole.RECEPTIONIST;
+
     const [openEditModal, setOpenEditModal] = useState<boolean>(false);
     const [visitorEdit, setVisitorEdit] = useState<Visitor | undefined>(
       undefined
@@ -227,6 +235,7 @@ export const VisitorTable: React.FC<VisitorTableProps> = memo(
                     onRowClick={handleRowClick}
                     onEditClick={handleEditClick}
                     onDeleteClick={handleDeleteClick}
+                    canDelete={canDelete}
                   />
                 ))
               )}
