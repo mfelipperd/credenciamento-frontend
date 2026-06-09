@@ -137,7 +137,7 @@ export const useVisitorsService = () => {
         } else {
           // Backend retorna formato paginado (futuro)
           const rawData = result || {};
-          const rawMeta = (rawData.meta || {}) as any;
+          const rawMeta = (rawData.meta || {}) as Record<string, unknown>;
           
           const totalItems = typeof rawMeta.totalItems === 'number' && !isNaN(rawMeta.totalItems)
             ? rawMeta.totalItems

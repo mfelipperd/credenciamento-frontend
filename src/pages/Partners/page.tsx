@@ -89,7 +89,7 @@ export default function PartnersPage() {
       toast.success("Sócio removido da feira com sucesso");
       setIsDeleteDialogOpen(false);
       setSelectedPartner(null);
-    } catch (error) {
+    } catch {
       toast.error("Erro ao remover sócio da feira");
     }
   };

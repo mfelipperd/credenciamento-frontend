@@ -4,7 +4,7 @@ import type { Socket } from "socket.io-client";
 import type { Visitor } from "@/interfaces/visitors";
 
 // Armazena o socket fora do hook para manter conexão estável
-let socket: typeof Socket | null = null;
+let socket: Socket | null = null;
 
 /**
  * Escuta o WebSocket e chama o callback quando os dados do visitante chegam
@@ -37,5 +37,6 @@ export function useCheckinSocket(
       // opcional: manter conexão ativa ou não
       // socket?.disconnect(); // descomente se quiser encerrar ao desmontar
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 }

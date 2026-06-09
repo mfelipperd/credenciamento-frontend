@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-expressions */
 import { useEffect } from "react";
 
+type FbqWindow = Window & { fbq?: (...args: unknown[]) => void; _fbq?: unknown };
+
 interface MetaPixelProps {
   /** Seu ID do pixel (ex: '798068891626886') */
   pixelId: string;
@@ -10,19 +12,22 @@ interface MetaPixelProps {
 
 export function MetaPixel({ pixelId, eventName = "PageView" }: MetaPixelProps) {
   useEffect(() => {
-    if ((window as any).fbq) {
-      (window as any).fbq("init", pixelId);
-      (window as any).fbq("track", eventName);
+    if ((window as FbqWindow).fbq) {
+      (window as FbqWindow).fbq!("init", pixelId);
+      (window as FbqWindow).fbq!("track", eventName);
       return;
     }
 
     // Injeta o script do Meta Pixel
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (function (f: any, b: any, e: any, v: any, n?: any, t?: any, s?: any) {
       if (f.fbq) return;
       n = f.fbq = function () {
+        /* eslint-disable prefer-spread, prefer-rest-params */
         n.callMethod
           ? n.callMethod.apply(n, arguments)
           : n.queue.push(arguments);
+        /* eslint-enable prefer-spread, prefer-rest-params */
       };
       if (!f._fbq) f._fbq = n;
       n.push = n;
@@ -42,8 +47,8 @@ export function MetaPixel({ pixelId, eventName = "PageView" }: MetaPixelProps) {
     );
 
     // Inicializa e dispara o evento
-    (window as any).fbq("init", pixelId);
-    (window as any).fbq("track", eventName);
+    (window as FbqWindow).fbq!("init", pixelId);
+    (window as FbqWindow).fbq!("track", eventName);
   }, [pixelId, eventName]);
 
   return (

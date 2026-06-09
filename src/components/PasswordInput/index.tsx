@@ -28,7 +28,7 @@ interface PasswordInputProps<T extends FieldValues> extends InputProps {
 export function PasswordInput<T extends FieldValues>({
   control,
   name,
-  label,
+  label: _label, // eslint-disable-line @typescript-eslint/no-unused-vars
   mask,
   ...inputProps
 }: PasswordInputProps<T>) {

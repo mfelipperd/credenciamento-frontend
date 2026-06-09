@@ -18,7 +18,7 @@ export const SucessFormTotem = () => {
     }
 
     return () => clearInterval(intervalId);
-  }, [secondsLeft]);
+  }, [secondsLeft, navigate]);
   const progressValue = Math.round(
     ((TOTAL_SECONDS - secondsLeft) / TOTAL_SECONDS) * 100
   );

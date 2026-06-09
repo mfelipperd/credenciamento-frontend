@@ -510,8 +510,8 @@ export const useUploadClientImages = () => {
       queryClient.invalidateQueries({ queryKey: ["finance", "client-images", clientId] });
       toast.success("Fotos enviadas com sucesso!");
     },
-    onError: (error: any) => {
-      toast.error("Erro ao enviar fotos: " + (error.response?.data?.message ?? error.message));
+    onError: (error: unknown) => {
+      toast.error("Erro ao enviar fotos: " + ((error as { response?: { data?: { message?: string } }; message?: string }).response?.data?.message ?? (error as { response?: { data?: { message?: string } }; message?: string }).message));
     },
   });
 };
@@ -555,8 +555,8 @@ export const useUploadFairImages = () => {
       queryClient.invalidateQueries({ queryKey: ["finance", "fair-images", fairId] });
       toast.success("Imagens enviadas com sucesso!");
     },
-    onError: (error: any) => {
-      toast.error("Erro ao enviar imagens: " + (error.response?.data?.message ?? error.message));
+    onError: (error: unknown) => {
+      toast.error("Erro ao enviar imagens: " + ((error as { response?: { data?: { message?: string } }; message?: string }).response?.data?.message ?? (error as { response?: { data?: { message?: string } }; message?: string }).message));
     },
   });
 };
@@ -573,8 +573,8 @@ export const useDeleteFairImage = () => {
       queryClient.invalidateQueries({ queryKey: ["finance", "fair-images", fairId] });
       toast.success("Imagem removida com sucesso!");
     },
-    onError: (error: any) => {
-      toast.error("Erro ao remover imagem: " + (error.response?.data?.message ?? error.message));
+    onError: (error: unknown) => {
+      toast.error("Erro ao remover imagem: " + ((error as { response?: { data?: { message?: string } }; message?: string }).response?.data?.message ?? (error as { response?: { data?: { message?: string } }; message?: string }).message));
     },
   });
 };
@@ -604,8 +604,8 @@ export const useDeleteClientImage = () => {
       queryClient.invalidateQueries({ queryKey: ["finance", "client-images", clientId] });
       toast.success("Foto removida com sucesso!");
     },
-    onError: (error: any) => {
-      toast.error("Erro ao remover foto: " + (error.response?.data?.message ?? error.message));
+    onError: (error: unknown) => {
+      toast.error("Erro ao remover foto: " + ((error as { response?: { data?: { message?: string } }; message?: string }).response?.data?.message ?? (error as { response?: { data?: { message?: string } }; message?: string }).message));
     },
   });
 };

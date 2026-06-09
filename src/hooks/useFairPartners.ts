@@ -59,8 +59,8 @@ export const useCreateFairPartner = () => {
       queryClient.invalidateQueries({ queryKey: ["available-percentage", fairId] });
       toast.success("Sócio adicionado à feira com sucesso!");
     },
-    onError: (error: any) => {
-      toast.error("Erro ao adicionar sócio à feira: " + (error.response?.data?.message || error.message));
+    onError: (error: unknown) => {
+      toast.error("Erro ao adicionar sócio à feira: " + ((error as { response?: { data?: { message?: string } }; message?: string }).response?.data?.message || (error as { response?: { data?: { message?: string } }; message?: string }).message));
     },
   });
 };
@@ -77,8 +77,8 @@ export const useUpdateFairPartner = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.fairPartners.lists() });
       toast.success("Sócio da feira atualizado com sucesso!");
     },
-    onError: (error: any) => {
-      toast.error("Erro ao atualizar sócio da feira: " + (error.response?.data?.message || error.message));
+    onError: (error: unknown) => {
+      toast.error("Erro ao atualizar sócio da feira: " + ((error as { response?: { data?: { message?: string } }; message?: string }).response?.data?.message || (error as { response?: { data?: { message?: string } }; message?: string }).message));
     },
   });
 };
@@ -95,8 +95,8 @@ export const useDeleteFairPartner = () => {
       queryClient.invalidateQueries({ queryKey: ["available-percentage"] });
       toast.success("Sócio removido da feira com sucesso!");
     },
-    onError: (error: any) => {
-      toast.error("Erro ao remover sócio da feira: " + (error.response?.data?.message || error.message));
+    onError: (error: unknown) => {
+      toast.error("Erro ao remover sócio da feira: " + ((error as { response?: { data?: { message?: string } }; message?: string }).response?.data?.message || (error as { response?: { data?: { message?: string } }; message?: string }).message));
     },
   });
 };
@@ -162,8 +162,8 @@ export const useCreatePartner = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.partners.lists() });
       toast.success("Sócio criado com sucesso!");
     },
-    onError: (error: any) => {
-      toast.error("Erro ao criar sócio: " + (error.response?.data?.message || error.message));
+    onError: (error: unknown) => {
+      toast.error("Erro ao criar sócio: " + ((error as { response?: { data?: { message?: string } }; message?: string }).response?.data?.message || (error as { response?: { data?: { message?: string } }; message?: string }).message));
     },
   });
 };
@@ -180,8 +180,8 @@ export const useUpdatePartner = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.partners.lists() });
       toast.success("Sócio atualizado com sucesso!");
     },
-    onError: (error: any) => {
-      toast.error("Erro ao atualizar sócio: " + (error.response?.data?.message || error.message));
+    onError: (error: unknown) => {
+      toast.error("Erro ao atualizar sócio: " + ((error as { response?: { data?: { message?: string } }; message?: string }).response?.data?.message || (error as { response?: { data?: { message?: string } }; message?: string }).message));
     },
   });
 };
@@ -196,8 +196,8 @@ export const useDeletePartner = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.partners.lists() });
       toast.success("Sócio removido com sucesso!");
     },
-    onError: (error: any) => {
-      toast.error("Erro ao remover sócio: " + (error.response?.data?.message || error.message));
+    onError: (error: unknown) => {
+      toast.error("Erro ao remover sócio: " + ((error as { response?: { data?: { message?: string } }; message?: string }).response?.data?.message || (error as { response?: { data?: { message?: string } }; message?: string }).message));
     },
   });
 };
@@ -235,8 +235,8 @@ export const useDistributeProfit = () => {
       queryClient.invalidateQueries({ queryKey: ["cash-flow-analysis", fairId] });
       toast.success("Lucros distribuídos com sucesso!");
     },
-    onError: (error: any) => {
-      toast.error("Erro ao distribuir lucros: " + (error.response?.data?.message || error.message));
+    onError: (error: unknown) => {
+      toast.error("Erro ao distribuir lucros: " + ((error as { response?: { data?: { message?: string } }; message?: string }).response?.data?.message || (error as { response?: { data?: { message?: string } }; message?: string }).message));
     },
   });
 };

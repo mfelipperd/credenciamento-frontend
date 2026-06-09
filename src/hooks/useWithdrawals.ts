@@ -69,8 +69,8 @@ export const useCreateWithdrawal = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.partners.all });
       toast.success("Saque solicitado com sucesso!");
     },
-    onError: (error: any) => {
-      toast.error("Erro ao solicitar saque: " + (error.response?.data?.message || error.message));
+    onError: (error: unknown) => {
+      toast.error("Erro ao solicitar saque: " + ((error as { response?: { data?: { message?: string } }; message?: string }).response?.data?.message || (error as { response?: { data?: { message?: string } }; message?: string }).message));
     },
   });
 };
@@ -92,8 +92,8 @@ export const useApproveWithdrawal = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.finance.all });
       toast.success("Saque aprovado com sucesso!");
     },
-    onError: (error: any) => {
-      toast.error("Erro ao aprovar saque: " + (error.response?.data?.message || error.message));
+    onError: (error: unknown) => {
+      toast.error("Erro ao aprovar saque: " + ((error as { response?: { data?: { message?: string } }; message?: string }).response?.data?.message || (error as { response?: { data?: { message?: string } }; message?: string }).message));
     },
   });
 };
@@ -114,8 +114,8 @@ export const useRejectWithdrawal = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.partners.all });
       toast.success("Saque rejeitado!");
     },
-    onError: (error: any) => {
-      toast.error("Erro ao rejeitar saque: " + (error.response?.data?.message || error.message));
+    onError: (error: unknown) => {
+      toast.error("Erro ao rejeitar saque: " + ((error as { response?: { data?: { message?: string } }; message?: string }).response?.data?.message || (error as { response?: { data?: { message?: string } }; message?: string }).message));
     },
   });
 };

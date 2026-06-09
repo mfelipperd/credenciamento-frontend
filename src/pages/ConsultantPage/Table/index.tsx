@@ -76,6 +76,7 @@ export const EnhancedTableConsultant = () => {
     if (urlPage !== page) setPage(urlPage);
     if (urlLimit !== limit) setLimit(urlLimit);
     if (urlFairId && urlFairId !== currentFairId) setSelectedFairId(urlFairId);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
   // Hook React Query para visitantes paginados
@@ -136,6 +137,7 @@ export const EnhancedTableConsultant = () => {
     }, 500);
 
     return () => clearTimeout(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
 
   // Category filter from URL

@@ -137,8 +137,8 @@ export const useCheckinVisitor = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.checkinsPerHour(fairId) });
       toast.success("Check-in realizado com sucesso!");
     },
-    onError: (error: any) => {
-      toast.error("Erro ao realizar check-in: " + (error.response?.data?.message || error.message));
+    onError: (error: unknown) => {
+      toast.error("Erro ao realizar check-in: " + ((error as { response?: { data?: { message?: string } }; message?: string }).response?.data?.message || (error as { response?: { data?: { message?: string } }; message?: string }).message));
     },
   });
 };
@@ -169,8 +169,8 @@ export const useUpdateVisitor = () => {
       }
       toast.success("Visitante atualizado com sucesso!");
     },
-    onError: (error: any) => {
-      toast.error("Erro ao atualizar visitante: " + (error.response?.data?.message || error.message));
+    onError: (error: unknown) => {
+      toast.error("Erro ao atualizar visitante: " + ((error as { response?: { data?: { message?: string } }; message?: string }).response?.data?.message || (error as { response?: { data?: { message?: string } }; message?: string }).message));
     },
   });
 };
@@ -190,8 +190,8 @@ export const useDeleteVisitor = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.visitors.lists() });
       toast.success("Visitante removido com sucesso!");
     },
-    onError: (error: any) => {
-      toast.error("Erro ao remover visitante: " + (error.response?.data?.message || error.message));
+    onError: (error: unknown) => {
+      toast.error("Erro ao remover visitante: " + ((error as { response?: { data?: { message?: string } }; message?: string }).response?.data?.message || (error as { response?: { data?: { message?: string } }; message?: string }).message));
     },
   });
 };

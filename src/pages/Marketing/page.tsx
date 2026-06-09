@@ -856,7 +856,7 @@ const parseAIResponse = (text: string): { title?: string; subject?: string; html
   const titleMatch = text.match(/^TITULO:\s*(.+)$/m);
   const subjectMatch = text.match(/^ASSUNTO:\s*(.+)$/m);
   const htmlMatch = text.match(/```html\s*([\s\S]*?)```/);
-  const strip = (s?: string) => s?.trim().replace(/^["'\[]|["'\]]$/g, "").trim();
+  const strip = (s?: string) => s?.trim().replace(/^["'[]|["'\]]$/g, "").trim();
   return {
     title: strip(titleMatch?.[1]),
     subject: strip(subjectMatch?.[1]),

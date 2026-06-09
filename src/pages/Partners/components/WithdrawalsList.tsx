@@ -38,7 +38,7 @@ export const WithdrawalsList: React.FC<WithdrawalsListProps> = ({
 
   const { data: withdrawals, isLoading, error } = usePartnerWithdrawals(partnerId, {
     fairId,
-    status: statusFilter === "all" ? undefined : statusFilter as any,
+    status: statusFilter === "all" ? undefined : statusFilter as string,
   });
 
   const formatCurrency = (value: number) => {

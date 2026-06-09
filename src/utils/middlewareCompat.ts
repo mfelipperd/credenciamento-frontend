@@ -1,6 +1,6 @@
 import { getSecurityHeaders } from './cryptoAuth';
 
-export function enhanceRequestForBackendMiddleware(config: any) {
+export function enhanceRequestForBackendMiddleware(config: Record<string, unknown> & { headers?: Record<string, string> }) {
   config.headers = { ...config.headers, ...getSecurityHeaders() };
   return config;
 }

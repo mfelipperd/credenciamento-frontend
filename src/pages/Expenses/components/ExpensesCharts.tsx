@@ -240,9 +240,7 @@ export function ExpensesCharts({ fairId }: ExpensesChartsProps) {
 
   
   if (totalsByCategory && totalsByCategory.length > 0) {
-
-
-
+    // data available
   }
 
   return (

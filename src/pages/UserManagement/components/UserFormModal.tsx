@@ -161,7 +161,7 @@ export function UserFormModal({ user, isOpen, onClose }: UserFormModalProps) {
     try {
       setIsSubmitting(true);
 
-      const { confirmPassword, ...dataWithoutConfirm } = data;
+      const { confirmPassword: _confirmPassword, ...dataWithoutConfirm } = data; // eslint-disable-line @typescript-eslint/no-unused-vars
       const cleanedData = removeMasks(dataWithoutConfirm);
       
       console.log("🔍 Dados originais:", dataWithoutConfirm);
@@ -359,7 +359,7 @@ export function UserFormModal({ user, isOpen, onClose }: UserFormModalProps) {
                 </div>
                 
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 max-h-48 overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-white/10">
-                  {(fairs || []).map((fair: any) => (
+                  {(fairs || []).map((fair: { id: string; name: string }) => (
                     <div key={fair.id} className="flex items-center space-x-3 p-4 bg-white/2 border border-white/5 rounded-xl hover:bg-white/5 transition-colors group cursor-pointer">
                       <Checkbox
                         id={`fair-${fair.id}`}

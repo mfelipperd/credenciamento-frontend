@@ -486,6 +486,7 @@ export default function FairDetailPage() {
               }
             ],
             data: new Date().toISOString().split("T")[0],
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           } as any);
           setIsOverheadFormOpen(true);
         }}
@@ -869,6 +870,7 @@ function ScheduleSection({ fair, isEditing, isSaving, onEdit, onCancel, onSave }
     if (endTime) data.endTime = toHHmm(endTime);
     const valid = schedules.filter((s) => s.date && s.startTime && s.endTime);
     if (valid.length > 0) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       data.daySchedules = valid.map(({ id: _id, ...rest }) => ({
         ...rest,
         startTime: toHHmm(rest.startTime),
@@ -1139,6 +1141,7 @@ function StandsSection({ fair, isEditing, isSaving, onEdit, onCancel, onSave }: 
 
   const remove = (i: number) => setConfigs((p) => p.filter((_, idx) => idx !== i));
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const update = (i: number, field: keyof StandConfiguration, value: any) =>
     setConfigs((p) => { const u = [...p]; u[i] = { ...u[i], [field]: value }; return u; });
 

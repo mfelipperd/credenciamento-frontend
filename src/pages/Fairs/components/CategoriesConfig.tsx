@@ -47,6 +47,7 @@ export function CategoriesConfig({ fairId }: CategoriesConfigProps) {
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleCreateCategory = async (data: any) => {
     try {
       await createCategory(data);
@@ -56,6 +57,7 @@ export function CategoriesConfig({ fairId }: CategoriesConfigProps) {
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleUpdateCategory = async (data: any) => {
     if (!editingCategory) return;
     

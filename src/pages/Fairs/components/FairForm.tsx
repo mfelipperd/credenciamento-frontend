@@ -276,6 +276,7 @@ export const FairForm: React.FC<FairFormProps> = ({
     setStandConfigurations((prev) => prev.filter((_, i) => i !== index));
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const updateStandConfiguration = (index: number, field: keyof StandConfiguration, value: any) => {
     setStandConfigurations((prev) => {
       const updated = [...prev];
@@ -308,6 +309,7 @@ export const FairForm: React.FC<FairFormProps> = ({
   // ── Submit ────────────────────────────────────────────────────────────────
 
   const handleSubmit = (data: FairFormData) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const formData: Record<string, any> = {
       name: data.name,
     };
@@ -343,6 +345,7 @@ export const FairForm: React.FC<FairFormProps> = ({
     // Day schedules (só envia se tiver entradas preenchidas)
     const validSchedules = daySchedules.filter((s) => s.date && s.startTime && s.endTime);
     if (validSchedules.length > 0) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       formData.daySchedules = validSchedules.map(({ id: _id, ...rest }) => ({
         ...rest,
         startTime: rest.startTime.slice(0, 5),

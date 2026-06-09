@@ -12,6 +12,7 @@ export const useUsers = (filters?: { role?: string; isActive?: boolean }) => {
   return useQuery({
     queryKey: ["users", filters],
     queryFn: async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return handleRequest<any[]>({
         request: () => api.get(USERS_BASE_URL, { params: filters }),
       });
@@ -22,10 +23,11 @@ export const useUsers = (filters?: { role?: string; isActive?: boolean }) => {
 // Hook para buscar usuários por role
 export const useUsersByRole = (role: string) => {
   const api = useAxio();
-  
+
   return useQuery({
     queryKey: ["users", "role", role],
     queryFn: async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return handleRequest<any[]>({
         request: () => api.get(`${USERS_BASE_URL}/role/${role}`),
       });
@@ -37,10 +39,11 @@ export const useUsersByRole = (role: string) => {
 // Hook para buscar usuários ativos
 export const useActiveUsers = () => {
   const api = useAxio();
-  
+
   return useQuery({
     queryKey: ["users", "active"],
     queryFn: async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return handleRequest<any[]>({
         request: () => api.get(`${USERS_BASE_URL}/active`),
       });
@@ -59,7 +62,9 @@ export const useCreateUser = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mutationFn: async (userData: any) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return handleRequest<any>({
         request: () => api.post(USERS_BASE_URL, userData),
       });
@@ -81,7 +86,9 @@ export const useUpdateUser = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return handleRequest<any>({
         request: () => api.patch(`${USERS_BASE_URL}/${id}`, data),
       });
@@ -104,6 +111,7 @@ export const useDeleteUser = () => {
 
   return useMutation({
     mutationFn: async (id: string) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return handleRequest<any>({
         request: () => api.delete(`${USERS_BASE_URL}/${id}`),
       });

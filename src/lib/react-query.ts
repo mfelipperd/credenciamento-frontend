@@ -11,7 +11,7 @@ export const queryClient = new QueryClient({
       // Retry automático em caso de erro
       retry: (failureCount, error) => {
         // Não retry para erros 4xx (cliente)
-        if (error instanceof Error && 'status' in error && (error as any).status >= 400 && (error as any).status < 500) {
+        if (error instanceof Error && 'status' in error && (error as Error & { status: number }).status >= 400 && (error as Error & { status: number }).status < 500) {
           return false;
         }
         // Retry até 3 vezes para outros erros
@@ -28,7 +28,7 @@ export const queryClient = new QueryClient({
       // Retry automático para mutations
       retry: (failureCount, error) => {
         // Não retry para erros 4xx (cliente)
-        if (error instanceof Error && 'status' in error && (error as any).status >= 400 && (error as any).status < 500) {
+        if (error instanceof Error && 'status' in error && (error as Error & { status: number }).status >= 400 && (error as Error & { status: number }).status < 500) {
           return false;
         }
         // Retry até 2 vezes para outros erros

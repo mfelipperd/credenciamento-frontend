@@ -128,8 +128,8 @@ export const useFairPartnersService = () => {
   };
 
   // Distribuição de Lucros
-  const distributeProfit = async (fairId: string): Promise<any | undefined> => {
-    return handleRequest<any>({
+  const distributeProfit = async (fairId: string): Promise<unknown> => {
+    return handleRequest<unknown>({
       request: () => api.post(AppEndpoints.FINANCE.CASH_FLOW_DISTRIBUTE(fairId)),
     });
   };

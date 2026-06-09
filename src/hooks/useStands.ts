@@ -108,8 +108,8 @@ export const useCreateStand = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.fairs.standsByFair(data.fairId) });
       toast.success("Stand criado com sucesso!");
     },
-    onError: (error: any) => {
-      toast.error("Erro ao criar stand: " + (error.response?.data?.message || error.message));
+    onError: (error: unknown) => {
+      toast.error("Erro ao criar stand: " + ((error as { response?: { data?: { message?: string } }; message?: string }).response?.data?.message || (error as { response?: { data?: { message?: string } }; message?: string }).message));
     },
   });
 };
@@ -133,8 +133,8 @@ export const useUpdateStand = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.fairs.standStats(data.fairId) });
       toast.success("Stand atualizado com sucesso!");
     },
-    onError: (error: any) => {
-      toast.error("Erro ao atualizar stand: " + (error.response?.data?.message || error.message));
+    onError: (error: unknown) => {
+      toast.error("Erro ao atualizar stand: " + ((error as { response?: { data?: { message?: string } }; message?: string }).response?.data?.message || (error as { response?: { data?: { message?: string } }; message?: string }).message));
     },
   });
 };
@@ -156,8 +156,8 @@ export const useDeleteStand = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.fairs.standsByFair(data.fairId) });
       toast.success("Stand removido com sucesso!");
     },
-    onError: (error: any) => {
-      toast.error("Erro ao remover stand: " + (error.response?.data?.message || error.message));
+    onError: (error: unknown) => {
+      toast.error("Erro ao remover stand: " + ((error as { response?: { data?: { message?: string } }; message?: string }).response?.data?.message || (error as { response?: { data?: { message?: string } }; message?: string }).message));
     },
   });
 };

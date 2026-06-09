@@ -98,6 +98,7 @@ export const useTableVisitorsController = () => {
     } catch {
       // Erro já é tratado no service, apenas ignora aqui para não quebrar o fluxo
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fairId, debouncedSearch, searchField, currentPage, itemsPerPage, dateFrom, dateTo]);
 
   // Buscar dados quando parâmetros mudarem
@@ -159,12 +160,12 @@ export const useTableVisitorsController = () => {
   const totalPages = useMemo(() => {
     // Se tem metadata do backend, usa ela
     if (paginationMeta) {
-      const totalPagesVal = paginationMeta.totalPages ?? (paginationMeta as any).total_pages;
+      const totalPagesVal = paginationMeta.totalPages ?? (paginationMeta as Record<string, unknown>).total_pages;
       if (typeof totalPagesVal === 'number' && !isNaN(totalPagesVal)) {
         return totalPagesVal;
       }
       
-      const totalItemsVal = paginationMeta.totalItems ?? (paginationMeta as any).total;
+      const totalItemsVal = paginationMeta.totalItems ?? (paginationMeta as Record<string, unknown>).total;
       if (typeof totalItemsVal === 'number' && !isNaN(totalItemsVal)) {
         return Math.ceil(totalItemsVal / itemsPerPage) || 1;
       }
@@ -182,7 +183,7 @@ export const useTableVisitorsController = () => {
   // Total de itens
   const totalItems = useMemo(() => {
     if (paginationMeta) {
-      const totalItemsVal = paginationMeta.totalItems ?? (paginationMeta as any).total;
+      const totalItemsVal = paginationMeta.totalItems ?? (paginationMeta as Record<string, unknown>).total;
       if (typeof totalItemsVal === 'number' && !isNaN(totalItemsVal)) {
         return totalItemsVal;
       }

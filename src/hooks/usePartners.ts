@@ -99,8 +99,8 @@ export const useCreatePartner = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.partners.availablePercentage() });
       toast.success("Sócio criado com sucesso!");
     },
-    onError: (error: any) => {
-      toast.error("Erro ao criar sócio: " + (error.response?.data?.message || error.message));
+    onError: (error: unknown) => {
+      toast.error("Erro ao criar sócio: " + ((error as { response?: { data?: { message?: string } }; message?: string }).response?.data?.message || (error as { response?: { data?: { message?: string } }; message?: string }).message));
     },
   });
 };
@@ -123,8 +123,8 @@ export const useUpdatePartner = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.partners.availablePercentage() });
       toast.success("Sócio atualizado com sucesso!");
     },
-    onError: (error: any) => {
-      toast.error("Erro ao atualizar sócio: " + (error.response?.data?.message || error.message));
+    onError: (error: unknown) => {
+      toast.error("Erro ao atualizar sócio: " + ((error as { response?: { data?: { message?: string } }; message?: string }).response?.data?.message || (error as { response?: { data?: { message?: string } }; message?: string }).message));
     },
   });
 };
@@ -145,8 +145,8 @@ export const useDeletePartner = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.partners.availablePercentage() });
       toast.success("Sócio removido com sucesso!");
     },
-    onError: (error: any) => {
-      toast.error("Erro ao remover sócio: " + (error.response?.data?.message || error.message));
+    onError: (error: unknown) => {
+      toast.error("Erro ao remover sócio: " + ((error as { response?: { data?: { message?: string } }; message?: string }).response?.data?.message || (error as { response?: { data?: { message?: string } }; message?: string }).message));
     },
   });
 };
@@ -167,8 +167,8 @@ export const useDistributeProfit = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.finance.all });
       toast.success("Lucros distribuídos com sucesso!");
     },
-    onError: (error: any) => {
-      toast.error("Erro ao distribuir lucros: " + (error.response?.data?.message || error.message));
+    onError: (error: unknown) => {
+      toast.error("Erro ao distribuir lucros: " + ((error as { response?: { data?: { message?: string } }; message?: string }).response?.data?.message || (error as { response?: { data?: { message?: string } }; message?: string }).message));
     },
   });
 };

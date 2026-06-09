@@ -48,11 +48,11 @@ export const WithdrawalForm: React.FC<WithdrawalFormProps> = ({ partnerId, fairI
     try {
       await createWithdrawalMutation.mutateAsync({
         partnerId,
-        data: data as any, // Type assertion needed due to optional fields mismatch
+        data: data as Parameters<typeof createWithdrawalMutation.mutateAsync>[0]["data"],
       });
       form.reset();
       onSuccess?.();
-    } catch (error) {
+    } catch {
       // Error is handled by the mutation
     }
   };

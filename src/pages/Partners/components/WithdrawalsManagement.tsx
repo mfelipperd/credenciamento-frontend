@@ -39,7 +39,7 @@ export const WithdrawalsManagement: React.FC = () => {
   const selectedFairId = fairFilter || fairs?.[0]?.id;
 
   const { data: withdrawals, isLoading, error } = useAllWithdrawals({
-    status: statusFilter === "all" ? undefined : statusFilter as any,
+    status: statusFilter === "all" ? undefined : statusFilter as string,
     fairId: selectedFairId,
     partnerId: user?.id?.toString(),
   });
@@ -92,21 +92,21 @@ export const WithdrawalsManagement: React.FC = () => {
     
     try {
       await approveWithdrawalMutation.mutateAsync(withdrawalId);
-    } catch (error) {
+    } catch {
       // Error is handled by the mutation
     }
   };
 
   const handleReject = async (withdrawalId: string) => {
     if (!rejectionReason.trim()) return;
-    
+
     try {
       await rejectWithdrawalMutation.mutateAsync({
         withdrawalId,
         data: { rejectionReason },
       });
       setRejectionReason("");
-    } catch (error) {
+    } catch {
       // Error is handled by the mutation
     }
   };

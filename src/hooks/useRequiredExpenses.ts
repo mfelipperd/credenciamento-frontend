@@ -15,15 +15,15 @@ export const useRequiredExpenses = (fairId: string) => {
         // Buscar categorias obrigatórias
         const categoriesResponse = await api.get(`/finance/categories/fair/${fairId}/required`);
         const requiredCategories = categoriesResponse.data || [];
-        const requiredCategoryIds = requiredCategories.map((cat: any) => cat.id);
-        
+        const requiredCategoryIds = requiredCategories.map((cat: { id: string }) => cat.id);
+
         // Filtrar despesas por categorias obrigatórias
-        const requiredExpenses = expenses.filter((expense: any) => 
+        const requiredExpenses = expenses.filter((expense: { categoryId: string }) =>
           requiredCategoryIds.includes(expense.categoryId)
         );
-        
+
               // Calcular total de despesas obrigatórias (já em centavos)
-              const totalValue = requiredExpenses.reduce((sum: number, expense: any) => 
+              const totalValue = requiredExpenses.reduce((sum: number, expense: { value?: number }) =>
                 sum + (expense.value || 0), 0
               );
               
@@ -38,7 +38,7 @@ export const useRequiredExpenses = (fairId: string) => {
           totalArea,
           expenses: requiredExpenses
         };
-      } catch (error) {
+      } catch {
         return { totalValue: 0, totalArea: 1, expenses: [] };
       }
     },
