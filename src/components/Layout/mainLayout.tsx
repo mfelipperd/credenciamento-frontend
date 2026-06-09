@@ -154,10 +154,13 @@ export const MainLayout: React.FC = () => {
     const city = (selectedFair.city ?? "").toLowerCase();
     const state = (selectedFair.state ?? "").toUpperCase();
     const loc = (selectedFair.location ?? "").toLowerCase();
+    const year =
+      selectedFair.startDate?.split("-")[0] ??
+      (selectedFair.startDateTime ? new Date(selectedFair.startDateTime).getFullYear().toString() : null);
     if (city.includes("manaus") || state === "AM" || loc.includes("manaus"))
-      return { label: "Manaus", flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Bandeira_do_Amazonas.svg/120px-Bandeira_do_Amazonas.svg.png" };
+      return { label: "Manaus", year, flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Bandeira_do_Amazonas.svg/120px-Bandeira_do_Amazonas.svg.png" };
     if (city.includes("bel") || state === "PA" || loc.includes("belém") || loc.includes("belem"))
-      return { label: "Belém", flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Bandeira_do_Par%C3%A1.svg/120px-Bandeira_do_Par%C3%A1.svg.png" };
+      return { label: "Belém", year, flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Bandeira_do_Pará.svg/120px-Bandeira_do_Pará.svg.png" };
     return null;
   }, [isReceptionist, selectedFair]);
 
@@ -214,6 +217,11 @@ export const MainLayout: React.FC = () => {
               <span className="text-2xl sm:text-4xl font-black text-white uppercase tracking-widest drop-shadow-lg">
                 {fairCity.label}
               </span>
+              {fairCity.year && (
+                <span className="text-2xl sm:text-4xl font-black uppercase tracking-widest drop-shadow-lg bg-gradient-to-r from-[#EB2970] to-[#00aacd] bg-clip-text text-transparent">
+                  {fairCity.year}
+                </span>
+              )}
               <img src={fairCity.flag} alt="" aria-hidden className="h-8 sm:h-10 w-auto rounded shadow-lg" />
             </h1>
           )}
