@@ -85,6 +85,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const isPublicForm = location.pathname.startsWith("/public-form");
     const isSucessPage = location.pathname.startsWith("/sucess");
     
+    if (user && user.role === EUserRole.RECEPTIONIST) {
+      const restrictedPaths = ["/", "", "/marketing"];
+      if (restrictedPaths.includes(location.pathname)) {
+        navigate("/visitors-table", { replace: true });
+      }
+      return;
+    }
+
     if (user && user.role === EUserRole.CONSULTANT) {
       // Se o usuário é um consultor, verificar se tem feiras associadas
       const userFairIds = user.fairIds || [];

@@ -29,7 +29,7 @@ const navigationItems = [
     name: "Home",
     href: "/",
     icon: HomeIcon,
-    roles: [EUserRole.ADMIN, EUserRole.PARTNER, EUserRole.CONSULTANT, EUserRole.RECEPTIONIST],
+    roles: [EUserRole.ADMIN, EUserRole.PARTNER, EUserRole.CONSULTANT],
   },
   {
     name: "Visitantes",
@@ -41,7 +41,7 @@ const navigationItems = [
     name: "Marketing",
     href: "/marketing",
     icon: Mail,
-    roles: [EUserRole.ADMIN, EUserRole.PARTNER, EUserRole.CONSULTANT, EUserRole.RECEPTIONIST],
+    roles: [EUserRole.ADMIN, EUserRole.PARTNER, EUserRole.CONSULTANT],
   },
   {
     name: "Receitas",
