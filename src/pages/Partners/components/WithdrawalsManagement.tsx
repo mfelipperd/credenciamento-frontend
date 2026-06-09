@@ -41,15 +41,11 @@ export const WithdrawalsManagement: React.FC = () => {
   const { data: withdrawals, isLoading, error } = useAllWithdrawals({
     status: statusFilter === "all" ? undefined : statusFilter as any,
     fairId: selectedFairId,
-    partnerId: user?.id?.toString(), // Assuming we need partnerId
+    partnerId: user?.id?.toString(),
   });
 
-  // Debug logs
-  console.log('WithdrawalsManagement - selectedFairId:', selectedFairId);
-  console.log('WithdrawalsManagement - withdrawals:', withdrawals);
-  console.log('WithdrawalsManagement - isLoading:', isLoading);
-  console.log('WithdrawalsManagement - error:', error);
-
+  const approveWithdrawalMutation = useApproveWithdrawal();
+  const rejectWithdrawalMutation = useRejectWithdrawal();
 
   if (!selectedFairId) {
     return (
@@ -60,10 +56,6 @@ export const WithdrawalsManagement: React.FC = () => {
       </Card>
     );
   }
-
-
-  const approveWithdrawalMutation = useApproveWithdrawal();
-  const rejectWithdrawalMutation = useRejectWithdrawal();
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {

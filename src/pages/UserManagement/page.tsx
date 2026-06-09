@@ -52,6 +52,8 @@ export default function UserManagementPage() {
 
   // Removido - o hook useFairs já faz o fetch automaticamente
 
+  const { data: users, isLoading, error } = useUsers();
+
   // Verificar se é admin
   if (user?.role !== EUserRole.ADMIN) {
     return (
@@ -70,8 +72,6 @@ export default function UserManagementPage() {
       </div>
     );
   }
-
-  const { data: users, isLoading, error } = useUsers();
 
   // Filtrar usuários por termo de busca
   const filteredUsers = users?.filter(user => 

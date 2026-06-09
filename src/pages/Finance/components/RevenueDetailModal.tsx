@@ -262,6 +262,60 @@ export function RevenueDetailModal({
   const financeService = useFinanceService();
   const queryClient = useQueryClient();
 
+  // Hooks sempre chamados antes de qualquer early return
+  const { data: revenue, isLoading } = useQuery({
+    queryKey: ["revenue-detail", revenueId, fairId],
+    queryFn: () => financeService.getRevenueDetail(revenueId!, fairId),
+    enabled: !!revenueId && !!fairId && isOpen,
+  });
+
+  const confirmPaymentMutation = useMutation({
+    mutationFn: ({
+      installmentId,
+      paidAt,
+      proofUrl,
+    }: {
+      installmentId: string;
+      paidAt: string;
+      proofUrl?: string;
+    }) =>
+      financeService.confirmInstallmentPayment(installmentId, paidAt, fairId!, proofUrl),
+    onSuccess: () => {
+      toast.success("Pagamento confirmado com sucesso!");
+      queryClient.invalidateQueries({
+        predicate: (query) =>
+          query.queryKey[0] === "revenue-detail" ||
+          query.queryKey[0] === "finance-revenues" ||
+          query.queryKey[0] === "finance-kpis",
+      });
+      setIsConfirmPaymentOpen(false);
+      setSelectedInstallmentId(null);
+    },
+    onError: (error) => {
+      console.error("Erro ao confirmar pagamento:", error);
+      toast.error("Erro ao confirmar pagamento. Tente novamente.");
+    },
+  });
+
+  const updateRevenueMutation = useMutation({
+    mutationFn: (data: Partial<CreateRevenueForm>) =>
+      financeService.updateRevenue(revenueId!, data, fairId),
+    onSuccess: () => {
+      toast.success("Receita atualizada com sucesso!");
+      queryClient.invalidateQueries({
+        predicate: (query) =>
+          query.queryKey[0] === "revenue-detail" ||
+          query.queryKey[0] === "finance-revenues" ||
+          query.queryKey[0] === "finance-kpis",
+      });
+      setIsEditing(false);
+    },
+    onError: (error) => {
+      console.error("Erro ao atualizar receita:", error);
+      toast.error("Erro ao atualizar receita. Tente novamente.");
+    },
+  });
+
   // Verificar se fairId e revenueId estão disponíveis
   const hasValidFairId = fairId && fairId.trim() !== "";
   const hasValidRevenueId = revenueId && revenueId.trim() !== "";
@@ -291,13 +345,6 @@ export function RevenueDetailModal({
       </Dialog>
     );
   }
-
-  // Query para buscar detalhes da receita
-  const { data: revenue, isLoading } = useQuery({
-    queryKey: ["revenue-detail", revenueId, fairId],
-    queryFn: () => financeService.getRevenueDetail(revenueId!, fairId),
-    enabled: !!revenueId && !!fairId && isOpen,
-  });
 
   // Dados mockados para teste quando o backend não estiver disponível
   const mockRevenue = revenueId
@@ -380,55 +427,6 @@ export function RevenueDetailModal({
 
   // Usa dados do backend ou fallback para mock
   const revenueData = revenue || mockRevenue;
-
-  // Mutation para confirmar pagamento de parcela
-  const confirmPaymentMutation = useMutation({
-    mutationFn: ({
-      installmentId,
-      paidAt,
-      proofUrl,
-    }: {
-      installmentId: string;
-      paidAt: string;
-      proofUrl?: string;
-    }) =>
-      financeService.confirmInstallmentPayment(installmentId, paidAt, fairId!, proofUrl),
-    onSuccess: () => {
-      toast.success("Pagamento confirmado com sucesso!");
-      queryClient.invalidateQueries({
-        predicate: (query) =>
-          query.queryKey[0] === "revenue-detail" ||
-          query.queryKey[0] === "finance-revenues" ||
-          query.queryKey[0] === "finance-kpis",
-      });
-      setIsConfirmPaymentOpen(false);
-      setSelectedInstallmentId(null);
-    },
-    onError: (error) => {
-      console.error("Erro ao confirmar pagamento:", error);
-      toast.error("Erro ao confirmar pagamento. Tente novamente.");
-    },
-  });
-
-  // Mutation para atualizar receita
-  const updateRevenueMutation = useMutation({
-    mutationFn: (data: Partial<CreateRevenueForm>) =>
-      financeService.updateRevenue(revenueId!, data, fairId),
-    onSuccess: () => {
-      toast.success("Receita atualizada com sucesso!");
-      queryClient.invalidateQueries({
-        predicate: (query) =>
-          query.queryKey[0] === "revenue-detail" ||
-          query.queryKey[0] === "finance-revenues" ||
-          query.queryKey[0] === "finance-kpis",
-      });
-      setIsEditing(false);
-    },
-    onError: (error) => {
-      console.error("Erro ao atualizar receita:", error);
-      toast.error("Erro ao atualizar receita. Tente novamente.");
-    },
-  });
 
   // Validação: fairId é obrigatório
   if (!fairId) {
