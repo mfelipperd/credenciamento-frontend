@@ -13,7 +13,7 @@ import { LogoLoading } from "@/components/LogoLoading";
 const DashboardAnalytics = lazy(() =>
   import("@/pages/Dashboard/components/DashboardAnalytics").then((m) => ({
     default: m.DashboardAnalytics,
-  }))
+  })),
 );
 
 export const TableVisitors = () => {
@@ -28,8 +28,11 @@ export const TableVisitors = () => {
   };
 
   return (
-    <div className="h-full flex flex-col overflow-hidden">
-      <Tabs defaultValue="participants" className="flex-1 flex flex-col min-h-0">
+    <div className="h-[22%] flex flex-col overflow-hidden">
+      <Tabs
+        defaultValue="participants"
+        className="flex-1 flex flex-col min-h-0"
+      >
         {/* Cabeçalho: título à esquerda, tabs centralizado, botões à direita */}
         <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-4 shrink-0 mb-4">
           <div className="space-y-2">
@@ -61,7 +64,9 @@ export const TableVisitors = () => {
               disabled={controller.isExporting}
               className="h-10 px-5 bg-white/10 border border-white/20 rounded-2xl text-white text-xs font-black uppercase tracking-widest hover:bg-white/20 transition-all active:scale-[0.98] cursor-pointer"
             >
-              <Download className={`mr-2 h-4 w-4 ${controller.isExporting ? "animate-bounce" : ""}`} />
+              <Download
+                className={`mr-2 h-4 w-4 ${controller.isExporting ? "animate-bounce" : ""}`}
+              />
               {controller.isExporting ? "Gerando..." : "Exportar PDF"}
             </Button>
             <Button
@@ -76,11 +81,13 @@ export const TableVisitors = () => {
         </div>
 
         {/* Tab: Participantes */}
-        <TabsContent value="participants" className="mt-0 flex-1 flex flex-col min-h-0">
+        <TabsContent
+          value="participants"
+          className="mt-0 flex-1 flex flex-col min-h-0"
+        >
           {/* Card — cresce para preencher o espaço, somente a tabela faz scroll */}
           <div className="glass-card rounded-[40px] shadow-2xl overflow-hidden p-4 lg:p-6 flex flex-col flex-1 min-h-0">
             <div className="flex flex-col gap-3 flex-1 min-h-0">
-
               {/* ── Filtros (altura fixa) ── */}
               <div className="flex flex-col gap-3 shrink-0">
                 {/* Linha 1: barra de busca com contador + seletor de campo */}
@@ -93,10 +100,14 @@ export const TableVisitors = () => {
                         <div className="w-1.5 h-1.5 bg-brand-cyan/50 rounded-full" />
                       )}
                       <span className="text-[9px] text-white/30 font-black uppercase tracking-widest whitespace-nowrap tabular-nums">
-                        {controller.loading ? "..." : `${controller.totalItems || 0}`}
+                        {controller.loading
+                          ? "..."
+                          : `${controller.totalItems || 0}`}
                       </span>
                       {controller.paginationMeta && (
-                        <span className="text-[8px] text-brand-cyan/60 font-black uppercase tracking-widest ml-1 hidden sm:inline">⚡</span>
+                        <span className="text-[8px] text-brand-cyan/60 font-black uppercase tracking-widest ml-1 hidden sm:inline">
+                          ⚡
+                        </span>
                       )}
                     </div>
                     <input
@@ -109,7 +120,9 @@ export const TableVisitors = () => {
                     {controller.search && (
                       <div className="flex items-center pr-3 shrink-0">
                         <span className="text-[8px] text-brand-pink font-black uppercase tracking-widest whitespace-nowrap">
-                          {controller.searchField === "all" ? "Geral" : controller.searchField}
+                          {controller.searchField === "all"
+                            ? "Geral"
+                            : controller.searchField}
                         </span>
                       </div>
                     )}
@@ -121,12 +134,24 @@ export const TableVisitors = () => {
                     aria-label="Filtrar por campo"
                     title="Filtrar por campo"
                   >
-                    <option value="all" className="bg-brand-blue">Todos os campos</option>
-                    <option value="name" className="bg-brand-blue">Nome</option>
-                    <option value="email" className="bg-brand-blue">Email</option>
-                    <option value="company" className="bg-brand-blue">Empresa</option>
-                    <option value="phone" className="bg-brand-blue">Telefone</option>
-                    <option value="registrationCode" className="bg-brand-blue">Código</option>
+                    <option value="all" className="bg-brand-blue">
+                      Todos os campos
+                    </option>
+                    <option value="name" className="bg-brand-blue">
+                      Nome
+                    </option>
+                    <option value="email" className="bg-brand-blue">
+                      Email
+                    </option>
+                    <option value="company" className="bg-brand-blue">
+                      Empresa
+                    </option>
+                    <option value="phone" className="bg-brand-blue">
+                      Telefone
+                    </option>
+                    <option value="registrationCode" className="bg-brand-blue">
+                      Código
+                    </option>
                   </select>
                 </div>
 
@@ -134,7 +159,9 @@ export const TableVisitors = () => {
                 <div className="flex flex-col sm:flex-row gap-3">
                   <div className="flex flex-1 h-11 bg-white/5 border border-white/10 rounded-2xl overflow-hidden focus-within:ring-2 focus-within:ring-brand-cyan/20 transition-all">
                     <div className="flex items-center pl-4 pr-3 border-r border-white/5 shrink-0">
-                      <span className="text-[9px] text-white/30 font-black uppercase tracking-widest whitespace-nowrap">De</span>
+                      <span className="text-[9px] text-white/30 font-black uppercase tracking-widest whitespace-nowrap">
+                        De
+                      </span>
                     </div>
                     <input
                       type="date"
@@ -154,7 +181,9 @@ export const TableVisitors = () => {
                   </div>
                   <div className="flex flex-1 h-11 bg-white/5 border border-white/10 rounded-2xl overflow-hidden focus-within:ring-2 focus-within:ring-brand-cyan/20 transition-all">
                     <div className="flex items-center pl-4 pr-3 border-r border-white/5 shrink-0">
-                      <span className="text-[9px] text-white/30 font-black uppercase tracking-widest whitespace-nowrap">Até</span>
+                      <span className="text-[9px] text-white/30 font-black uppercase tracking-widest whitespace-nowrap">
+                        Até
+                      </span>
                     </div>
                     <input
                       type="date"
@@ -175,7 +204,10 @@ export const TableVisitors = () => {
                   {(controller.dateFrom || controller.dateTo) && (
                     <button
                       type="button"
-                      onClick={() => { controller.setDateFrom(""); controller.setDateTo(""); }}
+                      onClick={() => {
+                        controller.setDateFrom("");
+                        controller.setDateTo("");
+                      }}
                       className="h-11 px-5 bg-white/5 border border-white/10 rounded-2xl text-white/30 hover:text-white/60 text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap"
                     >
                       Limpar datas
@@ -211,7 +243,13 @@ export const TableVisitors = () => {
 
         {/* Tab: Dashboard */}
         <TabsContent value="analytics" className="mt-0 flex-1 overflow-y-auto">
-          <Suspense fallback={<div className="flex justify-center py-20"><LogoLoading size={60} /></div>}>
+          <Suspense
+            fallback={
+              <div className="flex justify-center py-20">
+                <LogoLoading size={60} />
+              </div>
+            }
+          >
             <DashboardAnalytics />
           </Suspense>
         </TabsContent>

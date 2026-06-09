@@ -49,7 +49,7 @@ const VisitorRow = memo(
         e.stopPropagation();
         onEditClick(visitor);
       },
-      [onEditClick, visitor]
+      [onEditClick, visitor],
     );
 
     const handleDeleteClick = useCallback(
@@ -57,7 +57,7 @@ const VisitorRow = memo(
         e.stopPropagation();
         onDeleteClick(visitor.registrationCode);
       },
-      [onDeleteClick, visitor.registrationCode]
+      [onDeleteClick, visitor.registrationCode],
     );
 
     return (
@@ -103,7 +103,9 @@ const VisitorRow = memo(
               onClick={handleDeleteClick}
               disabled={!canDelete}
               className="p-2 bg-red-500/10 text-red-400 rounded-xl hover:bg-red-500 hover:text-white transition-all shadow-lg active:scale-90 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-red-500/10 disabled:hover:text-red-400"
-              title={canDelete ? "Deletar visitante" : "Sem permissão para deletar"}
+              title={
+                canDelete ? "Deletar visitante" : "Sem permissão para deletar"
+              }
             >
               <Trash2 size={16} />
             </button>
@@ -111,7 +113,7 @@ const VisitorRow = memo(
         </TableCell>
       </TableRow>
     );
-  }
+  },
 );
 
 VisitorRow.displayName = "VisitorRow";
@@ -132,7 +134,7 @@ export const VisitorTable: React.FC<VisitorTableProps> = memo(
 
     const [openEditModal, setOpenEditModal] = useState<boolean>(false);
     const [visitorEdit, setVisitorEdit] = useState<Visitor | undefined>(
-      undefined
+      undefined,
     );
 
     const handleEdit = useCallback((visitor?: Visitor) => {
@@ -146,49 +148,63 @@ export const VisitorTable: React.FC<VisitorTableProps> = memo(
       (checkinId: string) => {
         handleClick(checkinId);
       },
-      [handleClick]
+      [handleClick],
     );
 
     const handleEditClick = useCallback(
       (visitor: Visitor) => {
         handleEdit(visitor);
       },
-      [handleEdit]
+      [handleEdit],
     );
 
     const handleDeleteClick = useCallback(
       (id: string) => {
         openDeleteModal(id);
       },
-      [openDeleteModal]
+      [openDeleteModal],
     );
 
     return (
       <>
-        <div className="overflow-auto custom-scrollbar">
+        <div>
           <Table>
             <TableHeader className="sticky top-0 z-10">
               <TableRow className="border-b border-white/10 hover:bg-transparent">
                 <TableHead>
-                  <div className="text-brand-pink font-black text-[10px] uppercase tracking-[0.2em] py-4">NOME</div>
+                  <div className="text-brand-pink font-black text-[10px] uppercase tracking-[0.2em] py-4">
+                    NOME
+                  </div>
                 </TableHead>
                 <TableHead>
-                  <div className="text-white/40 font-black text-[10px] uppercase tracking-[0.2em] py-4">EMPRESA</div>
+                  <div className="text-white/40 font-black text-[10px] uppercase tracking-[0.2em] py-4">
+                    EMPRESA
+                  </div>
                 </TableHead>
                 <TableHead>
-                  <div className="text-white/40 font-black text-[10px] uppercase tracking-[0.2em] py-4">EMAIL</div>
+                  <div className="text-white/40 font-black text-[10px] uppercase tracking-[0.2em] py-4">
+                    EMAIL
+                  </div>
                 </TableHead>
                 <TableHead>
-                  <div className="text-white/40 font-black text-[10px] uppercase tracking-[0.2em] py-4 text-center">CNPJ</div>
+                  <div className="text-white/40 font-black text-[10px] uppercase tracking-[0.2em] py-4 text-center">
+                    CNPJ
+                  </div>
                 </TableHead>
                 <TableHead>
-                  <div className="text-white/40 font-black text-[10px] uppercase tracking-[0.2em] py-4 text-center">TELEFONE</div>
+                  <div className="text-white/40 font-black text-[10px] uppercase tracking-[0.2em] py-4 text-center">
+                    TELEFONE
+                  </div>
                 </TableHead>
                 <TableHead>
-                  <div className="text-white/40 font-black text-[10px] uppercase tracking-[0.2em] py-4 text-center">DATA</div>
+                  <div className="text-white/40 font-black text-[10px] uppercase tracking-[0.2em] py-4 text-center">
+                    DATA
+                  </div>
                 </TableHead>
                 <TableHead className="w-40 text-center">
-                  <div className="text-white/40 font-black text-[10px] uppercase tracking-[0.2em] py-4">AÇÕES</div>
+                  <div className="text-white/40 font-black text-[10px] uppercase tracking-[0.2em] py-4">
+                    AÇÕES
+                  </div>
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -260,7 +276,7 @@ export const VisitorTable: React.FC<VisitorTableProps> = memo(
         )}
       </>
     );
-  }
+  },
 );
 
 VisitorTable.displayName = "VisitorTable";

@@ -29,7 +29,9 @@ export const MainLayout: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { user, availableFairIds } = useUserSession();
   const { signOut } = useAuth();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(() => user?.role !== EUserRole.RECEPTIONIST);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(
+    () => user?.role !== EUserRole.RECEPTIONIST,
+  );
 
   // Hook para gerenciar o cookie da feira selecionada
   const [savedFairId, setSavedFairId] = useCookie("selectedFairId", "", {
@@ -54,16 +56,23 @@ export const MainLayout: React.FC = () => {
     const list = fairs || [];
     if (!user) return [];
     if (user.role === EUserRole.ADMIN) return list;
-    const roleFiltered = list.filter((fair: any) => availableFairIds.length === 0 || availableFairIds.includes(fair.id));
+    const roleFiltered = list.filter(
+      (fair: any) =>
+        availableFairIds.length === 0 || availableFairIds.includes(fair.id),
+    );
     // Recepcionista só vê feiras ativas e que ainda não encerraram
-    if (user.role === EUserRole.RECEPTIONIST) return roleFiltered.filter((fair: any) => fair.isActive && !isFairExpired(fair));
+    if (user.role === EUserRole.RECEPTIONIST)
+      return roleFiltered.filter(
+        (fair: any) => fair.isActive && !isFairExpired(fair),
+      );
     return roleFiltered;
   }, [fairs, user, availableFairIds]);
 
   // Determina o ID inicial baseado em: URL params > Cookie > Primeira feira disponível
   const getInitialFairId = () => {
     const urlFairId = searchParams.get("fairId");
-    if (urlFairId && availableFairs.find((f: any) => f.id === urlFairId)) return urlFairId;
+    if (urlFairId && availableFairs.find((f: any) => f.id === urlFairId))
+      return urlFairId;
     if (savedFairId && availableFairs.find((f: any) => f.id === savedFairId))
       return savedFairId;
     return availableFairs[0]?.id ?? "";
@@ -75,7 +84,8 @@ export const MainLayout: React.FC = () => {
   const [isFairPopoverOpen, setIsFairPopoverOpen] = useState(false);
   const [fairSearchText, setFairSearchText] = useState("");
   const [selectedYearFilter, setSelectedYearFilter] = useState<string>("all");
-  const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>("all"); // "all", "active", "inactive"
+  const [selectedStatusFilter, setSelectedStatusFilter] =
+    useState<string>("all"); // "all", "active", "inactive"
 
   // Extrai anos únicos a partir das datas em que a feira acontece (startDate, endDate, startDateTime, endDateTime)
   const uniqueYears = useMemo(() => {
@@ -85,9 +95,9 @@ export const MainLayout: React.FC = () => {
         fair.startDate,
         fair.endDate,
         fair.startDateTime,
-        fair.endDateTime
+        fair.endDateTime,
       ];
-      
+
       datesToTry.forEach((dateStr) => {
         if (dateStr) {
           try {
@@ -113,7 +123,9 @@ export const MainLayout: React.FC = () => {
   const filteredFairs = useMemo(() => {
     return availableFairs.filter((fair: any) => {
       if (fairSearchText.trim()) {
-        const matchesName = fair.name.toLowerCase().includes(fairSearchText.toLowerCase());
+        const matchesName = fair.name
+          .toLowerCase()
+          .includes(fairSearchText.toLowerCase());
         if (!matchesName) return false;
       }
 
@@ -122,7 +134,7 @@ export const MainLayout: React.FC = () => {
           fair.startDate,
           fair.endDate,
           fair.startDateTime,
-          fair.endDateTime
+          fair.endDateTime,
         ].some((dateStr) => {
           if (!dateStr) return false;
           try {
@@ -148,7 +160,12 @@ export const MainLayout: React.FC = () => {
 
       return true;
     });
-  }, [availableFairs, fairSearchText, selectedYearFilter, selectedStatusFilter]);
+  }, [
+    availableFairs,
+    fairSearchText,
+    selectedYearFilter,
+    selectedStatusFilter,
+  ]);
 
   const handleSelectChange = (id: string) => {
     setSelectedId(id);
@@ -167,11 +184,26 @@ export const MainLayout: React.FC = () => {
     const loc = (selectedFair.location ?? "").toLowerCase();
     const year =
       selectedFair.startDate?.split("-")[0] ??
-      (selectedFair.startDateTime ? new Date(selectedFair.startDateTime).getFullYear().toString() : null);
+      (selectedFair.startDateTime
+        ? new Date(selectedFair.startDateTime).getFullYear().toString()
+        : null);
     if (city.includes("manaus") || state === "AM" || loc.includes("manaus"))
-      return { label: "Manaus", year, flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Bandeira_do_Amazonas.svg/120px-Bandeira_do_Amazonas.svg.png" };
-    if (city.includes("bel") || state === "PA" || loc.includes("belém") || loc.includes("belem"))
-      return { label: "Belém", year, flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Bandeira_do_Pará.svg/120px-Bandeira_do_Pará.svg.png" };
+      return {
+        label: "Manaus",
+        year,
+        flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Bandeira_do_Amazonas.svg/120px-Bandeira_do_Amazonas.svg.png",
+      };
+    if (
+      city.includes("bel") ||
+      state === "PA" ||
+      loc.includes("belém") ||
+      loc.includes("belem")
+    )
+      return {
+        label: "Belém",
+        year,
+        flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Bandeira_do_Pará.svg/120px-Bandeira_do_Pará.svg.png",
+      };
     return null;
   }, [isReceptionist, selectedFair]);
 
@@ -183,7 +215,7 @@ export const MainLayout: React.FC = () => {
   useEffect(() => {
     if (availableFairs.length > 0) {
       const newId = getInitialFairId();
-      
+
       // Só atualiza o estado local se mudou
       if (newId && newId !== selectedId) {
         setSelectedId(newId);
@@ -224,7 +256,11 @@ export const MainLayout: React.FC = () => {
         <header className="relative shrink-0 z-40 w-full bg-brand-blue/80 backdrop-blur-md border-b border-white/5 shadow-xl">
           {fairCity && (
             <h1 className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex items-center justify-center gap-3 pointer-events-none select-none">
-              <img src={fairCity.flag} alt={fairCity.label} className="h-8 sm:h-10 w-auto rounded shadow-lg" />
+              <img
+                src={fairCity.flag}
+                alt={fairCity.label}
+                className="h-8 sm:h-10 w-auto rounded shadow-lg"
+              />
               <span className="text-2xl sm:text-4xl font-black text-white uppercase tracking-widest drop-shadow-lg">
                 {fairCity.label}
               </span>
@@ -233,7 +269,12 @@ export const MainLayout: React.FC = () => {
                   {fairCity.year}
                 </span>
               )}
-              <img src={fairCity.flag} alt="" aria-hidden className="h-8 sm:h-10 w-auto rounded shadow-lg" />
+              <img
+                src={fairCity.flag}
+                alt=""
+                aria-hidden
+                className="h-8 sm:h-10 w-auto rounded shadow-lg"
+              />
             </h1>
           )}
           <div className="px-4 h-16 sm:h-20 flex items-center justify-between gap-4">
@@ -257,7 +298,9 @@ export const MainLayout: React.FC = () => {
                   className={cn(
                     "h-7 sm:h-9 w-auto shrink-0",
                     // mobile: hidden xs → visible; desktop: oculto quando sidebar aberta
-                    isSidebarOpen ? "hidden xs:hidden lg:hidden" : "hidden xs:block"
+                    isSidebarOpen
+                      ? "hidden xs:hidden lg:hidden"
+                      : "hidden xs:block",
                   )}
                 />
 
@@ -274,24 +317,35 @@ export const MainLayout: React.FC = () => {
                 )}
 
                 {/* Separador: só aparece quando há logo ou botão à esquerda */}
-                <div className={cn(
-                  "h-6 w-px bg-white/10 shrink-0",
-                  isSidebarOpen ? "hidden sm:hidden lg:hidden" : "hidden sm:block"
-                )}></div>
+                <div
+                  className={cn(
+                    "h-6 w-px bg-white/10 shrink-0",
+                    isSidebarOpen
+                      ? "hidden sm:hidden lg:hidden"
+                      : "hidden sm:block",
+                  )}
+                ></div>
 
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <div className={cn(
-                    "rounded-full h-2 w-2 shrink-0 hidden xs:block transition-all duration-300",
-                    selectedFair?.isActive
-                      ? "bg-green-400 shadow-[0_0_10px_rgba(74,222,128,0.5)]"
-                      : "bg-white/20"
-                  )}></div>
-                  
-                  <Popover open={isFairPopoverOpen} onOpenChange={setIsFairPopoverOpen}>
+                  <div
+                    className={cn(
+                      "rounded-full h-2 w-2 shrink-0 hidden xs:block transition-all duration-300",
+                      selectedFair?.isActive
+                        ? "bg-green-400 shadow-[0_0_10px_rgba(74,222,128,0.5)]"
+                        : "bg-white/20",
+                    )}
+                  ></div>
+
+                  <Popover
+                    open={isFairPopoverOpen}
+                    onOpenChange={setIsFairPopoverOpen}
+                  >
                     <PopoverTrigger asChild>
                       <button className="h-9 sm:h-10 bg-white/5 border border-white/10 text-white text-[10px] sm:text-xs font-black uppercase tracking-widest hover:bg-white/10 transition-all rounded-2xl px-3 sm:px-4 cursor-pointer flex items-center gap-2 max-w-45 sm:max-w-none">
                         <span className="truncate">
-                          {selectedFair ? selectedFair.name : "Selecione uma feira"}
+                          {selectedFair
+                            ? selectedFair.name
+                            : "Selecione uma feira"}
                         </span>
                         <ChevronDown className="w-4 h-4 opacity-50 shrink-0" />
                       </button>
@@ -301,7 +355,7 @@ export const MainLayout: React.FC = () => {
                         <div className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50 border-b border-white/5 pb-2">
                           Filtrar Feiras
                         </div>
-                        
+
                         {/* Campo de Busca */}
                         <div className="relative">
                           <Search className="absolute left-3 top-2.5 h-4 w-4 text-white/30" />
@@ -314,15 +368,24 @@ export const MainLayout: React.FC = () => {
                         </div>
 
                         {/* Status (Ativas / Inativas / Todas) — oculto para recepcionista */}
-                        <div className={cn("space-y-1.5", isReceptionist && "hidden")}>
-                          <div className="text-[9px] font-black uppercase tracking-wider text-white/40">Status</div>
+                        <div
+                          className={cn(
+                            "space-y-1.5",
+                            isReceptionist && "hidden",
+                          )}
+                        >
+                          <div className="text-[9px] font-black uppercase tracking-wider text-white/40">
+                            Status
+                          </div>
                           <div className="flex gap-1.5 bg-white/5 p-1 rounded-xl border border-white/5">
                             <button
                               type="button"
                               onClick={() => setSelectedStatusFilter("all")}
                               className={cn(
                                 "flex-1 text-[9px] font-black uppercase tracking-wider py-1.5 rounded-lg transition-all cursor-pointer",
-                                selectedStatusFilter === "all" ? "bg-white/10 text-white" : "text-white/40 hover:text-white/75"
+                                selectedStatusFilter === "all"
+                                  ? "bg-white/10 text-white"
+                                  : "text-white/40 hover:text-white/75",
                               )}
                             >
                               Todas
@@ -332,17 +395,23 @@ export const MainLayout: React.FC = () => {
                               onClick={() => setSelectedStatusFilter("active")}
                               className={cn(
                                 "flex-1 text-[9px] font-black uppercase tracking-wider py-1.5 rounded-lg transition-all cursor-pointer",
-                                selectedStatusFilter === "active" ? "bg-white/10 text-green-400" : "text-white/40 hover:text-white/75"
+                                selectedStatusFilter === "active"
+                                  ? "bg-white/10 text-green-400"
+                                  : "text-white/40 hover:text-white/75",
                               )}
                             >
                               Ativas
                             </button>
                             <button
                               type="button"
-                              onClick={() => setSelectedStatusFilter("inactive")}
+                              onClick={() =>
+                                setSelectedStatusFilter("inactive")
+                              }
                               className={cn(
                                 "flex-1 text-[9px] font-black uppercase tracking-wider py-1.5 rounded-lg transition-all cursor-pointer",
-                                selectedStatusFilter === "inactive" ? "bg-white/10 text-white/60" : "text-white/40 hover:text-white/75"
+                                selectedStatusFilter === "inactive"
+                                  ? "bg-white/10 text-white/60"
+                                  : "text-white/40 hover:text-white/75",
                               )}
                             >
                               Inativas
@@ -352,7 +421,9 @@ export const MainLayout: React.FC = () => {
 
                         {/* Filtro por Ano */}
                         <div className="space-y-1.5">
-                          <div className="text-[9px] font-black uppercase tracking-wider text-white/40">Ano</div>
+                          <div className="text-[9px] font-black uppercase tracking-wider text-white/40">
+                            Ano
+                          </div>
                           <div className="flex flex-wrap gap-1 max-h-24 overflow-y-auto pr-1">
                             <button
                               type="button"
@@ -361,7 +432,7 @@ export const MainLayout: React.FC = () => {
                                 "text-[9px] font-bold py-1 px-2.5 rounded-lg border transition-all cursor-pointer",
                                 selectedYearFilter === "all"
                                   ? "bg-linear-to-br from-[#00aacd] to-[#EB2970] border-none text-white"
-                                  : "border-white/10 bg-white/5 text-white/60 hover:bg-white/10 hover:text-white"
+                                  : "border-white/10 bg-white/5 text-white/60 hover:bg-white/10 hover:text-white",
                               )}
                             >
                               Todos
@@ -375,7 +446,7 @@ export const MainLayout: React.FC = () => {
                                   "text-[9px] font-bold py-1 px-2.5 rounded-lg border transition-all cursor-pointer",
                                   selectedYearFilter === year
                                     ? "bg-linear-to-br from-[#00aacd] to-[#EB2970] border-none text-white"
-                                    : "border-white/10 bg-white/5 text-white/60 hover:bg-white/10 hover:text-white"
+                                    : "border-white/10 bg-white/5 text-white/60 hover:bg-white/10 hover:text-white",
                                 )}
                               >
                                 {year}
@@ -386,7 +457,9 @@ export const MainLayout: React.FC = () => {
 
                         {/* Listagem das Feiras Filtradas */}
                         <div className="space-y-1.5">
-                          <div className="text-[9px] font-black uppercase tracking-wider text-white/40">Feiras ({filteredFairs.length})</div>
+                          <div className="text-[9px] font-black uppercase tracking-wider text-white/40">
+                            Feiras ({filteredFairs.length})
+                          </div>
                           <div className="max-h-48 overflow-y-auto space-y-1 pr-1 border border-white/5 bg-white/3 rounded-xl p-1.5">
                             {filteredFairs.length > 0 ? (
                               filteredFairs.map((fair: any) => {
@@ -403,16 +476,24 @@ export const MainLayout: React.FC = () => {
                                       "w-full text-left px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-between gap-2 cursor-pointer",
                                       isSelected
                                         ? "bg-white/10 text-white border border-white/10"
-                                        : "text-white/60 hover:bg-white/5 hover:text-white"
+                                        : "text-white/60 hover:bg-white/5 hover:text-white",
                                     )}
                                   >
-                                    <span className="truncate flex-1">{fair.name}</span>
+                                    <span className="truncate flex-1">
+                                      {fair.name}
+                                    </span>
                                     <div className="flex items-center gap-1.5 shrink-0">
-                                      <span className={cn(
-                                        "h-1.5 w-1.5 rounded-full",
-                                        fair.isActive ? "bg-green-400 shadow-[0_0_6px_rgba(74,222,128,0.5)]" : "bg-white/20"
-                                      )} />
-                                      {isSelected && <Check className="w-3.5 h-3.5 text-brand-pink shrink-0" />}
+                                      <span
+                                        className={cn(
+                                          "h-1.5 w-1.5 rounded-full",
+                                          fair.isActive
+                                            ? "bg-green-400 shadow-[0_0_6px_rgba(74,222,128,0.5)]"
+                                            : "bg-white/20",
+                                        )}
+                                      />
+                                      {isSelected && (
+                                        <Check className="w-3.5 h-3.5 text-brand-pink shrink-0" />
+                                      )}
                                     </div>
                                   </button>
                                 );
@@ -435,9 +516,11 @@ export const MainLayout: React.FC = () => {
             <div className="flex items-center gap-2 sm:gap-4 shrink-0">
               {/* User - Hidden on very small screens */}
               <div className="hidden md:flex flex-col items-end mr-2">
-                <span className="text-[10px] text-white/40 font-black uppercase tracking-[0.2em]">Operador</span>
+                <span className="text-[10px] text-white/40 font-black uppercase tracking-[0.2em]">
+                  Operador
+                </span>
                 <span className="text-xs text-white font-bold truncate max-w-30">
-                  {user?.email.split('@')[0]}
+                  {user?.email.split("@")[0]}
                 </span>
               </div>
 
@@ -457,15 +540,26 @@ export const MainLayout: React.FC = () => {
 
                 <Popover>
                   <PopoverTrigger asChild>
-                    <button className="p-2 rounded-xl h-9 w-9 flex items-center justify-center hover:bg-white/10 transition-all text-white/60 hover:text-white" aria-label="Configurações" title="Configurações">
+                    <button
+                      className="p-2 rounded-xl h-9 w-9 flex items-center justify-center hover:bg-white/10 transition-all text-white/60 hover:text-white"
+                      aria-label="Configurações"
+                      title="Configurações"
+                    >
                       <Settings className="h-4 w-4" />
                     </button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-60 mt-2 bg-slate-950 border border-white/10 p-2 rounded-2xl shadow-2xl" align="end">
+                  <PopoverContent
+                    className="w-60 mt-2 bg-slate-950 border border-white/10 p-2 rounded-2xl shadow-2xl"
+                    align="end"
+                  >
                     {/* Cabeçalho — usuário conectado */}
                     <div className="px-3 py-2.5 mb-1 border-b border-white/5">
-                      <p className="text-[9px] font-black uppercase tracking-[0.2em] text-white/30 mb-0.5">Conectado como</p>
-                      <p className="text-xs font-bold text-white truncate">{user?.email}</p>
+                      <p className="text-[9px] font-black uppercase tracking-[0.2em] text-white/30 mb-0.5">
+                        Conectado como
+                      </p>
+                      <p className="text-xs font-bold text-white truncate">
+                        {user?.email}
+                      </p>
                     </div>
 
                     {/* Ações */}
@@ -492,12 +586,8 @@ export const MainLayout: React.FC = () => {
         </header>
 
         {/* Content — cresce para preencher, único elemento que faz scroll */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden bg-brand-blue relative">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-brand-pink/5 blur-[120px] rounded-full -translate-y-1/2 pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-96 h-96 bg-brand-cyan/5 blur-[120px] rounded-full translate-y-1/2 pointer-events-none" />
-          <div className="relative z-10 p-6">
-            <Outlet />
-          </div>
+        <main className="flex-1  bg-brand-blue p-6">
+          <Outlet />
         </main>
 
         {/* Footer — fixo no fundo, fora do scroll */}
