@@ -133,24 +133,16 @@ export default function PartnersPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Sócios</h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Gestão de sócios e distribuição de lucros
-          </p>
-        </div>
-        {isAdmin && (
-          <Button onClick={() => setIsCreateDialogOpen(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            Novo Sócio
-          </Button>
-        )}
-      </div>
-
       <Tabs defaultValue="socios">
-        <TabsList className="mb-2">
+        {/* Header: título à esquerda, tabs centralizado, botão à direita */}
+        <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-4 mb-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Sócios</h1>
+            <p className="text-gray-600 dark:text-gray-400">
+              Gestão de sócios e distribuição de lucros
+            </p>
+          </div>
+          <TabsList>
           <TabsTrigger value="socios" className="flex items-center gap-2">
             <Users className="w-4 h-4" />
             Sócios
@@ -162,6 +154,15 @@ export default function PartnersPage() {
             </TabsTrigger>
           )}
         </TabsList>
+          <div className="flex justify-end">
+            {isAdmin && (
+              <Button onClick={() => setIsCreateDialogOpen(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Novo Sócio
+              </Button>
+            )}
+          </div>
+        </div>
 
         <TabsContent value="financeiro">
           <FairFinancialOverview fairId={fairId} />

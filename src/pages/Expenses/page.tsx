@@ -313,8 +313,9 @@ export default function ExpensesPage() {
 
   return (
     <div className="text-white space-y-8 pb-12">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Header + Tabs na mesma linha */}
+      <Tabs defaultValue="direct">
+      <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-4">
         <div>
           <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.2em] mb-1">
             Custos e Operações
@@ -327,7 +328,24 @@ export default function ExpensesPage() {
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <TabsList className="bg-white/5 backdrop-blur-md border border-white/10 p-1.5 rounded-2xl gap-1 h-auto">
+          <TabsTrigger
+            value="direct"
+            className="rounded-xl px-6 py-2.5 text-xs font-black uppercase tracking-wider text-white/50 transition-all duration-200 data-[state=active]:bg-linear-to-br data-[state=active]:from-[#00aacd] data-[state=active]:to-[#EB2970] data-[state=active]:text-white data-[state=active]:shadow-lg hover:text-white cursor-pointer"
+          >
+            Diretas&nbsp;
+            <span className="opacity-60">({directCount})</span>
+          </TabsTrigger>
+          <TabsTrigger
+            value="overhead"
+            className="rounded-xl px-6 py-2.5 text-xs font-black uppercase tracking-wider text-white/50 transition-all duration-200 data-[state=active]:bg-linear-to-br data-[state=active]:from-[#00aacd] data-[state=active]:to-[#EB2970] data-[state=active]:text-white data-[state=active]:shadow-lg hover:text-white cursor-pointer"
+          >
+            Overhead&nbsp;
+            <span className="opacity-60">({overheadCount})</span>
+          </TabsTrigger>
+        </TabsList>
+
+        <div className="flex flex-wrap items-end justify-end gap-3">
           <Button
             variant="outline"
             onClick={() => setIsChartsOpen(!isChartsOpen)}
@@ -473,27 +491,8 @@ export default function ExpensesPage() {
         </Card>
       )}
 
-      {/* Abas e Tabelas de Despesas */}
-      <Tabs defaultValue="direct" className="space-y-6">
-        <div className="flex justify-center">
-          <TabsList className="bg-white/5 backdrop-blur-md border border-white/10 p-1.5 rounded-2xl gap-1 h-auto">
-            <TabsTrigger
-              value="direct"
-              className="rounded-xl px-6 py-2.5 text-xs font-black uppercase tracking-wider text-white/50 transition-all duration-200 data-[state=active]:bg-linear-to-br data-[state=active]:from-[#00aacd] data-[state=active]:to-[#EB2970] data-[state=active]:text-white data-[state=active]:shadow-lg hover:text-white cursor-pointer"
-            >
-              Diretas&nbsp;
-              <span className="opacity-60">({directCount})</span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="overhead"
-              className="rounded-xl px-6 py-2.5 text-xs font-black uppercase tracking-wider text-white/50 transition-all duration-200 data-[state=active]:bg-linear-to-br data-[state=active]:from-[#00aacd] data-[state=active]:to-[#EB2970] data-[state=active]:text-white data-[state=active]:shadow-lg hover:text-white cursor-pointer"
-            >
-              Overhead&nbsp;
-              <span className="opacity-60">({overheadCount})</span>
-            </TabsTrigger>
-          </TabsList>
-        </div>
-        
+      {/* Tabelas de Despesas */}
+      <div className="space-y-6">
         <TabsContent value="direct" className="outline-hidden">
           <Card className="glass-card border border-white/5 rounded-2xl p-6 overflow-hidden">
             <CardHeader className="p-0 pb-4">
@@ -527,6 +526,7 @@ export default function ExpensesPage() {
             </CardContent>
           </Card>
         </TabsContent>
+      </div>
       </Tabs>
 
       {/* Modal de Formulário Unificado */}

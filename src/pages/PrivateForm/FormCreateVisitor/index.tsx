@@ -8,7 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { useSearchParams } from "@/hooks/useSearchParams";
 import { usePublicFormService } from "@/service/publicform.service";
-import { CheckCircle2, ChevronDown, ChevronUp, History, Loader2, MapPin, Save, Search, X } from "lucide-react";
+import { CheckCircle2, ChevronDown, ChevronUp, History, Loader2, MapPin, Minus, Plus as PlusIcon, Save, Search, UserPlus, X } from "lucide-react";
 import {
   credenciamentoSchema,
   defaultVisitorCnpj,
@@ -45,12 +45,16 @@ const setoresOpcoes = [
   "Outro",
 ];
 
+type GuestEntry = { name: string; email: string; phone: string };
+
 export const FormularioCredenciamento: React.FC = () => {
   const [checkbox, setCheckbox] = useState<boolean>(false);
   const [isRep, setIsRep] = useState<boolean>(false);
   const [resgister, setRegistrationCode] = useState<IVisistor>();
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isFetchingCep, setIsFetchingCep] = useState(false);
+  const [guests, setGuests] = useState<GuestEntry[]>([]);
+  const [guestCount, setGuestCount] = useState<number>(0);
   const [, , fairId] = useSearchParams();
 
   // Lookup state
@@ -194,6 +198,11 @@ export const FormularioCredenciamento: React.FC = () => {
       return toast.error("Aceite os termos!");
     }
 
+    const emptyGuests = guests.filter((g) => !g.name.trim());
+    if (emptyGuests.length > 0) {
+      return toast.error(`Preencha o nome de todos os ${emptyGuests.length} convidado(s) antes de finalizar.`);
+    }
+
     if (!fairId) {
       return toast.error("ID da feira não encontrado. Recarregue a página.");
     }
@@ -239,6 +248,28 @@ export const FormularioCredenciamento: React.FC = () => {
           "Erro ao criar cadastro. Verifique sua conexão com a internet e tente novamente."
         );
         return;
+      }
+
+      // Cadastra convidados sequencialmente copiando os dados do titular
+      if (guests.length > 0) {
+        let guestErrors = 0;
+        for (const guest of guests) {
+          try {
+            await create({
+              ...payload,
+              name: guest.name.trim(),
+              email: guest.email.trim() || payload.email,
+              phone: unmaskString(guest.phone) || payload.phone,
+            });
+          } catch {
+            guestErrors++;
+          }
+        }
+        if (guestErrors > 0) {
+          toast.warning(`${guests.length - guestErrors} convidado(s) cadastrado(s), ${guestErrors} com erro.`);
+        } else {
+          toast.success(`${guests.length} convidado(s) cadastrado(s) com sucesso!`);
+        }
       }
 
       // Aguarda um pequeno delay antes de atualizar o estado para evitar conflitos de DOM
@@ -388,6 +419,22 @@ export const FormularioCredenciamento: React.FC = () => {
   const setoresSelecionados = watch("sectors") || [];
   const ingresso = watch("ingresso");
   const zipCode = watch("zipCode");
+  const mainEmail = watch("email") || "";
+  const mainPhone = watch("phone") || "";
+
+  const updateGuestCount = (count: number) => {
+    const clamped = Math.max(0, Math.min(10, count));
+    setGuestCount(clamped);
+    setGuests((prev) => {
+      const next = [...prev];
+      while (next.length < clamped)
+        next.push({ name: "", email: mainEmail, phone: mainPhone });
+      return next.slice(0, clamped);
+    });
+  };
+
+  const updateGuest = (index: number, field: keyof GuestEntry, value: string) =>
+    setGuests((prev) => prev.map((g, i) => (i === index ? { ...g, [field]: value } : g)));
 
   useEffect(() => {
     const cleaned = zipCode?.replace(/\D/g, "");
@@ -913,6 +960,91 @@ export const FormularioCredenciamento: React.FC = () => {
                 );
               })}
             </div>
+          </div>
+
+          {/* ── CONVIDADOS ── */}
+          <div className="glass-card p-6 rounded-[32px] border border-white/10 shadow-xl space-y-5">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-brand-pink/10 flex items-center justify-center shrink-0">
+                  <UserPlus className="h-4 w-4 text-brand-pink" />
+                </div>
+                <div>
+                  <p className="text-sm font-black text-white uppercase tracking-widest">Convidados</p>
+                  <p className="text-[9px] text-white/30 font-medium mt-0.5 uppercase tracking-wider">Opcional — dados da empresa serão copiados automaticamente</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => updateGuestCount(guestCount - 1)}
+                  className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/50 hover:bg-white/10 hover:text-white transition-all active:scale-90 disabled:opacity-30"
+                  disabled={guestCount === 0}
+                >
+                  <Minus className="h-3.5 w-3.5" />
+                </button>
+                <span className="text-white font-black text-sm w-6 text-center tabular-nums">{guestCount}</span>
+                <button
+                  type="button"
+                  onClick={() => updateGuestCount(guestCount + 1)}
+                  className="w-8 h-8 rounded-xl bg-brand-pink/20 border border-brand-pink/30 flex items-center justify-center text-brand-pink hover:bg-brand-pink/30 transition-all active:scale-90 disabled:opacity-30"
+                  disabled={guestCount >= 10}
+                >
+                  <PlusIcon className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
+
+            {guests.length > 0 && (
+              <div className="space-y-3">
+                {guests.map((guest, i) => (
+                  <div key={i} className="grid grid-cols-12 gap-3 p-4 bg-white/3 rounded-2xl border border-white/5">
+                    <div className="col-span-12 flex items-center gap-2 mb-1">
+                      <span className="text-[9px] font-black text-brand-pink/60 uppercase tracking-widest">Convidado {i + 1}</span>
+                    </div>
+
+                    <div className="col-span-12 lg:col-span-4 flex flex-col gap-1.5">
+                      <label className="text-white/50 font-black text-[9px] uppercase tracking-widest ml-1">
+                        Nome <span className="text-brand-pink">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={guest.name}
+                        onChange={(e) => updateGuest(i, "name", e.target.value)}
+                        placeholder="Nome completo do convidado"
+                        className="flex h-10 w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/20 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-pink/50 transition-colors"
+                      />
+                    </div>
+
+                    <div className="col-span-12 lg:col-span-4 flex flex-col gap-1.5">
+                      <label className="font-black text-[9px] uppercase tracking-widest ml-1 text-white/30">
+                        E-mail <span className="text-white/20 normal-case font-medium tracking-normal">(opcional)</span>
+                      </label>
+                      <input
+                        type="email"
+                        value={guest.email}
+                        onChange={(e) => updateGuest(i, "email", e.target.value)}
+                        placeholder="Pré-preenchido — pode manter"
+                        className="flex h-10 w-full rounded-xl border border-white/5 bg-white/3 px-3 py-2 text-sm text-white/70 placeholder:text-white/15 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/20 transition-colors"
+                      />
+                    </div>
+
+                    <div className="col-span-12 lg:col-span-4 flex flex-col gap-1.5">
+                      <label className="font-black text-[9px] uppercase tracking-widest ml-1 text-white/30">
+                        Telefone <span className="text-white/20 normal-case font-medium tracking-normal">(opcional)</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={guest.phone}
+                        onChange={(e) => updateGuest(i, "phone", maskPhoneBR(e.target.value))}
+                        placeholder="Pré-preenchido — pode manter"
+                        className="flex h-10 w-full rounded-xl border border-white/5 bg-white/3 px-3 py-2 text-sm text-white/70 placeholder:text-white/15 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/20 transition-colors"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="p-8 bg-white/2 border border-white/5 rounded-[32px] flex items-start gap-6 cursor-pointer hover:bg-white/5 transition-all group">

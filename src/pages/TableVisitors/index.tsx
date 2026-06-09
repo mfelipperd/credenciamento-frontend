@@ -30,17 +30,16 @@ export const TableVisitors = () => {
 
   return (
     <div className="space-y-6">
-      {/* Cabeçalho da página */}
-      <div className="space-y-2">
-        <h2 className="text-3xl font-black text-white uppercase tracking-tighter">
-          Gestão de <span className="text-brand-pink">Participantes</span>
-        </h2>
-        <div className="h-1.5 w-20 bg-linear-to-r from-brand-pink to-brand-cyan rounded-full" />
-      </div>
-
       {/* Tabs */}
       <Tabs defaultValue="participants">
-        <div className="flex justify-center mb-6">
+        {/* Cabeçalho: título à esquerda, tabs centralizado — mesma linha */}
+        <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-4 mb-6">
+          <div className="space-y-2">
+            <h2 className="text-3xl font-black text-white uppercase tracking-tighter">
+              Gestão de <span className="text-brand-pink">Participantes</span>
+            </h2>
+            <div className="h-1.5 w-20 bg-linear-to-r from-brand-pink to-brand-cyan rounded-full" />
+          </div>
           <TabsList className="bg-white/5 border border-white/10 rounded-2xl p-1 gap-1">
             <TabsTrigger
               value="participants"
@@ -57,33 +56,31 @@ export const TableVisitors = () => {
               Dashboard
             </TabsTrigger>
           </TabsList>
+          <div className="flex items-end justify-end gap-3">
+            <Button
+              type="button"
+              onClick={controller.handleExportPdf}
+              disabled={controller.isExporting}
+              className="h-10 px-5 bg-white/10 border border-white/20 rounded-2xl text-white text-xs font-black uppercase tracking-widest hover:bg-white/20 transition-all active:scale-[0.98] cursor-pointer"
+            >
+              <Download className={`mr-2 h-4 w-4 ${controller.isExporting ? "animate-bounce" : ""}`} />
+              {controller.isExporting ? "Gerando..." : "Exportar PDF"}
+            </Button>
+            <Button
+              type="button"
+              onClick={handleClick}
+              className="h-10 px-5 bg-brand-pink rounded-2xl text-white text-xs font-black uppercase tracking-widest hover:bg-brand-pink/90 transition-all shadow-lg shadow-brand-pink/20 active:scale-[0.98] cursor-pointer"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Cadastrar Novo
+            </Button>
+          </div>
         </div>
 
         {/* Tab: Participantes */}
         <TabsContent value="participants" className="mt-0">
-          <CardRoot className="bg-brand-blue border-white/5 glass-card rounded-[40px] shadow-2xl overflow-hidden p-8 lg:p-12">
-            <div className="w-full flex flex-col gap-10">
-              {/* Ações */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-4">
-                <Button
-                  type="button"
-                  onClick={controller.handleExportPdf}
-                  disabled={controller.isExporting}
-                  className="h-14 px-8 bg-white/10 border border-white/20 rounded-2xl text-white font-black uppercase tracking-widest hover:bg-white/20 transition-all active:scale-[0.98] cursor-pointer"
-                >
-                  <Download className={`mr-3 h-5 w-5 ${controller.isExporting ? "animate-bounce" : ""}`} />
-                  {controller.isExporting ? "Gerando..." : "Exportar PDF"}
-                </Button>
-                <Button
-                  type="button"
-                  onClick={handleClick}
-                  className="h-14 px-8 bg-brand-pink rounded-2xl text-white font-black uppercase tracking-widest hover:bg-brand-pink/90 transition-all shadow-xl shadow-brand-pink/20 active:scale-[0.98] cursor-pointer"
-                >
-                  <Plus className="mr-3 h-5 w-5" />
-                  Cadastrar Novo
-                </Button>
-              </div>
-
+          <CardRoot className="bg-brand-blue border-white/5 glass-card rounded-[40px] shadow-2xl overflow-hidden p-4 lg:p-6">
+            <div className="w-full flex flex-col gap-4">
               {/* Filtros */}
               <div className="flex flex-col gap-6">
                 <div className="flex flex-col md:flex-row gap-4">

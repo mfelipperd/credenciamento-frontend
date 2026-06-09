@@ -42,17 +42,17 @@ export const PartnerDashboard: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          Meu Painel
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-2">
-          Gerencie seus ganhos e solicite saques
-        </p>
-      </div>
-
       <Tabs defaultValue="summary" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+              Meu Painel
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-2">
+              Gerencie seus ganhos e solicite saques
+            </p>
+          </div>
+          <TabsList className="grid grid-cols-4">
           <TabsTrigger value="summary" className="flex items-center gap-2">
             <Wallet className="h-4 w-4" />
             Resumo Financeiro
@@ -70,6 +70,8 @@ export const PartnerDashboard: React.FC = () => {
             Todas as Feiras
           </TabsTrigger>
         </TabsList>
+          <div />
+        </div>
 
         <TabsContent value="summary">
           <FinancialSummary partnerId={partner.id} fairId={fairId || ""} />

@@ -52,16 +52,32 @@ export const StandsPage: React.FC<StandsPageProps> = ({ fairId }) => {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            Gerenciamento de Stands
-          </h1>
-          <p className="text-gray-600 mt-1">
-            Configure e gerencie os stands da feira
-          </p>
+      <Tabs defaultValue="map" className="w-full">
+        <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-4 mb-6">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">
+              Gerenciamento de Stands
+            </h1>
+            <p className="text-gray-600 mt-1">
+              Configure e gerencie os stands da feira
+            </p>
+          </div>
+          <TabsList>
+            <TabsTrigger value="map" className="flex items-center gap-2">
+              <Map className="h-4 w-4" />
+              Mapa de Stands
+            </TabsTrigger>
+            <TabsTrigger value="stats" className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              Estatísticas
+            </TabsTrigger>
+            <TabsTrigger value="config" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              Configurar
+            </TabsTrigger>
+          </TabsList>
+          <div />
         </div>
-      </div>
 
       {/* Cards de Estatísticas */}
       {stats && (
@@ -136,21 +152,6 @@ export const StandsPage: React.FC<StandsPageProps> = ({ fairId }) => {
       )}
 
       {/* Tabs principais */}
-      <Tabs defaultValue="map" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="map" className="flex items-center gap-2">
-            <Map className="h-4 w-4" />
-            Mapa de Stands
-          </TabsTrigger>
-          <TabsTrigger value="stats" className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
-            Estatísticas
-          </TabsTrigger>
-          <TabsTrigger value="config" className="flex items-center gap-2">
-            <Settings className="h-4 w-4" />
-            Configurar
-          </TabsTrigger>
-        </TabsList>
 
         <TabsContent value="map" className="space-y-4">
           <Card>
