@@ -38,14 +38,25 @@ export const MainLayout: React.FC = () => {
 
   const isReceptionist = user?.role === EUserRole.RECEPTIONIST;
 
+  // Feira expirada = hoje é estritamente posterior ao endDate (um dia depois do último dia)
+  const isFairExpired = (fair: any): boolean => {
+    const endDateStr = fair.endDate ?? fair.endDateTime?.split("T")[0];
+    if (!endDateStr) return false;
+    const [y, m, d] = endDateStr.split("-").map(Number);
+    const endDate = new Date(y, m - 1, d + 1); // +1 dia de buffer
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return today > endDate;
+  };
+
   // Header mostra todas as feiras (com filtros no select) — marketing usa todas para remarketing
   const availableFairs = useMemo(() => {
     const list = fairs || [];
     if (!user) return [];
     if (user.role === EUserRole.ADMIN) return list;
     const roleFiltered = list.filter((fair: any) => availableFairIds.length === 0 || availableFairIds.includes(fair.id));
-    // Recepcionista só vê feiras ativas
-    if (user.role === EUserRole.RECEPTIONIST) return roleFiltered.filter((fair: any) => fair.isActive);
+    // Recepcionista só vê feiras ativas e que ainda não encerraram
+    if (user.role === EUserRole.RECEPTIONIST) return roleFiltered.filter((fair: any) => fair.isActive && !isFairExpired(fair));
     return roleFiltered;
   }, [fairs, user, availableFairIds]);
 
@@ -218,7 +229,7 @@ export const MainLayout: React.FC = () => {
                 {fairCity.label}
               </span>
               {fairCity.year && (
-                <span className="text-2xl sm:text-4xl font-black uppercase tracking-widest drop-shadow-lg bg-gradient-to-r from-[#EB2970] to-[#00aacd] bg-clip-text text-transparent">
+                <span className="text-2xl sm:text-4xl font-black uppercase tracking-widest drop-shadow-lg bg-linear-to-r from-[#EB2970] to-[#00aacd] bg-clip-text text-transparent">
                   {fairCity.year}
                 </span>
               )}
@@ -278,7 +289,7 @@ export const MainLayout: React.FC = () => {
                   
                   <Popover open={isFairPopoverOpen} onOpenChange={setIsFairPopoverOpen}>
                     <PopoverTrigger asChild>
-                      <button className="h-9 sm:h-10 bg-white/5 border border-white/10 text-white text-[10px] sm:text-xs font-black uppercase tracking-widest hover:bg-white/10 transition-all rounded-2xl px-3 sm:px-4 cursor-pointer flex items-center gap-2 max-w-[180px] sm:max-w-none">
+                      <button className="h-9 sm:h-10 bg-white/5 border border-white/10 text-white text-[10px] sm:text-xs font-black uppercase tracking-widest hover:bg-white/10 transition-all rounded-2xl px-3 sm:px-4 cursor-pointer flex items-center gap-2 max-w-45 sm:max-w-none">
                         <span className="truncate">
                           {selectedFair ? selectedFair.name : "Selecione uma feira"}
                         </span>
@@ -425,7 +436,7 @@ export const MainLayout: React.FC = () => {
               {/* User - Hidden on very small screens */}
               <div className="hidden md:flex flex-col items-end mr-2">
                 <span className="text-[10px] text-white/40 font-black uppercase tracking-[0.2em]">Operador</span>
-                <span className="text-xs text-white font-bold truncate max-w-[120px]">
+                <span className="text-xs text-white font-bold truncate max-w-30">
                   {user?.email.split('@')[0]}
                 </span>
               </div>
