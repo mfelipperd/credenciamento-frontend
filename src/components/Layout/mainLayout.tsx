@@ -586,7 +586,7 @@ export const MainLayout: React.FC = () => {
         </header>
 
         {/* Content — cresce para preencher, único elemento que faz scroll */}
-        <main className="flex-1  bg-brand-blue p-6">
+        <main className="flex-1  bg-brand-blue p-6 h-[80%] pb-0 pt-2">
           <Outlet />
         </main>
 

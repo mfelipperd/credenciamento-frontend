@@ -28,7 +28,7 @@ export const TableVisitors = () => {
   };
 
   return (
-    <div className="h-[22%] flex flex-col overflow-hidden">
+    <div className="h-full flex flex-col overflow-hidden">
       <Tabs
         defaultValue="participants"
         className="flex-1 flex flex-col min-h-0"
