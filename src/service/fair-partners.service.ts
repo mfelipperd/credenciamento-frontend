@@ -12,7 +12,7 @@ import type {
   CreatePartnerForm,
   UpdatePartnerForm,
 } from "@/interfaces/fair-partners";
-import type { PartnerCompleteDashboardData } from "@/interfaces/partners";
+import type { PartnerCompleteDashboardData, ProfitDistribution } from "@/interfaces/partners";
 
 import { AppEndpoints } from "@/constants/AppEndpoints";
 
@@ -128,10 +128,12 @@ export const useFairPartnersService = () => {
   };
 
   // Distribuição de Lucros
-  const distributeProfit = async (fairId: string): Promise<unknown> => {
-    return handleRequest<unknown>({
+  const distributeProfit = async (fairId: string): Promise<ProfitDistribution> => {
+    const result = await handleRequest<ProfitDistribution>({
       request: () => api.post(AppEndpoints.FINANCE.CASH_FLOW_DISTRIBUTE(fairId)),
     });
+    if (!result) throw new Error("Falha ao distribuir lucros");
+    return result;
   };
 
   return {

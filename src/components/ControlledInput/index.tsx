@@ -15,16 +15,14 @@ type InputProps = Omit<
 interface ControlledInputProps<T extends FieldValues> extends InputProps {
   control: Control<T>;
   name: FieldPath<T>;
-  /**
-   * Função que recebe o valor digitado e retorna a versão mascarada.
-   * Exemplo: (val) => applyPhoneMask(val)
-   */
+  label?: string;
   mask?: (value: string) => string;
 }
 
 export function ControlledInput<T extends FieldValues>({
   control,
   name,
+  label,
   mask,
   ...inputProps
 }: ControlledInputProps<T>) {

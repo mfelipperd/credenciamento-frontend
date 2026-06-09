@@ -1,3 +1,4 @@
+import axios from "axios";
 import { handleRequest } from "@/utils/handleRequest";
 import { useBaseService } from "./base.service";
 import type {
@@ -113,18 +114,15 @@ export const useVisitorsService = () => {
       try {
         const result = await handleRequest({
           request: () =>
-            api.get<PaginatedResponse<Visitor>>(AppEndpoints.VISITORS.BASE, {
+            api.get<Visitor[] | PaginatedResponse<Visitor>>(AppEndpoints.VISITORS.BASE, {
               params: queryParams,
             }),
           setLoading,
         });
         if (!result) return null;
 
-        // Verificar se o backend retorna formato paginado ou array direto
         if (Array.isArray(result)) {
-          // Backend retorna array direto (formato atual)
           setVisitors(result);
-          // Simular metadata básica quando não há paginação server-side
           setPaginationMeta({
             page: params.page || 1,
             limit: params.limit || 50,
@@ -135,42 +133,23 @@ export const useVisitorsService = () => {
           });
           return { data: result, meta: null };
         } else {
-          // Backend retorna formato paginado (futuro)
-          const rawData = result || {};
-          const rawMeta = (rawData.meta || {}) as Record<string, unknown>;
-          
-          const totalItems = typeof rawMeta.totalItems === 'number' && !isNaN(rawMeta.totalItems)
-            ? rawMeta.totalItems
-            : typeof rawMeta.total === 'number' && !isNaN(rawMeta.total)
-            ? rawMeta.total
-            : Array.isArray(rawData.data)
-            ? rawData.data.length
-            : 0;
-            
-          const limit = rawMeta.limit || params.limit || 50;
-          const totalPages = typeof rawMeta.totalPages === 'number' && !isNaN(rawMeta.totalPages)
-            ? rawMeta.totalPages
-            : typeof rawMeta.total_pages === 'number' && !isNaN(rawMeta.total_pages)
-            ? rawMeta.total_pages
-            : Math.ceil(totalItems / limit) || 1;
-
-          setVisitors(rawData.data || []);
+          const meta = result.meta;
+          setVisitors(result.data || []);
           setPaginationMeta({
-            page: rawMeta.page || params.page || 1,
-            limit,
-            totalItems,
-            totalPages,
-            hasNextPage: !!rawMeta.hasNextPage,
-            hasPreviousPage: !!rawMeta.hasPreviousPage,
+            page: meta.page || params.page || 1,
+            limit: meta.limit || params.limit || 50,
+            totalItems: meta.totalItems || result.data?.length || 0,
+            totalPages: meta.totalPages || 1,
+            hasNextPage: meta.hasNextPage,
+            hasPreviousPage: meta.hasPreviousPage,
           });
           return result;
         }
       } catch (error: unknown) {
-        if (error && typeof error === "object" && "response" in error) {
-          const axiosError = error as { response: { status: number } };
-          if (axiosError.response?.status === 401) {
+        if (axios.isAxiosError(error)) {
+          if (error.response?.status === 401) {
             setError("Não autorizado. Faça login para acessar os dados.");
-          } else if (axiosError.response?.status === 403) {
+          } else if (error.response?.status === 403) {
             setError(
               "Acesso negado. Você não tem permissão para acessar estes dados."
             );

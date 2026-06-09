@@ -47,9 +47,16 @@ export function CategoriesConfig({ fairId }: CategoriesConfigProps) {
     }
   };
 
-  const handleCreateCategory = async (data: CreateCategoryDto) => {
+  const handleCreateCategory = async (data: CreateCategoryDto | UpdateCategoryDto) => {
     try {
-      await createCategory(data);
+      await createCategory({
+        nome: data.nome ?? '',
+        global: data.global ?? false,
+        isRequired: data.isRequired ?? false,
+        parentId: data.parentId,
+        fairId: data.fairId,
+        description: data.description,
+      });
       setShowForm(false);
     } catch (error) {
       console.error("Erro ao criar categoria:", error);

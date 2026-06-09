@@ -1,7 +1,8 @@
+import type { InternalAxiosRequestConfig } from 'axios';
 import { getSecurityHeaders } from './cryptoAuth';
 
-export function enhanceRequestForBackendMiddleware(config: Record<string, unknown> & { headers?: Record<string, string> }) {
-  config.headers = { ...config.headers, ...getSecurityHeaders() };
+export function enhanceRequestForBackendMiddleware(config: InternalAxiosRequestConfig): InternalAxiosRequestConfig {
+  config.headers = Object.assign({}, config.headers, getSecurityHeaders());
   return config;
 }
 

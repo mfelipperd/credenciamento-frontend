@@ -1,10 +1,8 @@
 import { useEffect } from "react";
 import io from "socket.io-client";
-import type { Socket } from "socket.io-client";
 import type { Visitor } from "@/interfaces/visitors";
 
-// Armazena o socket fora do hook para manter conexão estável
-let socket: Socket | null = null;
+let socket: ReturnType<typeof io> | null = null;
 
 /**
  * Escuta o WebSocket e chama o callback quando os dados do visitante chegam

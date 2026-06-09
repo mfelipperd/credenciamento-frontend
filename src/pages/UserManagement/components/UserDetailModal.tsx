@@ -6,30 +6,19 @@ import {
   DialogHeader, 
   DialogTitle 
 } from "@/components/ui/dialog";
-import { 
-  User, 
-  Mail, 
-  Phone, 
-  CreditCard, 
-  Calendar, 
+import {
+  User as UserIcon,
+  Mail,
+  Phone,
+  CreditCard,
+  Calendar,
   Shield,
   CheckCircle,
   XCircle
 } from "lucide-react";
 import { EUserRole } from "@/enums/user.enum";
 import { cn } from "@/lib/utils";
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  cpf?: string;
-  phone?: string;
-  role: EUserRole;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
+import type { User } from "@/interfaces/user";
 
 interface UserDetailModalProps {
   user: User | null;
@@ -51,7 +40,8 @@ export function UserDetailModal({ user, isOpen, onClose }: UserDetailModalProps)
     }
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return '-';
     return new Date(dateString).toLocaleString('pt-BR', {
       day: '2-digit',
       month: '2-digit',
@@ -68,7 +58,7 @@ export function UserDetailModal({ user, isOpen, onClose }: UserDetailModalProps)
           <div className="flex flex-col gap-1">
              <span className="text-brand-cyan font-black text-[10px] uppercase tracking-[0.4em]">Ficha Cadastral</span>
              <DialogTitle className="text-2xl font-black text-white uppercase tracking-tighter flex items-center gap-3">
-               <User className="h-6 w-6 text-brand-pink" />
+               <UserIcon className="h-6 w-6 text-brand-pink" />
                Detalhes do Operador
              </DialogTitle>
           </div>

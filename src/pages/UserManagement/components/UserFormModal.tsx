@@ -28,6 +28,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { EUserRole } from "@/enums/user.enum";
 import { useCreateUser, useUpdateUser } from "@/hooks/useUsers";
+import type { User } from "@/interfaces/user";
 import { useFairs } from "@/hooks/useFairs";
 import { toast } from "sonner";
 import { maskCPF, maskPhoneBR } from "@/utils/masks";
@@ -68,19 +69,6 @@ const userSchema = z.object({
 });
 
 type UserFormData = z.infer<typeof userSchema>;
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  cpf?: string;
-  phone?: string;
-  role: EUserRole;
-  isActive: boolean;
-  fairIds?: string[];
-  createdAt: string;
-  updatedAt: string;
-}
 
 interface UserFormModalProps {
   user: User | null;

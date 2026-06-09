@@ -7,7 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { usePartnerWithdrawals } from "@/hooks/useWithdrawals";
-import type { PartnerWithdrawal } from "@/interfaces/withdrawals";
+import type { PartnerWithdrawal, WithdrawalFilters } from "@/interfaces/withdrawals";
+
+const WITHDRAWAL_STATUSES: NonNullable<WithdrawalFilters['status']>[] = ['PENDING', 'APPROVED', 'REJECTED', 'COMPLETED'];
 import { format } from "date-fns";
 import { 
   Search, 
@@ -38,7 +40,7 @@ export const WithdrawalsList: React.FC<WithdrawalsListProps> = ({
 
   const { data: withdrawals, isLoading, error } = usePartnerWithdrawals(partnerId, {
     fairId,
-    status: statusFilter === "all" ? undefined : statusFilter as string,
+    status: WITHDRAWAL_STATUSES.find(s => s === statusFilter),
   });
 
   const formatCurrency = (value: number) => {

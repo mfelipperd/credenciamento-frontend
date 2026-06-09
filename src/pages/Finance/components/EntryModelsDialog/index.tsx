@@ -127,7 +127,7 @@ export function EntryModelsDialog({
       if (!fairId) {
         console.warn("Fair ID não fornecido, mas tentando deletar mesmo assim");
       }
-      return financeService.deleteEntryModel(id, fairId);
+      return financeService.deleteEntryModel(id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["entry-models"] });
