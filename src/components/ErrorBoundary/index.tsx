@@ -2,6 +2,16 @@ import React, { Component } from "react";
 import type { ReactNode } from "react";
 import { ErrorPage } from "@/pages/ErrorPage";
 
+const CHUNK_ERROR_RELOAD_KEY = "chunk_error_reloaded";
+
+function isChunkLoadError(error: Error): boolean {
+  return (
+    error.message.includes("Failed to fetch dynamically imported module") ||
+    error.message.includes("Importing a module script failed") ||
+    error.name === "ChunkLoadError"
+  );
+}
+
 interface Props {
   children: ReactNode;
   fallback?: React.ComponentType<{
@@ -24,27 +34,27 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   static getDerivedStateFromError(error: Error): State {
-    // Atualiza o state para mostrar a UI de erro na próxima renderização
     return { hasError: true, error };
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    // Você pode registrar o erro em um serviço de relatório de erro aqui
     console.error("ErrorBoundary capturou um erro:", error, errorInfo);
 
-    this.setState({
-      error,
-      errorInfo,
-    });
-
-    // Aqui você pode enviar o erro para um serviço de monitoramento
-    // como Sentry, LogRocket, etc.
-    if (process.env.NODE_ENV === "production") {
-      // Exemplo: Sentry.captureException(error);
+    // Novo deploy: chunks antigos não existem mais — recarrega uma vez
+    if (isChunkLoadError(error)) {
+      const alreadyReloaded = sessionStorage.getItem(CHUNK_ERROR_RELOAD_KEY);
+      if (!alreadyReloaded) {
+        sessionStorage.setItem(CHUNK_ERROR_RELOAD_KEY, "1");
+        window.location.reload();
+        return;
+      }
     }
+
+    this.setState({ error, errorInfo });
   }
 
   resetError = () => {
+    sessionStorage.removeItem(CHUNK_ERROR_RELOAD_KEY);
     this.setState({ hasError: false, error: undefined, errorInfo: undefined });
   };
 
