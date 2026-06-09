@@ -36,12 +36,17 @@ export const MainLayout: React.FC = () => {
     days: 30,
   });
 
+  const isReceptionist = user?.role === EUserRole.RECEPTIONIST;
+
   // Header mostra todas as feiras (com filtros no select) — marketing usa todas para remarketing
   const availableFairs = useMemo(() => {
     const list = fairs || [];
     if (!user) return [];
     if (user.role === EUserRole.ADMIN) return list;
-    return list.filter((fair: any) => availableFairIds.length === 0 || availableFairIds.includes(fair.id));
+    const roleFiltered = list.filter((fair: any) => availableFairIds.length === 0 || availableFairIds.includes(fair.id));
+    // Recepcionista só vê feiras ativas
+    if (user.role === EUserRole.RECEPTIONIST) return roleFiltered.filter((fair: any) => fair.isActive);
+    return roleFiltered;
   }, [fairs, user, availableFairIds]);
 
   // Determina o ID inicial baseado em: URL params > Cookie > Primeira feira disponível
@@ -144,6 +149,18 @@ export const MainLayout: React.FC = () => {
     return availableFairs.find((f: any) => f.id === selectedId);
   }, [availableFairs, selectedId]);
 
+  const fairCity = useMemo(() => {
+    if (!isReceptionist || !selectedFair) return null;
+    const city = (selectedFair.city ?? "").toLowerCase();
+    const state = (selectedFair.state ?? "").toUpperCase();
+    const loc = (selectedFair.location ?? "").toLowerCase();
+    if (city.includes("manaus") || state === "AM" || loc.includes("manaus"))
+      return { label: "Manaus", flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Bandeira_do_Amazonas.svg/120px-Bandeira_do_Amazonas.svg.png" };
+    if (city.includes("bel") || state === "PA" || loc.includes("belém") || loc.includes("belem"))
+      return { label: "Belém", flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Bandeira_do_Par%C3%A1.svg/120px-Bandeira_do_Par%C3%A1.svg.png" };
+    return null;
+  }, [isReceptionist, selectedFair]);
+
   const search = `?fairId=${selectedId}`;
 
   // Removido - o hook useFairs já faz o fetch automaticamente
@@ -190,7 +207,16 @@ export const MainLayout: React.FC = () => {
       {/* Coluna direita: cresce para preencher, não faz scroll */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Header — fica fixo no topo naturalmente (acima do scroll container) */}
-        <header className="shrink-0 z-40 w-full bg-brand-blue/80 backdrop-blur-md border-b border-white/5 shadow-xl">
+        <header className="relative shrink-0 z-40 w-full bg-brand-blue/80 backdrop-blur-md border-b border-white/5 shadow-xl">
+          {fairCity && (
+            <h1 className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex items-center justify-center gap-3 pointer-events-none select-none">
+              <img src={fairCity.flag} alt={fairCity.label} className="h-8 sm:h-10 w-auto rounded shadow-lg" />
+              <span className="text-2xl sm:text-4xl font-black text-white uppercase tracking-widest drop-shadow-lg">
+                {fairCity.label}
+              </span>
+              <img src={fairCity.flag} alt="" aria-hidden className="h-8 sm:h-10 w-auto rounded shadow-lg" />
+            </h1>
+          )}
           <div className="px-4 h-16 sm:h-20 flex items-center justify-between gap-4">
             {/* Lado Esquerdo */}
             <div className="flex items-center gap-3 min-w-0">
@@ -268,8 +294,8 @@ export const MainLayout: React.FC = () => {
                           />
                         </div>
 
-                        {/* Status (Ativas / Inativas / Todas) */}
-                        <div className="space-y-1.5">
+                        {/* Status (Ativas / Inativas / Todas) — oculto para recepcionista */}
+                        <div className={cn("space-y-1.5", isReceptionist && "hidden")}>
                           <div className="text-[9px] font-black uppercase tracking-wider text-white/40">Status</div>
                           <div className="flex gap-1.5 bg-white/5 p-1 rounded-xl border border-white/5">
                             <button
