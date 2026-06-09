@@ -29,7 +29,7 @@ export const MainLayout: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { user, availableFairIds } = useUserSession();
   const { signOut } = useAuth();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => user?.role !== EUserRole.RECEPTIONIST);
 
   // Hook para gerenciar o cookie da feira selecionada
   const [savedFairId, setSavedFairId] = useCookie("selectedFairId", "", {
