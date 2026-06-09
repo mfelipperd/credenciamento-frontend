@@ -491,20 +491,17 @@ export const MainLayout: React.FC = () => {
           </div>
         </header>
 
-        {/* Área de conteúdo — ÚNICO elemento que faz scroll */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden p-6 bg-brand-blue relative">
-          {/* Decorative background elements */}
+        {/* Content — cresce para preencher, único elemento que faz scroll */}
+        <main className="flex-1 overflow-y-auto overflow-x-hidden bg-brand-blue relative">
           <div className="absolute top-0 right-0 w-96 h-96 bg-brand-pink/5 blur-[120px] rounded-full -translate-y-1/2 pointer-events-none" />
           <div className="absolute bottom-0 left-0 w-96 h-96 bg-brand-cyan/5 blur-[120px] rounded-full translate-y-1/2 pointer-events-none" />
-
-          <div className="relative z-10">
+          <div className="relative z-10 p-6">
             <Outlet />
           </div>
-
-          <div className="border-t border-white/5 mt-12">
-            <SimpleFooter />
-          </div>
         </main>
+
+        {/* Footer — fixo no fundo, fora do scroll */}
+        <SimpleFooter />
       </div>
     </div>
   );

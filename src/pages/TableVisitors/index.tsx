@@ -1,4 +1,3 @@
-import { CardRoot } from "@/components/Card";
 import { VisitorTable } from "./components/Table";
 import { useTableVisitorsController } from "./tableVisitors.controller";
 import { Button } from "@/components/ui/button";
@@ -29,11 +28,10 @@ export const TableVisitors = () => {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Tabs */}
-      <Tabs defaultValue="participants">
-        {/* Cabeçalho: título à esquerda, tabs centralizado — mesma linha */}
-        <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-4 mb-6">
+    <div className="h-full flex flex-col overflow-hidden">
+      <Tabs defaultValue="participants" className="flex-1 flex flex-col min-h-0">
+        {/* Cabeçalho: título à esquerda, tabs centralizado, botões à direita */}
+        <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-4 shrink-0 mb-4">
           <div className="space-y-2">
             <h2 className="text-3xl font-black text-white uppercase tracking-tighter">
               Gestão de <span className="text-brand-pink">Participantes</span>
@@ -78,25 +76,48 @@ export const TableVisitors = () => {
         </div>
 
         {/* Tab: Participantes */}
-        <TabsContent value="participants" className="mt-0">
-          <CardRoot className="bg-brand-blue border-white/5 glass-card rounded-[40px] shadow-2xl overflow-hidden p-4 lg:p-6">
-            <div className="w-full flex flex-col gap-4">
-              {/* Filtros */}
-              <div className="flex flex-col gap-6">
-                <div className="flex flex-col md:flex-row gap-4">
-                  <div className="relative flex-1 group">
+        <TabsContent value="participants" className="mt-0 flex-1 flex flex-col min-h-0">
+          {/* Card — cresce para preencher o espaço, somente a tabela faz scroll */}
+          <div className="glass-card rounded-[40px] shadow-2xl overflow-hidden p-4 lg:p-6 flex flex-col flex-1 min-h-0">
+            <div className="flex flex-col gap-3 flex-1 min-h-0">
+
+              {/* ── Filtros (altura fixa) ── */}
+              <div className="flex flex-col gap-3 shrink-0">
+                {/* Linha 1: barra de busca com contador + seletor de campo */}
+                <div className="flex flex-col md:flex-row gap-3">
+                  <div className="flex flex-1 h-14 bg-white/5 border border-white/10 rounded-2xl overflow-hidden focus-within:ring-4 focus-within:ring-brand-pink/20 transition-all">
+                    <div className="flex items-center pl-4 pr-3 border-r border-white/5 shrink-0 gap-1.5">
+                      {controller.loading ? (
+                        <div className="w-1.5 h-1.5 bg-brand-cyan rounded-full animate-pulse" />
+                      ) : (
+                        <div className="w-1.5 h-1.5 bg-brand-cyan/50 rounded-full" />
+                      )}
+                      <span className="text-[9px] text-white/30 font-black uppercase tracking-widest whitespace-nowrap tabular-nums">
+                        {controller.loading ? "..." : `${controller.totalItems || 0}`}
+                      </span>
+                      {controller.paginationMeta && (
+                        <span className="text-[8px] text-brand-cyan/60 font-black uppercase tracking-widest ml-1 hidden sm:inline">⚡</span>
+                      )}
+                    </div>
                     <input
                       type="text"
                       placeholder="Pesquisar por nome, email, empresa, código..."
                       value={controller.search}
                       onChange={(e) => controller.setSearch(e.target.value)}
-                      className="w-full h-14 pl-6 pr-4 bg-white/5 border border-white/10 rounded-2xl focus:ring-4 focus:ring-brand-pink/20 transition-all font-bold text-white placeholder:text-white/20 outline-none"
+                      className="flex-1 h-full px-4 bg-transparent outline-none font-bold text-white placeholder:text-white/20 text-sm"
                     />
+                    {controller.search && (
+                      <div className="flex items-center pr-3 shrink-0">
+                        <span className="text-[8px] text-brand-pink font-black uppercase tracking-widest whitespace-nowrap">
+                          {controller.searchField === "all" ? "Geral" : controller.searchField}
+                        </span>
+                      </div>
+                    )}
                   </div>
                   <select
                     value={controller.searchField}
                     onChange={(e) => controller.setSearchField(e.target.value)}
-                    className="h-14 px-6 bg-white/5 border border-white/10 rounded-2xl focus:ring-4 focus:ring-brand-pink/20 transition-all font-bold text-white outline-none cursor-pointer appearance-none md:min-w-[200px]"
+                    className="h-14 px-6 bg-white/5 border border-white/10 rounded-2xl focus:ring-4 focus:ring-brand-pink/20 transition-all font-bold text-white outline-none cursor-pointer appearance-none md:min-w-45"
                     aria-label="Filtrar por campo"
                     title="Filtrar por campo"
                   >
@@ -109,53 +130,87 @@ export const TableVisitors = () => {
                   </select>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-4 p-4 bg-white/2 rounded-2xl border border-white/5">
-                  <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 bg-brand-cyan rounded-full animate-pulse shadow-[0_0_10px_rgba(0,170,205,0.8)]" />
-                    <span className="text-[10px] text-white/40 font-black uppercase tracking-[0.2em]">
-                      {controller.loading
-                        ? "Sincronizando..."
-                        : `${controller.totalItems || 0} Encontrados`}
-                    </span>
+                {/* Linha 2: filtro por data */}
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <div className="flex flex-1 h-11 bg-white/5 border border-white/10 rounded-2xl overflow-hidden focus-within:ring-2 focus-within:ring-brand-cyan/20 transition-all">
+                    <div className="flex items-center pl-4 pr-3 border-r border-white/5 shrink-0">
+                      <span className="text-[9px] text-white/30 font-black uppercase tracking-widest whitespace-nowrap">De</span>
+                    </div>
+                    <input
+                      type="date"
+                      value={controller.dateFrom}
+                      onChange={(e) => controller.setDateFrom(e.target.value)}
+                      className="flex-1 h-full px-3 bg-transparent outline-none text-white/70 text-xs font-bold scheme-dark"
+                    />
+                    {controller.dateFrom && (
+                      <button
+                        type="button"
+                        onClick={() => controller.setDateFrom("")}
+                        className="px-3 text-white/20 hover:text-white/60 transition-colors text-xs"
+                      >
+                        ×
+                      </button>
+                    )}
                   </div>
-
-                  {controller.search && (
-                    <div className="px-3 py-1 bg-brand-pink/10 border border-brand-pink/20 text-brand-pink rounded-full text-[9px] font-black uppercase tracking-widest">
-                      Filtro Ativo: {controller.searchField === "all" ? "Geral" : controller.searchField}
+                  <div className="flex flex-1 h-11 bg-white/5 border border-white/10 rounded-2xl overflow-hidden focus-within:ring-2 focus-within:ring-brand-cyan/20 transition-all">
+                    <div className="flex items-center pl-4 pr-3 border-r border-white/5 shrink-0">
+                      <span className="text-[9px] text-white/30 font-black uppercase tracking-widest whitespace-nowrap">Até</span>
                     </div>
-                  )}
-
-                  {controller.paginationMeta && (
-                    <div className="px-3 py-1 bg-brand-cyan/10 border border-brand-cyan/20 text-brand-cyan rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-2">
-                      <span className="animate-bounce">🚀</span> Busca Otimizada
-                    </div>
+                    <input
+                      type="date"
+                      value={controller.dateTo}
+                      onChange={(e) => controller.setDateTo(e.target.value)}
+                      className="flex-1 h-full px-3 bg-transparent outline-none text-white/70 text-xs font-bold scheme-dark"
+                    />
+                    {controller.dateTo && (
+                      <button
+                        type="button"
+                        onClick={() => controller.setDateTo("")}
+                        className="px-3 text-white/20 hover:text-white/60 transition-colors text-xs"
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
+                  {(controller.dateFrom || controller.dateTo) && (
+                    <button
+                      type="button"
+                      onClick={() => { controller.setDateFrom(""); controller.setDateTo(""); }}
+                      className="h-11 px-5 bg-white/5 border border-white/10 rounded-2xl text-white/30 hover:text-white/60 text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap"
+                    >
+                      Limpar datas
+                    </button>
                   )}
                 </div>
               </div>
 
-              {/* Tabela */}
-              {controller.loading ? (
-                <TableSkeleton />
-              ) : (
-                <VisitorTable {...controller} />
-              )}
+              {/* ── Tabela (cresce, faz scroll interno) ── */}
+              <div className="flex-1 min-h-0 overflow-y-auto">
+                {controller.loading ? (
+                  <TableSkeleton />
+                ) : (
+                  <VisitorTable {...controller} />
+                )}
+              </div>
             </div>
-          </CardRoot>
+          </div>
 
-          {/* Paginação */}
+          {/* Paginação fora do card */}
           {!controller.loading && controller.totalPages > 1 && (
-            <Pagination
-              currentPage={controller.currentPage}
-              totalPages={controller.totalPages}
-              onPageChange={controller.setCurrentPage}
-              totalItems={controller.totalItems}
-              itemsPerPage={controller.itemsPerPage}
-            />
+            <div className="shrink-0 mt-3">
+              <Pagination
+                currentPage={controller.currentPage}
+                totalPages={controller.totalPages}
+                onPageChange={controller.setCurrentPage}
+                totalItems={controller.totalItems}
+                itemsPerPage={controller.itemsPerPage}
+              />
+            </div>
           )}
         </TabsContent>
 
-        {/* Tab: Dashboard — carregado apenas quando clicado */}
-        <TabsContent value="analytics" className="mt-0">
+        {/* Tab: Dashboard */}
+        <TabsContent value="analytics" className="mt-0 flex-1 overflow-y-auto">
           <Suspense fallback={<div className="flex justify-center py-20"><LogoLoading size={60} /></div>}>
             <DashboardAnalytics />
           </Suspense>

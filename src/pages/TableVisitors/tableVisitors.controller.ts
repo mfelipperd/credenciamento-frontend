@@ -19,6 +19,8 @@ export const useTableVisitorsController = () => {
   } = useVisitorsService();
   const [search, setSearch] = useState("");
   const [isExporting, setIsExporting] = useState(false);
+  const [dateFrom, setDateFrom] = useState<string>("");
+  const [dateTo, setDateTo] = useState<string>("");
 
   // Estados para paginação e busca
   const [currentPage, setCurrentPage] = useState(1);
@@ -90,11 +92,13 @@ export const useTableVisitorsController = () => {
         limit: itemsPerPage,
         sortBy: "name",
         sortOrder: "asc",
+        dateFrom: dateFrom || undefined,
+        dateTo: dateTo || undefined,
       });
     } catch {
       // Erro já é tratado no service, apenas ignora aqui para não quebrar o fluxo
     }
-  }, [fairId, debouncedSearch, searchField, currentPage, itemsPerPage]);
+  }, [fairId, debouncedSearch, searchField, currentPage, itemsPerPage, dateFrom, dateTo]);
 
   // Buscar dados quando parâmetros mudarem
   useEffect(() => {
@@ -125,16 +129,31 @@ export const useTableVisitorsController = () => {
       return [];
     }
 
+    let data: typeof visitors;
+
     // Se tem paginationMeta, significa que o backend já fez a paginação
     if (paginationMeta) {
-      return visitors; // Backend já retorna dados da página atual
+      data = visitors; // Backend já retorna dados da página atual
+    } else {
+      // Fallback para paginação client-side (compatibilidade)
+      const startIndex = (currentPage - 1) * itemsPerPage;
+      const endIndex = startIndex + itemsPerPage;
+      data = visitors.slice(startIndex, endIndex);
     }
 
-    // Fallback para paginação client-side (compatibilidade)
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return visitors.slice(startIndex, endIndex);
-  }, [visitors, currentPage, itemsPerPage, paginationMeta]);
+    // Filtro client-side por data (fallback caso o backend não suporte dateFrom/dateTo)
+    if (dateFrom || dateTo) {
+      data = data.filter((v) => {
+        const d = (v.registrationDate ?? "").split("T")[0];
+        if (!d) return true;
+        if (dateFrom && d < dateFrom) return false;
+        if (dateTo && d > dateTo) return false;
+        return true;
+      });
+    }
+
+    return data;
+  }, [visitors, currentPage, itemsPerPage, paginationMeta, dateFrom, dateTo]);
 
   // Calcular total de páginas
   const totalPages = useMemo(() => {
@@ -243,5 +262,9 @@ export const useTableVisitorsController = () => {
     paginationMeta,
     handleExportPdf,
     isExporting,
+    dateFrom,
+    setDateFrom,
+    dateTo,
+    setDateTo,
   };
 };

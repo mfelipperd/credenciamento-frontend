@@ -165,7 +165,7 @@ export const VisitorTable: React.FC<VisitorTableProps> = memo(
 
     return (
       <>
-        <div className="overflow-auto max-h-[60vh] custom-scrollbar">
+        <div className="overflow-auto custom-scrollbar">
           <Table>
             <TableHeader className="sticky top-0 z-10">
               <TableRow className="border-b border-white/10 hover:bg-transparent">

@@ -31,6 +31,8 @@ interface VisitorsParams {
   limit?: number;
   sortBy?: string;
   sortOrder?: "asc" | "desc";
+  dateFrom?: string; // YYYY-MM-DD
+  dateTo?: string;   // YYYY-MM-DD
 }
 
 export const useVisitorsService = () => {
@@ -105,6 +107,8 @@ export const useVisitorsService = () => {
       if (params.sortBy?.trim()) queryParams.sortBy = params.sortBy.trim();
       if (params.sortOrder?.trim())
         queryParams.sortOrder = params.sortOrder.trim();
+      if (params.dateFrom?.trim()) queryParams.dateFrom = params.dateFrom.trim();
+      if (params.dateTo?.trim()) queryParams.dateTo = params.dateTo.trim();
 
       try {
         const result = await handleRequest({
