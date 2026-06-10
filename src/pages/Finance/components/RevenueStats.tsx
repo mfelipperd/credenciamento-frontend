@@ -1,5 +1,4 @@
 import { useRevenueStats } from "@/hooks/useFinance";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DollarSign, Receipt, TrendingUp } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -21,44 +20,55 @@ interface StatCardProps {
 function StatCard({ title, value, icon: Icon, color, onClick, subtitle }: StatCardProps) {
   return (
     <div
-      className={`group relative overflow-hidden h-32 bg-white/5 backdrop-blur-xl border border-white/10 rounded-[32px] p-6 transition-all duration-500 hover:scale-[1.02] hover:bg-white/10 shadow-2xl ${
+      className={`group relative overflow-hidden bg-white/5 backdrop-blur-xl border border-white/10 rounded-[32px] p-6 transition-all duration-500 hover:scale-[1.02] hover:bg-white/10 shadow-2xl ${
         onClick ? "cursor-pointer" : ""
       }`}
       onClick={onClick}
     >
-      {/* Background Glow */}
-      <div 
-        className="absolute -right-4 -top-4 w-24 h-24 blur-3xl opacity-20 transition-opacity group-hover:opacity-40"
+      <div
+        className="absolute -right-4 -top-4 w-28 h-28 blur-3xl opacity-15 transition-opacity group-hover:opacity-30"
         style={{ backgroundColor: color }}
       />
 
-      <div className="relative z-10 h-full flex flex-col justify-between">
+      <div className="relative z-10 flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.2em]">
             {title}
           </p>
-          <div 
-            className="p-2 rounded-xl bg-white/5 text-white/60 group-hover:scale-110 transition-transform duration-500"
-            style={{ color: color }}
+          <div
+            className="p-2 rounded-xl bg-white/5 group-hover:scale-110 transition-transform duration-500"
+            style={{ color }}
           >
             <Icon size={18} />
           </div>
         </div>
 
-        <div className="flex flex-col">
-          <div className="flex items-baseline gap-2">
-            <p className="text-white text-3xl font-black tracking-tighter">
-              {value}
-            </p>
-            <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
-          </div>
+        <div>
+          <p className="text-white text-3xl font-black tracking-tighter leading-none">
+            {value}
+          </p>
           {subtitle && (
-            <p className="text-white/40 text-[10px] font-medium mt-1">
+            <p className="text-white/30 text-[10px] font-medium mt-2">
               {subtitle}
             </p>
           )}
         </div>
+
+        <div className="h-0.5 w-full rounded-full" style={{ backgroundColor: color, opacity: 0.25 }} />
       </div>
+    </div>
+  );
+}
+
+function StatCardSkeleton() {
+  return (
+    <div className="relative overflow-hidden bg-white/5 backdrop-blur-xl border border-white/10 rounded-[32px] p-6">
+      <div className="flex items-center justify-between mb-4">
+        <Skeleton className="h-2 w-24 bg-white/10" />
+        <Skeleton className="h-8 w-8 rounded-xl bg-white/10" />
+      </div>
+      <Skeleton className="h-9 w-32 bg-white/10 mb-2" />
+      <Skeleton className="h-0.5 w-full bg-white/10" />
     </div>
   );
 }
@@ -75,17 +85,9 @@ export function RevenueStats({ fairId, onTotalRevenueClick }: RevenueStatsProps)
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {Array.from({ length: 3 }).map((_, i) => (
-          <Card key={i}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <Skeleton className="h-4 w-24" />
-              <Skeleton className="h-4 w-4" />
-            </CardHeader>
-            <CardContent>
-              <Skeleton className="h-8 w-32" />
-            </CardContent>
-          </Card>
+          <StatCardSkeleton key={i} />
         ))}
       </div>
     );
@@ -101,7 +103,7 @@ export function RevenueStats({ fairId, onTotalRevenueClick }: RevenueStatsProps)
         title="Total de Receitas"
         value={formatCurrency(stats.totalValue)}
         icon={DollarSign}
-        color="#22c55e"
+        color="#00aacd"
         onClick={onTotalRevenueClick}
         subtitle={onTotalRevenueClick ? "Clique para ver fluxo de caixa" : undefined}
       />
@@ -110,7 +112,7 @@ export function RevenueStats({ fairId, onTotalRevenueClick }: RevenueStatsProps)
         title="Quantidade de Receitas"
         value={stats.totalRevenues}
         icon={Receipt}
-        color="#00aacd"
+        color="#EB2970"
       />
 
       <StatCard

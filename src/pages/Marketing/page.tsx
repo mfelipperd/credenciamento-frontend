@@ -561,7 +561,7 @@ export const MarketingPage: React.FC = () => {
           <div className="space-y-2">
             <h1 className="text-3xl font-black text-white uppercase tracking-tighter flex items-center gap-3">
               <Mail className="h-8 w-8 text-brand-pink" />
-              Marketing por <span className="text-brand-cyan">Email</span>
+              EMAIL <span className="text-brand-cyan">MARKETING</span>
             </h1>
             <div className="h-1.5 w-24 bg-linear-to-r from-brand-pink to-brand-cyan rounded-full" />
           </div>

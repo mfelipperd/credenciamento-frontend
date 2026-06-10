@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useExpensesService } from "@/service/expenses.service";
 import { useFairService } from "@/service/fair.service";
 import { ExpenseForm } from "@/pages/Expenses/components/ExpenseForm";
+import { EntryModelsDialog } from "@/pages/Finance/components/EntryModelsDialog";
 import type { AllocatedOverheadExpense, CreateOverheadExpenseForm, UpdateOverheadExpenseForm } from "@/interfaces/finance";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,6 +50,7 @@ import {
   ToggleLeft,
   ToggleRight,
   AlertTriangle,
+  Settings,
 } from "lucide-react";
 import type { Fair, UpdateFairForm, DaySchedule, StandConfiguration, FairStatus } from "@/interfaces/fairs";
 import { toast } from "sonner";
@@ -185,6 +187,7 @@ export default function FairDetailPage() {
   // Estado de qual seção está em modo de edição
   const [editing, setEditing] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [isEntryConfigOpen, setIsEntryConfigOpen] = useState(false);
   const saving = updateMutation.isPending;
 
   // Estado e hooks para despesas overhead / rateio
@@ -348,6 +351,15 @@ export default function FairDetailPage() {
 
         {/* Ações globais */}
         <div className="flex items-center gap-2 shrink-0">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => setIsEntryConfigOpen(true)}
+            className="h-8 text-white/40 hover:text-white hover:bg-white/10 hidden sm:flex"
+          >
+            <Settings className="h-3.5 w-3.5 mr-1.5" /> Configurar Entrada
+          </Button>
+
           <Button
             size="sm"
             variant="ghost"
@@ -521,6 +533,13 @@ export default function FairDetailPage() {
           defaultShared={true}
         />
       )}
+
+      {/* Dialog de configuração de modelos de entrada */}
+      <EntryModelsDialog
+        isOpen={isEntryConfigOpen}
+        onClose={() => setIsEntryConfigOpen(false)}
+        fairId={fair.id}
+      />
 
       {/* Dialog de Confirmação de Exclusão Despesa Overhead */}
       <AlertDialog open={!!overheadToDelete} onOpenChange={() => setOverheadToDelete(null)}>

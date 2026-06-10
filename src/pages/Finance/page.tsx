@@ -3,13 +3,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "@/hooks/useSearchParams";
 import { useFinanceService } from "@/service/finance.service";
 import { useStandService } from "@/service/stands.service";
-import { FinanceFiltersSheet } from "./components/FinanceFiltersSheet";
-import { FinanceKpis } from "./components/FinanceKpis";
 import { FinanceTable } from "./components/FinanceTable";
-import { ReceitaDrawer } from "./components/ReceitaDrawer";
-import { EntryModelsDialog } from "./components/EntryModelsDialog";
-import { RevenueDetailModal } from "./components/RevenueDetailModal";
 import { RevenueStats } from "./components/RevenueStats";
+import { ReceitaDrawer } from "./components/ReceitaDrawer";
+import { RevenueDetailModal } from "./components/RevenueDetailModal";
 import { CashFlowModal } from "./components/CashFlowModal";
 import { StandMap } from "@/components/StandMap";
 import { StandConfigurator } from "@/components/StandConfigurator";
@@ -22,7 +19,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Filter, Grid } from "lucide-react";
+import { Plus, Grid, DollarSign, ChevronDown, ChevronUp } from "lucide-react";
 
 export function FinancePage() {
   const [, , fairId] = useSearchParams();
@@ -52,10 +49,9 @@ export function FinancePage() {
     string | null
   >(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [isConfigDialogOpen, setIsConfigDialogOpen] = useState(false);
-  const [isFiltersSheetOpen, setIsFiltersSheetOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [standsRefreshKey, setStandsRefreshKey] = useState(0);
+  const [isStandsExpanded, setIsStandsExpanded] = useState(true);
   const [selectedStandNumber, setSelectedStandNumber] = useState<number | null>(
     null
   );
@@ -72,18 +68,6 @@ export function FinancePage() {
     queryFn: () => financeService.getRevenues(filters),
     enabled: !!filters.fairId,
   });
-
-  // Query para KPIs - REMOVIDA: rota não existe no backend
-  // const { data: kpisData, isLoading: isLoadingKpis } = useQuery({
-  //   queryKey: ["finance-kpis", filters.fairId, filters.from, filters.to],
-  //   queryFn: () =>
-  //     financeService.getKpis(filters.fairId!, filters.from, filters.to),
-  //   enabled: !!filters.fairId,
-  // });
-
-  // Dados mockados temporariamente até implementação do backend
-  const kpisData = undefined;
-  const isLoadingKpis = false;
 
   // Query para estatísticas de stands
   const { data: standStats } = useQuery({
@@ -159,128 +143,46 @@ export function FinancePage() {
     return "text-green-600";
   };
 
-  // Função para detectar se há filtros ativos
-  const hasActiveFilters = () => {
-    return !!(
-      filters.q ||
-      (filters.status && filters.status !== "all") ||
-      (filters.type && filters.type !== "all") ||
-      filters.from ||
-      filters.to
-    );
-  };
-
   return (
     <div className="min-h-screen ">
       <div className="space-y-6 p-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Visão Geral</p>
-            <h1 className="text-4xl font-black text-white tracking-tighter">
-              Gestão Financeira
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-2">
+            <h1 className="text-3xl font-black text-white uppercase tracking-tighter flex items-center gap-3">
+              <DollarSign className="h-8 w-8 text-brand-pink" />
+              GESTÃO DE <span className="text-brand-cyan">RECEITAS</span>
             </h1>
-            <p className="text-white/40 text-sm font-medium mt-1">
-              Controle de receitas e análise de resultados em tempo real
-            </p>
+            <div className="h-1.5 w-24 bg-linear-to-r from-brand-pink to-brand-cyan rounded-full" />
           </div>
-
-          <div className="flex gap-3">
-            <Button
-              onClick={() => setIsFiltersSheetOpen(true)}
-              variant="outline"
-              className={`relative border-white/10 bg-white/5 backdrop-blur-md rounded-xl px-4 font-bold transition-all hover:bg-white/10 active:scale-95 ${
-                hasActiveFilters()
-                  ? "border-blue-500/50 text-blue-400 bg-blue-500/10"
-                  : "text-white/70"
-              }`}
-            >
-              <Filter className="w-4 h-4 mr-2" />
-              Filtros
-              {hasActiveFilters() && (
-                <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-blue-500 rounded-full shadow-lg shadow-blue-500/50"></div>
-              )}
-            </Button>
-            <Button
-              onClick={() => setIsConfigDialogOpen(true)}
-              variant="outline"
-              className="border-white/10 bg-white/5 backdrop-blur-md text-white/70 rounded-xl px-4 font-bold transition-all hover:bg-white/10 active:scale-95"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Configurar Entrada
-            </Button>
-            <Button
-              type="button"
-              onClick={handleCreateRevenue}
-              className="bg-linear-to-br from-[#00aacd] to-[#EB2970] text-white rounded-xl px-6 font-bold shadow-lg shadow-pink-500/20 transition-all hover:scale-105 active:scale-95"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Nova Receita
-            </Button>
-          </div>
+          <Button
+            type="button"
+            onClick={handleCreateRevenue}
+            className="bg-linear-to-br from-[#00aacd] to-[#EB2970] text-white rounded-xl px-6 font-bold shadow-lg shadow-pink-500/20 transition-all hover:scale-105 active:scale-95 shrink-0"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Nova Receita
+          </Button>
         </div>
-
-        {/* Filtros removidos da área principal - agora em Sheet */}
-
-        {/* KPIs */}
-        {filters.fairId && (
-          <FinanceKpis 
-            data={kpisData} 
-            isLoading={isLoadingKpis}
-            onTotalContractedClick={() => setShowCashFlowModal(true)}
-            onTotalReceivedClick={() => setShowCashFlowModal(true)}
-          />
-        )}
 
         {/* Estatísticas de Receitas */}
         {filters.fairId && (
-          <RevenueStats 
-            fairId={filters.fairId} 
+          <RevenueStats
+            fairId={filters.fairId}
             onTotalRevenueClick={() => setShowCashFlowModal(true)}
           />
         )}
 
-        {/* Seção de Stands - Simplificada */}
+        {/* Seção de Stands */}
         {filters.fairId && (
           <Card className="glass-card">
             <CardHeader>
               <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <Grid className="h-5 w-5" />
-                    Stands da Feira
-                  </CardTitle>
-                  <CardDescription>
-                    Matriz visual dos stands - clique para gerenciar
-                  </CardDescription>
-                </div>
-                <div className="flex items-center gap-4">
-                  {standStats && (
-                    <div className="flex gap-6 text-sm">
-                      <div className="text-center">
-                        <div className="font-bold text-lg text-green-600">
-                          {standStats.available}
-                        </div>
-                        <div className="text-gray-600">Disponíveis</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="font-bold text-lg text-red-600">
-                          {standStats.occupied}
-                        </div>
-                        <div className="text-gray-600">Ocupados</div>
-                      </div>
-                      <div className="text-center">
-                        <div
-                          className={`font-bold text-lg ${getOccupancyColor(
-                            standStats.occupancyRate
-                          )}`}
-                        >
-                          {standStats.occupancyRate.toFixed(1)}%
-                        </div>
-                        <div className="text-gray-600">Ocupação</div>
-                      </div>
-                    </div>
-                  )}
+                <CardTitle className="flex items-center gap-2">
+                  <Grid className="h-5 w-5" />
+                  Stands da Feira
+                </CardTitle>
+                <div className="flex items-center gap-2">
                   <StandConfigurator
                     fairId={filters.fairId}
                     currentStandCount={standStats?.total || 0}
@@ -288,32 +190,69 @@ export function FinancePage() {
                       setStandsRefreshKey((prev) => prev + 1)
                     }
                   />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsStandsExpanded((prev) => !prev)}
+                    className="h-8 w-8 p-0 text-white/40 hover:text-white hover:bg-white/10"
+                  >
+                    {isStandsExpanded ? (
+                      <ChevronUp className="h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" />
+                    )}
+                  </Button>
                 </div>
               </div>
             </CardHeader>
-            <CardContent>
-              <StandMap
-                fairId={filters.fairId}
-                key={standsRefreshKey}
-                onCreateRevenue={handleCreateRevenueFromStand}
-              />
-            </CardContent>
+            {isStandsExpanded && (
+              <CardContent className="space-y-4">
+                <StandMap
+                  fairId={filters.fairId}
+                  key={standsRefreshKey}
+                  onCreateRevenue={handleCreateRevenueFromStand}
+                />
+                {standStats && (
+                  <div className="flex items-center gap-6 pt-2 border-t border-white/10">
+                    <div className="flex items-center gap-2">
+                      <div className="h-3 w-3 rounded-sm bg-green-500/80" />
+                      <span className="text-sm text-white/60">
+                        Disponíveis <span className="font-bold text-white">{standStats.available}</span>
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="h-3 w-3 rounded-sm bg-red-500/80" />
+                      <span className="text-sm text-white/60">
+                        Ocupados <span className="font-bold text-white">{standStats.occupied}</span>
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 ml-auto">
+                      <span className="text-sm text-white/60">Ocupação</span>
+                      <span
+                        className={`text-sm font-black tracking-tight ${getOccupancyColor(standStats.occupancyRate)}`}
+                      >
+                        {standStats.occupancyRate.toFixed(1)}%
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            )}
           </Card>
         )}
 
         {/* Tabela de Receitas */}
         {filters.fairId && (
-          <Card className="glass-card">
-            <FinanceTable
-              data={revenuesData}
-              isLoading={isLoadingRevenues}
-              filters={filters}
-              onFiltersChange={handleFiltersChange}
-              onViewDetail={handleViewRevenueDetail}
-              onDeleteRevenue={handleDeleteRevenue}
-              isDeletingRevenue={deleteRevenueMutation.isPending}
-            />
-          </Card>
+          <FinanceTable
+            data={revenuesData}
+            isLoading={isLoadingRevenues}
+            filters={filters}
+            onFiltersChange={handleFiltersChange}
+            onViewDetail={handleViewRevenueDetail}
+            onDeleteRevenue={handleDeleteRevenue}
+            isDeletingRevenue={deleteRevenueMutation.isPending}
+          />
         )}
 
         {/* Drawer para criar/editar receita */}
@@ -323,21 +262,6 @@ export function FinancePage() {
           revenueId={selectedRevenueId}
           fairId={filters.fairId}
           prefilledStandNumber={selectedStandNumber}
-        />
-
-        {/* Dialog para gerenciar modelos de entrada */}
-        <EntryModelsDialog
-          isOpen={isConfigDialogOpen}
-          onClose={() => setIsConfigDialogOpen(false)}
-          fairId={filters.fairId}
-        />
-
-        {/* Sheet para filtros avançados */}
-        <FinanceFiltersSheet
-          isOpen={isFiltersSheetOpen}
-          onClose={() => setIsFiltersSheetOpen(false)}
-          filters={filters}
-          onChange={handleFiltersChange}
         />
 
         {/* Modal de detalhamento da receita */}

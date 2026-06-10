@@ -8,7 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Eye, ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import dayjs from "dayjs";
 import type {
   PagedResponse,
@@ -121,19 +121,6 @@ export function FinanceTable({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-4">
-        <div>
-          <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Visão Geral</p>
-          <h3 className="text-xl font-black text-white tracking-tighter">
-            Receitas
-          </h3>
-          <p className="text-xs text-white/40">
-            {data?.total || 0} registros encontrados
-          </p>
-        </div>
-      </div>
-
       {/* Tabela */}
       <div className="rounded-[32px] overflow-hidden border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl">
         <Table>
@@ -235,19 +222,6 @@ export function FinanceTable({
 
                   <TableCell className="text-right py-4">
                     <div className="flex items-center justify-end space-x-2">
-                      {onViewDetail && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-white/40 hover:text-white hover:bg-white/10 rounded-full transition-all"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onViewDetail(revenue.id);
-                          }}
-                        >
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                      )}
                       {onDeleteRevenue && (
                         <Button
                           variant="ghost"
