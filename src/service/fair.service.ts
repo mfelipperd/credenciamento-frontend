@@ -16,10 +16,9 @@ export const useFairService = () => {
   const getFairs = async (filters?: FairFilters): Promise<Fair[] | undefined> => {
     const params = new URLSearchParams();
 
-    // Filtros suportados pela API nova (fairs_changes.md)
+    if (filters?.search) params.append("search", filters.search);
     if (filters?.status) params.append("status", filters.status);
     if (filters?.uf) params.append("uf", filters.uf);
-    // isActive ainda suportado para compatibilidade retroativa
     if (filters?.isActive !== undefined) params.append("isActive", filters.isActive.toString());
 
     const queryString = params.toString();
@@ -69,38 +68,11 @@ export const useFairService = () => {
     });
   };
 
-  // Obter estatísticas das feiras (calculadas localmente)
-  const getFairStats = async (fairs: Fair[]): Promise<FairStats | undefined> => {
-    if (!fairs || fairs.length === 0) {
-      return {
-        totalFairs: 0,
-        activeFairs: 0,
-        inactiveFairs: 0,
-        totalExpectedRevenue: 0,
-        totalExpectedProfit: 0,
-        averageProfitMargin: 0,
-      };
-    }
-
-    const activeFairs = fairs.filter(fair => fair.isActive);
-    const inactiveFairs = fairs.filter(fair => !fair.isActive);
-    
-    const totalExpectedRevenue = fairs.reduce((sum, fair) => sum + Number(fair.expectedRevenue || 0), 0);
-    const totalExpectedProfit = fairs.reduce((sum, fair) => sum + Number(fair.expectedProfit || 0), 0);
-
-    const fairsWithProfitMargin = fairs.filter(fair => fair.expectedProfitMargin && Number(fair.expectedProfitMargin) > 0);
-    const averageProfitMargin = fairsWithProfitMargin.length > 0
-      ? fairsWithProfitMargin.reduce((sum, fair) => sum + Number(fair.expectedProfitMargin || 0), 0) / fairsWithProfitMargin.length
-      : 0;
-
-    return {
-      totalFairs: fairs.length,
-      activeFairs: activeFairs.length,
-      inactiveFairs: inactiveFairs.length,
-      totalExpectedRevenue,
-      totalExpectedProfit,
-      averageProfitMargin,
-    };
+  // Obter estatísticas agregadas das feiras
+  const getFairStats = async (): Promise<FairStats | undefined> => {
+    return handleRequest<FairStats>({
+      request: () => api.get(AppEndpoints.FAIRS.STATS),
+    });
   };
 
   return {

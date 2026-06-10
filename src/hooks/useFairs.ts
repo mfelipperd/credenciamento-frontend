@@ -3,7 +3,6 @@ import { useFairService } from "@/service/fair.service";
 import { toast } from "sonner";
 import { getAxiosErrorMessage } from "@/utils/handleAxiosError";
 import type {
-  Fair,
   UpdateFairForm,
   FairFilters,
 } from "@/interfaces/fairs";
@@ -36,14 +35,13 @@ export const useFair = (id: string) => {
   });
 };
 
-// Hook para estatísticas das feiras (calculadas localmente)
-export const useFairStats = (fairs: Fair[] | undefined) => {
+// Hook para estatísticas agregadas das feiras (via backend)
+export const useFairStats = () => {
   const fairService = useFairService();
 
   return useQuery({
-    queryKey: ["fairs", "stats", fairs?.length],
-    queryFn: () => fairService.getFairStats(fairs || []),
-    enabled: !!fairs,
+    queryKey: ["fairs", "stats"],
+    queryFn: () => fairService.getFairStats(),
   });
 };
 

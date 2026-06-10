@@ -191,7 +191,7 @@ export interface FairStats {
   totalFairs: number;
   activeFairs: number;
   inactiveFairs: number;
-  totalExpectedRevenue: number;
-  totalExpectedProfit: number;
-  averageProfitMargin: number;
+  totalExpectedRevenue: number | string;
+  totalExpectedProfit: number | string;
+  averageProfitMargin: number | string;
 }

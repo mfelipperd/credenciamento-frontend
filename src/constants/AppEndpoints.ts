@@ -10,6 +10,7 @@ export const AppEndpoints = {
     BASE: "/fairs",
     BY_ID: (id: string) => `/fairs/${id}`,
     TOGGLE_ACTIVE: (id: string) => `/fairs/${id}/toggle-active`,
+    STATS: "/fairs/stats",
   },
   VISITORS: {
     BASE: "/visitors",

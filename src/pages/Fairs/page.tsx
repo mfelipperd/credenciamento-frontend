@@ -18,7 +18,7 @@ export default function FairsPage() {
   const [filters, setFilters] = useState<FairFilters>({});
 
   const { data: fairs, isLoading } = useFairs(filters);
-  const { data: stats, isLoading: statsLoading } = useFairStats(fairs);
+  const { data: stats, isLoading: statsLoading } = useFairStats();
   const createFairMutation = useCreateFair();
   const deleteFairMutation = useDeleteFair();
   const toggleActiveMutation = useToggleFairActive();

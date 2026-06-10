@@ -67,8 +67,8 @@ function StatCardSkeleton() {
 }
 
 export const FairStats: React.FC<FairStatsProps> = ({ stats, isLoading }) => {
-  const formatCurrency = (value: number) =>
-    new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
+  const formatCurrency = (value: number | string) =>
+    new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(value) || 0);
 
   if (isLoading) {
     return (
@@ -115,7 +115,7 @@ export const FairStats: React.FC<FairStatsProps> = ({ stats, isLoading }) => {
         value={formatCurrency(stats.totalExpectedProfit)}
         icon={Percent}
         color="#a855f7"
-        subtitle={`Margem média: ${stats.averageProfitMargin.toFixed(1)}%`}
+        subtitle={`Margem média: ${Number(stats.averageProfitMargin).toFixed(1)}%`}
       />
     </div>
   );
