@@ -13,7 +13,7 @@ export const useUserFairs = () => {
   const [selectedFairId, setSelectedFairId] = useCookie("selectedFairId");
 
   // Feiras associadas ao usuário (vindas do backend)
-  const userFairIds = user?.fairIds || [];
+  const userFairIds = useMemo(() => user?.fairIds || [], [user?.fairIds]);
 
   // FairId atual (prioridade: URL > seleção manual > primeira feira do usuário)
   const currentFairId = useMemo(() => {

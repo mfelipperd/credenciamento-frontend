@@ -12,18 +12,7 @@ import {
 import { useDeleteUser } from "@/hooks/useUsers";
 import { toast } from "sonner";
 import { Trash2, AlertTriangle } from "lucide-react";
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  cpf?: string;
-  phone?: string;
-  role: string;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
+import type { User } from "@/interfaces/user";
 
 interface DeleteUserDialogProps {
   user: User | null;

@@ -62,7 +62,7 @@ export function ClientFormModal({
     } else {
       reset({ name: "", cnpj: "", email: "", phone: "", responsavel: "" });
     }
-  }, [editingClient, open]);
+  }, [editingClient, open, reset]);
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>

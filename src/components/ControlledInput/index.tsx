@@ -16,10 +16,6 @@ interface ControlledInputProps<T extends FieldValues> extends InputProps {
   control: Control<T>;
   name: FieldPath<T>;
   label?: string;
-  /**
-   * Função que recebe o valor digitado e retorna a versão mascarada.
-   * Exemplo: (val) => applyPhoneMask(val)
-   */
   mask?: (value: string) => string;
 }
 

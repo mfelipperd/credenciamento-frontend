@@ -69,7 +69,7 @@ export const EditVisitorModal = ({ ...props }: EditVisitorModalProps) => {
           />
 
           <ControlledSelect
-            options={(fairs || []).map((fair: any) => ({
+            options={(fairs || []).map((fair: { id: string; name: string }) => ({
               value: fair.id,
               label: fair.name,
             }))}

@@ -107,7 +107,7 @@ export function FairPartnerForm({ isOpen, onClose, partner, mode, fairId }: Fair
         // toast.success removido - já está no hook
       }
       onClose();
-    } catch (error) {
+    } catch {
       // toast.error removido - já está no hook
     }
   };

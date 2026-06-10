@@ -6,7 +6,8 @@ import { useSearchParams } from "@/hooks/useSearchParams";
 import { ModalCreateFormPrivate } from "./components/ModalCreate";
 import { Pagination } from "./components/Pagination";
 import { TableSkeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { PageTabsList, PageTabsTrigger } from "@/components/ui/page-tabs";
 import { lazy, Suspense } from "react";
 import { LogoLoading } from "@/components/LogoLoading";
 
@@ -41,22 +42,16 @@ export const TableVisitors = () => {
             </h2>
             <div className="h-1.5 w-20 bg-linear-to-r from-brand-pink to-brand-cyan rounded-full" />
           </div>
-          <TabsList className="bg-white/5 border border-white/10 rounded-2xl p-1 gap-1">
-            <TabsTrigger
-              value="participants"
-              className="rounded-xl flex items-center gap-2 px-5 py-2 text-xs font-black uppercase tracking-wider data-[state=active]:bg-brand-pink data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-brand-pink/30 text-white/50 transition-all"
-            >
+          <PageTabsList>
+            <PageTabsTrigger value="participants">
               <Users className="w-3.5 h-3.5" />
               Participantes
-            </TabsTrigger>
-            <TabsTrigger
-              value="analytics"
-              className="rounded-xl flex items-center gap-2 px-5 py-2 text-xs font-black uppercase tracking-wider data-[state=active]:bg-brand-pink data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-brand-pink/30 text-white/50 transition-all"
-            >
+            </PageTabsTrigger>
+            <PageTabsTrigger value="analytics">
               <BarChart3 className="w-3.5 h-3.5" />
               Dashboard
-            </TabsTrigger>
-          </TabsList>
+            </PageTabsTrigger>
+          </PageTabsList>
           <div className="flex items-end justify-end gap-3">
             <Button
               type="button"

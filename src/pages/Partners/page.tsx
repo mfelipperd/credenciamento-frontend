@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { PageTabsList, PageTabsTrigger } from "@/components/ui/page-tabs";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -89,7 +90,7 @@ export default function PartnersPage() {
       toast.success("Sócio removido da feira com sucesso");
       setIsDeleteDialogOpen(false);
       setSelectedPartner(null);
-    } catch (error) {
+    } catch {
       toast.error("Erro ao remover sócio da feira");
     }
   };
@@ -142,18 +143,18 @@ export default function PartnersPage() {
               Gestão de sócios e distribuição de lucros
             </p>
           </div>
-          <TabsList>
-          <TabsTrigger value="socios" className="flex items-center gap-2">
-            <Users className="w-4 h-4" />
-            Sócios
-          </TabsTrigger>
-          {isAdmin && (
-            <TabsTrigger value="financeiro" className="flex items-center gap-2">
-              <BarChart3 className="w-4 h-4" />
-              Visão Financeira
-            </TabsTrigger>
-          )}
-        </TabsList>
+          <PageTabsList>
+            <PageTabsTrigger value="socios">
+              <Users className="w-4 h-4" />
+              Sócios
+            </PageTabsTrigger>
+            {isAdmin && (
+              <PageTabsTrigger value="financeiro">
+                <BarChart3 className="w-4 h-4" />
+                Visão Financeira
+              </PageTabsTrigger>
+            )}
+          </PageTabsList>
           <div className="flex justify-end">
             {isAdmin && (
               <Button onClick={() => setIsCreateDialogOpen(true)}>

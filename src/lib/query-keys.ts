@@ -6,7 +6,7 @@ export const queryKeys = {
   expenses: {
     all: ["expenses"] as const,
     lists: () => [...queryKeys.expenses.all, "list"] as const,
-    list: (filters: any) => [...queryKeys.expenses.lists(), filters] as const,
+    list: (filters: unknown) => [...queryKeys.expenses.lists(), filters] as const,
     details: () => [...queryKeys.expenses.all, "detail"] as const,
     detail: (id: string, fairId: string) => [...queryKeys.expenses.details(), id, fairId] as const,
     totals: () => [...queryKeys.expenses.all, "totals"] as const,
@@ -22,7 +22,7 @@ export const queryKeys = {
   finance: {
     all: ["finance"] as const,
     revenues: () => [...queryKeys.finance.all, "revenues"] as const,
-    revenuesList: (filters: any) => [...queryKeys.finance.revenues(), "list", filters] as const,
+    revenuesList: (filters: unknown) => [...queryKeys.finance.revenues(), "list", filters] as const,
     revenueDetail: (id: string) => [...queryKeys.finance.revenues(), "detail", id] as const,
     revenueStats: (fairId: string) => [...queryKeys.finance.all, "revenue-stats", fairId] as const,
     kpis: () => [...queryKeys.finance.all, "kpis"] as const,
@@ -62,7 +62,7 @@ export const queryKeys = {
   visitors: {
     all: ["visitors"] as const,
     lists: () => [...queryKeys.visitors.all, "list"] as const,
-    list: (filters: any) => [...queryKeys.visitors.lists(), filters] as const,
+    list: (filters: unknown) => [...queryKeys.visitors.lists(), filters] as const,
     details: () => [...queryKeys.visitors.all, "detail"] as const,
     detail: (id: string) => [...queryKeys.visitors.details(), id] as const,
     checkins: () => [...queryKeys.visitors.all, "checkins"] as const,
@@ -111,7 +111,7 @@ export const queryKeys = {
   partners: {
     all: ["partners"] as const,
     lists: () => [...queryKeys.partners.all, "list"] as const,
-    list: (filters?: any) => [...queryKeys.partners.lists(), filters] as const,
+    list: (filters?: unknown) => [...queryKeys.partners.lists(), filters] as const,
     details: () => [...queryKeys.partners.all, "detail"] as const,
     detail: (id: string) => [...queryKeys.partners.details(), id] as const,
     me: () => [...queryKeys.partners.all, "me"] as const,
@@ -124,9 +124,9 @@ export const queryKeys = {
   withdrawals: {
     all: ["withdrawals"] as const,
     lists: () => [...queryKeys.withdrawals.all, "list"] as const,
-    list: (partnerId: string, filters?: any) => 
+    list: (partnerId: string, filters?: unknown) =>
       [...queryKeys.withdrawals.lists(), partnerId, filters] as const,
-    allWithdrawals: (filters?: any) => 
+    allWithdrawals: (filters?: unknown) => 
       [...queryKeys.withdrawals.lists(), "all", filters] as const,
     details: () => [...queryKeys.withdrawals.all, "detail"] as const,
     detail: (id: string) => [...queryKeys.withdrawals.details(), id] as const,

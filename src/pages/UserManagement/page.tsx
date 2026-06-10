@@ -26,19 +26,7 @@ import {
 import { UserDetailModal } from "./components/UserDetailModal";
 import { UserFormModal } from "./components/UserFormModal";
 import { DeleteUserDialog } from "./components/DeleteUserDialog";
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  cpf?: string;
-  phone?: string;
-  role: EUserRole;
-  isActive: boolean;
-  fairIds?: string[];
-  createdAt: string;
-  updatedAt: string;
-}
+import type { User } from "@/interfaces/user";
 
 export default function UserManagementPage() {
   const { user } = useAuth();
@@ -312,7 +300,7 @@ export default function UserManagementPage() {
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-400">Criado em:</span>
                     <span className="text-sm text-gray-300">
-                      {new Date(user.createdAt).toLocaleDateString('pt-BR')}
+                      {user.createdAt ? new Date(user.createdAt).toLocaleDateString('pt-BR') : '-'}
                     </span>
                   </div>
                 </div>

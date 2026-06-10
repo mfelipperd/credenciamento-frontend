@@ -1,14 +1,14 @@
 import type { EUserRole } from "@/enums/user.enum";
 
 export interface User {
-  id: number;
+  id: string;
   name: string;
   email: string;
   role: EUserRole;
   fairIds?: string[];
   cpf?: string;
   phone?: string;
-  isActive?: boolean;
+  isActive: boolean;
   createdAt?: string;
   updatedAt?: string;
 }

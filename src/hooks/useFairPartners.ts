@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/query-keys";
 import { useFairPartnersService } from "@/service/fair-partners.service";
 import { toast } from "sonner";
+import { getAxiosErrorMessage } from "@/utils/handleAxiosError";
 import type {
   UpdateFairPartnerForm,
   UpdatePartnerForm,
@@ -59,8 +60,8 @@ export const useCreateFairPartner = () => {
       queryClient.invalidateQueries({ queryKey: ["available-percentage", fairId] });
       toast.success("Sócio adicionado à feira com sucesso!");
     },
-    onError: (error: any) => {
-      toast.error("Erro ao adicionar sócio à feira: " + (error.response?.data?.message || error.message));
+    onError: (error: unknown) => {
+      toast.error("Erro ao adicionar sócio à feira: " + getAxiosErrorMessage(error));
     },
   });
 };
@@ -77,8 +78,8 @@ export const useUpdateFairPartner = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.fairPartners.lists() });
       toast.success("Sócio da feira atualizado com sucesso!");
     },
-    onError: (error: any) => {
-      toast.error("Erro ao atualizar sócio da feira: " + (error.response?.data?.message || error.message));
+    onError: (error: unknown) => {
+      toast.error("Erro ao atualizar sócio da feira: " + getAxiosErrorMessage(error));
     },
   });
 };
@@ -95,8 +96,8 @@ export const useDeleteFairPartner = () => {
       queryClient.invalidateQueries({ queryKey: ["available-percentage"] });
       toast.success("Sócio removido da feira com sucesso!");
     },
-    onError: (error: any) => {
-      toast.error("Erro ao remover sócio da feira: " + (error.response?.data?.message || error.message));
+    onError: (error: unknown) => {
+      toast.error("Erro ao remover sócio da feira: " + getAxiosErrorMessage(error));
     },
   });
 };
@@ -162,8 +163,8 @@ export const useCreatePartner = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.partners.lists() });
       toast.success("Sócio criado com sucesso!");
     },
-    onError: (error: any) => {
-      toast.error("Erro ao criar sócio: " + (error.response?.data?.message || error.message));
+    onError: (error: unknown) => {
+      toast.error("Erro ao criar sócio: " + getAxiosErrorMessage(error));
     },
   });
 };
@@ -180,8 +181,8 @@ export const useUpdatePartner = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.partners.lists() });
       toast.success("Sócio atualizado com sucesso!");
     },
-    onError: (error: any) => {
-      toast.error("Erro ao atualizar sócio: " + (error.response?.data?.message || error.message));
+    onError: (error: unknown) => {
+      toast.error("Erro ao atualizar sócio: " + getAxiosErrorMessage(error));
     },
   });
 };
@@ -196,8 +197,8 @@ export const useDeletePartner = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.partners.lists() });
       toast.success("Sócio removido com sucesso!");
     },
-    onError: (error: any) => {
-      toast.error("Erro ao remover sócio: " + (error.response?.data?.message || error.message));
+    onError: (error: unknown) => {
+      toast.error("Erro ao remover sócio: " + getAxiosErrorMessage(error));
     },
   });
 };
@@ -235,8 +236,8 @@ export const useDistributeProfit = () => {
       queryClient.invalidateQueries({ queryKey: ["cash-flow-analysis", fairId] });
       toast.success("Lucros distribuídos com sucesso!");
     },
-    onError: (error: any) => {
-      toast.error("Erro ao distribuir lucros: " + (error.response?.data?.message || error.message));
+    onError: (error: unknown) => {
+      toast.error("Erro ao distribuir lucros: " + getAxiosErrorMessage(error));
     },
   });
 };

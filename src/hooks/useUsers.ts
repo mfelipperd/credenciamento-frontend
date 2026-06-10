@@ -2,17 +2,29 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAxio } from "@/hooks/useAxio";
 import { handleRequest } from "@/utils/handleRequest";
 import { toast } from "sonner";
+import type { User } from "@/interfaces/user";
 
 const USERS_BASE_URL = "/users";
+
+interface CreateUserInput {
+  name: string;
+  email: string;
+  password?: string;
+  role: string;
+  cpf?: string;
+  phone?: string;
+  isActive?: boolean;
+  fairIds?: string[];
+}
 
 // Hook para buscar usuários
 export const useUsers = (filters?: { role?: string; isActive?: boolean }) => {
   const api = useAxio();
-  
+
   return useQuery({
     queryKey: ["users", filters],
     queryFn: async () => {
-      return handleRequest<any[]>({
+      return handleRequest<User[]>({
         request: () => api.get(USERS_BASE_URL, { params: filters }),
       });
     },
@@ -22,11 +34,11 @@ export const useUsers = (filters?: { role?: string; isActive?: boolean }) => {
 // Hook para buscar usuários por role
 export const useUsersByRole = (role: string) => {
   const api = useAxio();
-  
+
   return useQuery({
     queryKey: ["users", "role", role],
     queryFn: async () => {
-      return handleRequest<any[]>({
+      return handleRequest<User[]>({
         request: () => api.get(`${USERS_BASE_URL}/role/${role}`),
       });
     },
@@ -37,11 +49,11 @@ export const useUsersByRole = (role: string) => {
 // Hook para buscar usuários ativos
 export const useActiveUsers = () => {
   const api = useAxio();
-  
+
   return useQuery({
     queryKey: ["users", "active"],
     queryFn: async () => {
-      return handleRequest<any[]>({
+      return handleRequest<User[]>({
         request: () => api.get(`${USERS_BASE_URL}/active`),
       });
     },
@@ -59,8 +71,8 @@ export const useCreateUser = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (userData: any) => {
-      return handleRequest<any>({
+    mutationFn: async (userData: CreateUserInput) => {
+      return handleRequest<User>({
         request: () => api.post(USERS_BASE_URL, userData),
       });
     },
@@ -81,8 +93,8 @@ export const useUpdateUser = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: any }) => {
-      return handleRequest<any>({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<CreateUserInput> }) => {
+      return handleRequest<User>({
         request: () => api.patch(`${USERS_BASE_URL}/${id}`, data),
       });
     },
@@ -104,7 +116,7 @@ export const useDeleteUser = () => {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      return handleRequest<any>({
+      return handleRequest<void>({
         request: () => api.delete(`${USERS_BASE_URL}/${id}`),
       });
     },

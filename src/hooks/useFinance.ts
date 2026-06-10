@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAxio } from "@/hooks/useAxio";
 import { toast } from "sonner";
+import { getAxiosErrorMessage } from "@/utils/handleAxiosError";
 import type {
   RevenueFilters,
   CreateRevenueForm,
@@ -10,6 +11,7 @@ import type {
   RevenueStats,
   UpdateExpenseForm,
   Brand,
+  Client,
   ClientImage,
 } from "@/interfaces/finance";
 
@@ -136,7 +138,7 @@ export const useEntryModels = (fairId?: string, type?: EntryModelType) => {
 
       const queryString = params.toString() ? `?${params.toString()}` : "";
       const response = await api.get(`${AppEndpoints.FINANCE.ENTRY_MODELS}${queryString}`);
-      return response.data;
+      return response.data as EntryModel[];
     },
   });
 };
@@ -168,7 +170,7 @@ export const useClients = (fairId?: string, q?: string) => {
 
       const queryString = params.toString() ? `?${params.toString()}` : "";
       const response = await api.get(`${AppEndpoints.FINANCE.CLIENTS}${queryString}`);
-      return response.data;
+      return response.data as Client[];
     },
   });
 };
@@ -510,8 +512,8 @@ export const useUploadClientImages = () => {
       queryClient.invalidateQueries({ queryKey: ["finance", "client-images", clientId] });
       toast.success("Fotos enviadas com sucesso!");
     },
-    onError: (error: any) => {
-      toast.error("Erro ao enviar fotos: " + (error.response?.data?.message ?? error.message));
+    onError: (error: unknown) => {
+      toast.error("Erro ao enviar fotos: " + getAxiosErrorMessage(error));
     },
   });
 };
@@ -555,8 +557,8 @@ export const useUploadFairImages = () => {
       queryClient.invalidateQueries({ queryKey: ["finance", "fair-images", fairId] });
       toast.success("Imagens enviadas com sucesso!");
     },
-    onError: (error: any) => {
-      toast.error("Erro ao enviar imagens: " + (error.response?.data?.message ?? error.message));
+    onError: (error: unknown) => {
+      toast.error("Erro ao enviar imagens: " + getAxiosErrorMessage(error));
     },
   });
 };
@@ -573,8 +575,8 @@ export const useDeleteFairImage = () => {
       queryClient.invalidateQueries({ queryKey: ["finance", "fair-images", fairId] });
       toast.success("Imagem removida com sucesso!");
     },
-    onError: (error: any) => {
-      toast.error("Erro ao remover imagem: " + (error.response?.data?.message ?? error.message));
+    onError: (error: unknown) => {
+      toast.error("Erro ao remover imagem: " + getAxiosErrorMessage(error));
     },
   });
 };
@@ -604,8 +606,8 @@ export const useDeleteClientImage = () => {
       queryClient.invalidateQueries({ queryKey: ["finance", "client-images", clientId] });
       toast.success("Foto removida com sucesso!");
     },
-    onError: (error: any) => {
-      toast.error("Erro ao remover foto: " + (error.response?.data?.message ?? error.message));
+    onError: (error: unknown) => {
+      toast.error("Erro ao remover foto: " + getAxiosErrorMessage(error));
     },
   });
 };

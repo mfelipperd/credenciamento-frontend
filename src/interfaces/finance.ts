@@ -337,7 +337,7 @@ export interface CreateAccountForm {
   tipo: AccountType;
 }
 
-export interface UpdateAccountForm extends Partial<CreateAccountForm> {}
+export type UpdateAccountForm = Partial<CreateAccountForm>;
 
 // Interfaces para despesas
 export interface Expense {
@@ -368,7 +368,7 @@ export interface CreateExpenseForm {
   observacoes?: string;
 }
 
-export interface UpdateExpenseForm extends Partial<CreateExpenseForm> {}
+export type UpdateExpenseForm = Partial<CreateExpenseForm>;
 
 // Filtros para despesas
 export interface ExpenseFilters {
@@ -508,4 +508,4 @@ export interface CreateOverheadExpenseForm {
   }>;
 }
 
-export interface UpdateOverheadExpenseForm extends Partial<CreateOverheadExpenseForm> {}
+export type UpdateOverheadExpenseForm = Partial<CreateOverheadExpenseForm>;

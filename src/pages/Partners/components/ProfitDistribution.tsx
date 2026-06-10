@@ -8,10 +8,11 @@ import { useDistributeProfit } from "@/hooks/useFairPartners";
 import { useFairs } from "@/hooks/useFairs";
 import { AlertCircle, DollarSign, TrendingUp, Users } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import type { ProfitDistribution as ProfitDistributionResult } from "@/interfaces/partners";
 
 export const ProfitDistribution: React.FC = () => {
   const [selectedFairId, setSelectedFairId] = useState<string>("");
-  const [distributionResult, setDistributionResult] = useState<any>(null);
+  const [distributionResult, setDistributionResult] = useState<ProfitDistributionResult | null>(null);
 
   const { data: fairs } = useFairs();
   const distributeProfitMutation = useDistributeProfit();
@@ -33,7 +34,7 @@ export const ProfitDistribution: React.FC = () => {
     try {
       const result = await distributeProfitMutation.mutateAsync(selectedFairId);
       setDistributionResult(result);
-    } catch (error) {
+    } catch {
       // Error is handled by the mutation
     }
   };
@@ -164,7 +165,7 @@ export const ProfitDistribution: React.FC = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {distributionResult.distribution.map((partner: any) => (
+                      {distributionResult.distribution.map((partner) => (
                         <TableRow key={partner.partnerId}>
                           <TableCell className="font-medium">
                             {partner.partnerName}
@@ -197,7 +198,7 @@ export const ProfitDistribution: React.FC = () => {
                     <span className="text-gray-600 dark:text-gray-400">Total Distribuído:</span>
                     <span className="ml-2 font-semibold">
                       {formatCurrency(
-                        distributionResult.distribution.reduce((sum: number, p: any) => sum + p.share, 0)
+                        distributionResult.distribution.reduce((sum, p) => sum + p.share, 0)
                       )}
                     </span>
                   </div>
@@ -205,7 +206,7 @@ export const ProfitDistribution: React.FC = () => {
                     <span className="text-gray-600 dark:text-gray-400">Total de Porcentagens:</span>
                     <span className="ml-2 font-semibold">
                       {formatPercentage(
-                        distributionResult.distribution.reduce((sum: number, p: any) => sum + p.percentage, 0)
+                        distributionResult.distribution.reduce((sum, p) => sum + p.percentage, 0)
                       )}
                     </span>
                   </div>

@@ -1,10 +1,8 @@
 import { useEffect } from "react";
 import io from "socket.io-client";
-import type { Socket } from "socket.io-client";
 import type { Visitor } from "@/interfaces/visitors";
 
-// Armazena o socket fora do hook para manter conexão estável
-let socket: typeof Socket | null = null;
+let socket: ReturnType<typeof io> | null = null;
 
 /**
  * Escuta o WebSocket e chama o callback quando os dados do visitante chegam
@@ -13,8 +11,8 @@ let socket: typeof Socket | null = null;
 export function useCheckinSocket(
   onVisitorReceived: (visitor: Visitor) => void
 ) {
-  const socketUrl = import.meta.env.VITE_API_BASE_URL.replace(/^https/, "wss");
   useEffect(() => {
+    const socketUrl = import.meta.env.VITE_API_BASE_URL.replace(/^https/, "wss");
     if (!socket) {
       socket = io(socketUrl, {
         transports: ["websocket"],
@@ -37,5 +35,5 @@ export function useCheckinSocket(
       // opcional: manter conexão ativa ou não
       // socket?.disconnect(); // descomente se quiser encerrar ao desmontar
     };
-  }, []);
+  }, [onVisitorReceived]);
 }

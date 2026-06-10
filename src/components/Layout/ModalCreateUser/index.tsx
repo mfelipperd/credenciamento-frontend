@@ -17,7 +17,7 @@ export const CreateUserModal = () => {
   const { createUser, loading } = useUserService();
   const { data: fairs } = useFairs();
 
-  const fairsOptions = (fairs || []).map((fair: any) => ({
+  const fairsOptions = (fairs || []).map((fair: { id: string; name: string }) => ({
     value: fair.id,
     label: fair.name,
   }));

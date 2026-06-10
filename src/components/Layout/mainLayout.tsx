@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { Outlet, useSearchParams } from "react-router-dom";
 import { useFairs } from "@/hooks/useFairs";
 import {
@@ -23,6 +23,7 @@ import { Sidebar } from "./Sidebar";
 import { LogoLoading } from "../LogoLoading";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
+import type { Fair } from "@/interfaces/fairs";
 
 export const MainLayout: React.FC = () => {
   const { data: fairs, isLoading: loading } = useFairs();
@@ -41,7 +42,7 @@ export const MainLayout: React.FC = () => {
   const isReceptionist = user?.role === EUserRole.RECEPTIONIST;
 
   // Feira expirada = hoje é estritamente posterior ao endDate (um dia depois do último dia)
-  const isFairExpired = (fair: any): boolean => {
+  const isFairExpired = (fair: Fair): boolean => {
     const endDateStr = fair.endDate ?? fair.endDateTime?.split("T")[0];
     if (!endDateStr) return false;
     const [y, m, d] = endDateStr.split("-").map(Number);
@@ -57,13 +58,13 @@ export const MainLayout: React.FC = () => {
     if (!user) return [];
     if (user.role === EUserRole.ADMIN) return list;
     const roleFiltered = list.filter(
-      (fair: any) =>
+      (fair: Fair) =>
         availableFairIds.length === 0 || availableFairIds.includes(fair.id),
     );
     // Recepcionista só vê feiras ativas e que ainda não encerraram
     if (user.role === EUserRole.RECEPTIONIST)
       return roleFiltered.filter(
-        (fair: any) => fair.isActive && !isFairExpired(fair),
+        (fair: Fair) => fair.isActive && !isFairExpired(fair),
       );
     return roleFiltered;
   }, [fairs, user, availableFairIds]);
@@ -71,14 +72,15 @@ export const MainLayout: React.FC = () => {
   // Determina o ID inicial baseado em: URL params > Cookie > Primeira feira disponível
   const getInitialFairId = () => {
     const urlFairId = searchParams.get("fairId");
-    if (urlFairId && availableFairs.find((f: any) => f.id === urlFairId))
+    if (urlFairId && availableFairs.find((f: Fair) => f.id === urlFairId))
       return urlFairId;
-    if (savedFairId && availableFairs.find((f: any) => f.id === savedFairId))
+    if (savedFairId && availableFairs.find((f: Fair) => f.id === savedFairId))
       return savedFairId;
     return availableFairs[0]?.id ?? "";
   };
 
   const [selectedId, setSelectedId] = useState(getInitialFairId);
+  const hasInitialized = useRef(false);
 
   // Filtros locais para a busca de feiras no popover
   const [isFairPopoverOpen, setIsFairPopoverOpen] = useState(false);
@@ -90,7 +92,7 @@ export const MainLayout: React.FC = () => {
   // Extrai anos únicos a partir das datas em que a feira acontece (startDate, endDate, startDateTime, endDateTime)
   const uniqueYears = useMemo(() => {
     const yearsSet = new Set<string>();
-    availableFairs.forEach((fair: any) => {
+    availableFairs.forEach((fair: Fair) => {
       const datesToTry = [
         fair.startDate,
         fair.endDate,
@@ -110,7 +112,7 @@ export const MainLayout: React.FC = () => {
                 yearsSet.add(year);
               }
             }
-          } catch (e) {
+          } catch {
             // ignore
           }
         }
@@ -121,7 +123,7 @@ export const MainLayout: React.FC = () => {
 
   // Filtra as feiras baseado na pesquisa por texto, status e ano do acontecimento
   const filteredFairs = useMemo(() => {
-    return availableFairs.filter((fair: any) => {
+    return availableFairs.filter((fair: Fair) => {
       if (fairSearchText.trim()) {
         const matchesName = fair.name
           .toLowerCase()
@@ -144,7 +146,7 @@ export const MainLayout: React.FC = () => {
             }
             const year = new Date(dateStr).getFullYear().toString();
             return year === selectedYearFilter;
-          } catch (e) {
+          } catch {
             return false;
           }
         });
@@ -174,7 +176,7 @@ export const MainLayout: React.FC = () => {
   };
 
   const selectedFair = useMemo(() => {
-    return availableFairs.find((f: any) => f.id === selectedId);
+    return availableFairs.find((f: Fair) => f.id === selectedId);
   }, [availableFairs, selectedId]);
 
   const fairCity = useMemo(() => {
@@ -211,23 +213,32 @@ export const MainLayout: React.FC = () => {
 
   // Removido - o hook useFairs já faz o fetch automaticamente
 
-  // Sincroniza o selectedId apenas quando necessário
+  // Sincroniza o selectedId apenas quando a lista de feiras fica não-vazia pela primeira vez
   useEffect(() => {
-    if (availableFairs.length > 0) {
-      const newId = getInitialFairId();
+    if (availableFairs.length === 0 || hasInitialized.current) return;
+    hasInitialized.current = true;
 
-      // Só atualiza o estado local se mudou
-      if (newId && newId !== selectedId) {
-        setSelectedId(newId);
-      }
+    const urlFairId = searchParams.get("fairId");
+    const newId =
+      (urlFairId && availableFairs.find((f: Fair) => f.id === urlFairId)
+        ? urlFairId
+        : null) ??
+      (savedFairId && availableFairs.find((f: Fair) => f.id === savedFairId)
+        ? savedFairId
+        : null) ??
+      availableFairs[0]?.id ??
+      "";
 
-      // Só atualiza a URL se não houver fairId nela
-      if (newId && !searchParams.get("fairId")) {
-        setSearchParams({ fairId: newId }, { replace: true });
-      }
+    // Só atualiza o estado local se mudou
+    if (newId && newId !== selectedId) {
+      setSelectedId(newId);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [availableFairs.length]); // Apenas quando a lista de feiras deixar de estar vazia
+
+    // Só atualiza a URL se não houver fairId nela
+    if (newId && !urlFairId) {
+      setSearchParams({ fairId: newId }, { replace: true });
+    }
+  }, [availableFairs, searchParams, selectedId, savedFairId, setSearchParams]);
 
   // Só bloqueia a renderização enquanto o carregamento inicial estiver em progresso
   // Se houver erro ou feiras vazias, renderiza o layout mesmo assim para não travar
@@ -462,7 +473,7 @@ export const MainLayout: React.FC = () => {
                           </div>
                           <div className="max-h-48 overflow-y-auto space-y-1 pr-1 border border-white/5 bg-white/3 rounded-xl p-1.5">
                             {filteredFairs.length > 0 ? (
-                              filteredFairs.map((fair: any) => {
+                              filteredFairs.map((fair: Fair) => {
                                 const isSelected = fair.id === selectedId;
                                 return (
                                   <button
@@ -586,7 +597,7 @@ export const MainLayout: React.FC = () => {
         </header>
 
         {/* Content — cresce para preencher, único elemento que faz scroll */}
-        <main className="flex-1  bg-brand-blue p-6 h-[80%] pb-0 pt-2">
+        <main className="flex-1  bg-brand-blue p-6 h-[80%] pb-0 pt-2 overflow-auto">
           <Outlet />
         </main>
 

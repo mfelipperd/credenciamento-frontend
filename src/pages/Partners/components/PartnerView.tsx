@@ -107,7 +107,7 @@ export function PartnerView({ partner: propPartner, fairId, isAdminView = false 
     }
 
     // Insight 3: Histórico de retiradas
-    const recentWithdrawals: any[] = []; // TODO: Implementar busca de retiradas
+    const recentWithdrawals: unknown[] = []; // TODO: Implementar busca de retiradas
 
     if (recentWithdrawals.length === 0) {
       insights.push({

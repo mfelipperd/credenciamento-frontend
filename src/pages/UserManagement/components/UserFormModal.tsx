@@ -28,6 +28,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { EUserRole } from "@/enums/user.enum";
 import { useCreateUser, useUpdateUser } from "@/hooks/useUsers";
+import type { User } from "@/interfaces/user";
 import { useFairs } from "@/hooks/useFairs";
 import { toast } from "sonner";
 import { maskCPF, maskPhoneBR } from "@/utils/masks";
@@ -68,19 +69,6 @@ const userSchema = z.object({
 });
 
 type UserFormData = z.infer<typeof userSchema>;
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  cpf?: string;
-  phone?: string;
-  role: EUserRole;
-  isActive: boolean;
-  fairIds?: string[];
-  createdAt: string;
-  updatedAt: string;
-}
 
 interface UserFormModalProps {
   user: User | null;
@@ -149,7 +137,7 @@ export function UserFormModal({ user, isOpen, onClose }: UserFormModalProps) {
   }, [user, isOpen, form]);
 
   // Função para remover máscaras dos dados
-  const removeMasks = (data: UserFormData) => {
+  const removeMasks = (data: Omit<UserFormData, "confirmPassword">) => {
     return {
       ...data,
       cpf: data.cpf ? data.cpf.replace(/\D/g, '') : undefined, // Remove tudo que não é dígito
@@ -161,11 +149,17 @@ export function UserFormModal({ user, isOpen, onClose }: UserFormModalProps) {
     try {
       setIsSubmitting(true);
 
-      const { confirmPassword, ...dataWithoutConfirm } = data;
-      const cleanedData = removeMasks(dataWithoutConfirm);
+      const cleanedData = removeMasks({
+        name: data.name,
+        email: data.email,
+        cpf: data.cpf,
+        phone: data.phone,
+        role: data.role,
+        isActive: data.isActive,
+        password: data.password,
+        fairIds: data.fairIds,
+      });
       
-      console.log("🔍 Dados originais:", dataWithoutConfirm);
-      console.log("🧹 Dados limpos (sem máscaras):", cleanedData);
       
       const submitData = {
         ...cleanedData,
@@ -173,8 +167,6 @@ export function UserFormModal({ user, isOpen, onClose }: UserFormModalProps) {
         password: data.password || undefined, // Só incluir senha se preenchida
       };
       
-      console.log("📤 Payload final enviado:", submitData);
-
       if (isEditing && user) {
         // Editar usuário
         await updateUserMutation.mutateAsync({
@@ -359,7 +351,7 @@ export function UserFormModal({ user, isOpen, onClose }: UserFormModalProps) {
                 </div>
                 
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 max-h-48 overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-white/10">
-                  {(fairs || []).map((fair: any) => (
+                  {(fairs || []).map((fair: { id: string; name: string }) => (
                     <div key={fair.id} className="flex items-center space-x-3 p-4 bg-white/2 border border-white/5 rounded-xl hover:bg-white/5 transition-colors group cursor-pointer">
                       <Checkbox
                         id={`fair-${fair.id}`}

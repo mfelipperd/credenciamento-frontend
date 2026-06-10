@@ -16,7 +16,8 @@ export const usePublicFormService = () => {
       const response = await api.post<Visitor>(AppEndpoints.VISITORS.BASE, data);
       if (!response.data) return;
       return response.data;
-    } catch (error) {
+    } catch {
+      // silently ignore errors
     } finally {
       setLoading(false);
     }

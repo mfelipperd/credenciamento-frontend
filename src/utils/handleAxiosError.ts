@@ -1,6 +1,13 @@
 import axios from "axios";
 import { toast } from "sonner";
 
+export const getAxiosErrorMessage = (error: unknown, fallback = "Erro inesperado"): string => {
+  if (axios.isAxiosError<{ message: string }>(error)) {
+    return error.response?.data?.message ?? error.message ?? fallback;
+  }
+  return fallback;
+};
+
 export const handleAxiosError = (error: unknown): void => {
   
   if (axios.isAxiosError(error)) {

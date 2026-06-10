@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, type FieldPath } from "react-hook-form";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ControlledInput } from "@/components/ControlledInput";
@@ -289,7 +289,7 @@ export const FormularioCredenciamento: React.FC = () => {
   };
 
   const nextStep = async () => {
-    let fieldsToValidate: any[] = [];
+    let fieldsToValidate: FieldPath<CredenciamentoFormData>[] = [];
     if (currentStep === 1) fieldsToValidate = ["ingresso"];
     if (currentStep === 2) {
       fieldsToValidate = ["name", "email", "company", "phone", "zipCode", "howDidYouKnow"];
@@ -461,8 +461,7 @@ export const FormularioCredenciamento: React.FC = () => {
       })
       .catch(() => {})
       .finally(() => setIsFetchingCep(false));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [zipCode]);
+  }, [zipCode, setValue, setIsFetchingCep]);
 
   useEffect(() => {
     // Adiciona uma verificação para evitar chamadas desnecessárias
@@ -473,7 +472,7 @@ export const FormularioCredenciamento: React.FC = () => {
 
       return () => clearTimeout(timeoutId);
     }
-  }, [resgister?.registrationCode, fairId, visitor?.name]);
+  }, [resgister?.registrationCode, fairId, visitor?.name, getVisitorById]);
 
   // Validação inicial do fairId - após todos os hooks
   if (!fairId) {

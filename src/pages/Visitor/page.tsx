@@ -31,7 +31,7 @@ export const Visitor = () => {
     }
 
     setIsMobile(isMobileDevice());
-  }, [checkinId, fairId]);
+  }, [checkinId, fairId, getVisitorById]);
 
   const handlePrint = useCallback(() => {
     if (!visitor) return;

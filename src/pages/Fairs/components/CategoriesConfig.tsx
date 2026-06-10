@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { CategoryCard } from "./CategoryCard";
 import { CategoryForm } from "./CategoryForm";
-import type { FinanceCategory } from "@/interfaces/categories";
+import type { FinanceCategory, CreateCategoryDto, UpdateCategoryDto } from "@/interfaces/categories";
 
 interface CategoriesConfigProps {
   fairId: string;
@@ -47,18 +47,25 @@ export function CategoriesConfig({ fairId }: CategoriesConfigProps) {
     }
   };
 
-  const handleCreateCategory = async (data: any) => {
+  const handleCreateCategory = async (data: CreateCategoryDto | UpdateCategoryDto) => {
     try {
-      await createCategory(data);
+      await createCategory({
+        nome: data.nome ?? '',
+        global: data.global ?? false,
+        isRequired: data.isRequired ?? false,
+        parentId: data.parentId,
+        fairId: data.fairId,
+        description: data.description,
+      });
       setShowForm(false);
     } catch (error) {
       console.error("Erro ao criar categoria:", error);
     }
   };
 
-  const handleUpdateCategory = async (data: any) => {
+  const handleUpdateCategory = async (data: UpdateCategoryDto) => {
     if (!editingCategory) return;
-    
+
     try {
       await updateCategory({ id: editingCategory.id, data });
       setEditingCategory(undefined);

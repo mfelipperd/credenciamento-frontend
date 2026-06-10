@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCategoriesService } from "@/service/categories.service";
 import { toast } from "sonner";
+import { getAxiosErrorMessage } from "@/utils/handleAxiosError";
+import type { UpdateCategoryDto } from "@/interfaces/categories";
 
 export const useCategories = (fairId: string) => {
   const service = useCategoriesService();
@@ -49,8 +51,8 @@ export const useCategories = (fairId: string) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.fair(fairId) });
       toast.success("Status da categoria alterado com sucesso");
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Erro ao alterar status da categoria");
+    onError: (error: unknown) => {
+      toast.error(getAxiosErrorMessage(error, "Erro ao alterar status da categoria"));
     },
   });
 
@@ -61,20 +63,20 @@ export const useCategories = (fairId: string) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.fair(fairId) });
       toast.success("Categoria criada com sucesso");
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Erro ao criar categoria");
+    onError: (error: unknown) => {
+      toast.error(getAxiosErrorMessage(error, "Erro ao criar categoria"));
     },
   });
 
   // Atualizar categoria
   const updateCategoryMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) => service.updateCategory(id, data),
+    mutationFn: ({ id, data }: { id: string; data: UpdateCategoryDto }) => service.updateCategory(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.fair(fairId) });
       toast.success("Categoria atualizada com sucesso");
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Erro ao atualizar categoria");
+    onError: (error: unknown) => {
+      toast.error(getAxiosErrorMessage(error, "Erro ao atualizar categoria"));
     },
   });
 
@@ -85,8 +87,8 @@ export const useCategories = (fairId: string) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.fair(fairId) });
       toast.success("Categoria deletada com sucesso");
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Erro ao deletar categoria");
+    onError: (error: unknown) => {
+      toast.error(getAxiosErrorMessage(error, "Erro ao deletar categoria"));
     },
   });
 

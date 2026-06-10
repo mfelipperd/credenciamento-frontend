@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/query-keys";
 import { useAxio } from "@/hooks/useAxio";
 import { toast } from "sonner";
+import { getAxiosErrorMessage } from "@/utils/handleAxiosError";
 import { AppEndpoints } from "@/constants/AppEndpoints";
 import type {
   Withdrawal,
@@ -69,8 +70,8 @@ export const useCreateWithdrawal = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.partners.all });
       toast.success("Saque solicitado com sucesso!");
     },
-    onError: (error: any) => {
-      toast.error("Erro ao solicitar saque: " + (error.response?.data?.message || error.message));
+    onError: (error: unknown) => {
+      toast.error("Erro ao solicitar saque: " + getAxiosErrorMessage(error));
     },
   });
 };
@@ -92,8 +93,8 @@ export const useApproveWithdrawal = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.finance.all });
       toast.success("Saque aprovado com sucesso!");
     },
-    onError: (error: any) => {
-      toast.error("Erro ao aprovar saque: " + (error.response?.data?.message || error.message));
+    onError: (error: unknown) => {
+      toast.error("Erro ao aprovar saque: " + getAxiosErrorMessage(error));
     },
   });
 };
@@ -114,8 +115,8 @@ export const useRejectWithdrawal = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.partners.all });
       toast.success("Saque rejeitado!");
     },
-    onError: (error: any) => {
-      toast.error("Erro ao rejeitar saque: " + (error.response?.data?.message || error.message));
+    onError: (error: unknown) => {
+      toast.error("Erro ao rejeitar saque: " + getAxiosErrorMessage(error));
     },
   });
 };

@@ -68,8 +68,7 @@ export const useFinanceService = () => {
   };
 
   const deleteEntryModel = async (
-    id: string,
-    _fairId?: string
+    id: string
   ): Promise<void> => {
     await handleRequest<{ success: boolean }>({
       request: () => api.delete(AppEndpoints.FINANCE.ENTRY_MODEL_BY_ID(id)),

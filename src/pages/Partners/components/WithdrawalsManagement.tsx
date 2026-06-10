@@ -10,7 +10,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label";
 import { useAllWithdrawals, useApproveWithdrawal, useRejectWithdrawal } from "@/hooks/useWithdrawals";
 import { useFairs } from "@/hooks/useFairs";
-import type { PartnerWithdrawal } from "@/interfaces/withdrawals";
+import type { PartnerWithdrawal, WithdrawalFilters } from "@/interfaces/withdrawals";
+
+const WITHDRAWAL_STATUSES: NonNullable<WithdrawalFilters['status']>[] = ['PENDING', 'APPROVED', 'REJECTED', 'COMPLETED'];
 import { format } from "date-fns";
 import { 
   Search, 
@@ -39,7 +41,7 @@ export const WithdrawalsManagement: React.FC = () => {
   const selectedFairId = fairFilter || fairs?.[0]?.id;
 
   const { data: withdrawals, isLoading, error } = useAllWithdrawals({
-    status: statusFilter === "all" ? undefined : statusFilter as any,
+    status: WITHDRAWAL_STATUSES.find(s => s === statusFilter),
     fairId: selectedFairId,
     partnerId: user?.id?.toString(),
   });
@@ -92,21 +94,21 @@ export const WithdrawalsManagement: React.FC = () => {
     
     try {
       await approveWithdrawalMutation.mutateAsync(withdrawalId);
-    } catch (error) {
+    } catch {
       // Error is handled by the mutation
     }
   };
 
   const handleReject = async (withdrawalId: string) => {
     if (!rejectionReason.trim()) return;
-    
+
     try {
       await rejectWithdrawalMutation.mutateAsync({
         withdrawalId,
         data: { rejectionReason },
       });
       setRejectionReason("");
-    } catch (error) {
+    } catch {
       // Error is handled by the mutation
     }
   };

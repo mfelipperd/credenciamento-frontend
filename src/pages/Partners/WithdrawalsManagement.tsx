@@ -111,7 +111,7 @@ export function WithdrawalsManagement() {
     try {
       await approveWithdrawalMutation.mutateAsync(withdrawalId);
       // toast.success removido - já está no hook
-    } catch (error) {
+    } catch {
       // toast.error removido - já está no hook
     }
   };
@@ -129,7 +129,7 @@ export function WithdrawalsManagement() {
         data: { rejectionReason },
       });
       // toast.success removido - já está no hook
-    } catch (error) {
+    } catch {
       // toast.error removido - já está no hook
     }
   };

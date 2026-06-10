@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/query-keys";
 import { useAxio } from "@/hooks/useAxio";
 import { toast } from "sonner";
+import { getAxiosErrorMessage } from "@/utils/handleAxiosError";
 import { AppEndpoints } from "@/constants/AppEndpoints";
 
 // Interfaces básicas (ajustar conforme necessário)
@@ -108,8 +109,8 @@ export const useCreateStand = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.fairs.standsByFair(data.fairId) });
       toast.success("Stand criado com sucesso!");
     },
-    onError: (error: any) => {
-      toast.error("Erro ao criar stand: " + (error.response?.data?.message || error.message));
+    onError: (error: unknown) => {
+      toast.error("Erro ao criar stand: " + getAxiosErrorMessage(error));
     },
   });
 };
@@ -133,8 +134,8 @@ export const useUpdateStand = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.fairs.standStats(data.fairId) });
       toast.success("Stand atualizado com sucesso!");
     },
-    onError: (error: any) => {
-      toast.error("Erro ao atualizar stand: " + (error.response?.data?.message || error.message));
+    onError: (error: unknown) => {
+      toast.error("Erro ao atualizar stand: " + getAxiosErrorMessage(error));
     },
   });
 };
@@ -156,8 +157,8 @@ export const useDeleteStand = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.fairs.standsByFair(data.fairId) });
       toast.success("Stand removido com sucesso!");
     },
-    onError: (error: any) => {
-      toast.error("Erro ao remover stand: " + (error.response?.data?.message || error.message));
+    onError: (error: unknown) => {
+      toast.error("Erro ao remover stand: " + getAxiosErrorMessage(error));
     },
   });
 };
