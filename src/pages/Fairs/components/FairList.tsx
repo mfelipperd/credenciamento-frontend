@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -33,16 +32,24 @@ import {
   Navigation,
   Building2,
   ExternalLink,
+  Search,
 } from "lucide-react";
 import type { Fair, FairFilters, FairStatus } from "@/interfaces/fairs";
 
-// ─── Configurações de status ──────────────────────────────────────────────────
+// ─── Status config ─────────────────────────────────────────────────────────────
 
-const STATUS_CONFIG: Record<FairStatus, { label: string; className: string }> = {
-  upcoming:  { label: "Em breve",       className: "bg-blue-500/15 text-blue-600 border-blue-500/20" },
-  ongoing:   { label: "Em andamento",   className: "bg-green-500/15 text-green-600 border-green-500/20" },
-  ended:     { label: "Encerrada",      className: "bg-gray-500/15 text-gray-600 border-gray-500/20" },
-  cancelled: { label: "Cancelada",      className: "bg-red-500/15 text-red-600 border-red-500/20" },
+const STATUS_CONFIG: Record<FairStatus, { label: string; dot: string; badge: string }> = {
+  upcoming:  { label: "Em breve",      dot: "bg-blue-400",   badge: "bg-blue-500/15 text-blue-300 border-blue-500/20" },
+  ongoing:   { label: "Em andamento",  dot: "bg-green-400",  badge: "bg-green-500/15 text-green-300 border-green-500/20" },
+  ended:     { label: "Encerrada",     dot: "bg-white/30",   badge: "bg-white/5 text-white/40 border-white/10" },
+  cancelled: { label: "Cancelada",     dot: "bg-red-400",    badge: "bg-red-500/15 text-red-300 border-red-500/20" },
+};
+
+const STATUS_GLOW: Record<FairStatus, string> = {
+  upcoming:  "#3b82f6",
+  ongoing:   "#22c55e",
+  ended:     "#ffffff",
+  cancelled: "#ef4444",
 };
 
 const BR_STATES = [
@@ -73,7 +80,29 @@ interface FairListProps {
   filters: FairFilters;
 }
 
-// ─── Componente ───────────────────────────────────────────────────────────────
+// ─── Skeleton card ────────────────────────────────────────────────────────────
+
+function FairCardSkeleton() {
+  return (
+    <div className="bg-white/5 border border-white/10 rounded-[32px] overflow-hidden">
+      <Skeleton className="h-28 w-full rounded-none bg-white/10" />
+      <div className="p-5 space-y-3">
+        <div className="flex justify-between items-start gap-2">
+          <div className="space-y-1.5 flex-1">
+            <Skeleton className="h-4 w-3/4 bg-white/10" />
+            <Skeleton className="h-3 w-1/3 bg-white/10" />
+          </div>
+          <Skeleton className="h-5 w-20 rounded-full bg-white/10" />
+        </div>
+        <Skeleton className="h-3 w-full bg-white/10" />
+        <Skeleton className="h-3 w-2/3 bg-white/10" />
+        <Skeleton className="h-3 w-1/2 bg-white/10" />
+      </div>
+    </div>
+  );
+}
+
+// ─── Componente principal ─────────────────────────────────────────────────────
 
 export const FairList: React.FC<FairListProps> = ({
   fairs,
@@ -88,26 +117,16 @@ export const FairList: React.FC<FairListProps> = ({
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-5">
         <div className="flex flex-wrap gap-3">
-          <Skeleton className="h-10 w-64" />
-          <Skeleton className="h-10 w-36" />
-          <Skeleton className="h-10 w-36" />
-          <Skeleton className="h-10 w-28" />
+          <Skeleton className="h-10 w-64 bg-white/10 rounded-xl" />
+          <Skeleton className="h-10 w-36 bg-white/10 rounded-xl" />
+          <Skeleton className="h-10 w-36 bg-white/10 rounded-xl" />
+          <Skeleton className="h-10 w-28 bg-white/10 rounded-xl" />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {Array.from({ length: 6 }).map((_, i) => (
-            <Card key={i}>
-              <CardHeader>
-                <Skeleton className="h-6 w-3/4" />
-                <Skeleton className="h-4 w-1/2 mt-1" />
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-2/3" />
-                <Skeleton className="h-4 w-1/2" />
-              </CardContent>
-            </Card>
+            <FairCardSkeleton key={i} />
           ))}
         </div>
       </div>
@@ -115,21 +134,23 @@ export const FairList: React.FC<FairListProps> = ({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* ── Filtros ──────────────────────────────────────────────────────── */}
       <div className="flex flex-wrap gap-3">
-        <Input
-          placeholder="Buscar feiras..."
-          value={filters.search ?? ""}
-          onChange={(e) => onFiltersChange({ search: e.target.value })}
-          className="max-w-xs"
-        />
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30" />
+          <Input
+            placeholder="Buscar feiras..."
+            value={filters.search ?? ""}
+            onChange={(e) => onFiltersChange({ search: e.target.value })}
+            className="pl-9 bg-white/5 border-white/10 text-white placeholder:text-white/30 rounded-xl h-10 w-64"
+          />
+        </div>
 
-        {/* Status */}
         <select
           value={filters.status ?? ""}
           onChange={(e) => onFiltersChange({ status: (e.target.value as FairStatus) || undefined })}
-          className="px-3 py-2 text-sm border border-input rounded-md bg-background"
+          className="px-3 py-2 text-sm rounded-xl bg-white/5 border border-white/10 text-white/70 outline-none focus:border-white/30 transition-colors"
         >
           <option value="">Todos os status</option>
           <option value="upcoming">Em breve</option>
@@ -138,11 +159,10 @@ export const FairList: React.FC<FairListProps> = ({
           <option value="cancelled">Canceladas</option>
         </select>
 
-        {/* UF */}
         <select
           value={filters.uf ?? ""}
           onChange={(e) => onFiltersChange({ uf: e.target.value || undefined })}
-          className="px-3 py-2 text-sm border border-input rounded-md bg-background"
+          className="px-3 py-2 text-sm rounded-xl bg-white/5 border border-white/10 text-white/70 outline-none focus:border-white/30 transition-colors"
         >
           <option value="">Todos os estados</option>
           {BR_STATES.map((uf) => (
@@ -150,14 +170,13 @@ export const FairList: React.FC<FairListProps> = ({
           ))}
         </select>
 
-        {/* Ativo/Inativo */}
         <select
           value={filters.isActive === undefined ? "all" : filters.isActive.toString()}
           onChange={(e) => {
             const v = e.target.value;
             onFiltersChange({ isActive: v === "all" ? undefined : v === "true" });
           }}
-          className="px-3 py-2 text-sm border border-input rounded-md bg-background"
+          className="px-3 py-2 text-sm rounded-xl bg-white/5 border border-white/10 text-white/70 outline-none focus:border-white/30 transition-colors"
         >
           <option value="all">Ativas e Inativas</option>
           <option value="true">Somente ativas</option>
@@ -165,17 +184,16 @@ export const FairList: React.FC<FairListProps> = ({
         </select>
       </div>
 
-      {/* ── Lista ────────────────────────────────────────────────────────── */}
+      {/* ── Lista ─────────────────────────────────────────────────────────── */}
       {fairs.length === 0 ? (
-        <Card>
-          <CardContent className="text-center py-12">
-            <p className="text-muted-foreground">Nenhuma feira encontrada com os filtros aplicados.</p>
-          </CardContent>
-        </Card>
+        <div className="bg-white/5 border border-white/10 rounded-[32px] py-16 text-center">
+          <p className="text-white/30 text-sm font-medium">Nenhuma feira encontrada com os filtros aplicados.</p>
+        </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {fairs.map((fair) => {
             const statusCfg = STATUS_CONFIG[fair.status] ?? STATUS_CONFIG.upcoming;
+            const glowColor = STATUS_GLOW[fair.status] ?? STATUS_GLOW.upcoming;
             const startFmt = fmtDate(fair.startDate);
             const endFmt = fmtDate(fair.endDate);
             const dateRange = !startFmt
@@ -185,35 +203,50 @@ export const FairList: React.FC<FairListProps> = ({
                 : `${startFmt} a ${endFmt}`;
 
             return (
-              <Card
+              <div
                 key={fair.id}
-                className="hover:shadow-md transition-all border border-border/60 flex flex-col cursor-pointer"
+                className="group relative overflow-hidden bg-white/5 backdrop-blur-xl border border-white/10 rounded-[32px] flex flex-col cursor-pointer transition-all duration-300 hover:bg-white/8 hover:border-white/20 hover:scale-[1.01] shadow-xl"
                 onClick={() => navigate(`/fairs/${fair.id}`)}
               >
+                {/* Glow de status */}
+                <div
+                  className="absolute -right-6 -top-6 w-32 h-32 blur-3xl opacity-10 transition-opacity duration-300 group-hover:opacity-20 pointer-events-none"
+                  style={{ backgroundColor: glowColor }}
+                />
+
                 {/* Banner */}
-                {fair.bannerUrl && (
-                  <div className="h-28 overflow-hidden rounded-t-lg">
+                {fair.bannerUrl ? (
+                  <div className="h-32 overflow-hidden rounded-t-[32px] shrink-0">
                     <img
                       src={fair.bannerUrl}
                       alt={fair.name}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                   </div>
+                ) : (
+                  <div
+                    className="h-2 rounded-t-[32px] shrink-0"
+                    style={{ backgroundColor: glowColor, opacity: 0.4 }}
+                  />
                 )}
 
-                <CardHeader className="pb-2">
+                <div className="p-5 flex flex-col gap-3 flex-1 relative z-10">
+                  {/* Nome + status + menu */}
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
-                      <p className="font-bold text-base leading-snug line-clamp-2">{fair.name}</p>
+                      <p className="font-black text-white text-base leading-snug line-clamp-2 tracking-tight">
+                        {fair.name}
+                      </p>
                       {fair.edition && (
-                        <p className="text-xs text-muted-foreground mt-0.5">{fair.edition}</p>
+                        <p className="text-xs text-white/40 mt-0.5">{fair.edition}</p>
                       )}
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0">
                       <Badge
                         variant="outline"
-                        className={`text-[10px] font-bold px-2 py-0.5 whitespace-nowrap ${statusCfg.className}`}
+                        className={`text-[10px] font-bold px-2 py-0.5 whitespace-nowrap ${statusCfg.badge}`}
                       >
+                        <span className={`inline-block h-1.5 w-1.5 rounded-full mr-1.5 ${statusCfg.dot}`} />
                         {statusCfg.label}
                       </Badge>
                       <DropdownMenu>
@@ -221,20 +254,20 @@ export const FairList: React.FC<FairListProps> = ({
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-7 w-7 p-0"
+                            className="h-7 w-7 p-0 text-white/30 hover:text-white hover:bg-white/10 rounded-full"
                             onClick={(e) => e.stopPropagation()}
                           >
                             <MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => setDetailFair(fair)}>
+                          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setDetailFair(fair); }}>
                             <Eye className="h-4 w-4 mr-2" /> Ver Detalhes
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => navigate(`/fairs/${fair.id}`)}>
+                          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); navigate(`/fairs/${fair.id}`); }}>
                             <Edit className="h-4 w-4 mr-2" /> Editar
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => onToggleActive(fair)}>
+                          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onToggleActive(fair); }}>
                             {fair.isActive
                               ? <><ToggleLeft className="h-4 w-4 mr-2" /> Desativar</>
                               : <><ToggleRight className="h-4 w-4 mr-2" /> Ativar</>
@@ -242,8 +275,8 @@ export const FairList: React.FC<FairListProps> = ({
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
-                            className="text-red-600 focus:text-red-600 focus:bg-red-50"
-                            onClick={() => onDelete(fair)}
+                            className="text-red-400 focus:text-red-400 focus:bg-red-500/10"
+                            onClick={(e) => { e.stopPropagation(); onDelete(fair); }}
                           >
                             <Trash2 className="h-4 w-4 mr-2" /> Excluir
                           </DropdownMenuItem>
@@ -251,92 +284,105 @@ export const FairList: React.FC<FairListProps> = ({
                       </DropdownMenu>
                     </div>
                   </div>
-                </CardHeader>
 
-                <CardContent className="space-y-2 flex-1">
                   {/* Descrição */}
                   {fair.description && (
-                    <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                    <p className="text-xs text-white/40 line-clamp-2 leading-relaxed">
                       {fair.description}
                     </p>
                   )}
 
-                  {/* Local */}
-                  <div className="flex items-start gap-1.5 text-sm text-muted-foreground">
-                    <MapPin className="h-3.5 w-3.5 shrink-0 mt-0.5" />
-                    <span className="line-clamp-1 text-xs">
-                      {[fair.venueName, fair.city && fair.state ? `${fair.city} — ${fair.state}` : (fair.city ?? fair.state), fair.location]
-                        .filter(Boolean)
-                        .join(" · ") || "Local não informado"}
-                    </span>
+                  {/* Info rows */}
+                  <div className="space-y-1.5 flex-1">
+                    {/* Local */}
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-3.5 w-3.5 shrink-0 text-[#00aacd]" />
+                      <span className="text-xs text-white/50 line-clamp-1">
+                        {[
+                          fair.venueName,
+                          fair.city && fair.state
+                            ? `${fair.city} — ${fair.state}`
+                            : (fair.city ?? fair.state),
+                          fair.location,
+                        ]
+                          .filter(Boolean)
+                          .join(" · ") || "Local não informado"}
+                      </span>
+                    </div>
+
+                    {/* Datas */}
+                    {dateRange && (
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-3.5 w-3.5 shrink-0 text-[#EB2970]" />
+                        <span className="text-xs text-white/50">{dateRange}</span>
+                        {fair.startTime && (
+                          <>
+                            <Clock className="h-3 w-3 shrink-0 text-white/30" />
+                            <span className="text-xs text-white/40">
+                              {fair.startTime}{fair.endTime ? ` – ${fair.endTime}` : ""}
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Visitantes / Expositores */}
+                    {(fair.expectedVisitors || fair.expectedExhibitors) && (
+                      <div className="flex gap-4">
+                        {fair.expectedVisitors && (
+                          <span className="flex items-center gap-1.5 text-xs text-white/40">
+                            <Users className="h-3.5 w-3.5" />
+                            {Number(fair.expectedVisitors).toLocaleString("pt-BR")}
+                          </span>
+                        )}
+                        {fair.expectedExhibitors && (
+                          <span className="flex items-center gap-1.5 text-xs text-white/40">
+                            <Building2 className="h-3.5 w-3.5" />
+                            {fair.expectedExhibitors} expositores
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Receita esperada */}
+                    {Number(fair.expectedRevenue) > 0 && (
+                      <div className="flex items-center gap-1.5">
+                        <DollarSign className="h-3.5 w-3.5 shrink-0 text-green-400" />
+                        <span className="text-xs text-white/40">
+                          {fmtCurrency(fair.expectedRevenue)}
+                          {Number(fair.expectedProfitMargin) > 0 && (
+                            <span className="text-green-400 font-bold ml-1">
+                              ({Number(fair.expectedProfitMargin).toFixed(1)}%)
+                            </span>
+                          )}
+                        </span>
+                      </div>
+                    )}
                   </div>
 
-                  {/* Datas */}
-                  {dateRange && (
-                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                      <Calendar className="h-3.5 w-3.5 shrink-0" />
-                      <span>{dateRange}</span>
-                      {fair.startTime && (
-                        <>
-                          <Clock className="h-3 w-3 ml-1 shrink-0" />
-                          <span>{fair.startTime}{fair.endTime ? ` – ${fair.endTime}` : ""}</span>
-                        </>
-                      )}
-                    </div>
-                  )}
+                  {/* Rodapé */}
+                  <div className="flex items-center justify-between pt-1 mt-auto">
+                    {(fair.googleMapsUrl || fair.transportLinks?.googleMaps) ? (
+                      <a
+                        href={fair.googleMapsUrl ?? fair.transportLinks?.googleMaps ?? "#"}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-[10px] text-[#00aacd]/70 hover:text-[#00aacd] transition-colors font-bold uppercase tracking-wider"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Navigation className="h-3 w-3" />
+                        Ver no Maps
+                      </a>
+                    ) : <span />}
 
-                  {/* Visitantes / Expositores */}
-                  {(fair.expectedVisitors || fair.expectedExhibitors) && (
-                    <div className="flex gap-3 text-xs text-muted-foreground">
-                      {fair.expectedVisitors && (
-                        <span className="flex items-center gap-1">
-                          <Users className="h-3.5 w-3.5" />
-                          {Number(fair.expectedVisitors).toLocaleString("pt-BR")} visitantes
-                        </span>
-                      )}
-                      {fair.expectedExhibitors && (
-                        <span className="flex items-center gap-1">
-                          <Building2 className="h-3.5 w-3.5" />
-                          {fair.expectedExhibitors} expositores
-                        </span>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Financeiro resumido */}
-                  {Number(fair.expectedRevenue) > 0 && (
-                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                      <DollarSign className="h-3.5 w-3.5 shrink-0" />
-                      <span>Receita: {fmtCurrency(fair.expectedRevenue)}</span>
-                      {Number(fair.expectedProfitMargin) > 0 && (
-                        <span className="text-green-600 font-semibold ml-1">
-                          ({Number(fair.expectedProfitMargin).toFixed(1)}%)
-                        </span>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Google Maps link */}
-                  {(fair.googleMapsUrl || fair.transportLinks?.googleMaps) && (
-                    <a
-                      href={fair.googleMapsUrl ?? fair.transportLinks?.googleMaps ?? "#"}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline mt-1"
-                    >
-                      <Navigation className="h-3 w-3" />
-                      Ver no Maps
-                    </a>
-                  )}
-
-                  {/* Indicador ativo/inativo */}
-                  {!fair.isActive && (
-                    <Badge variant="outline" className="text-[10px] text-orange-600 border-orange-300 bg-orange-50">
-                      Inativa no sistema
-                    </Badge>
-                  )}
-                </CardContent>
-              </Card>
+                    {!fair.isActive && (
+                      <span className="text-[10px] font-black uppercase tracking-widest text-orange-400/60">
+                        Inativa
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
             );
           })}
         </div>
@@ -356,12 +402,12 @@ export const FairList: React.FC<FairListProps> = ({
               <div className="flex items-center gap-2 pt-1">
                 <Badge
                   variant="outline"
-                  className={`text-xs font-bold ${STATUS_CONFIG[detailFair.status]?.className}`}
+                  className={`text-xs font-bold ${STATUS_CONFIG[detailFair.status]?.badge}`}
                 >
                   {STATUS_CONFIG[detailFair.status]?.label}
                 </Badge>
                 {!detailFair.isActive && (
-                  <Badge variant="outline" className="text-xs text-orange-600 border-orange-300 bg-orange-50">
+                  <Badge variant="outline" className="text-xs text-orange-400 border-orange-400/30 bg-orange-500/10">
                     Inativa
                   </Badge>
                 )}
@@ -369,17 +415,15 @@ export const FairList: React.FC<FairListProps> = ({
             </DialogHeader>
 
             <div className="space-y-5 mt-2">
-              {/* Descrição */}
               {detailFair.description && (
                 <p className="text-sm text-muted-foreground leading-relaxed">{detailFair.description}</p>
               )}
 
-              {/* Banner */}
               {detailFair.bannerUrl && (
                 <img
                   src={detailFair.bannerUrl}
                   alt={detailFair.name}
-                  className="w-full h-40 object-cover rounded-lg"
+                  className="w-full h-40 object-cover rounded-2xl"
                 />
               )}
 
@@ -399,14 +443,8 @@ export const FairList: React.FC<FairListProps> = ({
                   {(detailFair.city || detailFair.state) && (
                     <p>{[detailFair.city, detailFair.state].filter(Boolean).join(" — ")}{detailFair.zipCode ? `, ${detailFair.zipCode}` : ""}</p>
                   )}
-                  {detailFair.latitude && detailFair.longitude && (
-                    <p className="text-xs text-muted-foreground/60">
-                      {detailFair.latitude}, {detailFair.longitude}
-                    </p>
-                  )}
                 </div>
 
-                {/* Links de transporte */}
                 {detailFair.transportLinks && Object.values(detailFair.transportLinks).some(Boolean) && (
                   <div className="flex flex-wrap gap-2 mt-3 pl-5">
                     {detailFair.transportLinks.googleMaps && (
@@ -437,7 +475,7 @@ export const FairList: React.FC<FairListProps> = ({
                 )}
               </div>
 
-              {/* Datas e horários */}
+              {/* Período */}
               {(detailFair.startDate || detailFair.endDate) && (
                 <div>
                   <h4 className="text-sm font-semibold mb-2 flex items-center gap-1.5">
@@ -455,8 +493,6 @@ export const FairList: React.FC<FairListProps> = ({
                       {detailFair.startTime}{detailFair.endTime ? ` – ${detailFair.endTime}` : ""} (padrão)
                     </p>
                   )}
-
-                  {/* Programação por dia */}
                   {detailFair.daySchedules && detailFair.daySchedules.length > 0 && (
                     <div className="mt-3 pl-5 space-y-1.5">
                       <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Programação por dia:</p>
@@ -481,7 +517,7 @@ export const FairList: React.FC<FairListProps> = ({
                   <div className="grid grid-cols-2 gap-3 pl-5">
                     {detailFair.expectedVisitors && (
                       <div className="text-sm">
-                        <span className="text-muted-foreground">Visitantes esperados:</span>
+                        <span className="text-muted-foreground">Visitantes:</span>
                         <span className="ml-2 font-semibold">{Number(detailFair.expectedVisitors).toLocaleString("pt-BR")}</span>
                       </div>
                     )}
@@ -517,7 +553,7 @@ export const FairList: React.FC<FairListProps> = ({
                     {detailFair.expectedProfitMargin !== undefined && (
                       <div>
                         <span className="text-muted-foreground">Margem:</span>
-                        <span className="ml-2 font-semibold text-green-600">{Number(detailFair.expectedProfitMargin).toFixed(1)}%</span>
+                        <span className="ml-2 font-semibold text-green-400">{Number(detailFair.expectedProfitMargin).toFixed(1)}%</span>
                       </div>
                     )}
                     {detailFair.totalStands !== undefined && (
@@ -536,7 +572,7 @@ export const FairList: React.FC<FairListProps> = ({
                   <h4 className="text-sm font-semibold mb-2">Configurações de Stands</h4>
                   <div className="space-y-2 pl-2">
                     {detailFair.standConfigurations.map((cfg, i) => (
-                      <div key={i} className="border rounded-lg p-3 flex items-center justify-between">
+                      <div key={i} className="border border-white/10 rounded-2xl p-3 flex items-center justify-between bg-white/5">
                         <div>
                           <p className="font-medium text-sm">{cfg.name}</p>
                           <p className="text-xs text-muted-foreground">
@@ -555,8 +591,7 @@ export const FairList: React.FC<FairListProps> = ({
                 </div>
               )}
 
-              {/* Ações rápidas */}
-              <div className="flex justify-end gap-2 pt-2 border-t">
+              <div className="flex justify-end gap-2 pt-2 border-t border-white/10">
                 <Button variant="outline" size="sm" onClick={() => { setDetailFair(null); navigate(`/fairs/${detailFair.id}`); }}>
                   <Edit className="h-3.5 w-3.5 mr-1.5" /> Editar
                 </Button>
