@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -28,11 +28,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useMarketingService } from "@/service/marketing.service";
 import { useFairs } from "@/hooks/useFairs";
-import {
-  useFairImages,
-  useUploadFairImages,
-  useDeleteFairImage,
-} from "@/hooks/useFinance";
+import { useFairImages } from "@/hooks/useFinance";
 import { useSearchParams } from "@/hooks/useSearchParams";
 import { toast } from "sonner";
 import {
@@ -47,24 +43,13 @@ import {
   MapPin,
   Calendar,
   ChevronRight,
-  Code,
-  Clock,
-  Star,
-  Handshake,
-  Heart,
   BarChart3,
   RefreshCcw,
   TrendingUp,
   MousePointerClick,
   Inbox,
   ExternalLink,
-  Clipboard,
   Info,
-  X,
-  Edit,
-  Upload,
-  ImageIcon,
-  Trash2,
 } from "lucide-react";
 import { LogoLoading } from "@/components/LogoLoading";
 import { Tabs } from "@/components/ui/tabs";
@@ -100,482 +85,6 @@ const fairInfo = (fair?: Fair) => {
   const mapsUrl = fair?.googleMapsUrl ?? "#";
   return { name, cityState, location, fullLocation, dateRange, time, mapsUrl };
 };
-
-// ─── Email templates ───────────────────────────────────────────────────────────
-
-const LOGO =
-  "https://static.wixstatic.com/media/88e022_551e4ef3cf61439fad4f84eca702a829~mv2.png/v1/crop/x_0,y_190,w_2084,h_1301/fill/w_536,h_340,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/EMM2024%20logo%20br_Prancheta%201.png";
-
-const logoGridHtml = (logoUrls: string[], labelColor = "#9CA3AF"): string => {
-  if (!logoUrls || logoUrls.length === 0) return "";
-  const perRow = 5;
-  const rows: string[][] = [];
-  for (let i = 0; i < logoUrls.length; i += perRow) {
-    rows.push(logoUrls.slice(i, i + perRow));
-  }
-  const rowsHtml = rows
-    .map((row) => {
-      const w = Math.floor(100 / row.length);
-      const cells = row
-        .map(
-          (url) =>
-            `<td width="${w}%" style="text-align:center;padding:6px 8px;vertical-align:middle;">` +
-            `<img src="${url}" alt="Expositor" style="max-width:90px;max-height:60px;height:auto;display:block;margin:0 auto;"></td>`,
-        )
-        .join("");
-      return `<tr>${cells}</tr>`;
-    })
-    .join("");
-  return (
-    `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-bottom:24px;">` +
-    `<tr><td>` +
-    `<p style="margin:0 0 12px;color:${labelColor};font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;text-align:center;">Expositores Participantes</p>` +
-    `<table role="presentation" width="100%" cellspacing="0" cellpadding="0">${rowsHtml}</table>` +
-    `</td></tr></table>`
-  );
-};
-
-const tplSaudade = (fair?: Fair, logoUrls: string[] = []): string => {
-  const { name, fullLocation, dateRange, time } = fairInfo(fair);
-  return `<!DOCTYPE html>
-<html lang="pt-BR">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>${name}</title></head>
-<body style="margin:0;padding:0;background:#f0f2f5;font-family:Arial,Helvetica,sans-serif;">
-<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f0f2f5;">
-  <tr><td align="center" style="padding:24px 12px;">
-    <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.08);">
-
-      <!-- Header -->
-      <tr><td style="background:linear-gradient(135deg,#1E3A8A 0%,#2563EB 100%);padding:36px 40px;text-align:center;">
-        <img src="${LOGO}" alt="${name}" style="max-width:160px;height:auto;display:block;margin:0 auto 18px;">
-        <h1 style="margin:0;color:#ffffff;font-size:22px;font-weight:800;letter-spacing:-0.3px;">${name}</h1>
-        ${dateRange ? `<p style="margin:6px 0 0;color:#93C5FD;font-size:13px;font-weight:600;">📅 ${dateRange}${time ? ` · ${time}` : ""}</p>` : ""}
-        ${fullLocation ? `<p style="margin:4px 0 0;color:#BFDBFE;font-size:12px;">📍 ${fullLocation}</p>` : ""}
-      </td></tr>
-
-      <!-- Body -->
-      <tr><td style="padding:40px 40px 32px;">
-        <h2 style="margin:0 0 12px;color:#1E3A8A;font-size:22px;font-weight:800;">Olá, {{VISITOR_NAME}}! 💙</h2>
-        <p style="margin:0 0 20px;color:#374151;font-size:15px;line-height:1.7;">
-          Você se inscreveu na <strong>${name}</strong> mas ainda não nos visitou. O evento ainda está acontecendo e
-          separamos experiências incríveis para você.
-        </p>
-
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-bottom:28px;">
-          <tr><td style="background:#EFF6FF;border-left:4px solid #2563EB;padding:18px 20px;border-radius:0 8px 8px 0;">
-            <p style="margin:0 0 10px;color:#1E3A8A;font-size:14px;font-weight:700;">O que espera por você:</p>
-            <p style="margin:0 0 5px;color:#374151;font-size:14px;">🤝 Networking com centenas de empresários</p>
-            <p style="margin:0 0 5px;color:#374151;font-size:14px;">💼 Oportunidades únicas de negócios</p>
-            <p style="margin:0 0 5px;color:#374151;font-size:14px;">🎤 Palestras e conteúdo exclusivo</p>
-            <p style="margin:0;color:#374151;font-size:14px;">🎁 Brindes e sorteios especiais</p>
-          </td></tr>
-        </table>
-
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-bottom:32px;">
-          <tr><td align="center">
-            <a href="#" style="display:inline-block;background:#2563EB;color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;padding:14px 40px;border-radius:8px;">
-              Quero visitar agora →
-            </a>
-          </td></tr>
-        </table>
-
-        ${logoGridHtml(logoUrls)}
-        <p style="margin:0;color:#9CA3AF;font-size:12px;text-align:center;border-top:1px solid #F3F4F6;padding-top:20px;">
-          Equipe ${name} · gerencia@expomultimix.com.br
-        </p>
-      </td></tr>
-
-    </table>
-  </td></tr>
-</table>
-</body>
-</html>`;
-};
-
-const tplUrgencia = (fair?: Fair, logoUrls: string[] = []): string => {
-  const { name, fullLocation, dateRange, time } = fairInfo(fair);
-  return `<!DOCTYPE html>
-<html lang="pt-BR">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>${name} — Últimas Horas!</title></head>
-<body style="margin:0;padding:0;background:#1a0a00;font-family:Arial,Helvetica,sans-serif;">
-<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#1a0a00;">
-  <tr><td align="center" style="padding:24px 12px;">
-    <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(249,115,22,0.3);">
-
-      <!-- Urgency Banner -->
-      <tr><td style="background:#DC2626;padding:10px 20px;text-align:center;">
-        <p style="margin:0;color:#ffffff;font-size:13px;font-weight:800;letter-spacing:2px;text-transform:uppercase;">⚠️ Atenção — Tempo Limitado</p>
-      </td></tr>
-
-      <!-- Header -->
-      <tr><td style="background:linear-gradient(135deg,#EA580C 0%,#F97316 60%,#FBBF24 100%);padding:36px 40px;text-align:center;">
-        <img src="${LOGO}" alt="${name}" style="max-width:150px;height:auto;display:block;margin:0 auto 16px;filter:brightness(0) invert(1);">
-        <h1 style="margin:0;color:#ffffff;font-size:26px;font-weight:900;text-transform:uppercase;letter-spacing:-0.5px;">⏰ Últimas Horas!</h1>
-        <p style="margin:8px 0 0;color:#FEF3C7;font-size:18px;font-weight:700;">${name}</p>
-        ${dateRange ? `<p style="margin:6px 0 0;color:#FDE68A;font-size:13px;">📅 ${dateRange}${time ? ` · ${time}` : ""}</p>` : ""}
-        ${fullLocation ? `<p style="margin:4px 0 0;color:#FDE68A;font-size:12px;">📍 ${fullLocation}</p>` : ""}
-      </td></tr>
-
-      <!-- Body -->
-      <tr><td style="padding:40px 40px 32px;">
-        <h2 style="margin:0 0 16px;color:#DC2626;font-size:20px;font-weight:800;text-align:center;">
-          {{VISITOR_NAME}}, não perca essa oportunidade!
-        </h2>
-        <p style="margin:0 0 24px;color:#374151;font-size:15px;line-height:1.7;text-align:center;">
-          O evento está <strong>quase no fim</strong> e você ainda não apareceu!
-          Centenas de empresários e oportunidades de negócio estão te esperando agora.
-        </p>
-
-        <!-- Stats -->
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-bottom:28px;">
-          <tr>
-            <td width="33%" style="text-align:center;padding:16px 8px;background:#FEF3C7;border-radius:8px;margin:4px;">
-              <p style="margin:0;color:#D97706;font-size:24px;font-weight:900;">500+</p>
-              <p style="margin:4px 0 0;color:#92400E;font-size:11px;font-weight:700;text-transform:uppercase;">Empresários</p>
-            </td>
-            <td width="4%"></td>
-            <td width="33%" style="text-align:center;padding:16px 8px;background:#FEE2E2;border-radius:8px;">
-              <p style="margin:0;color:#DC2626;font-size:24px;font-weight:900;">200+</p>
-              <p style="margin:4px 0 0;color:#991B1B;font-size:11px;font-weight:700;text-transform:uppercase;">Empresas</p>
-            </td>
-            <td width="4%"></td>
-            <td width="33%" style="text-align:center;padding:16px 8px;background:#D1FAE5;border-radius:8px;">
-              <p style="margin:0;color:#059669;font-size:24px;font-weight:900;">R$ M</p>
-              <p style="margin:4px 0 0;color:#065F46;font-size:11px;font-weight:700;text-transform:uppercase;">Em negócios</p>
-            </td>
-          </tr>
-        </table>
-
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-bottom:32px;">
-          <tr><td align="center">
-            <a href="#" style="display:inline-block;background:#DC2626;color:#ffffff;font-size:17px;font-weight:900;text-decoration:none;padding:16px 48px;border-radius:8px;text-transform:uppercase;letter-spacing:1px;">
-              🔥 Ir Agora!
-            </a>
-          </td></tr>
-        </table>
-
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-bottom:24px;">
-          <tr><td style="background:#FFF7ED;border-left:4px solid #F97316;padding:14px 18px;border-radius:0 8px 8px 0;">
-            <p style="margin:0;color:#C2410C;font-size:13px;font-weight:700;">
-              ⏰ Lembre-se: após o evento encerrar, você não terá mais acesso a essas oportunidades.
-            </p>
-          </td></tr>
-        </table>
-
-        ${logoGridHtml(logoUrls)}
-        <p style="margin:0;color:#9CA3AF;font-size:12px;text-align:center;border-top:1px solid #F3F4F6;padding-top:20px;">
-          Equipe ${name} · gerencia@expomultimix.com.br
-        </p>
-      </td></tr>
-
-    </table>
-  </td></tr>
-</table>
-</body>
-</html>`;
-};
-
-const tplPalestras = (fair?: Fair, logoUrls: string[] = []): string => {
-  const { name, fullLocation, dateRange, time } = fairInfo(fair);
-  return `<!DOCTYPE html>
-<html lang="pt-BR">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>${name} — Palestras & Conteúdo</title></head>
-<body style="margin:0;padding:0;background:#0F172A;font-family:Arial,Helvetica,sans-serif;">
-<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#0F172A;">
-  <tr><td align="center" style="padding:24px 12px;">
-    <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(99,102,241,0.25);">
-
-      <!-- Header -->
-      <tr><td style="background:linear-gradient(135deg,#1E1B4B 0%,#312E81 50%,#4338CA 100%);padding:36px 40px;text-align:center;">
-        <img src="${LOGO}" alt="${name}" style="max-width:150px;height:auto;display:block;margin:0 auto 16px;filter:brightness(0) invert(1);">
-        <p style="margin:0 0 8px;color:#A5B4FC;font-size:12px;font-weight:700;letter-spacing:3px;text-transform:uppercase;">Programação Exclusiva</p>
-        <h1 style="margin:0;color:#ffffff;font-size:22px;font-weight:800;">🎤 Palestras & Conteúdo</h1>
-        <p style="margin:8px 0 0;color:#C7D2FE;font-size:14px;font-weight:600;">${name}</p>
-        ${dateRange ? `<p style="margin:6px 0 0;color:#A5B4FC;font-size:13px;">📅 ${dateRange}${time ? ` · ${time}` : ""}</p>` : ""}
-        ${fullLocation ? `<p style="margin:4px 0 0;color:#818CF8;font-size:12px;">📍 ${fullLocation}</p>` : ""}
-      </td></tr>
-
-      <!-- Body -->
-      <tr><td style="padding:40px 40px 32px;">
-        <p style="margin:0 0 24px;color:#374151;font-size:15px;line-height:1.7;">
-          <strong>{{VISITOR_NAME}}</strong>, você se inscreveu na <strong>${name}</strong> e não pode perder a programação de
-          <strong>palestras e workshops</strong> que preparamos com os melhores especialistas do setor.
-        </p>
-
-        <!-- Talk items -->
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-bottom:8px;">
-          <tr><td style="border-bottom:1px solid #F3F4F6;padding:14px 0;">
-            <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
-              <tr>
-                <td width="48" style="vertical-align:top;">
-                  <div style="background:#EEF2FF;border-radius:8px;width:40px;height:40px;text-align:center;line-height:40px;font-size:18px;">🎯</div>
-                </td>
-                <td style="padding-left:12px;vertical-align:top;">
-                  <p style="margin:0;color:#1E1B4B;font-size:14px;font-weight:700;">Tendências do Mercado 2025</p>
-                  <p style="margin:3px 0 0;color:#6B7280;font-size:12px;">Estratégias para escalar seu negócio no novo cenário econômico</p>
-                </td>
-              </tr>
-            </table>
-          </td></tr>
-          <tr><td style="border-bottom:1px solid #F3F4F6;padding:14px 0;">
-            <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
-              <tr>
-                <td width="48" style="vertical-align:top;">
-                  <div style="background:#EEF2FF;border-radius:8px;width:40px;height:40px;text-align:center;line-height:40px;font-size:18px;">📊</div>
-                </td>
-                <td style="padding-left:12px;vertical-align:top;">
-                  <p style="margin:0;color:#1E1B4B;font-size:14px;font-weight:700;">Marketing Digital para PMEs</p>
-                  <p style="margin:3px 0 0;color:#6B7280;font-size:12px;">Como usar redes sociais e anúncios para aumentar vendas</p>
-                </td>
-              </tr>
-            </table>
-          </td></tr>
-          <tr><td style="padding:14px 0;">
-            <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
-              <tr>
-                <td width="48" style="vertical-align:top;">
-                  <div style="background:#EEF2FF;border-radius:8px;width:40px;height:40px;text-align:center;line-height:40px;font-size:18px;">🤖</div>
-                </td>
-                <td style="padding-left:12px;vertical-align:top;">
-                  <p style="margin:0;color:#1E1B4B;font-size:14px;font-weight:700;">IA nos Negócios</p>
-                  <p style="margin:3px 0 0;color:#6B7280;font-size:12px;">Ferramentas de inteligência artificial que já estão transformando empresas</p>
-                </td>
-              </tr>
-            </table>
-          </td></tr>
-        </table>
-
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:28px 0;">
-          <tr><td style="background:#EEF2FF;border-left:4px solid #4338CA;padding:16px 20px;border-radius:0 8px 8px 0;">
-            <p style="margin:0;color:#3730A3;font-size:14px;font-weight:700;">
-              📅 Programação completa disponível no evento — não pague cursos caros, venha aprender com especialistas!
-            </p>
-          </td></tr>
-        </table>
-
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-bottom:32px;">
-          <tr><td align="center">
-            <a href="#" style="display:inline-block;background:#4338CA;color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;padding:14px 40px;border-radius:8px;">
-              🎤 Quero assistir às palestras →
-            </a>
-          </td></tr>
-        </table>
-
-        ${logoGridHtml(logoUrls)}
-        <p style="margin:0;color:#9CA3AF;font-size:12px;text-align:center;border-top:1px solid #F3F4F6;padding-top:20px;">
-          Equipe ${name} · gerencia@expomultimix.com.br
-        </p>
-      </td></tr>
-
-    </table>
-  </td></tr>
-</table>
-</body>
-</html>`;
-};
-
-const tplVip = (fair?: Fair, logoUrls: string[] = []): string => {
-  const { name, fullLocation, dateRange, time, mapsUrl } = fairInfo(fair);
-  return `<!DOCTYPE html>
-<html lang="pt-BR">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>${name} — Convite VIP</title></head>
-<body style="margin:0;padding:0;background:#1C1008;font-family:Georgia,serif;">
-<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#1C1008;">
-  <tr><td align="center" style="padding:24px 12px;">
-    <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="max-width:600px;width:100%;background:#1C1008;border-radius:12px;overflow:hidden;border:1px solid #B45309;box-shadow:0 8px 40px rgba(180,83,9,0.4);">
-
-      <!-- Gold top border -->
-      <tr><td style="background:linear-gradient(90deg,#92400E,#D97706,#FCD34D,#D97706,#92400E);height:4px;"></td></tr>
-
-      <!-- Header -->
-      <tr><td style="padding:40px 40px 28px;text-align:center;">
-        <p style="margin:0 0 20px;color:#D97706;font-size:11px;font-weight:700;letter-spacing:4px;text-transform:uppercase;">— Convite Exclusivo —</p>
-        <img src="${LOGO}" alt="${name}" style="max-width:150px;height:auto;display:block;margin:0 auto 20px;filter:brightness(0) saturate(100%) invert(65%) sepia(100%) saturate(400%) hue-rotate(5deg);">
-        <h1 style="margin:0;color:#FCD34D;font-size:26px;font-weight:700;letter-spacing:1px;">Acesso VIP</h1>
-        <p style="margin:10px 0 0;color:#D4B483;font-size:15px;">${name}</p>
-        ${dateRange ? `<p style="margin:8px 0 0;color:#B45309;font-size:13px;">📅 ${dateRange}${time ? ` · ${time}` : ""}</p>` : ""}
-        ${fullLocation ? `<p style="margin:4px 0 0;color:#92400E;font-size:12px;">📍 ${fullLocation}</p>` : ""}
-      </td></tr>
-
-      <!-- Divider -->
-      <tr><td style="padding:0 40px;">
-        <div style="height:1px;background:linear-gradient(90deg,transparent,#B45309,transparent);"></div>
-      </td></tr>
-
-      <!-- Body -->
-      <tr><td style="padding:32px 40px 28px;">
-        <p style="margin:0 0 20px;color:#E7D5B3;font-size:15px;line-height:1.8;text-align:center;">
-          <strong style="color:#FCD34D;">{{VISITOR_NAME}}</strong>, você foi <strong style="color:#FCD34D;">selecionado especialmente</strong> para ter acesso
-          privilegiado ao melhor que a <strong style="color:#FCD34D;">${name}</strong> tem a oferecer.
-        </p>
-
-        <!-- VIP benefits -->
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-bottom:28px;">
-          <tr><td style="background:rgba(180,83,9,0.15);border:1px solid #B45309;border-radius:8px;padding:20px;">
-            <p style="margin:0 0 12px;color:#FCD34D;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;">Seus privilégios VIP:</p>
-            <p style="margin:0 0 8px;color:#D4B483;font-size:14px;">✦ Acesso antecipado ao espaço de networking</p>
-            <p style="margin:0 0 8px;color:#D4B483;font-size:14px;">✦ Encontro exclusivo com palestrantes</p>
-            <p style="margin:0 0 8px;color:#D4B483;font-size:14px;">✦ Área VIP com coffee premium</p>
-            <p style="margin:0;color:#D4B483;font-size:14px;">✦ Agenda de reuniões prioritária</p>
-          </td></tr>
-        </table>
-
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-bottom:28px;">
-          <tr><td align="center">
-            <a href="${mapsUrl !== "#" ? mapsUrl : "#"}" style="display:inline-block;background:linear-gradient(135deg,#D97706,#FCD34D);color:#1C1008;font-size:16px;font-weight:900;text-decoration:none;padding:15px 44px;border-radius:8px;letter-spacing:0.5px;font-family:Arial,sans-serif;">
-              ✦ Confirmar Presença VIP ✦
-            </a>
-          </td></tr>
-        </table>
-
-        ${logoGridHtml(logoUrls, "#B45309")}
-        <p style="margin:0;color:#92400E;font-size:11px;text-align:center;letter-spacing:1px;">
-          CONVITE INTRANSFERÍVEL · ${name.toUpperCase()}
-        </p>
-      </td></tr>
-
-      <!-- Gold bottom border -->
-      <tr><td style="background:linear-gradient(90deg,#92400E,#D97706,#FCD34D,#D97706,#92400E);height:4px;"></td></tr>
-
-    </table>
-  </td></tr>
-</table>
-</body>
-</html>`;
-};
-
-const tplNetworking = (fair?: Fair, logoUrls: string[] = []): string => {
-  const { name, fullLocation, dateRange, time } = fairInfo(fair);
-  return `<!DOCTYPE html>
-<html lang="pt-BR">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>${name} — Networking</title></head>
-<body style="margin:0;padding:0;background:#F0FDF4;font-family:Arial,Helvetica,sans-serif;">
-<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#F0FDF4;">
-  <tr><td align="center" style="padding:24px 12px;">
-    <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(16,185,129,0.15);">
-
-      <!-- Header -->
-      <tr><td style="background:linear-gradient(135deg,#065F46 0%,#059669 60%,#10B981 100%);padding:36px 40px;text-align:center;">
-        <img src="${LOGO}" alt="${name}" style="max-width:150px;height:auto;display:block;margin:0 auto 16px;filter:brightness(0) invert(1);">
-        <p style="margin:0 0 8px;color:#6EE7B7;font-size:12px;font-weight:700;letter-spacing:3px;text-transform:uppercase;">Oportunidade de Negócios</p>
-        <h1 style="margin:0;color:#ffffff;font-size:22px;font-weight:800;">🤝 Faça Negócios em ${fairInfo(fair).cityState || "Grande Escala"}</h1>
-        <p style="margin:8px 0 0;color:#A7F3D0;font-size:14px;font-weight:600;">${name}</p>
-        ${dateRange ? `<p style="margin:6px 0 0;color:#6EE7B7;font-size:13px;">📅 ${dateRange}${time ? ` · ${time}` : ""}</p>` : ""}
-        ${fullLocation ? `<p style="margin:4px 0 0;color:#34D399;font-size:12px;">📍 ${fullLocation}</p>` : ""}
-      </td></tr>
-
-      <!-- Body -->
-      <tr><td style="padding:40px 40px 32px;">
-        <p style="margin:0 0 24px;color:#374151;font-size:15px;line-height:1.7;">
-          <strong>{{VISITOR_NAME}}</strong>, a <strong>${name}</strong> é o maior evento de negócios da região. Você já se inscreveu
-          — agora é a hora de aparecer e <strong>transformar contatos em contratos</strong>.
-        </p>
-
-        <!-- Impact numbers -->
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-bottom:28px;background:#F0FDF4;border-radius:10px;padding:20px;">
-          <tr>
-            <td style="text-align:center;padding:12px 8px;">
-              <p style="margin:0;color:#059669;font-size:28px;font-weight:900;line-height:1;">500+</p>
-              <p style="margin:5px 0 0;color:#6B7280;font-size:12px;font-weight:600;text-transform:uppercase;">Participantes</p>
-            </td>
-            <td style="text-align:center;padding:12px 8px;border-left:1px solid #D1FAE5;border-right:1px solid #D1FAE5;">
-              <p style="margin:0;color:#059669;font-size:28px;font-weight:900;line-height:1;">200+</p>
-              <p style="margin:5px 0 0;color:#6B7280;font-size:12px;font-weight:600;text-transform:uppercase;">Empresas</p>
-            </td>
-            <td style="text-align:center;padding:12px 8px;">
-              <p style="margin:0;color:#059669;font-size:28px;font-weight:900;line-height:1;">3 dias</p>
-              <p style="margin:5px 0 0;color:#6B7280;font-size:12px;font-weight:600;text-transform:uppercase;">De conteúdo</p>
-            </td>
-          </tr>
-        </table>
-
-        <!-- Tips for networking -->
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-bottom:28px;">
-          <tr><td style="background:#ECFDF5;border-left:4px solid #10B981;padding:18px 20px;border-radius:0 8px 8px 0;">
-            <p style="margin:0 0 10px;color:#065F46;font-size:14px;font-weight:700;">Como aproveitar ao máximo:</p>
-            <p style="margin:0 0 6px;color:#374151;font-size:14px;">💡 Leve cartões de visita — muitos deles</p>
-            <p style="margin:0 0 6px;color:#374151;font-size:14px;">📱 Adicione no LinkedIn durante o evento</p>
-            <p style="margin:0 0 6px;color:#374151;font-size:14px;">🎯 Defina 3 metas de negócios antes de entrar</p>
-            <p style="margin:0;color:#374151;font-size:14px;">☕ Use os intervalos para conexões informais</p>
-          </td></tr>
-        </table>
-
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-bottom:32px;">
-          <tr><td align="center">
-            <a href="#" style="display:inline-block;background:#059669;color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;padding:14px 40px;border-radius:8px;">
-              🤝 Quero fazer networking →
-            </a>
-          </td></tr>
-        </table>
-
-        ${logoGridHtml(logoUrls)}
-        <p style="margin:0;color:#9CA3AF;font-size:12px;text-align:center;border-top:1px solid #F3F4F6;padding-top:20px;">
-          Equipe ${name} · gerencia@expomultimix.com.br
-        </p>
-      </td></tr>
-
-    </table>
-  </td></tr>
-</table>
-</body>
-</html>`;
-};
-
-// ─── Template metadata ─────────────────────────────────────────────────────────
-
-interface EmailTemplate {
-  id: string;
-  name: string;
-  description: string;
-  strategy: string;
-  icon: React.ReactNode;
-  generate: (fair?: Fair, logoUrls?: string[]) => string;
-}
-
-const EMAIL_TEMPLATES: EmailTemplate[] = [
-  {
-    id: "saudade",
-    name: "Sentimos sua falta",
-    description: "Remarketing suave para ausentes",
-    strategy: "Engajamento",
-    icon: <Heart className="h-5 w-5" />,
-    generate: tplSaudade,
-  },
-  {
-    id: "urgencia",
-    name: "Últimas Horas!",
-    description: "FOMO e urgência para converter agora",
-    strategy: "Urgência",
-    icon: <Clock className="h-5 w-5" />,
-    generate: tplUrgencia,
-  },
-  {
-    id: "palestras",
-    name: "Palestras & Conteúdo",
-    description: "Foco no valor educacional do evento",
-    strategy: "Conteúdo",
-    icon: <Star className="h-5 w-5" />,
-    generate: tplPalestras,
-  },
-  {
-    id: "vip",
-    name: "Convite VIP",
-    description: "Experiência premium e exclusiva",
-    strategy: "Premium",
-    icon: <Sparkles className="h-5 w-5" />,
-    generate: tplVip,
-  },
-  {
-    id: "networking",
-    name: "Networking & Negócios",
-    description: "ROI e conexões profissionais",
-    strategy: "Negócios",
-    icon: <Handshake className="h-5 w-5" />,
-    generate: tplNetworking,
-  },
-];
-
-// ─── AI prompt generator ───────────────────────────────────────────────────────
 
 // ─── AI Services ───────────────────────────────────────────────────────────────
 
@@ -638,8 +147,6 @@ const AI_SERVICES = [
 ];
 
 // ─── Fixed HTML blocks injected verbatim into the AI prompt ───────────────────
-// The AI is told to insert these exactly as-is, preventing it from reimplementing
-// critical sections (logos, fair details, footer) in unpredictable ways.
 
 const aiBlockFairDetails = (fair: Fair): string => {
   const { name, fullLocation, dateRange, time, mapsUrl } = fairInfo(fair);
@@ -828,73 +335,11 @@ ASSUNTO: [subject line — máx 60 caracteres, sem spam words]
 \`\`\``;
 };
 
-const generateRevisionPrompt = (
-  originalPrompt: string,
-  currentHtml: string,
-  comment: string,
-): string => {
-  const hasHtml = currentHtml.trim().length > 0;
-  return `Você é uma especialista sênior em email marketing B2B. Preciso que revise o email abaixo incorporando as alterações solicitadas.
-
-## Contexto original (identidade visual, paleta e dados da feira — mantenha tudo isso)
-${originalPrompt}
-
----
-${
-  hasHtml
-    ? `## HTML atual
-\`\`\`html
-${currentHtml}
-\`\`\`
-
-`
-    : ""
-}## Alterações solicitadas
-${comment}
-
-## Regras de revisão
-- Incorpore SOMENTE as alterações pedidas acima — não mude o que não foi solicitado
-- Mantenha a paleta dark glassmorphism, os dados da feira e a estrutura geral
-- Se o TITULO e o ASSUNTO não foram pedidos para mudar, retorne os mesmos
-
-## FORMATO DE RETORNO — SIGA EXATAMENTE
-
-TITULO: [mesmo título ou novo se solicitado]
-ASSUNTO: [mesmo subject ou novo se solicitado]
-
-\`\`\`html
-<!DOCTYPE html>
-<html lang="pt-BR">
-...
-</html>
-\`\`\`
-
-Não adicione texto fora desta estrutura.`;
-};
-
 // Limites reais por plano Brevo (a API retorna o restante como "total", ignoramos)
 const BREVO_PLAN_LIMITS: Record<string, number> = {
   Starter: 10_000,
   Business: 100_000,
   Enterprise: 500_000,
-};
-
-const parseAIResponse = (
-  text: string,
-): { title?: string; subject?: string; html?: string } => {
-  const titleMatch = text.match(/^TITULO:\s*(.+)$/m);
-  const subjectMatch = text.match(/^ASSUNTO:\s*(.+)$/m);
-  const htmlMatch = text.match(/```html\s*([\s\S]*?)```/);
-  const strip = (s?: string) =>
-    s
-      ?.trim()
-      .replace(/^["'[]|["'\]]$/g, "")
-      .trim();
-  return {
-    title: strip(titleMatch?.[1]),
-    subject: strip(subjectMatch?.[1]),
-    html: htmlMatch?.[1]?.trim(),
-  };
 };
 
 // ─── Component ─────────────────────────────────────────────────────────────────
@@ -909,19 +354,13 @@ export const MarketingPage: React.FC = () => {
   const headerFair = fairs?.find((f) => f.id === headerFairId);
   const { data: fairImages = [] } = useFairImages(headerFairId);
   const logoUrls = fairImages.map((img) => img.url);
-  const uploadLogosMutation = useUploadFairImages();
-  const deleteLogoMutation = useDeleteFairImage();
-  const logoInputRef = useRef<HTMLInputElement>(null);
-  const [uploadingLogos, setUploadingLogos] = useState(false);
 
   const [selectedFairId, setSelectedFairId] = useState<string>(""); // remarketing target (optional)
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
   const [title, setTitle] = useState("");
   const [subject, setSubject] = useState(
     "Você está convidado — ExpoMultiMix te espera!",
   );
   const [htmlContent, setHtmlContent] = useState("");
-  const [activeTab, setActiveTab] = useState<"editor" | "preview">("editor");
 
   const [loading, setLoading] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
@@ -934,20 +373,8 @@ export const MarketingPage: React.FC = () => {
   const [aiDescription, setAiDescription] = useState("");
   const [generatedPrompt, setGeneratedPrompt] = useState("");
   const [promptCopied, setPromptCopied] = useState(false);
-  const [revisionComment, setRevisionComment] = useState("");
-  const [revisionPrompt, setRevisionPrompt] = useState("");
-  const [aiResponseInput, setAiResponseInput] = useState("");
-  const [showPasteArea, setShowPasteArea] = useState(false);
 
-  const [card1Collapsed, setCard1Collapsed] = useState(true);
-  const [card2Collapsed, setCard2Collapsed] = useState(false);
   const [mainTab, setMainTab] = useState<"create" | "history">("create");
-
-  useEffect(() => {
-    if (headerFair) {
-      setCard1Collapsed(true);
-    }
-  }, [headerFair]);
 
   // Campaign history + account stats
   const [campaigns, setCampaigns] = useState<
@@ -990,58 +417,6 @@ export const MarketingPage: React.FC = () => {
     setSelectedFairId(fairId);
   };
 
-  const uploadFiles = useCallback(
-    async (files: File[]) => {
-      if (!files.length || !headerFairId) return;
-      setUploadingLogos(true);
-      try {
-        await uploadLogosMutation.mutateAsync({ fairId: headerFairId, files });
-      } finally {
-        setUploadingLogos(false);
-        if (logoInputRef.current) logoInputRef.current.value = "";
-      }
-    },
-    [headerFairId, uploadLogosMutation],
-  );
-
-  const handleLogoUpload = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const files = Array.from(e.target.files ?? []);
-      uploadFiles(files);
-    },
-    [uploadFiles],
-  );
-
-  const handleLogoDelete = useCallback(
-    async (imageId: string) => {
-      if (!headerFairId) return;
-      await deleteLogoMutation.mutateAsync({ imageId, fairId: headerFairId });
-    },
-    [headerFairId, deleteLogoMutation],
-  );
-
-  const handleLogoDrop = useCallback(
-    (e: React.DragEvent<HTMLDivElement>) => {
-      e.preventDefault();
-      if (!headerFairId) return;
-      const files = Array.from(e.dataTransfer.files).filter((f) =>
-        f.type.startsWith("image/"),
-      );
-      uploadFiles(files);
-    },
-    [headerFairId, uploadFiles],
-  );
-
-  const handleSelectTemplate = (tpl: EmailTemplate) => {
-    setSelectedTemplateId(tpl.id);
-    setHtmlContent(tpl.generate(headerFair, logoUrls));
-    setActiveTab("editor");
-    setCard2Collapsed(true);
-    toast.success(
-      `Template "${tpl.name}" aplicado com dados de "${headerFair?.name ?? "feira do cabeçalho"}"`,
-    );
-  };
-
   const handleGeneratePrompt = () => {
     if (!headerFair) {
       toast.error("Selecione uma feira no cabeçalho da página");
@@ -1072,70 +447,6 @@ export const MarketingPage: React.FC = () => {
     },
     [generatedPrompt],
   );
-
-  const handleGenerateRevision = useCallback(() => {
-    if (!revisionComment.trim()) {
-      toast.error("Descreva as alterações que você quer");
-      return;
-    }
-    const originalContext =
-      generatedPrompt ||
-      (headerFair
-        ? generateAIPrompt(
-            headerFair,
-            "Usar como referência de contexto e identidade visual",
-          )
-        : "");
-    setRevisionPrompt(
-      generateRevisionPrompt(originalContext, htmlContent, revisionComment),
-    );
-    setRevisionComment("");
-    toast.success(
-      "Prompt de revisão gerado — clique em uma IA para copiar e abrir",
-    );
-  }, [revisionComment, generatedPrompt, htmlContent, headerFair]);
-
-  const handleOpenRevisionAI = useCallback(
-    async (url: string, name: string) => {
-      await navigator.clipboard.writeText(revisionPrompt);
-      window.open(url, "_blank", "noopener,noreferrer");
-      toast.success(`Prompt copiado — cole no ${name}`, {
-        description: "Use Ctrl+V (ou Cmd+V) para colar.",
-      });
-    },
-    [revisionPrompt],
-  );
-
-  const handleApplyAIResponse = useCallback(() => {
-    if (!aiResponseInput.trim()) {
-      toast.error("Cole a resposta da IA antes de aplicar");
-      return;
-    }
-    const parsed = parseAIResponse(aiResponseInput);
-    if (!parsed.html && !parsed.title && !parsed.subject) {
-      toast.error(
-        "Não foi possível extrair os dados — verifique se a IA retornou no formato TITULO / ASSUNTO / ```html```",
-      );
-      return;
-    }
-    if (parsed.title) setTitle(parsed.title);
-    if (parsed.subject) setSubject(parsed.subject);
-    if (parsed.html) setHtmlContent(parsed.html);
-    setAiResponseInput("");
-    setShowPasteArea(false);
-    setActiveTab("preview");
-    setCard2Collapsed(true);
-    toast.success("Resposta aplicada!", {
-      description:
-        [
-          parsed.title && "título",
-          parsed.subject && "assunto",
-          parsed.html && "HTML",
-        ]
-          .filter(Boolean)
-          .join(", ") + " preenchidos automaticamente.",
-    });
-  }, [aiResponseInput]);
 
   const openConfirmDialog = (audience: "all" | "absent") => {
     if (!headerFair) {
@@ -1181,8 +492,8 @@ export const MarketingPage: React.FC = () => {
       } finally {
         setLoadingStats(false);
       }
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [selectedCampaignId],
   );
 
@@ -1269,828 +580,291 @@ export const MarketingPage: React.FC = () => {
       </Tabs>
 
       {mainTab === "create" ? (
-        <>
-          {/* ── Cards 1 & 2 container ── */}
-          {card1Collapsed && card2Collapsed ? (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Card 1 Minimized */}
-              <div className="glass-card border-white/5 shadow-2xl rounded-3xl p-5 flex items-center justify-between transition-all">
-                <div className="flex items-center gap-3">
-                  <span className="bg-brand-pink text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black shrink-0">
-                    1
-                  </span>
-                  <div>
-                    <p className="text-white/30 text-[10px] font-black uppercase tracking-widest">
-                      Público-alvo
-                    </p>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <p className="font-bold text-white text-sm truncate max-w-[150px] sm:max-w-[220px]">
-                        {selectedFair?.name ||
-                          headerFair?.name ||
-                          "Nenhuma feira"}
-                      </p>
-                      {selectedFairId && (
-                        <span className="text-[9px] font-black text-brand-orange uppercase tracking-widest bg-brand-orange/10 px-2 py-0.5 rounded-full shrink-0">
-                          Remarketing
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setCard1Collapsed(false)}
-                  className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer shrink-0"
-                >
-                  <Edit className="h-3.5 w-3.5" />
-                  Alterar
-                </button>
-              </div>
-
-              {/* Card 2 Minimized */}
-              <div className="glass-card border-white/5 shadow-2xl rounded-3xl p-5 flex items-center justify-between transition-all">
-                <div className="flex items-center gap-3">
-                  <span className="bg-brand-pink text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black shrink-0">
-                    2
-                  </span>
-                  <div>
-                    <p className="text-white/30 text-[10px] font-black uppercase tracking-widest">
-                      Conteúdo do Email
-                    </p>
-                    <p className="font-bold text-white text-sm mt-0.5">
-                      {selectedTemplateId
-                        ? `Template: ${EMAIL_TEMPLATES.find((t) => t.id === selectedTemplateId)?.name}`
-                        : htmlContent
-                          ? "Personalizado / IA"
-                          : "Nenhum selecionado"}
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setCard2Collapsed(false)}
-                  className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer shrink-0"
-                >
-                  <Edit className="h-3.5 w-3.5" />
-                  Alterar
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {/* Card 1 (either minimized or expanded, full width) */}
-              {card1Collapsed ? (
-                <div className="glass-card border-white/5 shadow-2xl rounded-3xl p-5 flex items-center justify-between transition-all">
-                  <div className="flex items-center gap-3">
-                    <span className="bg-brand-pink text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black shrink-0">
-                      1
-                    </span>
-                    <div>
-                      <p className="text-white/30 text-[10px] font-black uppercase tracking-widest">
-                        Público-alvo
-                      </p>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <p className="font-bold text-white text-sm truncate">
-                          {selectedFair?.name ||
-                            headerFair?.name ||
-                            "Nenhuma feira"}
-                        </p>
-                        {selectedFairId && (
-                          <span className="text-[9px] font-black text-brand-orange uppercase tracking-widest bg-brand-orange/10 px-2 py-0.5 rounded-full shrink-0">
-                            Remarketing
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setCard1Collapsed(false)}
-                    className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer shrink-0"
-                  >
-                    <Edit className="h-3.5 w-3.5" />
-                    Alterar
-                  </button>
-                </div>
-              ) : (
-                <div className="glass-card border-white/5 shadow-2xl rounded-[32px] p-6 lg:p-8">
-                  <div className="flex items-center justify-between mb-5">
-                    <div className="flex items-center gap-3">
-                      <span className="bg-brand-pink text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black shrink-0">
-                        1
-                      </span>
-                      <h2 className="text-sm font-black text-white uppercase tracking-widest">
-                        Público-alvo
-                      </h2>
-                      <span className="text-white/30 text-xs font-medium hidden sm:inline">
-                        — usa a feira do cabeçalho por padrão
-                      </span>
-                    </div>
-                    {(headerFair || selectedFairId) && (
-                      <button
-                        onClick={() => setCard1Collapsed(true)}
-                        className="text-xs text-brand-cyan hover:text-brand-cyan/80 transition-colors flex items-center gap-1 cursor-pointer"
-                      >
-                        Minimizar
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Header fair — template base, read-only */}
-                  {headerFair ? (
-                    <div className="glass border-brand-cyan/20 rounded-2xl p-4 mb-5">
-                      <div className="flex items-center gap-3">
-                        <div className="bg-brand-cyan/20 text-brand-cyan rounded-xl p-2 shrink-0">
-                          <Mail className="h-4 w-4" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <p className="font-black text-white text-sm truncate">
-                              {headerFair.name}
-                            </p>
-                            <span className="text-[9px] font-black text-brand-cyan uppercase tracking-widest bg-brand-cyan/10 px-2 py-0.5 rounded-full shrink-0">
-                              Cabeçalho
-                            </span>
-                          </div>
-                          {(locationParts || headerFair.location) && (
-                            <p className="text-white/50 text-xs flex items-center gap-1 mt-0.5">
-                              <MapPin className="h-3 w-3" />
-                              {locationParts ? `${locationParts} — ` : ""}
-                              {headerFair.location}
-                            </p>
-                          )}
-                          {(headerFair.startDate || headerFair.endDate) && (
-                            <p className="text-white/50 text-xs flex items-center gap-1 mt-0.5">
-                              <Calendar className="h-3 w-3" />
-                              {fmt(headerFair.startDate)}
-                              {headerFair.endDate &&
-                                headerFair.endDate !== headerFair.startDate &&
-                                ` a ${fmt(headerFair.endDate)}`}
-                              {headerFair.startTime &&
-                                ` · ${headerFair.startTime}`}
-                              {headerFair.endTime &&
-                                ` às ${headerFair.endTime}`}
-                            </p>
-                          )}
-                        </div>
-                        <Badge
-                          className={
-                            headerFair.isActive
-                              ? "bg-brand-cyan/20 text-brand-cyan border-brand-cyan/20 text-xs font-black shrink-0"
-                              : "bg-white/5 text-white/30 border-white/10 text-xs shrink-0"
-                          }
-                        >
-                          {headerFair.isActive ? "Ativa" : "Encerrada"}
-                        </Badge>
-                      </div>
-                      <p className="text-white/30 text-[10px] mt-3 pt-2 border-t border-white/5">
-                        Dados desta feira são injetados nos templates e no
-                        prompt de IA. Por padrão, os emails são enviados para os
-                        visitantes desta feira.
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="glass border-white/5 rounded-2xl p-4 mb-5 flex items-center gap-3">
-                      <ChevronRight className="h-4 w-4 text-white/20" />
-                      <p className="text-white/30 text-sm">
-                        Selecione uma feira no cabeçalho da página para
-                        habilitar templates e envio.
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Remarketing override — optional */}
-                  <div className="space-y-3">
-                    <p className="text-white/30 text-[10px] font-black uppercase tracking-widest">
-                      Remarketing — enviar para visitantes de outra feira{" "}
-                      <span className="text-white/20 normal-case font-medium">
-                        (opcional)
-                      </span>
-                    </p>
-                    <Select
-                      value={selectedFairId}
-                      onValueChange={handleFairChange}
-                      disabled={loadingFairs}
-                    >
-                      <SelectTrigger className="h-10 w-full max-w-sm bg-white/5 border-white/10 text-white hover:bg-white/10 transition-all rounded-xl cursor-pointer text-xs">
-                        <SelectValue
-                          placeholder={
-                            loadingFairs
-                              ? "Carregando..."
-                              : "Enviar para visitantes de outra feira..."
-                          }
-                        />
-                      </SelectTrigger>
-                      <SelectContent className="bg-brand-blue border-white/10 text-white rounded-2xl">
-                        {(fairs ?? []).map((fair) => (
-                          <SelectItem
-                            key={fair.id}
-                            value={fair.id}
-                            className="focus:bg-white/10 focus:text-white rounded-xl cursor-pointer text-xs"
-                          >
-                            <span className="flex items-center gap-2">
-                              {fair.name}
-                              {fair.isActive ? (
-                                <span className="text-[10px] font-black text-brand-cyan uppercase tracking-widest">
-                                  ● Ativa
-                                </span>
-                              ) : (
-                                <span className="text-[10px] font-black text-white/30 uppercase tracking-widest">
-                                  ○ Encerrada
-                                </span>
-                              )}
-                            </span>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {selectedFairId && (
-                      <div className="space-y-2">
-                        <div className="flex items-start gap-2 p-3 bg-brand-orange/10 border border-brand-orange/20 rounded-xl">
-                          <AlertTriangle className="h-3.5 w-3.5 text-brand-orange shrink-0 mt-0.5" />
-                          <p className="text-brand-orange text-xs">
-                            <strong>Remarketing:</strong> template usa dados de{" "}
-                            <strong>
-                              {headerFair?.name ?? "feira do cabeçalho"}
-                            </strong>
-                            , mas o envio vai para visitantes de{" "}
-                            <strong>{selectedFair?.name}</strong>.
-                          </p>
-                        </div>
-                        <button
-                          onClick={() => setSelectedFairId("")}
-                          className="text-xs text-white/30 hover:text-white/60 transition-colors underline"
-                        >
-                          Limpar — usar a feira do cabeçalho
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Card 2 (either minimized or expanded, full width) */}
-              {card2Collapsed ? (
-                <div className="glass-card border-white/5 shadow-2xl rounded-3xl p-5 flex items-center justify-between transition-all">
-                  <div className="flex items-center gap-3">
-                    <span className="bg-brand-pink text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black shrink-0">
-                      2
-                    </span>
-                    <div>
-                      <p className="text-white/30 text-[10px] font-black uppercase tracking-widest">
-                        Conteúdo do Email
-                      </p>
-                      <p className="font-bold text-white text-sm mt-0.5">
-                        {selectedTemplateId
-                          ? `Template: ${EMAIL_TEMPLATES.find((t) => t.id === selectedTemplateId)?.name}`
-                          : htmlContent
-                            ? "Personalizado / IA"
-                            : "Nenhum selecionado"}
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setCard2Collapsed(false)}
-                    className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer shrink-0"
-                  >
-                    <Edit className="h-3.5 w-3.5" />
-                    Alterar
-                  </button>
-                </div>
-              ) : (
-                <div className="glass-card border-white/5 shadow-2xl rounded-[32px] p-6 lg:p-8">
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="flex items-center gap-3">
-                      <span className="bg-brand-pink text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black shrink-0">
-                        2
-                      </span>
-                      <h2 className="text-sm font-black text-white uppercase tracking-widest">
-                        Conteúdo do Email
-                      </h2>
-                    </div>
-                    {(selectedTemplateId || htmlContent) && (
-                      <button
-                        onClick={() => setCard2Collapsed(true)}
-                        className="text-xs text-brand-cyan hover:text-brand-cyan/80 transition-colors flex items-center gap-1 cursor-pointer"
-                      >
-                        Minimizar
-                      </button>
-                    )}
-                  </div>
-                  <p className="text-white/30 text-xs mb-5 ml-9">
-                    Gere com IA ou escolha um template como ponto de partida{" "}
-                    <span className="text-white/20">(opcional)</span>
-                  </p>
-
-                  {/* ── Gerar com IA — destaque principal ── */}
-                  <button
-                    onClick={() => setShowAIDialog(true)}
-                    className="w-full flex items-center gap-4 p-5 rounded-2xl border border-brand-cyan/30 bg-brand-cyan/8 hover:bg-brand-cyan/15 hover:border-brand-cyan/50 transition-all group mb-5 text-left"
-                  >
-                    <div className="bg-brand-cyan/20 rounded-2xl p-3 shrink-0 group-hover:bg-brand-cyan/30 transition-colors">
-                      <Sparkles className="h-6 w-6 text-brand-cyan" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-brand-cyan font-black uppercase tracking-widest text-sm">
-                        Gerar com IA
-                      </p>
-                      <p className="text-white/40 text-xs mt-0.5">
-                        Descreva o email em português — a IA gera título,
-                        assunto e HTML completo com design dark glassmorphism
-                      </p>
-                    </div>
-                    <ChevronRight className="h-5 w-5 text-brand-cyan/40 group-hover:text-brand-cyan/70 shrink-0 transition-colors" />
-                  </button>
-
-                  {/* ── Divider ── */}
-                  <div className="flex items-center gap-3 mb-5">
-                    <div className="flex-1 h-px bg-white/8" />
-                    <span className="text-white/20 text-[10px] font-black uppercase tracking-widest">
-                      ou use um template
-                    </span>
-                    <div className="flex-1 h-px bg-white/8" />
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-                    {EMAIL_TEMPLATES.map((tpl) => {
-                      const isSelected = selectedTemplateId === tpl.id;
-                      return (
-                        <button
-                          key={tpl.id}
-                          onClick={() => handleSelectTemplate(tpl)}
-                          disabled={!headerFair}
-                          className={`group relative flex flex-col items-start gap-2 p-4 rounded-2xl border text-left transition-all active:scale-[0.97] disabled:opacity-30 disabled:cursor-not-allowed ${
-                            isSelected
-                              ? "bg-brand-pink/15 border-brand-pink/40 shadow-lg shadow-brand-pink/10"
-                              : "bg-white/3 border-white/8 hover:bg-white/8 hover:border-white/15"
-                          }`}
-                        >
-                          {isSelected && (
-                            <span className="absolute top-2 right-2 bg-brand-pink text-white rounded-full w-4 h-4 flex items-center justify-center">
-                              <Check className="h-2.5 w-2.5" />
-                            </span>
-                          )}
-                          <span
-                            className={`p-2 rounded-xl transition-colors ${
-                              isSelected
-                                ? "bg-brand-pink/20 text-brand-pink"
-                                : "bg-white/8 text-white/50 group-hover:text-white/80"
-                            }`}
-                          >
-                            {tpl.icon}
-                          </span>
-                          <div>
-                            <p
-                              className={`text-xs font-black uppercase tracking-widest leading-tight ${isSelected ? "text-white" : "text-white/70"}`}
-                            >
-                              {tpl.name}
-                            </p>
-                            <p className="text-white/30 text-[11px] mt-1 leading-snug">
-                              {tpl.description}
-                            </p>
-                          </div>
-                          <span
-                            className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${
-                              isSelected
-                                ? "bg-brand-pink/20 text-brand-pink"
-                                : "bg-white/5 text-white/25"
-                            }`}
-                          >
-                            {tpl.strategy}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  {!headerFair && (
-                    <p className="mt-3 text-white/20 text-xs text-center">
-                      Selecione uma feira no cabeçalho para habilitar os
-                      templates
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* ── Logos dos Expositores ── */}
-          {headerFairId && (
-            <div className="glass-card border-white/5 shadow-2xl rounded-[32px] p-6 lg:p-8">
-              <div className="flex items-center justify-between mb-5">
-                <div className="flex items-center gap-3">
-                  <span className="bg-brand-pink text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black shrink-0">
-                    <ImageIcon className="h-3 w-3" />
-                  </span>
-                  <h2 className="text-sm font-black text-white uppercase tracking-widest">
-                    Logos dos Expositores
-                  </h2>
-                  <span
-                    className={`text-[9px] font-black px-2 py-0.5 rounded-full ${
-                      fairImages.length > 0
-                        ? "bg-green-500/20 text-green-400"
-                        : "bg-white/8 text-white/30"
-                    }`}
-                  >
-                    {fairImages.length} logo{fairImages.length !== 1 ? "s" : ""}
-                  </span>
-                </div>
-                <button
-                  onClick={() => logoInputRef.current?.click()}
-                  disabled={uploadingLogos || !headerFairId}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-cyan/10 hover:bg-brand-cyan/20 border border-brand-cyan/20 hover:border-brand-cyan/40 rounded-xl text-[10px] font-black uppercase tracking-widest text-brand-cyan transition-all disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
-                >
-                  {uploadingLogos ? (
-                    <>
-                      <LogoLoading size={12} minimal className="mr-1" />
-                      Enviando...
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="h-3 w-3" />
-                      Adicionar logos
-                    </>
-                  )}
-                </button>
-                <input
-                  ref={logoInputRef}
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  className="hidden"
-                  onChange={handleLogoUpload}
-                />
-              </div>
-
-              {fairImages.length > 0 ? (
-                <div className="flex flex-wrap gap-3">
-                  {fairImages.map((img) => (
-                    <div key={img.id} className="relative group">
-                      <div className="w-24 h-16 bg-white/5 border border-white/10 rounded-xl overflow-hidden flex items-center justify-center p-1.5">
-                        <img
-                          src={img.url}
-                          alt={img.caption || "Logo expositor"}
-                          className="max-w-full max-h-full object-contain"
-                        />
-                      </div>
-                      <button
-                        onClick={() => handleLogoDelete(img.id)}
-                        disabled={deleteLogoMutation.isPending}
-                        className="absolute -top-1.5 -right-1.5 bg-red-500 hover:bg-red-600 rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50 cursor-pointer"
-                        title="Remover logo"
-                      >
-                        <Trash2 className="h-2.5 w-2.5 text-white" />
-                      </button>
-                      {img.caption && (
-                        <p className="text-white/30 text-[9px] text-center mt-1 truncate max-w-[96px]">
-                          {img.caption}
-                        </p>
-                      )}
-                    </div>
-                  ))}
-
-                  {/* Add more button as last item */}
-                  <button
-                    onClick={() => logoInputRef.current?.click()}
-                    disabled={uploadingLogos}
-                    className="w-24 h-16 bg-white/3 border border-dashed border-white/15 hover:border-brand-cyan/30 hover:bg-brand-cyan/5 rounded-xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer disabled:opacity-40"
-                  >
-                    <Upload className="h-4 w-4 text-white/25" />
-                    <span className="text-white/25 text-[9px]">Adicionar</span>
-                  </button>
-                </div>
-              ) : (
-                <div
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={handleLogoDrop}
-                  onClick={() => logoInputRef.current?.click()}
-                  className="border-2 border-dashed border-white/10 hover:border-brand-cyan/30 hover:bg-brand-cyan/5 rounded-2xl p-8 text-center cursor-pointer transition-all"
-                >
-                  <Upload className="h-8 w-8 text-white/20 mx-auto mb-3" />
-                  <p className="text-white/40 text-sm font-bold">
-                    Arraste logos ou clique para selecionar
-                  </p>
-                  <p className="text-white/20 text-xs mt-1">
-                    PNG, JPG, SVG, WebP · Múltiplos arquivos
-                  </p>
-                  <p className="text-white/15 text-[10px] mt-3">
-                    Logos aparecem automaticamente nos templates e no prompt de
-                    IA
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* ── Step 3: Editor + preview ── */}
-          <div className="glass-card border-white/5 shadow-2xl rounded-[32px] p-6 lg:p-8">
+        <div className="flex flex-col lg:flex-row gap-6 items-start">
+          {/* ── Right: Visualizador (70%) ── */}
+          <div className="order-2 lg:order-2 flex-1 min-w-0 glass-card border-white/5 shadow-2xl rounded-[32px] p-6 lg:p-8">
             <div className="flex items-center gap-3 mb-5">
-              <span className="bg-brand-pink text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black shrink-0">
-                3
-              </span>
+              <Eye className="h-5 w-5 text-brand-cyan" />
               <h2 className="text-sm font-black text-white uppercase tracking-widest">
-                Editar & Enviar
+                Pré-visualização
               </h2>
             </div>
 
-            {/* Tabs */}
-            <div className="flex flex-wrap items-center gap-2 mb-6">
-              <button
-                onClick={() => setActiveTab("editor")}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-                  activeTab === "editor"
-                    ? "bg-brand-pink text-white shadow-lg shadow-brand-pink/20"
-                    : "bg-white/5 text-white/50 hover:bg-white/10 hover:text-white"
-                }`}
-              >
-                <Code className="h-3.5 w-3.5" />
-                Editor HTML
-              </button>
-              <button
-                onClick={() => setActiveTab("preview")}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-                  activeTab === "preview"
-                    ? "bg-brand-cyan text-brand-blue shadow-lg shadow-brand-cyan/20"
-                    : "bg-white/5 text-white/50 hover:bg-white/10 hover:text-white"
-                }`}
-              >
-                <Eye className="h-3.5 w-3.5" />
-                Pré-visualização
-              </button>
-
-              <button
-                onClick={() => {
-                  setActiveTab("editor");
-                  setShowPasteArea(!showPasteArea);
-                }}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-                  showPasteArea && activeTab === "editor"
-                    ? "bg-brand-cyan/25 text-brand-cyan border border-brand-cyan/35 shadow-lg shadow-brand-cyan/10"
-                    : "bg-white/5 text-white/50 hover:bg-white/10 hover:text-white"
-                }`}
-              >
-                <Clipboard className="h-3.5 w-3.5" />
-                Colar resposta da IA
-              </button>
-            </div>
-
-            {activeTab === "editor" && (
-              <div className="space-y-5">
-                {/* ── Paste AI response ── */}
-                {showPasteArea && (
-                  <div className="rounded-2xl border border-brand-cyan/20 overflow-hidden bg-brand-cyan/5 p-4 space-y-3">
-                    <div className="flex items-center justify-between border-b border-brand-cyan/10 pb-2">
-                      <span className="flex items-center gap-2 text-brand-cyan text-xs font-black uppercase tracking-widest">
-                        <Clipboard className="h-3.5 w-3.5" />
-                        Colar resposta da IA
-                      </span>
-                      <button
-                        onClick={() => {
-                          setShowPasteArea(false);
-                          setAiResponseInput("");
-                        }}
-                        className="text-white/40 hover:text-white/70 transition-colors cursor-pointer"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    </div>
-                    <p className="text-white/35 text-[10px] leading-relaxed">
-                      Cole aqui a resposta completa da IA — o sistema extrai
-                      automaticamente o{" "}
-                      <span className="text-white/60">título</span>, o{" "}
-                      <span className="text-white/60">assunto</span> e o{" "}
-                      <span className="text-white/60">HTML</span>.
-                    </p>
-                    <textarea
-                      value={aiResponseInput}
-                      onChange={(e) => setAiResponseInput(e.target.value)}
-                      rows={7}
-                      placeholder={
-                        "TITULO: Remarketing Feira — Maio 2026\nASSUNTO: Você perdeu a maior feira do Norte\n\n```html\n<!DOCTYPE html>...\n```"
-                      }
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-3 text-white/80 text-xs font-mono leading-relaxed placeholder:text-white/15 focus:outline-none focus:border-brand-cyan/40 focus:ring-2 focus:ring-brand-cyan/10 transition-all resize-none overflow-x-auto"
-                    />
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={handleApplyAIResponse}
-                        disabled={!aiResponseInput.trim()}
-                        className="flex-1 h-9 bg-brand-cyan text-brand-blue text-xs font-black uppercase tracking-widest rounded-xl hover:bg-brand-cyan/90 transition-all disabled:opacity-40 cursor-pointer"
-                      >
-                        <Check className="h-3.5 w-3.5 mr-1.5" />
-                        Aplicar
-                      </Button>
-                      <button
-                        onClick={() => {
-                          setShowPasteArea(false);
-                          setAiResponseInput("");
-                        }}
-                        className="px-4 text-xs text-white/30 hover:text-white/60 font-bold transition-colors cursor-pointer"
-                      >
-                        Cancelar
-                      </button>
-                    </div>
+            {htmlContent ? (
+              <>
+                {subject && (
+                  <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white/60 mb-3">
+                    <span className="text-white/30 font-black uppercase tracking-widest text-xs mr-2">
+                      Assunto:
+                    </span>
+                    {subject}
                   </div>
                 )}
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-2">
-                      Nome Interno da Campanha
-                    </p>
-                    <Input
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
-                      placeholder={`Ex: Remarketing ${headerFair?.name ?? "Feira"} — ${new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}`}
-                      className="bg-white/5 border-white/10 text-white placeholder:text-white/20 focus-visible:ring-brand-cyan/30"
-                    />
-                    <p className="text-white/20 text-[10px] mt-1.5 font-medium">
-                      Aparece no histórico — não é enviado ao visitante.
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-2">
-                      Assunto do Email
-                    </p>
-                    <Input
-                      value={subject}
-                      onChange={(e) => setSubject(e.target.value)}
-                      placeholder="Ex: ExpoMultiMix te espera — venha hoje!"
-                      className="bg-white/5 border-white/10 text-white placeholder:text-white/20 focus-visible:ring-brand-pink/30"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-2">
-                    Conteúdo HTML
-                  </p>
-                  <textarea
-                    value={htmlContent}
-                    onChange={(e) => setHtmlContent(e.target.value)}
-                    rows={18}
-                    placeholder={
-                      selectedTemplateId
-                        ? ""
-                        : "Escolha um template acima ou cole seu HTML aqui..."
-                    }
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white/80 text-xs font-mono leading-relaxed placeholder:text-white/20 focus:outline-none focus:border-brand-pink/50 focus:ring-4 focus:ring-brand-pink/10 transition-all resize-none overflow-x-auto"
+                <div className="border border-white/10 rounded-2xl overflow-hidden">
+                  <iframe
+                    key={htmlContent.slice(0, 40)}
+                    srcDoc={htmlContent}
+                    title="Pré-visualização do Email"
+                    className="w-full"
+                    style={{ height: "640px", border: "none" }}
+                    sandbox="allow-same-origin"
                   />
                 </div>
+                <p className="text-white/25 text-xs text-center mt-3">
+                  Visualização isolada — representa fielmente como o email
+                  aparecerá nos clientes de email.
+                </p>
+              </>
+            ) : (
+              <div className="flex h-[500px] items-center justify-center border border-white/5 rounded-2xl">
+                <div className="text-center">
+                  <Eye className="h-10 w-10 text-white/10 mx-auto mb-3" />
+                  <p className="text-white/25 text-sm">
+                    Cole o HTML no painel ao lado para visualizar
+                  </p>
+                </div>
               </div>
             )}
+          </div>
 
-            {activeTab === "preview" && (
-              <div className="space-y-3">
-                <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white/60">
-                  <span className="text-white/30 font-black uppercase tracking-widest text-xs mr-2">
-                    Assunto:
-                  </span>
-                  {subject || (
-                    <span className="italic text-white/20">sem assunto</span>
-                  )}
-                </div>
-                {htmlContent ? (
-                  <>
-                    <div className="border border-white/10 rounded-2xl overflow-hidden">
-                      <iframe
-                        key={htmlContent.slice(0, 40)}
-                        srcDoc={htmlContent}
-                        title="Pré-visualização do Email"
-                        className="w-full"
-                        style={{ height: "640px", border: "none" }}
-                        sandbox="allow-same-origin"
-                      />
+          {/* ── Left: Config (30%) ── */}
+          <div className="order-1 lg:order-1 w-full lg:w-[30%] lg:min-w-[280px] space-y-4">
+            {/* ── Card 1: Público-alvo ── */}
+            <div className="glass-card border-white/5 shadow-2xl rounded-[32px] p-5">
+              <div className="flex items-center gap-3 mb-4">
+                <span className="bg-brand-pink text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black shrink-0">
+                  1
+                </span>
+                <h2 className="text-sm font-black text-white uppercase tracking-widest">
+                  Público-alvo
+                </h2>
+              </div>
+
+              {/* Header fair */}
+              {headerFair ? (
+                <div className="glass border-brand-cyan/20 rounded-2xl p-3 mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="bg-brand-cyan/20 text-brand-cyan rounded-xl p-1.5 shrink-0">
+                      <Mail className="h-3.5 w-3.5" />
                     </div>
-                    <p className="text-white/25 text-xs text-center">
-                      Visualização isolada — representa fielmente como o email
-                      aparecerá nos clientes de email.
-                    </p>
-
-                    {/* ── Revision request ── */}
-                    <div className="mt-2 pt-5 border-t border-white/5 space-y-3">
-                      <div className="flex items-center gap-2">
-                        <Sparkles className="h-4 w-4 text-brand-cyan/60" />
-                        <span className="text-white/50 font-black text-[10px] uppercase tracking-widest">
-                          Solicitar alterações com IA
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="font-black text-white text-xs truncate">
+                          {headerFair.name}
+                        </p>
+                        <span className="text-[9px] font-black text-brand-cyan uppercase tracking-widest bg-brand-cyan/10 px-2 py-0.5 rounded-full shrink-0">
+                          Cabeçalho
                         </span>
                       </div>
-                      <textarea
-                        value={revisionComment}
-                        onChange={(e) => setRevisionComment(e.target.value)}
-                        placeholder='Ex: "Mude o botão CTA para laranja, aumente o título, remova a seção de depoimentos..."'
-                        rows={3}
-                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white text-sm placeholder:text-white/20 focus:outline-none focus:border-brand-cyan/50 focus:ring-4 focus:ring-brand-cyan/10 transition-all resize-none"
-                      />
-                      <Button
-                        onClick={handleGenerateRevision}
-                        disabled={!revisionComment.trim()}
-                        className="w-full h-10 bg-brand-cyan/10 border border-brand-cyan/20 text-brand-cyan font-black uppercase tracking-widest rounded-2xl hover:bg-brand-cyan/20 transition-all disabled:opacity-40 cursor-pointer"
-                      >
-                        <Sparkles className="h-4 w-4 mr-2" />
-                        Gerar Prompt de Revisão
-                      </Button>
-
-                      {revisionPrompt && (
-                        <div className="space-y-3 pt-1">
-                          <div className="flex items-center justify-between">
-                            <p className="text-white/40 text-[10px] font-black uppercase tracking-widest">
-                              Abrir no assistente de IA:
-                            </p>
-                            <button
-                              onClick={async () => {
-                                await navigator.clipboard.writeText(
-                                  revisionPrompt,
-                                );
-                                toast.success("Prompt de revisão copiado!");
-                              }}
-                              className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-white/30 hover:text-white/60 transition-colors"
-                            >
-                              <Copy className="h-3 w-3" />
-                              Copiar prompt
-                            </button>
-                          </div>
-                          <div className="flex flex-wrap gap-2">
-                            {AI_SERVICES.map((ai) => (
-                              <button
-                                key={ai.name}
-                                onClick={() =>
-                                  handleOpenRevisionAI(ai.url, ai.name)
-                                }
-                                className="flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-black transition-all hover:scale-[1.03] active:scale-[0.97]"
-                                style={{
-                                  color: ai.color,
-                                  borderColor: `${ai.color}40`,
-                                  backgroundColor: `${ai.color}12`,
-                                }}
-                                onMouseEnter={(e) => {
-                                  (
-                                    e.currentTarget as HTMLButtonElement
-                                  ).style.backgroundColor = `${ai.color}22`;
-                                  (
-                                    e.currentTarget as HTMLButtonElement
-                                  ).style.borderColor = `${ai.color}80`;
-                                }}
-                                onMouseLeave={(e) => {
-                                  (
-                                    e.currentTarget as HTMLButtonElement
-                                  ).style.backgroundColor = `${ai.color}12`;
-                                  (
-                                    e.currentTarget as HTMLButtonElement
-                                  ).style.borderColor = `${ai.color}40`;
-                                }}
-                              >
-                                {ai.icon}
-                                {ai.name}
-                                <ExternalLink className="h-3 w-3 opacity-50" />
-                              </button>
-                            ))}
-                          </div>
-                          <p className="text-white/20 text-[10px]">
-                            Clicar copia o prompt de revisão — cole com{" "}
-                            <kbd className="bg-white/10 px-1.5 py-0.5 rounded text-white/40 font-mono">
-                              Ctrl+V
-                            </kbd>{" "}
-                            na IA. Depois cole o HTML revisado no editor.
-                          </p>
-                        </div>
+                      {(locationParts || headerFair.location) && (
+                        <p className="text-white/50 text-[10px] flex items-center gap-1 mt-0.5">
+                          <MapPin className="h-2.5 w-2.5" />
+                          {locationParts ? `${locationParts} — ` : ""}
+                          {headerFair.location}
+                        </p>
+                      )}
+                      {(headerFair.startDate || headerFair.endDate) && (
+                        <p className="text-white/50 text-[10px] flex items-center gap-1 mt-0.5">
+                          <Calendar className="h-2.5 w-2.5" />
+                          {fmt(headerFair.startDate)}
+                          {headerFair.endDate &&
+                            headerFair.endDate !== headerFair.startDate &&
+                            ` a ${fmt(headerFair.endDate)}`}
+                          {headerFair.startTime && ` · ${headerFair.startTime}`}
+                          {headerFair.endTime && ` às ${headerFair.endTime}`}
+                        </p>
                       )}
                     </div>
-                  </>
-                ) : (
-                  <div className="h-64 flex items-center justify-center border border-white/5 rounded-2xl">
-                    <p className="text-white/25 text-sm">
-                      Selecione um template para visualizar
-                    </p>
+                    <Badge
+                      className={
+                        headerFair.isActive
+                          ? "bg-brand-cyan/20 text-brand-cyan border-brand-cyan/20 text-[9px] font-black shrink-0"
+                          : "bg-white/5 text-white/30 border-white/10 text-[9px] shrink-0"
+                      }
+                    >
+                      {headerFair.isActive ? "Ativa" : "Encerrada"}
+                    </Badge>
+                  </div>
+                </div>
+              ) : (
+                <div className="glass border-white/5 rounded-2xl p-3 mb-4 flex items-center gap-2">
+                  <ChevronRight className="h-4 w-4 text-white/20" />
+                  <p className="text-white/30 text-xs">
+                    Selecione uma feira no cabeçalho para habilitar o envio.
+                  </p>
+                </div>
+              )}
+
+              {/* Remarketing */}
+              <div className="space-y-2">
+                <p className="text-white/30 text-[10px] font-black uppercase tracking-widest">
+                  Remarketing{" "}
+                  <span className="text-white/20 normal-case font-medium">
+                    (opcional)
+                  </span>
+                </p>
+                <Select
+                  value={selectedFairId}
+                  onValueChange={handleFairChange}
+                  disabled={loadingFairs}
+                >
+                  <SelectTrigger className="h-9 w-full bg-white/5 border-white/10 text-white hover:bg-white/10 transition-all rounded-xl cursor-pointer text-xs">
+                    <SelectValue
+                      placeholder={
+                        loadingFairs
+                          ? "Carregando..."
+                          : "Visitantes de outra feira..."
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent className="bg-brand-blue border-white/10 text-white rounded-2xl">
+                    {(fairs ?? []).map((fair) => (
+                      <SelectItem
+                        key={fair.id}
+                        value={fair.id}
+                        className="focus:bg-white/10 focus:text-white rounded-xl cursor-pointer text-xs"
+                      >
+                        <span className="flex items-center gap-2">
+                          {fair.name}
+                          {fair.isActive ? (
+                            <span className="text-[10px] font-black text-brand-cyan uppercase tracking-widest">
+                              ● Ativa
+                            </span>
+                          ) : (
+                            <span className="text-[10px] font-black text-white/30 uppercase tracking-widest">
+                              ○ Encerrada
+                            </span>
+                          )}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {selectedFairId && (
+                  <div className="space-y-2">
+                    <div className="flex items-start gap-2 p-2.5 bg-brand-orange/10 border border-brand-orange/20 rounded-xl">
+                      <AlertTriangle className="h-3 w-3 text-brand-orange shrink-0 mt-0.5" />
+                      <p className="text-brand-orange text-[10px]">
+                        <strong>Remarketing:</strong> template usa dados de{" "}
+                        <strong>
+                          {headerFair?.name ?? "feira do cabeçalho"}
+                        </strong>
+                        , mas o envio vai para visitantes de{" "}
+                        <strong>{selectedFair?.name}</strong>.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setSelectedFairId("")}
+                      className="text-xs text-white/30 hover:text-white/60 transition-colors underline cursor-pointer"
+                    >
+                      Limpar — usar a feira do cabeçalho
+                    </button>
                   </div>
                 )}
               </div>
-            )}
+            </div>
 
-            {/* ── Send buttons — always visible ── */}
-            <div className="flex flex-col sm:flex-row gap-3 mt-6 pt-6 border-t border-white/5">
-              <Button
-                type="button"
-                disabled={loading || !headerFair}
-                onClick={() => openConfirmDialog("absent")}
-                className="flex-1 h-12 bg-white/10 border border-white/20 rounded-2xl text-white font-black uppercase tracking-widest hover:bg-white/20 transition-all active:scale-[0.98] cursor-pointer disabled:opacity-40"
+            {/* ── Card 2: Conteúdo ── */}
+            <div className="glass-card border-white/5 shadow-2xl rounded-[32px] p-5 space-y-4">
+              <div className="flex items-center gap-3">
+                <span className="bg-brand-pink text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black shrink-0">
+                  2
+                </span>
+                <h2 className="text-sm font-black text-white uppercase tracking-widest">
+                  Conteúdo
+                </h2>
+              </div>
+
+              {/* Gerar com IA */}
+              <button
+                onClick={() => setShowAIDialog(true)}
+                className="w-full flex items-center gap-3 p-4 rounded-2xl border border-brand-cyan/30 bg-brand-cyan/8 hover:bg-brand-cyan/15 hover:border-brand-cyan/50 transition-all group text-left"
               >
-                <Users className="h-4 w-4 mr-2" />
-                Enviar para Ausentes
-              </Button>
-              <Button
-                type="button"
-                disabled={loading || !headerFair}
-                onClick={() => openConfirmDialog("all")}
-                className="flex-1 h-12 bg-brand-pink rounded-2xl text-white font-black uppercase tracking-widest hover:bg-brand-pink/90 transition-all shadow-xl shadow-brand-pink/20 active:scale-[0.98] cursor-pointer disabled:opacity-40"
-              >
-                {loading ? (
-                  <LogoLoading size={16} minimal className="mr-2" />
-                ) : (
-                  <Send className="h-4 w-4 mr-2" />
-                )}
-                {loading ? "Enviando..." : "Enviar para Todos os Inscritos"}
-              </Button>
+                <div className="bg-brand-cyan/20 rounded-xl p-2 shrink-0 group-hover:bg-brand-cyan/30 transition-colors">
+                  <Sparkles className="h-5 w-5 text-brand-cyan" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-brand-cyan font-black uppercase tracking-widest text-xs">
+                    Gerar com IA
+                  </p>
+                  <p className="text-white/40 text-[10px] mt-0.5 leading-snug">
+                    Gera título, assunto e HTML com identidade ExpoMultiMix
+                  </p>
+                </div>
+                <ChevronRight className="h-4 w-4 text-brand-cyan/40 group-hover:text-brand-cyan/70 shrink-0 transition-colors" />
+              </button>
+
+              {/* Nome da campanha */}
+              <div>
+                <p className="text-white/40 text-[10px] font-black uppercase tracking-widest mb-1.5">
+                  Nome Interno da Campanha
+                </p>
+                <Input
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder={`Ex: Remarketing ${headerFair?.name ?? "Feira"} — ${new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}`}
+                  className="bg-white/5 border-white/10 text-white placeholder:text-white/20 focus-visible:ring-brand-cyan/30 text-xs"
+                />
+                <p className="text-white/20 text-[10px] mt-1">
+                  Aparece no histórico — não enviado ao visitante.
+                </p>
+              </div>
+
+              {/* Assunto */}
+              <div>
+                <p className="text-white/40 text-[10px] font-black uppercase tracking-widest mb-1.5">
+                  Assunto do Email
+                </p>
+                <Input
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  placeholder="Ex: ExpoMultiMix te espera — venha hoje!"
+                  className="bg-white/5 border-white/10 text-white placeholder:text-white/20 focus-visible:ring-brand-pink/30 text-xs"
+                />
+              </div>
+
+              {/* HTML */}
+              <div>
+                <p className="text-white/40 text-[10px] font-black uppercase tracking-widest mb-1.5">
+                  Conteúdo HTML
+                </p>
+                <textarea
+                  value={htmlContent}
+                  onChange={(e) => setHtmlContent(e.target.value)}
+                  rows={12}
+                  placeholder="Cole o HTML gerado pela IA aqui..."
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-3 py-3 text-white/80 text-xs font-mono leading-relaxed placeholder:text-white/20 focus:outline-none focus:border-brand-pink/50 focus:ring-4 focus:ring-brand-pink/10 transition-all resize-none overflow-x-auto"
+                />
+              </div>
+
+              {/* Send buttons */}
+              <div className="flex flex-col gap-2 pt-2 border-t border-white/5">
+                <Button
+                  type="button"
+                  disabled={loading || !headerFair}
+                  onClick={() => openConfirmDialog("absent")}
+                  className="w-full h-10 bg-white/10 border border-white/20 rounded-2xl text-white font-black uppercase tracking-widest text-xs hover:bg-white/20 transition-all active:scale-[0.98] cursor-pointer disabled:opacity-40"
+                >
+                  <Users className="h-3.5 w-3.5 mr-2" />
+                  Enviar para Ausentes
+                </Button>
+                <Button
+                  type="button"
+                  disabled={loading || !headerFair}
+                  onClick={() => openConfirmDialog("all")}
+                  className="w-full h-10 bg-brand-pink rounded-2xl text-white font-black uppercase tracking-widest text-xs hover:bg-brand-pink/90 transition-all shadow-xl shadow-brand-pink/20 active:scale-[0.98] cursor-pointer disabled:opacity-40"
+                >
+                  {loading ? (
+                    <LogoLoading size={14} minimal className="mr-2" />
+                  ) : (
+                    <Send className="h-3.5 w-3.5 mr-2" />
+                  )}
+                  {loading ? "Enviando..." : "Enviar para Todos"}
+                </Button>
+              </div>
             </div>
           </div>
-        </>
+        </div>
       ) : (
         /* ── Campaign History ── */
         <div className="space-y-4">
@@ -2804,12 +1578,10 @@ export const MarketingPage: React.FC = () => {
                     onClick={() => {
                       setShowAIDialog(false);
                       setAiStep(1);
-                      setShowPasteArea(true);
-                      setActiveTab("editor");
                     }}
                     className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-brand-pink/10 hover:bg-brand-pink/20 border border-brand-pink/30 rounded-xl text-xs font-black uppercase tracking-widest text-brand-pink transition-all"
                   >
-                    Fechar — colar resposta no editor
+                    Fechar — cole o HTML no campo de texto
                     <ChevronRight className="h-3.5 w-3.5" />
                   </button>
                 </div>
@@ -2862,20 +1634,6 @@ export const MarketingPage: React.FC = () => {
                         : "Visitantes que não fizeram check-in"}
                     </span>
                   </p>
-                  {selectedTemplateId && (
-                    <p>
-                      <span className="text-white/30 font-black uppercase tracking-widest text-xs">
-                        Template:{" "}
-                      </span>
-                      <span className="text-white/70">
-                        {
-                          EMAIL_TEMPLATES.find(
-                            (t) => t.id === selectedTemplateId,
-                          )?.name
-                        }
-                      </span>
-                    </p>
-                  )}
                 </div>
                 <div className="flex items-start gap-2 p-3 bg-brand-orange/10 border border-brand-orange/20 rounded-xl">
                   <AlertTriangle className="h-4 w-4 text-brand-orange shrink-0 mt-0.5" />
