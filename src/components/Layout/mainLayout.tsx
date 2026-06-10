@@ -220,8 +220,12 @@ export const MainLayout: React.FC = () => {
 
     const urlFairId = searchParams.get("fairId");
     const newId =
-      (urlFairId && availableFairs.find((f: Fair) => f.id === urlFairId) ? urlFairId : null) ??
-      (savedFairId && availableFairs.find((f: Fair) => f.id === savedFairId) ? savedFairId : null) ??
+      (urlFairId && availableFairs.find((f: Fair) => f.id === urlFairId)
+        ? urlFairId
+        : null) ??
+      (savedFairId && availableFairs.find((f: Fair) => f.id === savedFairId)
+        ? savedFairId
+        : null) ??
       availableFairs[0]?.id ??
       "";
 
@@ -593,7 +597,7 @@ export const MainLayout: React.FC = () => {
         </header>
 
         {/* Content — cresce para preencher, único elemento que faz scroll */}
-        <main className="flex-1  bg-brand-blue p-6 h-[80%] pb-0 pt-2">
+        <main className="flex-1  bg-brand-blue p-6 h-[80%] pb-0 pt-2 overflow-auto">
           <Outlet />
         </main>
 

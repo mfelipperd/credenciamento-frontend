@@ -28,7 +28,11 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useMarketingService } from "@/service/marketing.service";
 import { useFairs } from "@/hooks/useFairs";
-import { useFairImages, useUploadFairImages, useDeleteFairImage } from "@/hooks/useFinance";
+import {
+  useFairImages,
+  useUploadFairImages,
+  useDeleteFairImage,
+} from "@/hooks/useFinance";
 import { useSearchParams } from "@/hooks/useSearchParams";
 import { toast } from "sonner";
 import {
@@ -82,14 +86,15 @@ const fairInfo = (fair?: Fair) => {
   const fullLocation = [cityState, location].filter(Boolean).join(" · ");
   const startDate = fmt(fair?.startDate);
   const endDate = fmt(fair?.endDate);
-  const dateRange =
-    !startDate ? "" : startDate === endDate || !endDate
+  const dateRange = !startDate
+    ? ""
+    : startDate === endDate || !endDate
       ? startDate
       : `${startDate} a ${endDate}`;
   const time =
     fair?.startTime && fair?.endTime
       ? `${fair.startTime} às ${fair.endTime}`
-      : fair?.startTime ?? "";
+      : (fair?.startTime ?? "");
   const mapsUrl = fair?.googleMapsUrl ?? "#";
   return { name, cityState, location, fullLocation, dateRange, time, mapsUrl };
 };
@@ -113,7 +118,7 @@ const logoGridHtml = (logoUrls: string[], labelColor = "#9CA3AF"): string => {
         .map(
           (url) =>
             `<td width="${w}%" style="text-align:center;padding:6px 8px;vertical-align:middle;">` +
-            `<img src="${url}" alt="Expositor" style="max-width:90px;max-height:60px;height:auto;display:block;margin:0 auto;"></td>`
+            `<img src="${url}" alt="Expositor" style="max-width:90px;max-height:60px;height:auto;display:block;margin:0 auto;"></td>`,
         )
         .join("");
       return `<tr>${cells}</tr>`;
@@ -657,7 +662,8 @@ const aiBlockLogos = (logoUrls: string[]): string => {
   if (!logoUrls || logoUrls.length === 0) return "";
   const perRow = 5;
   const rows: string[][] = [];
-  for (let i = 0; i < logoUrls.length; i += perRow) rows.push(logoUrls.slice(i, i + perRow));
+  for (let i = 0; i < logoUrls.length; i += perRow)
+    rows.push(logoUrls.slice(i, i + perRow));
   const rowsHtml = rows
     .map((row) => {
       const w = Math.floor(100 / row.length);
@@ -665,7 +671,7 @@ const aiBlockLogos = (logoUrls: string[]): string => {
         .map(
           (url) =>
             `<td width="${w}%" style="text-align:center;padding:8px;vertical-align:middle;">` +
-            `<img src="${url}" alt="Expositor" style="max-width:90px;max-height:60px;height:auto;display:block;margin:0 auto;"></td>`
+            `<img src="${url}" alt="Expositor" style="max-width:90px;max-height:60px;height:auto;display:block;margin:0 auto;"></td>`,
         )
         .join("");
       return `<tr>${cells}</tr>`;
@@ -677,9 +683,16 @@ const aiBlockLogos = (logoUrls: string[]): string => {
 const aiBlockFooter = (fairName: string): string =>
   `<tr><td style="padding:20px 40px 28px;text-align:center;border-top:1px solid rgba(255,255,255,0.08);"><p style="margin:0 0 4px;color:rgba(255,255,255,0.4);font-size:11px;font-weight:700;">${fairName}</p><p style="margin:0 0 8px;color:rgba(255,255,255,0.25);font-size:11px;">gerencia@expomultimix.com.br</p><p style="margin:0;font-size:10px;"><a href="#descadastro" style="color:rgba(255,255,255,0.25);text-decoration:underline;">Cancelar inscri&#231;&#227;o</a></p></td></tr>`;
 
-const generateAIPrompt = (fair: Fair, userDescription: string, logoUrls: string[] = []): string => {
+const generateAIPrompt = (
+  fair: Fair,
+  userDescription: string,
+  logoUrls: string[] = [],
+): string => {
   const { name } = fairInfo(fair);
-  const monthYear = new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+  const monthYear = new Date().toLocaleDateString("pt-BR", {
+    month: "long",
+    year: "numeric",
+  });
 
   const blockFairDetails = aiBlockFairDetails(fair);
   const blockLogos = aiBlockLogos(logoUrls);
@@ -726,11 +739,15 @@ Posição obrigatória: após a proposta de valor, antes do CTA principal.
 ${blockFairDetails}
 \`\`\`
 
-${hasLogos ? `### BLOCO B — Marcas Participantes (logos dos expositores)
+${
+  hasLogos
+    ? `### BLOCO B — Marcas Participantes (logos dos expositores)
 Posição obrigatória: imediatamente antes do rodapé.
 \`\`\`html
 ${blockLogos}
-\`\`\`` : ""}
+\`\`\``
+    : ""
+}
 
 ### BLOCO ${hasLogos ? "C" : "B"} — Rodapé
 Posição obrigatória: último elemento dentro da tabela interna (600px). Inserir como <tr> direto dentro da tabela de conteúdo.
@@ -809,7 +826,11 @@ ASSUNTO: [subject line — máx 60 caracteres, sem spam words]
 \`\`\``;
 };
 
-const generateRevisionPrompt = (originalPrompt: string, currentHtml: string, comment: string): string => {
+const generateRevisionPrompt = (
+  originalPrompt: string,
+  currentHtml: string,
+  comment: string,
+): string => {
   const hasHtml = currentHtml.trim().length > 0;
   return `Você é uma especialista sênior em email marketing B2B. Preciso que revise o email abaixo incorporando as alterações solicitadas.
 
@@ -817,12 +838,16 @@ const generateRevisionPrompt = (originalPrompt: string, currentHtml: string, com
 ${originalPrompt}
 
 ---
-${hasHtml ? `## HTML atual
+${
+  hasHtml
+    ? `## HTML atual
 \`\`\`html
 ${currentHtml}
 \`\`\`
 
-` : ""}## Alterações solicitadas
+`
+    : ""
+}## Alterações solicitadas
 ${comment}
 
 ## Regras de revisão
@@ -852,11 +877,17 @@ const BREVO_PLAN_LIMITS: Record<string, number> = {
   Enterprise: 500_000,
 };
 
-const parseAIResponse = (text: string): { title?: string; subject?: string; html?: string } => {
+const parseAIResponse = (
+  text: string,
+): { title?: string; subject?: string; html?: string } => {
   const titleMatch = text.match(/^TITULO:\s*(.+)$/m);
   const subjectMatch = text.match(/^ASSUNTO:\s*(.+)$/m);
   const htmlMatch = text.match(/```html\s*([\s\S]*?)```/);
-  const strip = (s?: string) => s?.trim().replace(/^["'[]|["'\]]$/g, "").trim();
+  const strip = (s?: string) =>
+    s
+      ?.trim()
+      .replace(/^["'[]|["'\]]$/g, "")
+      .trim();
   return {
     title: strip(titleMatch?.[1]),
     subject: strip(subjectMatch?.[1]),
@@ -867,7 +898,8 @@ const parseAIResponse = (text: string): { title?: string; subject?: string; html
 // ─── Component ─────────────────────────────────────────────────────────────────
 
 export const MarketingPage: React.FC = () => {
-  const { sendMarketing, getCampaigns, getCampaignStats, getAccountStats } = useMarketingService();
+  const { sendMarketing, getCampaigns, getCampaignStats, getAccountStats } =
+    useMarketingService();
   // Marketing usa TODAS as feiras (inclusive encerradas) para remarketing
   const { data: fairs, isLoading: loadingFairs } = useFairs();
   const [, , headerFairId] = useSearchParams();
@@ -883,13 +915,17 @@ export const MarketingPage: React.FC = () => {
   const [selectedFairId, setSelectedFairId] = useState<string>(""); // remarketing target (optional)
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
   const [title, setTitle] = useState("");
-  const [subject, setSubject] = useState("Você está convidado — ExpoMultiMix te espera!");
+  const [subject, setSubject] = useState(
+    "Você está convidado — ExpoMultiMix te espera!",
+  );
   const [htmlContent, setHtmlContent] = useState("");
   const [activeTab, setActiveTab] = useState<"editor" | "preview">("editor");
 
   const [loading, setLoading] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [pendingAudience, setPendingAudience] = useState<"all" | "absent">("absent");
+  const [pendingAudience, setPendingAudience] = useState<"all" | "absent">(
+    "absent",
+  );
 
   const [showAIDialog, setShowAIDialog] = useState(false);
   const [aiStep, setAiStep] = useState<1 | 2>(1);
@@ -912,21 +948,32 @@ export const MarketingPage: React.FC = () => {
   }, [headerFair]);
 
   // Campaign history + account stats
-  const [campaigns, setCampaigns] = useState<import("@/service/marketing.service").Campaign[]>([]);
-  const [accountStats, setAccountStats] = useState<import("@/service/marketing.service").AccountStats | null>(null);
+  const [campaigns, setCampaigns] = useState<
+    import("@/service/marketing.service").Campaign[]
+  >([]);
+  const [accountStats, setAccountStats] = useState<
+    import("@/service/marketing.service").AccountStats | null
+  >(null);
   const [loadingCampaigns, setLoadingCampaigns] = useState(false);
-  const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
-  const [campaignStats, setCampaignStats] = useState<import("@/service/marketing.service").CampaignStats | null>(null);
+  const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(
+    null,
+  );
+  const [campaignStats, setCampaignStats] = useState<
+    import("@/service/marketing.service").CampaignStats | null
+  >(null);
   const [loadingStats, setLoadingStats] = useState(false);
 
   useEffect(() => {
     const load = async () => {
-      const [campaignData, statsData] = await Promise.all([getCampaigns(), getAccountStats()]);
+      const [campaignData, statsData] = await Promise.all([
+        getCampaigns(),
+        getAccountStats(),
+      ]);
       if (campaignData) setCampaigns(campaignData);
       if (statsData) setAccountStats(statsData);
     };
     load();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // selectedFair = remarketing target (optional); headerFair = template base (always from URL)
@@ -941,45 +988,67 @@ export const MarketingPage: React.FC = () => {
     setSelectedFairId(fairId);
   };
 
-  const uploadFiles = useCallback(async (files: File[]) => {
-    if (!files.length || !headerFairId) return;
-    setUploadingLogos(true);
-    try {
-      await uploadLogosMutation.mutateAsync({ fairId: headerFairId, files });
-    } finally {
-      setUploadingLogos(false);
-      if (logoInputRef.current) logoInputRef.current.value = "";
-    }
-  }, [headerFairId, uploadLogosMutation]);
+  const uploadFiles = useCallback(
+    async (files: File[]) => {
+      if (!files.length || !headerFairId) return;
+      setUploadingLogos(true);
+      try {
+        await uploadLogosMutation.mutateAsync({ fairId: headerFairId, files });
+      } finally {
+        setUploadingLogos(false);
+        if (logoInputRef.current) logoInputRef.current.value = "";
+      }
+    },
+    [headerFairId, uploadLogosMutation],
+  );
 
-  const handleLogoUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files ?? []);
-    uploadFiles(files);
-  }, [uploadFiles]);
+  const handleLogoUpload = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const files = Array.from(e.target.files ?? []);
+      uploadFiles(files);
+    },
+    [uploadFiles],
+  );
 
-  const handleLogoDelete = useCallback(async (imageId: string) => {
-    if (!headerFairId) return;
-    await deleteLogoMutation.mutateAsync({ imageId, fairId: headerFairId });
-  }, [headerFairId, deleteLogoMutation]);
+  const handleLogoDelete = useCallback(
+    async (imageId: string) => {
+      if (!headerFairId) return;
+      await deleteLogoMutation.mutateAsync({ imageId, fairId: headerFairId });
+    },
+    [headerFairId, deleteLogoMutation],
+  );
 
-  const handleLogoDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    if (!headerFairId) return;
-    const files = Array.from(e.dataTransfer.files).filter((f) => f.type.startsWith("image/"));
-    uploadFiles(files);
-  }, [headerFairId, uploadFiles]);
+  const handleLogoDrop = useCallback(
+    (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      if (!headerFairId) return;
+      const files = Array.from(e.dataTransfer.files).filter((f) =>
+        f.type.startsWith("image/"),
+      );
+      uploadFiles(files);
+    },
+    [headerFairId, uploadFiles],
+  );
 
   const handleSelectTemplate = (tpl: EmailTemplate) => {
     setSelectedTemplateId(tpl.id);
     setHtmlContent(tpl.generate(headerFair, logoUrls));
     setActiveTab("editor");
     setCard2Collapsed(true);
-    toast.success(`Template "${tpl.name}" aplicado com dados de "${headerFair?.name ?? "feira do cabeçalho"}"`);
+    toast.success(
+      `Template "${tpl.name}" aplicado com dados de "${headerFair?.name ?? "feira do cabeçalho"}"`,
+    );
   };
 
   const handleGeneratePrompt = () => {
-    if (!headerFair) { toast.error("Selecione uma feira no cabeçalho da página"); return; }
-    if (!aiDescription.trim()) { toast.error("Descreva o que você quer no email"); return; }
+    if (!headerFair) {
+      toast.error("Selecione uma feira no cabeçalho da página");
+      return;
+    }
+    if (!aiDescription.trim()) {
+      toast.error("Descreva o que você quer no email");
+      return;
+    }
     setGeneratedPrompt(generateAIPrompt(headerFair, aiDescription, logoUrls));
     setAiStep(2);
   };
@@ -991,31 +1060,60 @@ export const MarketingPage: React.FC = () => {
     setTimeout(() => setPromptCopied(false), 2500);
   };
 
-  const handleOpenAI = useCallback(async (url: string, name: string) => {
-    await navigator.clipboard.writeText(generatedPrompt);
-    window.open(url, "_blank", "noopener,noreferrer");
-    toast.success(`Prompt copiado — cole no ${name}`, { description: "Use Ctrl+V (ou Cmd+V) para colar." });
-  }, [generatedPrompt]);
+  const handleOpenAI = useCallback(
+    async (url: string, name: string) => {
+      await navigator.clipboard.writeText(generatedPrompt);
+      window.open(url, "_blank", "noopener,noreferrer");
+      toast.success(`Prompt copiado — cole no ${name}`, {
+        description: "Use Ctrl+V (ou Cmd+V) para colar.",
+      });
+    },
+    [generatedPrompt],
+  );
 
   const handleGenerateRevision = useCallback(() => {
-    if (!revisionComment.trim()) { toast.error("Descreva as alterações que você quer"); return; }
-    const originalContext = generatedPrompt || (headerFair ? generateAIPrompt(headerFair, "Usar como referência de contexto e identidade visual") : "");
-    setRevisionPrompt(generateRevisionPrompt(originalContext, htmlContent, revisionComment));
+    if (!revisionComment.trim()) {
+      toast.error("Descreva as alterações que você quer");
+      return;
+    }
+    const originalContext =
+      generatedPrompt ||
+      (headerFair
+        ? generateAIPrompt(
+            headerFair,
+            "Usar como referência de contexto e identidade visual",
+          )
+        : "");
+    setRevisionPrompt(
+      generateRevisionPrompt(originalContext, htmlContent, revisionComment),
+    );
     setRevisionComment("");
-    toast.success("Prompt de revisão gerado — clique em uma IA para copiar e abrir");
+    toast.success(
+      "Prompt de revisão gerado — clique em uma IA para copiar e abrir",
+    );
   }, [revisionComment, generatedPrompt, htmlContent, headerFair]);
 
-  const handleOpenRevisionAI = useCallback(async (url: string, name: string) => {
-    await navigator.clipboard.writeText(revisionPrompt);
-    window.open(url, "_blank", "noopener,noreferrer");
-    toast.success(`Prompt copiado — cole no ${name}`, { description: "Use Ctrl+V (ou Cmd+V) para colar." });
-  }, [revisionPrompt]);
+  const handleOpenRevisionAI = useCallback(
+    async (url: string, name: string) => {
+      await navigator.clipboard.writeText(revisionPrompt);
+      window.open(url, "_blank", "noopener,noreferrer");
+      toast.success(`Prompt copiado — cole no ${name}`, {
+        description: "Use Ctrl+V (ou Cmd+V) para colar.",
+      });
+    },
+    [revisionPrompt],
+  );
 
   const handleApplyAIResponse = useCallback(() => {
-    if (!aiResponseInput.trim()) { toast.error("Cole a resposta da IA antes de aplicar"); return; }
+    if (!aiResponseInput.trim()) {
+      toast.error("Cole a resposta da IA antes de aplicar");
+      return;
+    }
     const parsed = parseAIResponse(aiResponseInput);
     if (!parsed.html && !parsed.title && !parsed.subject) {
-      toast.error("Não foi possível extrair os dados — verifique se a IA retornou no formato TITULO / ASSUNTO / ```html```");
+      toast.error(
+        "Não foi possível extrair os dados — verifique se a IA retornou no formato TITULO / ASSUNTO / ```html```",
+      );
       return;
     }
     if (parsed.title) setTitle(parsed.title);
@@ -1026,13 +1124,26 @@ export const MarketingPage: React.FC = () => {
     setActiveTab("preview");
     setCard2Collapsed(true);
     toast.success("Resposta aplicada!", {
-      description: [parsed.title && "título", parsed.subject && "assunto", parsed.html && "HTML"].filter(Boolean).join(", ") + " preenchidos automaticamente.",
+      description:
+        [
+          parsed.title && "título",
+          parsed.subject && "assunto",
+          parsed.html && "HTML",
+        ]
+          .filter(Boolean)
+          .join(", ") + " preenchidos automaticamente.",
     });
   }, [aiResponseInput]);
 
   const openConfirmDialog = (audience: "all" | "absent") => {
-    if (!headerFair) { toast.error("Selecione uma feira no cabeçalho da página"); return; }
-    if (!subject.trim() || !htmlContent.trim()) { toast.error("Preencha o assunto e o conteúdo HTML"); return; }
+    if (!headerFair) {
+      toast.error("Selecione uma feira no cabeçalho da página");
+      return;
+    }
+    if (!subject.trim() || !htmlContent.trim()) {
+      toast.error("Preencha o assunto e o conteúdo HTML");
+      return;
+    }
     setPendingAudience(audience);
     setShowConfirmDialog(true);
   };
@@ -1040,39 +1151,47 @@ export const MarketingPage: React.FC = () => {
   const refreshCampaigns = useCallback(async () => {
     setLoadingCampaigns(true);
     try {
-      const [campaignData, statsData] = await Promise.all([getCampaigns(), getAccountStats()]);
+      const [campaignData, statsData] = await Promise.all([
+        getCampaigns(),
+        getAccountStats(),
+      ]);
       if (campaignData) setCampaigns(campaignData);
       if (statsData) setAccountStats(statsData);
     } finally {
       setLoadingCampaigns(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const loadCampaignStats = useCallback(async (campaignId: string) => {
-    if (selectedCampaignId === campaignId) {
-      setSelectedCampaignId(null);
+  const loadCampaignStats = useCallback(
+    async (campaignId: string) => {
+      if (selectedCampaignId === campaignId) {
+        setSelectedCampaignId(null);
+        setCampaignStats(null);
+        return;
+      }
+      setSelectedCampaignId(campaignId);
       setCampaignStats(null);
-      return;
-    }
-    setSelectedCampaignId(campaignId);
-    setCampaignStats(null);
-    setLoadingStats(true);
-    try {
-      const stats = await getCampaignStats(campaignId);
-      if (stats) setCampaignStats(stats);
-    } finally {
-      setLoadingStats(false);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedCampaignId]);
+      setLoadingStats(true);
+      try {
+        const stats = await getCampaignStats(campaignId);
+        if (stats) setCampaignStats(stats);
+      } finally {
+        setLoadingStats(false);
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    },
+    [selectedCampaignId],
+  );
 
   const handleSend = useCallback(async () => {
     if (!headerFair) return;
     setShowConfirmDialog(false);
     setLoading(true);
     try {
-      const campaignTitle = title.trim() || `Campanha ${headerFair.name} — ${new Date().toLocaleDateString("pt-BR")}`;
+      const campaignTitle =
+        title.trim() ||
+        `Campanha ${headerFair.name} — ${new Date().toLocaleDateString("pt-BR")}`;
       const res = await sendMarketing({
         title: campaignTitle,
         targetFairId: effectiveTargetId,
@@ -1082,10 +1201,17 @@ export const MarketingPage: React.FC = () => {
         htmlContent,
       });
       if (res?.success) {
-        const targetFairName = fairs?.find((f) => f.id === effectiveTargetId)?.name ?? effectiveTargetId;
+        const targetFairName =
+          fairs?.find((f) => f.id === effectiveTargetId)?.name ??
+          effectiveTargetId;
         toast.success(
           `${res.totalQueued} email(s) enfileirados — ${pendingAudience === "all" ? "todos os inscritos" : "ausentes"} de "${targetFairName}"`,
-          { duration: 6000, description: res.campaignId ? `ID: ${res.campaignId.slice(0, 8)}…` : `Status: ${res.status}` }
+          {
+            duration: 6000,
+            description: res.campaignId
+              ? `ID: ${res.campaignId.slice(0, 8)}…`
+              : `Status: ${res.status}`,
+          },
         );
         const updated = await getCampaigns();
         if (updated) setCampaigns(updated);
@@ -1100,14 +1226,22 @@ export const MarketingPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [headerFair, effectiveTargetId, pendingAudience, title, subject, htmlContent, sendMarketing, fairs]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    headerFair,
+    effectiveTargetId,
+    pendingAudience,
+    title,
+    subject,
+    htmlContent,
+    sendMarketing,
+    fairs,
+  ]);
 
   const confirmSend = () => handleSend();
 
   return (
-    <div className="space-y-6">
-
+    <div className="space-y-6 ">
       {/* ── Header ── */}
       <div className="space-y-2">
         <h1 className="text-3xl font-black text-white uppercase tracking-tighter flex items-center gap-3">
@@ -1116,7 +1250,8 @@ export const MarketingPage: React.FC = () => {
         </h1>
         <div className="h-1.5 w-24 bg-linear-to-r from-brand-pink to-brand-cyan rounded-full" />
         <p className="text-white/40 text-sm font-medium">
-          Selecione a feira, escolha um template e dispare para os visitantes certos.
+          Selecione a feira, escolha um template e dispare para os visitantes
+          certos.
         </p>
       </div>
 
@@ -1148,933 +1283,1304 @@ export const MarketingPage: React.FC = () => {
 
       {mainTab === "create" ? (
         <>
-      {/* ── Cards 1 & 2 container ── */}
-      {card1Collapsed && card2Collapsed ? (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Card 1 Minimized */}
-          <div className="glass-card border-white/5 shadow-2xl rounded-3xl p-5 flex items-center justify-between transition-all">
-            <div className="flex items-center gap-3">
-              <span className="bg-brand-pink text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black shrink-0">1</span>
-              <div>
-                <p className="text-white/30 text-[10px] font-black uppercase tracking-widest">Público-alvo</p>
-                <div className="flex items-center gap-2 mt-0.5">
-                  <p className="font-bold text-white text-sm truncate max-w-[150px] sm:max-w-[220px]">
-                    {selectedFair?.name || headerFair?.name || "Nenhuma feira"}
-                  </p>
-                  {selectedFairId && (
-                    <span className="text-[9px] font-black text-brand-orange uppercase tracking-widest bg-brand-orange/10 px-2 py-0.5 rounded-full shrink-0">
-                      Remarketing
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-            <button
-              onClick={() => setCard1Collapsed(false)}
-              className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer shrink-0"
-            >
-              <Edit className="h-3.5 w-3.5" />
-              Alterar
-            </button>
-          </div>
-
-          {/* Card 2 Minimized */}
-          <div className="glass-card border-white/5 shadow-2xl rounded-3xl p-5 flex items-center justify-between transition-all">
-            <div className="flex items-center gap-3">
-              <span className="bg-brand-pink text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black shrink-0">2</span>
-              <div>
-                <p className="text-white/30 text-[10px] font-black uppercase tracking-widest">Conteúdo do Email</p>
-                <p className="font-bold text-white text-sm mt-0.5">
-                  {selectedTemplateId
-                    ? `Template: ${EMAIL_TEMPLATES.find((t) => t.id === selectedTemplateId)?.name}`
-                    : htmlContent
-                    ? "Personalizado / IA"
-                    : "Nenhum selecionado"}
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={() => setCard2Collapsed(false)}
-              className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer shrink-0"
-            >
-              <Edit className="h-3.5 w-3.5" />
-              Alterar
-            </button>
-          </div>
-        </div>
-      ) : (
-        <div className="space-y-6">
-          {/* Card 1 (either minimized or expanded, full width) */}
-          {card1Collapsed ? (
-            <div className="glass-card border-white/5 shadow-2xl rounded-3xl p-5 flex items-center justify-between transition-all">
-              <div className="flex items-center gap-3">
-                <span className="bg-brand-pink text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black shrink-0">1</span>
-                <div>
-                  <p className="text-white/30 text-[10px] font-black uppercase tracking-widest">Público-alvo</p>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <p className="font-bold text-white text-sm truncate">
-                      {selectedFair?.name || headerFair?.name || "Nenhuma feira"}
+          {/* ── Cards 1 & 2 container ── */}
+          {card1Collapsed && card2Collapsed ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Card 1 Minimized */}
+              <div className="glass-card border-white/5 shadow-2xl rounded-3xl p-5 flex items-center justify-between transition-all">
+                <div className="flex items-center gap-3">
+                  <span className="bg-brand-pink text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black shrink-0">
+                    1
+                  </span>
+                  <div>
+                    <p className="text-white/30 text-[10px] font-black uppercase tracking-widest">
+                      Público-alvo
                     </p>
-                    {selectedFairId && (
-                      <span className="text-[9px] font-black text-brand-orange uppercase tracking-widest bg-brand-orange/10 px-2 py-0.5 rounded-full shrink-0">
-                        Remarketing
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <p className="font-bold text-white text-sm truncate max-w-[150px] sm:max-w-[220px]">
+                        {selectedFair?.name ||
+                          headerFair?.name ||
+                          "Nenhuma feira"}
+                      </p>
+                      {selectedFairId && (
+                        <span className="text-[9px] font-black text-brand-orange uppercase tracking-widest bg-brand-orange/10 px-2 py-0.5 rounded-full shrink-0">
+                          Remarketing
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setCard1Collapsed(false)}
+                  className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer shrink-0"
+                >
+                  <Edit className="h-3.5 w-3.5" />
+                  Alterar
+                </button>
+              </div>
+
+              {/* Card 2 Minimized */}
+              <div className="glass-card border-white/5 shadow-2xl rounded-3xl p-5 flex items-center justify-between transition-all">
+                <div className="flex items-center gap-3">
+                  <span className="bg-brand-pink text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black shrink-0">
+                    2
+                  </span>
+                  <div>
+                    <p className="text-white/30 text-[10px] font-black uppercase tracking-widest">
+                      Conteúdo do Email
+                    </p>
+                    <p className="font-bold text-white text-sm mt-0.5">
+                      {selectedTemplateId
+                        ? `Template: ${EMAIL_TEMPLATES.find((t) => t.id === selectedTemplateId)?.name}`
+                        : htmlContent
+                          ? "Personalizado / IA"
+                          : "Nenhum selecionado"}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setCard2Collapsed(false)}
+                  className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer shrink-0"
+                >
+                  <Edit className="h-3.5 w-3.5" />
+                  Alterar
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {/* Card 1 (either minimized or expanded, full width) */}
+              {card1Collapsed ? (
+                <div className="glass-card border-white/5 shadow-2xl rounded-3xl p-5 flex items-center justify-between transition-all">
+                  <div className="flex items-center gap-3">
+                    <span className="bg-brand-pink text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black shrink-0">
+                      1
+                    </span>
+                    <div>
+                      <p className="text-white/30 text-[10px] font-black uppercase tracking-widest">
+                        Público-alvo
+                      </p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <p className="font-bold text-white text-sm truncate">
+                          {selectedFair?.name ||
+                            headerFair?.name ||
+                            "Nenhuma feira"}
+                        </p>
+                        {selectedFairId && (
+                          <span className="text-[9px] font-black text-brand-orange uppercase tracking-widest bg-brand-orange/10 px-2 py-0.5 rounded-full shrink-0">
+                            Remarketing
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setCard1Collapsed(false)}
+                    className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer shrink-0"
+                  >
+                    <Edit className="h-3.5 w-3.5" />
+                    Alterar
+                  </button>
+                </div>
+              ) : (
+                <div className="glass-card border-white/5 shadow-2xl rounded-[32px] p-6 lg:p-8">
+                  <div className="flex items-center justify-between mb-5">
+                    <div className="flex items-center gap-3">
+                      <span className="bg-brand-pink text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black shrink-0">
+                        1
                       </span>
+                      <h2 className="text-sm font-black text-white uppercase tracking-widest">
+                        Público-alvo
+                      </h2>
+                      <span className="text-white/30 text-xs font-medium hidden sm:inline">
+                        — usa a feira do cabeçalho por padrão
+                      </span>
+                    </div>
+                    {(headerFair || selectedFairId) && (
+                      <button
+                        onClick={() => setCard1Collapsed(true)}
+                        className="text-xs text-brand-cyan hover:text-brand-cyan/80 transition-colors flex items-center gap-1 cursor-pointer"
+                      >
+                        Minimizar
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Header fair — template base, read-only */}
+                  {headerFair ? (
+                    <div className="glass border-brand-cyan/20 rounded-2xl p-4 mb-5">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-brand-cyan/20 text-brand-cyan rounded-xl p-2 shrink-0">
+                          <Mail className="h-4 w-4" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="font-black text-white text-sm truncate">
+                              {headerFair.name}
+                            </p>
+                            <span className="text-[9px] font-black text-brand-cyan uppercase tracking-widest bg-brand-cyan/10 px-2 py-0.5 rounded-full shrink-0">
+                              Cabeçalho
+                            </span>
+                          </div>
+                          {(locationParts || headerFair.location) && (
+                            <p className="text-white/50 text-xs flex items-center gap-1 mt-0.5">
+                              <MapPin className="h-3 w-3" />
+                              {locationParts ? `${locationParts} — ` : ""}
+                              {headerFair.location}
+                            </p>
+                          )}
+                          {(headerFair.startDate || headerFair.endDate) && (
+                            <p className="text-white/50 text-xs flex items-center gap-1 mt-0.5">
+                              <Calendar className="h-3 w-3" />
+                              {fmt(headerFair.startDate)}
+                              {headerFair.endDate &&
+                                headerFair.endDate !== headerFair.startDate &&
+                                ` a ${fmt(headerFair.endDate)}`}
+                              {headerFair.startTime &&
+                                ` · ${headerFair.startTime}`}
+                              {headerFair.endTime &&
+                                ` às ${headerFair.endTime}`}
+                            </p>
+                          )}
+                        </div>
+                        <Badge
+                          className={
+                            headerFair.isActive
+                              ? "bg-brand-cyan/20 text-brand-cyan border-brand-cyan/20 text-xs font-black shrink-0"
+                              : "bg-white/5 text-white/30 border-white/10 text-xs shrink-0"
+                          }
+                        >
+                          {headerFair.isActive ? "Ativa" : "Encerrada"}
+                        </Badge>
+                      </div>
+                      <p className="text-white/30 text-[10px] mt-3 pt-2 border-t border-white/5">
+                        Dados desta feira são injetados nos templates e no
+                        prompt de IA. Por padrão, os emails são enviados para os
+                        visitantes desta feira.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="glass border-white/5 rounded-2xl p-4 mb-5 flex items-center gap-3">
+                      <ChevronRight className="h-4 w-4 text-white/20" />
+                      <p className="text-white/30 text-sm">
+                        Selecione uma feira no cabeçalho da página para
+                        habilitar templates e envio.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Remarketing override — optional */}
+                  <div className="space-y-3">
+                    <p className="text-white/30 text-[10px] font-black uppercase tracking-widest">
+                      Remarketing — enviar para visitantes de outra feira{" "}
+                      <span className="text-white/20 normal-case font-medium">
+                        (opcional)
+                      </span>
+                    </p>
+                    <Select
+                      value={selectedFairId}
+                      onValueChange={handleFairChange}
+                      disabled={loadingFairs}
+                    >
+                      <SelectTrigger className="h-10 w-full max-w-sm bg-white/5 border-white/10 text-white hover:bg-white/10 transition-all rounded-xl cursor-pointer text-xs">
+                        <SelectValue
+                          placeholder={
+                            loadingFairs
+                              ? "Carregando..."
+                              : "Enviar para visitantes de outra feira..."
+                          }
+                        />
+                      </SelectTrigger>
+                      <SelectContent className="bg-brand-blue border-white/10 text-white rounded-2xl">
+                        {(fairs ?? []).map((fair) => (
+                          <SelectItem
+                            key={fair.id}
+                            value={fair.id}
+                            className="focus:bg-white/10 focus:text-white rounded-xl cursor-pointer text-xs"
+                          >
+                            <span className="flex items-center gap-2">
+                              {fair.name}
+                              {fair.isActive ? (
+                                <span className="text-[10px] font-black text-brand-cyan uppercase tracking-widest">
+                                  ● Ativa
+                                </span>
+                              ) : (
+                                <span className="text-[10px] font-black text-white/30 uppercase tracking-widest">
+                                  ○ Encerrada
+                                </span>
+                              )}
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {selectedFairId && (
+                      <div className="space-y-2">
+                        <div className="flex items-start gap-2 p-3 bg-brand-orange/10 border border-brand-orange/20 rounded-xl">
+                          <AlertTriangle className="h-3.5 w-3.5 text-brand-orange shrink-0 mt-0.5" />
+                          <p className="text-brand-orange text-xs">
+                            <strong>Remarketing:</strong> template usa dados de{" "}
+                            <strong>
+                              {headerFair?.name ?? "feira do cabeçalho"}
+                            </strong>
+                            , mas o envio vai para visitantes de{" "}
+                            <strong>{selectedFair?.name}</strong>.
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => setSelectedFairId("")}
+                          className="text-xs text-white/30 hover:text-white/60 transition-colors underline"
+                        >
+                          Limpar — usar a feira do cabeçalho
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>
-              </div>
-              <button
-                onClick={() => setCard1Collapsed(false)}
-                className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer shrink-0"
-              >
-                <Edit className="h-3.5 w-3.5" />
-                Alterar
-              </button>
+              )}
+
+              {/* Card 2 (either minimized or expanded, full width) */}
+              {card2Collapsed ? (
+                <div className="glass-card border-white/5 shadow-2xl rounded-3xl p-5 flex items-center justify-between transition-all">
+                  <div className="flex items-center gap-3">
+                    <span className="bg-brand-pink text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black shrink-0">
+                      2
+                    </span>
+                    <div>
+                      <p className="text-white/30 text-[10px] font-black uppercase tracking-widest">
+                        Conteúdo do Email
+                      </p>
+                      <p className="font-bold text-white text-sm mt-0.5">
+                        {selectedTemplateId
+                          ? `Template: ${EMAIL_TEMPLATES.find((t) => t.id === selectedTemplateId)?.name}`
+                          : htmlContent
+                            ? "Personalizado / IA"
+                            : "Nenhum selecionado"}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setCard2Collapsed(false)}
+                    className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer shrink-0"
+                  >
+                    <Edit className="h-3.5 w-3.5" />
+                    Alterar
+                  </button>
+                </div>
+              ) : (
+                <div className="glass-card border-white/5 shadow-2xl rounded-[32px] p-6 lg:p-8">
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-3">
+                      <span className="bg-brand-pink text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black shrink-0">
+                        2
+                      </span>
+                      <h2 className="text-sm font-black text-white uppercase tracking-widest">
+                        Conteúdo do Email
+                      </h2>
+                    </div>
+                    {(selectedTemplateId || htmlContent) && (
+                      <button
+                        onClick={() => setCard2Collapsed(true)}
+                        className="text-xs text-brand-cyan hover:text-brand-cyan/80 transition-colors flex items-center gap-1 cursor-pointer"
+                      >
+                        Minimizar
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-white/30 text-xs mb-5 ml-9">
+                    Gere com IA ou escolha um template como ponto de partida{" "}
+                    <span className="text-white/20">(opcional)</span>
+                  </p>
+
+                  {/* ── Gerar com IA — destaque principal ── */}
+                  <button
+                    onClick={() => setShowAIDialog(true)}
+                    className="w-full flex items-center gap-4 p-5 rounded-2xl border border-brand-cyan/30 bg-brand-cyan/8 hover:bg-brand-cyan/15 hover:border-brand-cyan/50 transition-all group mb-5 text-left"
+                  >
+                    <div className="bg-brand-cyan/20 rounded-2xl p-3 shrink-0 group-hover:bg-brand-cyan/30 transition-colors">
+                      <Sparkles className="h-6 w-6 text-brand-cyan" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-brand-cyan font-black uppercase tracking-widest text-sm">
+                        Gerar com IA
+                      </p>
+                      <p className="text-white/40 text-xs mt-0.5">
+                        Descreva o email em português — a IA gera título,
+                        assunto e HTML completo com design dark glassmorphism
+                      </p>
+                    </div>
+                    <ChevronRight className="h-5 w-5 text-brand-cyan/40 group-hover:text-brand-cyan/70 shrink-0 transition-colors" />
+                  </button>
+
+                  {/* ── Divider ── */}
+                  <div className="flex items-center gap-3 mb-5">
+                    <div className="flex-1 h-px bg-white/8" />
+                    <span className="text-white/20 text-[10px] font-black uppercase tracking-widest">
+                      ou use um template
+                    </span>
+                    <div className="flex-1 h-px bg-white/8" />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                    {EMAIL_TEMPLATES.map((tpl) => {
+                      const isSelected = selectedTemplateId === tpl.id;
+                      return (
+                        <button
+                          key={tpl.id}
+                          onClick={() => handleSelectTemplate(tpl)}
+                          disabled={!headerFair}
+                          className={`group relative flex flex-col items-start gap-2 p-4 rounded-2xl border text-left transition-all active:scale-[0.97] disabled:opacity-30 disabled:cursor-not-allowed ${
+                            isSelected
+                              ? "bg-brand-pink/15 border-brand-pink/40 shadow-lg shadow-brand-pink/10"
+                              : "bg-white/3 border-white/8 hover:bg-white/8 hover:border-white/15"
+                          }`}
+                        >
+                          {isSelected && (
+                            <span className="absolute top-2 right-2 bg-brand-pink text-white rounded-full w-4 h-4 flex items-center justify-center">
+                              <Check className="h-2.5 w-2.5" />
+                            </span>
+                          )}
+                          <span
+                            className={`p-2 rounded-xl transition-colors ${
+                              isSelected
+                                ? "bg-brand-pink/20 text-brand-pink"
+                                : "bg-white/8 text-white/50 group-hover:text-white/80"
+                            }`}
+                          >
+                            {tpl.icon}
+                          </span>
+                          <div>
+                            <p
+                              className={`text-xs font-black uppercase tracking-widest leading-tight ${isSelected ? "text-white" : "text-white/70"}`}
+                            >
+                              {tpl.name}
+                            </p>
+                            <p className="text-white/30 text-[11px] mt-1 leading-snug">
+                              {tpl.description}
+                            </p>
+                          </div>
+                          <span
+                            className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${
+                              isSelected
+                                ? "bg-brand-pink/20 text-brand-pink"
+                                : "bg-white/5 text-white/25"
+                            }`}
+                          >
+                            {tpl.strategy}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {!headerFair && (
+                    <p className="mt-3 text-white/20 text-xs text-center">
+                      Selecione uma feira no cabeçalho para habilitar os
+                      templates
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
-          ) : (
+          )}
+
+          {/* ── Logos dos Expositores ── */}
+          {headerFairId && (
             <div className="glass-card border-white/5 shadow-2xl rounded-[32px] p-6 lg:p-8">
               <div className="flex items-center justify-between mb-5">
                 <div className="flex items-center gap-3">
-                  <span className="bg-brand-pink text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black shrink-0">1</span>
-                  <h2 className="text-sm font-black text-white uppercase tracking-widest">Público-alvo</h2>
-                  <span className="text-white/30 text-xs font-medium hidden sm:inline">— usa a feira do cabeçalho por padrão</span>
-                </div>
-                {(headerFair || selectedFairId) && (
-                  <button
-                    onClick={() => setCard1Collapsed(true)}
-                    className="text-xs text-brand-cyan hover:text-brand-cyan/80 transition-colors flex items-center gap-1 cursor-pointer"
+                  <span className="bg-brand-pink text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black shrink-0">
+                    <ImageIcon className="h-3 w-3" />
+                  </span>
+                  <h2 className="text-sm font-black text-white uppercase tracking-widest">
+                    Logos dos Expositores
+                  </h2>
+                  <span
+                    className={`text-[9px] font-black px-2 py-0.5 rounded-full ${
+                      fairImages.length > 0
+                        ? "bg-green-500/20 text-green-400"
+                        : "bg-white/8 text-white/30"
+                    }`}
                   >
-                    Minimizar
-                  </button>
-                )}
+                    {fairImages.length} logo{fairImages.length !== 1 ? "s" : ""}
+                  </span>
+                </div>
+                <button
+                  onClick={() => logoInputRef.current?.click()}
+                  disabled={uploadingLogos || !headerFairId}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-cyan/10 hover:bg-brand-cyan/20 border border-brand-cyan/20 hover:border-brand-cyan/40 rounded-xl text-[10px] font-black uppercase tracking-widest text-brand-cyan transition-all disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
+                >
+                  {uploadingLogos ? (
+                    <>
+                      <LogoLoading size={12} minimal className="mr-1" />
+                      Enviando...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="h-3 w-3" />
+                      Adicionar logos
+                    </>
+                  )}
+                </button>
+                <input
+                  ref={logoInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={handleLogoUpload}
+                />
               </div>
 
-              {/* Header fair — template base, read-only */}
-              {headerFair ? (
-                <div className="glass border-brand-cyan/20 rounded-2xl p-4 mb-5">
-                  <div className="flex items-center gap-3">
-                    <div className="bg-brand-cyan/20 text-brand-cyan rounded-xl p-2 shrink-0">
-                      <Mail className="h-4 w-4" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <p className="font-black text-white text-sm truncate">{headerFair.name}</p>
-                        <span className="text-[9px] font-black text-brand-cyan uppercase tracking-widest bg-brand-cyan/10 px-2 py-0.5 rounded-full shrink-0">
-                          Cabeçalho
-                        </span>
+              {fairImages.length > 0 ? (
+                <div className="flex flex-wrap gap-3">
+                  {fairImages.map((img) => (
+                    <div key={img.id} className="relative group">
+                      <div className="w-24 h-16 bg-white/5 border border-white/10 rounded-xl overflow-hidden flex items-center justify-center p-1.5">
+                        <img
+                          src={img.url}
+                          alt={img.caption || "Logo expositor"}
+                          className="max-w-full max-h-full object-contain"
+                        />
                       </div>
-                      {(locationParts || headerFair.location) && (
-                        <p className="text-white/50 text-xs flex items-center gap-1 mt-0.5">
-                          <MapPin className="h-3 w-3" />
-                          {locationParts ? `${locationParts} — ` : ""}{headerFair.location}
-                        </p>
-                      )}
-                      {(headerFair.startDate || headerFair.endDate) && (
-                        <p className="text-white/50 text-xs flex items-center gap-1 mt-0.5">
-                          <Calendar className="h-3 w-3" />
-                          {fmt(headerFair.startDate)}
-                          {headerFair.endDate && headerFair.endDate !== headerFair.startDate && ` a ${fmt(headerFair.endDate)}`}
-                          {headerFair.startTime && ` · ${headerFair.startTime}`}
-                          {headerFair.endTime && ` às ${headerFair.endTime}`}
+                      <button
+                        onClick={() => handleLogoDelete(img.id)}
+                        disabled={deleteLogoMutation.isPending}
+                        className="absolute -top-1.5 -right-1.5 bg-red-500 hover:bg-red-600 rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50 cursor-pointer"
+                        title="Remover logo"
+                      >
+                        <Trash2 className="h-2.5 w-2.5 text-white" />
+                      </button>
+                      {img.caption && (
+                        <p className="text-white/30 text-[9px] text-center mt-1 truncate max-w-[96px]">
+                          {img.caption}
                         </p>
                       )}
                     </div>
-                    <Badge className={headerFair.isActive
-                      ? "bg-brand-cyan/20 text-brand-cyan border-brand-cyan/20 text-xs font-black shrink-0"
-                      : "bg-white/5 text-white/30 border-white/10 text-xs shrink-0"
-                    }>
-                      {headerFair.isActive ? "Ativa" : "Encerrada"}
-                    </Badge>
-                  </div>
-                  <p className="text-white/30 text-[10px] mt-3 pt-2 border-t border-white/5">
-                    Dados desta feira são injetados nos templates e no prompt de IA. Por padrão, os emails são enviados para os visitantes desta feira.
-                  </p>
+                  ))}
+
+                  {/* Add more button as last item */}
+                  <button
+                    onClick={() => logoInputRef.current?.click()}
+                    disabled={uploadingLogos}
+                    className="w-24 h-16 bg-white/3 border border-dashed border-white/15 hover:border-brand-cyan/30 hover:bg-brand-cyan/5 rounded-xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer disabled:opacity-40"
+                  >
+                    <Upload className="h-4 w-4 text-white/25" />
+                    <span className="text-white/25 text-[9px]">Adicionar</span>
+                  </button>
                 </div>
               ) : (
-                <div className="glass border-white/5 rounded-2xl p-4 mb-5 flex items-center gap-3">
-                  <ChevronRight className="h-4 w-4 text-white/20" />
-                  <p className="text-white/30 text-sm">Selecione uma feira no cabeçalho da página para habilitar templates e envio.</p>
+                <div
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={handleLogoDrop}
+                  onClick={() => logoInputRef.current?.click()}
+                  className="border-2 border-dashed border-white/10 hover:border-brand-cyan/30 hover:bg-brand-cyan/5 rounded-2xl p-8 text-center cursor-pointer transition-all"
+                >
+                  <Upload className="h-8 w-8 text-white/20 mx-auto mb-3" />
+                  <p className="text-white/40 text-sm font-bold">
+                    Arraste logos ou clique para selecionar
+                  </p>
+                  <p className="text-white/20 text-xs mt-1">
+                    PNG, JPG, SVG, WebP · Múltiplos arquivos
+                  </p>
+                  <p className="text-white/15 text-[10px] mt-3">
+                    Logos aparecem automaticamente nos templates e no prompt de
+                    IA
+                  </p>
                 </div>
               )}
+            </div>
+          )}
 
-              {/* Remarketing override — optional */}
-              <div className="space-y-3">
-                <p className="text-white/30 text-[10px] font-black uppercase tracking-widest">
-                  Remarketing — enviar para visitantes de outra feira <span className="text-white/20 normal-case font-medium">(opcional)</span>
-                </p>
-                <Select value={selectedFairId} onValueChange={handleFairChange} disabled={loadingFairs}>
-                  <SelectTrigger className="h-10 w-full max-w-sm bg-white/5 border-white/10 text-white hover:bg-white/10 transition-all rounded-xl cursor-pointer text-xs">
-                    <SelectValue placeholder={loadingFairs ? "Carregando..." : "Enviar para visitantes de outra feira..."} />
-                  </SelectTrigger>
-                  <SelectContent className="bg-brand-blue border-white/10 text-white rounded-2xl">
-                    {(fairs ?? []).map((fair) => (
-                      <SelectItem key={fair.id} value={fair.id} className="focus:bg-white/10 focus:text-white rounded-xl cursor-pointer text-xs">
-                        <span className="flex items-center gap-2">
-                          {fair.name}
-                          {fair.isActive
-                            ? <span className="text-[10px] font-black text-brand-cyan uppercase tracking-widest">● Ativa</span>
-                            : <span className="text-[10px] font-black text-white/30 uppercase tracking-widest">○ Encerrada</span>
-                          }
-                        </span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {selectedFairId && (
-                  <div className="space-y-2">
-                    <div className="flex items-start gap-2 p-3 bg-brand-orange/10 border border-brand-orange/20 rounded-xl">
-                      <AlertTriangle className="h-3.5 w-3.5 text-brand-orange shrink-0 mt-0.5" />
-                      <p className="text-brand-orange text-xs">
-                        <strong>Remarketing:</strong> template usa dados de <strong>{headerFair?.name ?? "feira do cabeçalho"}</strong>, mas o envio vai para visitantes de <strong>{selectedFair?.name}</strong>.
-                      </p>
+          {/* ── Step 3: Editor + preview ── */}
+          <div className="glass-card border-white/5 shadow-2xl rounded-[32px] p-6 lg:p-8">
+            <div className="flex items-center gap-3 mb-5">
+              <span className="bg-brand-pink text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black shrink-0">
+                3
+              </span>
+              <h2 className="text-sm font-black text-white uppercase tracking-widest">
+                Editar & Enviar
+              </h2>
+            </div>
+
+            {/* Tabs */}
+            <div className="flex flex-wrap items-center gap-2 mb-6">
+              <button
+                onClick={() => setActiveTab("editor")}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+                  activeTab === "editor"
+                    ? "bg-brand-pink text-white shadow-lg shadow-brand-pink/20"
+                    : "bg-white/5 text-white/50 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                <Code className="h-3.5 w-3.5" />
+                Editor HTML
+              </button>
+              <button
+                onClick={() => setActiveTab("preview")}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+                  activeTab === "preview"
+                    ? "bg-brand-cyan text-brand-blue shadow-lg shadow-brand-cyan/20"
+                    : "bg-white/5 text-white/50 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                <Eye className="h-3.5 w-3.5" />
+                Pré-visualização
+              </button>
+
+              <button
+                onClick={() => {
+                  setActiveTab("editor");
+                  setShowPasteArea(!showPasteArea);
+                }}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+                  showPasteArea && activeTab === "editor"
+                    ? "bg-brand-cyan/25 text-brand-cyan border border-brand-cyan/35 shadow-lg shadow-brand-cyan/10"
+                    : "bg-white/5 text-white/50 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                <Clipboard className="h-3.5 w-3.5" />
+                Colar resposta da IA
+              </button>
+            </div>
+
+            {activeTab === "editor" && (
+              <div className="space-y-5">
+                {/* ── Paste AI response ── */}
+                {showPasteArea && (
+                  <div className="rounded-2xl border border-brand-cyan/20 overflow-hidden bg-brand-cyan/5 p-4 space-y-3">
+                    <div className="flex items-center justify-between border-b border-brand-cyan/10 pb-2">
+                      <span className="flex items-center gap-2 text-brand-cyan text-xs font-black uppercase tracking-widest">
+                        <Clipboard className="h-3.5 w-3.5" />
+                        Colar resposta da IA
+                      </span>
+                      <button
+                        onClick={() => {
+                          setShowPasteArea(false);
+                          setAiResponseInput("");
+                        }}
+                        className="text-white/40 hover:text-white/70 transition-colors cursor-pointer"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
                     </div>
-                    <button
-                      onClick={() => setSelectedFairId("")}
-                      className="text-xs text-white/30 hover:text-white/60 transition-colors underline"
-                    >
-                      Limpar — usar a feira do cabeçalho
-                    </button>
+                    <p className="text-white/35 text-[10px] leading-relaxed">
+                      Cole aqui a resposta completa da IA — o sistema extrai
+                      automaticamente o{" "}
+                      <span className="text-white/60">título</span>, o{" "}
+                      <span className="text-white/60">assunto</span> e o{" "}
+                      <span className="text-white/60">HTML</span>.
+                    </p>
+                    <textarea
+                      value={aiResponseInput}
+                      onChange={(e) => setAiResponseInput(e.target.value)}
+                      rows={7}
+                      placeholder={
+                        "TITULO: Remarketing Feira — Maio 2026\nASSUNTO: Você perdeu a maior feira do Norte\n\n```html\n<!DOCTYPE html>...\n```"
+                      }
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-3 text-white/80 text-xs font-mono leading-relaxed placeholder:text-white/15 focus:outline-none focus:border-brand-cyan/40 focus:ring-2 focus:ring-brand-cyan/10 transition-all resize-none overflow-x-auto"
+                    />
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={handleApplyAIResponse}
+                        disabled={!aiResponseInput.trim()}
+                        className="flex-1 h-9 bg-brand-cyan text-brand-blue text-xs font-black uppercase tracking-widest rounded-xl hover:bg-brand-cyan/90 transition-all disabled:opacity-40 cursor-pointer"
+                      >
+                        <Check className="h-3.5 w-3.5 mr-1.5" />
+                        Aplicar
+                      </Button>
+                      <button
+                        onClick={() => {
+                          setShowPasteArea(false);
+                          setAiResponseInput("");
+                        }}
+                        className="px-4 text-xs text-white/30 hover:text-white/60 font-bold transition-colors cursor-pointer"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
                   </div>
                 )}
-              </div>
-            </div>
-          )}
 
-          {/* Card 2 (either minimized or expanded, full width) */}
-          {card2Collapsed ? (
-            <div className="glass-card border-white/5 shadow-2xl rounded-3xl p-5 flex items-center justify-between transition-all">
-              <div className="flex items-center gap-3">
-                <span className="bg-brand-pink text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black shrink-0">2</span>
-                <div>
-                  <p className="text-white/30 text-[10px] font-black uppercase tracking-widest">Conteúdo do Email</p>
-                  <p className="font-bold text-white text-sm mt-0.5">
-                    {selectedTemplateId
-                      ? `Template: ${EMAIL_TEMPLATES.find((t) => t.id === selectedTemplateId)?.name}`
-                      : htmlContent
-                      ? "Personalizado / IA"
-                      : "Nenhum selecionado"}
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => setCard2Collapsed(false)}
-                className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer shrink-0"
-              >
-                <Edit className="h-3.5 w-3.5" />
-                Alterar
-              </button>
-            </div>
-          ) : (
-            <div className="glass-card border-white/5 shadow-2xl rounded-[32px] p-6 lg:p-8">
-              <div className="flex items-center justify-between mb-1">
-                <div className="flex items-center gap-3">
-                  <span className="bg-brand-pink text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black shrink-0">2</span>
-                  <h2 className="text-sm font-black text-white uppercase tracking-widest">Conteúdo do Email</h2>
-                </div>
-                {(selectedTemplateId || htmlContent) && (
-                  <button
-                    onClick={() => setCard2Collapsed(true)}
-                    className="text-xs text-brand-cyan hover:text-brand-cyan/80 transition-colors flex items-center gap-1 cursor-pointer"
-                  >
-                    Minimizar
-                  </button>
-                )}
-              </div>
-              <p className="text-white/30 text-xs mb-5 ml-9">Gere com IA ou escolha um template como ponto de partida <span className="text-white/20">(opcional)</span></p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-2">
+                      Nome Interno da Campanha
+                    </p>
+                    <Input
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      placeholder={`Ex: Remarketing ${headerFair?.name ?? "Feira"} — ${new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}`}
+                      className="bg-white/5 border-white/10 text-white placeholder:text-white/20 focus-visible:ring-brand-cyan/30"
+                    />
+                    <p className="text-white/20 text-[10px] mt-1.5 font-medium">
+                      Aparece no histórico — não é enviado ao visitante.
+                    </p>
+                  </div>
 
-              {/* ── Gerar com IA — destaque principal ── */}
-              <button
-                onClick={() => setShowAIDialog(true)}
-                className="w-full flex items-center gap-4 p-5 rounded-2xl border border-brand-cyan/30 bg-brand-cyan/8 hover:bg-brand-cyan/15 hover:border-brand-cyan/50 transition-all group mb-5 text-left"
-              >
-                <div className="bg-brand-cyan/20 rounded-2xl p-3 shrink-0 group-hover:bg-brand-cyan/30 transition-colors">
-                  <Sparkles className="h-6 w-6 text-brand-cyan" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-brand-cyan font-black uppercase tracking-widest text-sm">Gerar com IA</p>
-                  <p className="text-white/40 text-xs mt-0.5">
-                    Descreva o email em português — a IA gera título, assunto e HTML completo com design dark glassmorphism
-                  </p>
-                </div>
-                <ChevronRight className="h-5 w-5 text-brand-cyan/40 group-hover:text-brand-cyan/70 shrink-0 transition-colors" />
-              </button>
-
-              {/* ── Divider ── */}
-              <div className="flex items-center gap-3 mb-5">
-                <div className="flex-1 h-px bg-white/8" />
-                <span className="text-white/20 text-[10px] font-black uppercase tracking-widest">ou use um template</span>
-                <div className="flex-1 h-px bg-white/8" />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-                {EMAIL_TEMPLATES.map((tpl) => {
-                  const isSelected = selectedTemplateId === tpl.id;
-                  return (
-                    <button
-                      key={tpl.id}
-                      onClick={() => handleSelectTemplate(tpl)}
-                      disabled={!headerFair}
-                      className={`group relative flex flex-col items-start gap-2 p-4 rounded-2xl border text-left transition-all active:scale-[0.97] disabled:opacity-30 disabled:cursor-not-allowed ${
-                        isSelected
-                          ? "bg-brand-pink/15 border-brand-pink/40 shadow-lg shadow-brand-pink/10"
-                          : "bg-white/3 border-white/8 hover:bg-white/8 hover:border-white/15"
-                      }`}
-                    >
-                      {isSelected && (
-                        <span className="absolute top-2 right-2 bg-brand-pink text-white rounded-full w-4 h-4 flex items-center justify-center">
-                          <Check className="h-2.5 w-2.5" />
-                        </span>
-                      )}
-                      <span className={`p-2 rounded-xl transition-colors ${
-                        isSelected ? "bg-brand-pink/20 text-brand-pink" : "bg-white/8 text-white/50 group-hover:text-white/80"
-                      }`}>
-                        {tpl.icon}
-                      </span>
-                      <div>
-                        <p className={`text-xs font-black uppercase tracking-widest leading-tight ${isSelected ? "text-white" : "text-white/70"}`}>
-                          {tpl.name}
-                        </p>
-                        <p className="text-white/30 text-[11px] mt-1 leading-snug">{tpl.description}</p>
-                      </div>
-                      <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${
-                        isSelected ? "bg-brand-pink/20 text-brand-pink" : "bg-white/5 text-white/25"
-                      }`}>
-                        {tpl.strategy}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {!headerFair && (
-                <p className="mt-3 text-white/20 text-xs text-center">Selecione uma feira no cabeçalho para habilitar os templates</p>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* ── Logos dos Expositores ── */}
-      {headerFairId && (
-        <div className="glass-card border-white/5 shadow-2xl rounded-[32px] p-6 lg:p-8">
-          <div className="flex items-center justify-between mb-5">
-            <div className="flex items-center gap-3">
-              <span className="bg-brand-pink text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black shrink-0">
-                <ImageIcon className="h-3 w-3" />
-              </span>
-              <h2 className="text-sm font-black text-white uppercase tracking-widest">Logos dos Expositores</h2>
-              <span className={`text-[9px] font-black px-2 py-0.5 rounded-full ${
-                fairImages.length > 0
-                  ? "bg-green-500/20 text-green-400"
-                  : "bg-white/8 text-white/30"
-              }`}>
-                {fairImages.length} logo{fairImages.length !== 1 ? "s" : ""}
-              </span>
-            </div>
-            <button
-              onClick={() => logoInputRef.current?.click()}
-              disabled={uploadingLogos || !headerFairId}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-cyan/10 hover:bg-brand-cyan/20 border border-brand-cyan/20 hover:border-brand-cyan/40 rounded-xl text-[10px] font-black uppercase tracking-widest text-brand-cyan transition-all disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
-            >
-              {uploadingLogos
-                ? <><LogoLoading size={12} minimal className="mr-1" />Enviando...</>
-                : <><Upload className="h-3 w-3" />Adicionar logos</>
-              }
-            </button>
-            <input
-              ref={logoInputRef}
-              type="file"
-              accept="image/*"
-              multiple
-              className="hidden"
-              onChange={handleLogoUpload}
-            />
-          </div>
-
-          {fairImages.length > 0 ? (
-            <div className="flex flex-wrap gap-3">
-              {fairImages.map((img) => (
-                <div key={img.id} className="relative group">
-                  <div className="w-24 h-16 bg-white/5 border border-white/10 rounded-xl overflow-hidden flex items-center justify-center p-1.5">
-                    <img
-                      src={img.url}
-                      alt={img.caption || "Logo expositor"}
-                      className="max-w-full max-h-full object-contain"
+                  <div>
+                    <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-2">
+                      Assunto do Email
+                    </p>
+                    <Input
+                      value={subject}
+                      onChange={(e) => setSubject(e.target.value)}
+                      placeholder="Ex: ExpoMultiMix te espera — venha hoje!"
+                      className="bg-white/5 border-white/10 text-white placeholder:text-white/20 focus-visible:ring-brand-pink/30"
                     />
                   </div>
-                  <button
-                    onClick={() => handleLogoDelete(img.id)}
-                    disabled={deleteLogoMutation.isPending}
-                    className="absolute -top-1.5 -right-1.5 bg-red-500 hover:bg-red-600 rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50 cursor-pointer"
-                    title="Remover logo"
-                  >
-                    <Trash2 className="h-2.5 w-2.5 text-white" />
-                  </button>
-                  {img.caption && (
-                    <p className="text-white/30 text-[9px] text-center mt-1 truncate max-w-[96px]">{img.caption}</p>
+                </div>
+
+                <div>
+                  <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-2">
+                    Conteúdo HTML
+                  </p>
+                  <textarea
+                    value={htmlContent}
+                    onChange={(e) => setHtmlContent(e.target.value)}
+                    rows={18}
+                    placeholder={
+                      selectedTemplateId
+                        ? ""
+                        : "Escolha um template acima ou cole seu HTML aqui..."
+                    }
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white/80 text-xs font-mono leading-relaxed placeholder:text-white/20 focus:outline-none focus:border-brand-pink/50 focus:ring-4 focus:ring-brand-pink/10 transition-all resize-none overflow-x-auto"
+                  />
+                </div>
+              </div>
+            )}
+
+            {activeTab === "preview" && (
+              <div className="space-y-3">
+                <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white/60">
+                  <span className="text-white/30 font-black uppercase tracking-widest text-xs mr-2">
+                    Assunto:
+                  </span>
+                  {subject || (
+                    <span className="italic text-white/20">sem assunto</span>
                   )}
                 </div>
-              ))}
+                {htmlContent ? (
+                  <>
+                    <div className="border border-white/10 rounded-2xl overflow-hidden">
+                      <iframe
+                        key={htmlContent.slice(0, 40)}
+                        srcDoc={htmlContent}
+                        title="Pré-visualização do Email"
+                        className="w-full"
+                        style={{ height: "640px", border: "none" }}
+                        sandbox="allow-same-origin"
+                      />
+                    </div>
+                    <p className="text-white/25 text-xs text-center">
+                      Visualização isolada — representa fielmente como o email
+                      aparecerá nos clientes de email.
+                    </p>
 
-              {/* Add more button as last item */}
-              <button
-                onClick={() => logoInputRef.current?.click()}
-                disabled={uploadingLogos}
-                className="w-24 h-16 bg-white/3 border border-dashed border-white/15 hover:border-brand-cyan/30 hover:bg-brand-cyan/5 rounded-xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer disabled:opacity-40"
+                    {/* ── Revision request ── */}
+                    <div className="mt-2 pt-5 border-t border-white/5 space-y-3">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="h-4 w-4 text-brand-cyan/60" />
+                        <span className="text-white/50 font-black text-[10px] uppercase tracking-widest">
+                          Solicitar alterações com IA
+                        </span>
+                      </div>
+                      <textarea
+                        value={revisionComment}
+                        onChange={(e) => setRevisionComment(e.target.value)}
+                        placeholder='Ex: "Mude o botão CTA para laranja, aumente o título, remova a seção de depoimentos..."'
+                        rows={3}
+                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white text-sm placeholder:text-white/20 focus:outline-none focus:border-brand-cyan/50 focus:ring-4 focus:ring-brand-cyan/10 transition-all resize-none"
+                      />
+                      <Button
+                        onClick={handleGenerateRevision}
+                        disabled={!revisionComment.trim()}
+                        className="w-full h-10 bg-brand-cyan/10 border border-brand-cyan/20 text-brand-cyan font-black uppercase tracking-widest rounded-2xl hover:bg-brand-cyan/20 transition-all disabled:opacity-40 cursor-pointer"
+                      >
+                        <Sparkles className="h-4 w-4 mr-2" />
+                        Gerar Prompt de Revisão
+                      </Button>
+
+                      {revisionPrompt && (
+                        <div className="space-y-3 pt-1">
+                          <div className="flex items-center justify-between">
+                            <p className="text-white/40 text-[10px] font-black uppercase tracking-widest">
+                              Abrir no assistente de IA:
+                            </p>
+                            <button
+                              onClick={async () => {
+                                await navigator.clipboard.writeText(
+                                  revisionPrompt,
+                                );
+                                toast.success("Prompt de revisão copiado!");
+                              }}
+                              className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-white/30 hover:text-white/60 transition-colors"
+                            >
+                              <Copy className="h-3 w-3" />
+                              Copiar prompt
+                            </button>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {AI_SERVICES.map((ai) => (
+                              <button
+                                key={ai.name}
+                                onClick={() =>
+                                  handleOpenRevisionAI(ai.url, ai.name)
+                                }
+                                className="flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-black transition-all hover:scale-[1.03] active:scale-[0.97]"
+                                style={{
+                                  color: ai.color,
+                                  borderColor: `${ai.color}40`,
+                                  backgroundColor: `${ai.color}12`,
+                                }}
+                                onMouseEnter={(e) => {
+                                  (
+                                    e.currentTarget as HTMLButtonElement
+                                  ).style.backgroundColor = `${ai.color}22`;
+                                  (
+                                    e.currentTarget as HTMLButtonElement
+                                  ).style.borderColor = `${ai.color}80`;
+                                }}
+                                onMouseLeave={(e) => {
+                                  (
+                                    e.currentTarget as HTMLButtonElement
+                                  ).style.backgroundColor = `${ai.color}12`;
+                                  (
+                                    e.currentTarget as HTMLButtonElement
+                                  ).style.borderColor = `${ai.color}40`;
+                                }}
+                              >
+                                {ai.icon}
+                                {ai.name}
+                                <ExternalLink className="h-3 w-3 opacity-50" />
+                              </button>
+                            ))}
+                          </div>
+                          <p className="text-white/20 text-[10px]">
+                            Clicar copia o prompt de revisão — cole com{" "}
+                            <kbd className="bg-white/10 px-1.5 py-0.5 rounded text-white/40 font-mono">
+                              Ctrl+V
+                            </kbd>{" "}
+                            na IA. Depois cole o HTML revisado no editor.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <div className="h-64 flex items-center justify-center border border-white/5 rounded-2xl">
+                    <p className="text-white/25 text-sm">
+                      Selecione um template para visualizar
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ── Send buttons — always visible ── */}
+            <div className="flex flex-col sm:flex-row gap-3 mt-6 pt-6 border-t border-white/5">
+              <Button
+                type="button"
+                disabled={loading || !headerFair}
+                onClick={() => openConfirmDialog("absent")}
+                className="flex-1 h-12 bg-white/10 border border-white/20 rounded-2xl text-white font-black uppercase tracking-widest hover:bg-white/20 transition-all active:scale-[0.98] cursor-pointer disabled:opacity-40"
               >
-                <Upload className="h-4 w-4 text-white/25" />
-                <span className="text-white/25 text-[9px]">Adicionar</span>
-              </button>
+                <Users className="h-4 w-4 mr-2" />
+                Enviar para Ausentes
+              </Button>
+              <Button
+                type="button"
+                disabled={loading || !headerFair}
+                onClick={() => openConfirmDialog("all")}
+                className="flex-1 h-12 bg-brand-pink rounded-2xl text-white font-black uppercase tracking-widest hover:bg-brand-pink/90 transition-all shadow-xl shadow-brand-pink/20 active:scale-[0.98] cursor-pointer disabled:opacity-40"
+              >
+                {loading ? (
+                  <LogoLoading size={16} minimal className="mr-2" />
+                ) : (
+                  <Send className="h-4 w-4 mr-2" />
+                )}
+                {loading ? "Enviando..." : "Enviar para Todos os Inscritos"}
+              </Button>
             </div>
-          ) : (
-            <div
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={handleLogoDrop}
-              onClick={() => logoInputRef.current?.click()}
-              className="border-2 border-dashed border-white/10 hover:border-brand-cyan/30 hover:bg-brand-cyan/5 rounded-2xl p-8 text-center cursor-pointer transition-all"
+          </div>
+        </>
+      ) : (
+        /* ── Campaign History ── */
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-black text-white uppercase tracking-tighter flex items-center gap-3">
+              <BarChart3 className="h-5 w-5 text-brand-cyan" />
+              Histórico de Campanhas
+            </h2>
+            <button
+              onClick={refreshCampaigns}
+              disabled={loadingCampaigns}
+              className="flex items-center gap-2 px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-black uppercase tracking-widest text-white/50 hover:text-white transition-all disabled:opacity-50"
             >
-              <Upload className="h-8 w-8 text-white/20 mx-auto mb-3" />
-              <p className="text-white/40 text-sm font-bold">Arraste logos ou clique para selecionar</p>
-              <p className="text-white/20 text-xs mt-1">PNG, JPG, SVG, WebP · Múltiplos arquivos</p>
-              <p className="text-white/15 text-[10px] mt-3">
-                Logos aparecem automaticamente nos templates e no prompt de IA
+              <RefreshCcw
+                className={`h-3.5 w-3.5 ${loadingCampaigns ? "animate-spin" : ""}`}
+              />
+              Atualizar
+            </button>
+          </div>
+
+          {/* Account stats bar */}
+          {accountStats && (
+            <div className="glass-card rounded-2xl p-4 space-y-3">
+              {/* Plan + quick metrics row */}
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                  <span className="text-white/40 text-xs font-black uppercase tracking-widest">
+                    Brevo {accountStats.plan.name}
+                  </span>
+                  <span className="text-white/20 text-[9px]">
+                    · ciclo até{" "}
+                    {new Date(accountStats.plan.periodEnd).toLocaleDateString(
+                      "pt-BR",
+                      { day: "2-digit", month: "short" },
+                    )}
+                  </span>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="text-center">
+                    <p
+                      className={`text-base font-black leading-none ${accountStats.last30Days.deliveryRate >= 95 ? "text-green-400" : accountStats.last30Days.deliveryRate >= 85 ? "text-yellow-400" : "text-red-400"}`}
+                    >
+                      {accountStats.last30Days.deliveryRate.toFixed(1)}%
+                    </p>
+                    <p className="text-white/30 text-[8px] uppercase tracking-widest mt-0.5">
+                      Entrega/30d
+                    </p>
+                  </div>
+                  <div className="text-center">
+                    <p
+                      className={`text-base font-black leading-none ${accountStats.last30Days.openRate >= 30 ? "text-green-400" : accountStats.last30Days.openRate >= 15 ? "text-yellow-400" : "text-red-400"}`}
+                    >
+                      {accountStats.last30Days.openRate.toFixed(1)}%
+                    </p>
+                    <p className="text-white/30 text-[8px] uppercase tracking-widest mt-0.5">
+                      Abertura/30d
+                    </p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-base font-black leading-none text-white/60">
+                      {accountStats.last30Days.sent.toLocaleString("pt-BR")}
+                    </p>
+                    <p className="text-white/30 text-[8px] uppercase tracking-widest mt-0.5">
+                      Enviados/30d
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Credits bar */}
+              {(() => {
+                const planTotal =
+                  BREVO_PLAN_LIMITS[accountStats.plan.name] ??
+                  accountStats.credits.total;
+                const used = planTotal - accountStats.credits.remaining;
+                const usedPct =
+                  planTotal > 0 ? Math.round((used / planTotal) * 100) : 0;
+                const remainPct = 100 - usedPct;
+                return (
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-white/30 text-[9px] font-black uppercase tracking-widest">
+                        Créditos de email
+                      </span>
+                      <span className="text-white/50 text-[10px] font-bold">
+                        <span className="text-brand-cyan">
+                          {accountStats.credits.remaining.toLocaleString(
+                            "pt-BR",
+                          )}
+                        </span>
+                        <span className="text-white/30"> disponíveis de </span>
+                        <span className="text-white/60">
+                          {planTotal.toLocaleString("pt-BR")}
+                        </span>
+                      </span>
+                    </div>
+                    <div className="h-2 bg-white/5 rounded-full overflow-hidden flex">
+                      {used > 0 && (
+                        <div
+                          className="h-full bg-brand-pink/50 transition-all duration-1000"
+                          style={{ width: `${usedPct}%` }}
+                        />
+                      )}
+                      <div
+                        className="h-full bg-brand-cyan/70 transition-all duration-1000 rounded-r-full"
+                        style={{ width: `${remainPct}%` }}
+                      />
+                    </div>
+                    <div className="flex justify-between mt-1">
+                      <span className="text-white/20 text-[8px]">
+                        {used.toLocaleString("pt-BR")} utilizados ({usedPct}%)
+                      </span>
+                      <span className="text-brand-cyan/50 text-[8px] font-bold">
+                        {remainPct}% disponível
+                      </span>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Suppressed contacts + sending insights */}
+              {(accountStats.suppressedContacts ||
+                accountStats.sendingInsights) && (
+                <div className="flex flex-wrap gap-3 pt-1 border-t border-white/5">
+                  {accountStats.suppressedContacts && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-[9px] font-black uppercase tracking-widest text-white/30">
+                        Bloqueados
+                      </span>
+                      <span className="text-xs font-black text-brand-orange">
+                        {accountStats.suppressedContacts.total.toLocaleString(
+                          "pt-BR",
+                        )}
+                      </span>
+                      <span className="text-[9px] text-white/20">
+                        (bounce, spam, descad.)
+                      </span>
+                    </div>
+                  )}
+                  {accountStats.sendingInsights &&
+                    accountStats.sendingInsights.bestDaysToSend.length > 0 && (
+                      <div className="flex items-center gap-2 ml-auto">
+                        <span className="text-[9px] font-black uppercase tracking-widest text-white/30">
+                          Melhores dias
+                        </span>
+                        <div className="flex items-center gap-1">
+                          {accountStats.sendingInsights.bestDaysToSend
+                            .slice(0, 3)
+                            .map((day, i) => (
+                              <span
+                                key={day}
+                                className={`text-[9px] font-black px-1.5 py-0.5 rounded-md ${i === 0 ? "bg-brand-cyan/20 text-brand-cyan" : "bg-white/5 text-white/40"}`}
+                              >
+                                {day}
+                              </span>
+                            ))}
+                        </div>
+                      </div>
+                    )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Campaign list */}
+          {campaigns.length === 0 ? (
+            <div className="glass-card rounded-2xl p-10 text-center">
+              <Inbox className="h-8 w-8 text-white/10 mx-auto mb-3" />
+              <p className="text-white/25 text-sm">
+                Nenhuma campanha enviada ainda
               </p>
             </div>
+          ) : (
+            <div className="space-y-2">
+              {campaigns.map((campaign) => {
+                const isSelected = selectedCampaignId === campaign.id;
+                const targetFair = fairs?.find(
+                  (f) => f.id === campaign.targetFairId,
+                );
+                const sentDate = new Date(campaign.sentAt).toLocaleDateString(
+                  "pt-BR",
+                  { day: "2-digit", month: "2-digit", year: "numeric" },
+                );
+
+                return (
+                  <div
+                    key={campaign.id}
+                    className={`glass-card rounded-2xl overflow-hidden border transition-all ${isSelected ? "border-brand-cyan/30" : "border-white/5"}`}
+                  >
+                    <button
+                      onClick={() => loadCampaignStats(campaign.id)}
+                      className="w-full flex items-center gap-4 p-4 text-left hover:bg-white/5 transition-all group"
+                    >
+                      <div
+                        className={`w-1 self-stretch rounded-full shrink-0 transition-colors ${isSelected ? "bg-brand-cyan" : "bg-white/10 group-hover:bg-white/20"}`}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-black text-white truncate">
+                          {campaign.title}
+                        </p>
+                        <p className="text-xs text-white/40 truncate mt-0.5">
+                          {campaign.subject}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-3 shrink-0">
+                        <Badge
+                          className={`text-[9px] font-black uppercase tracking-widest border-0 ${campaign.sendTo === "all" ? "bg-brand-cyan/10 text-brand-cyan" : "bg-brand-pink/10 text-brand-pink"}`}
+                        >
+                          {campaign.sendTo === "all" ? "Todos" : "Ausentes"}
+                        </Badge>
+                        <div className="text-right hidden sm:block">
+                          <p className="text-xs text-white/60 font-bold">
+                            {(
+                              campaign.totalRecipients ?? campaign.totalQueued
+                            ).toLocaleString("pt-BR")}{" "}
+                            emails
+                          </p>
+                          <p className="text-[9px] text-white/30">
+                            {campaign.suppressedByBrevo != null &&
+                            campaign.suppressedByBrevo > 0
+                              ? `${campaign.suppressedByBrevo} bloqueados · ${targetFair?.name ?? sentDate}`
+                              : (targetFair?.name ?? sentDate)}
+                          </p>
+                        </div>
+                        <ChevronRight
+                          className={`h-4 w-4 text-white/30 transition-transform ${isSelected ? "rotate-90" : ""}`}
+                        />
+                      </div>
+                    </button>
+
+                    {isSelected && (
+                      <div className="border-t border-white/5 p-4">
+                        {loadingStats ? (
+                          <div className="flex items-center justify-center py-6 gap-2">
+                            <LogoLoading
+                              size={18}
+                              minimal
+                              className="animate-pulse"
+                            />
+                            <span className="text-white/40 text-xs">
+                              Carregando estatísticas...
+                            </span>
+                          </div>
+                        ) : campaignStats ? (
+                          <>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                              {/* Entrega */}
+                              <div className="bg-white/5 rounded-xl p-3 text-center relative group/card">
+                                <div className="absolute top-2 right-2 opacity-0 group-hover/card:opacity-100 transition-opacity">
+                                  <div className="relative group/tip">
+                                    <Info className="h-3 w-3 text-white/30 hover:text-white/60 cursor-help transition-colors" />
+                                    <div className="absolute bottom-full right-0 mb-2 w-56 p-3 bg-[#0A1628] border border-white/15 rounded-xl text-left text-[10px] text-white/60 leading-relaxed opacity-0 group-hover/tip:opacity-100 transition-opacity pointer-events-none z-50 shadow-2xl">
+                                      <p className="font-black text-white/80 mb-1">
+                                        Taxa de Entrega
+                                      </p>
+                                      <p>
+                                        % dos emails que chegaram na caixa de
+                                        entrada.{" "}
+                                        <span className="text-brand-cyan">
+                                          Ex: 96% = 960 de 1.000 entregues.
+                                        </span>
+                                      </p>
+                                      <p className="mt-1 text-white/40">
+                                        ≥95% ótimo · 85–95% ok · &lt;85%
+                                        investigar lista
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                                <p
+                                  className={`text-xl font-black ${campaignStats.delivery.deliveryRate >= 95 ? "text-green-400" : campaignStats.delivery.deliveryRate >= 85 ? "text-yellow-400" : "text-red-400"}`}
+                                >
+                                  {campaignStats.delivery.deliveryRate.toFixed(
+                                    1,
+                                  )}
+                                  %
+                                </p>
+                                <p className="text-white/30 text-[9px] uppercase tracking-widest mt-0.5">
+                                  Taxa de Entrega
+                                </p>
+                                <p className="text-white/40 text-xs mt-1">
+                                  {campaignStats.delivery.delivered}/
+                                  {campaignStats.delivery.queued}
+                                </p>
+                              </div>
+
+                              {/* Abertura */}
+                              <div className="bg-white/5 rounded-xl p-3 text-center relative group/card">
+                                <div className="absolute top-2 right-2 opacity-0 group-hover/card:opacity-100 transition-opacity">
+                                  <div className="relative group/tip">
+                                    <Info className="h-3 w-3 text-white/30 hover:text-white/60 cursor-help transition-colors" />
+                                    <div className="absolute bottom-full right-0 mb-2 w-56 p-3 bg-[#0A1628] border border-white/15 rounded-xl text-left text-[10px] text-white/60 leading-relaxed opacity-0 group-hover/tip:opacity-100 transition-opacity pointer-events-none z-50 shadow-2xl">
+                                      <p className="font-black text-white/80 mb-1">
+                                        Open Rate
+                                      </p>
+                                      <p>
+                                        % de destinatários únicos que abriram o
+                                        email.{" "}
+                                        <span className="text-brand-cyan">
+                                          Ex: 30% = 300 pessoas de 1.000
+                                          entregues abriram.
+                                        </span>
+                                      </p>
+                                      <p className="mt-1 text-white/40">
+                                        ≥30% excelente · 15–30% bom · &lt;15%
+                                        revisar subject
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                                <TrendingUp
+                                  className={`h-4 w-4 mx-auto mb-1 ${campaignStats.engagement.openRate >= 30 ? "text-green-400" : campaignStats.engagement.openRate >= 15 ? "text-yellow-400" : "text-red-400"}`}
+                                />
+                                <p
+                                  className={`text-xl font-black ${campaignStats.engagement.openRate >= 30 ? "text-green-400" : campaignStats.engagement.openRate >= 15 ? "text-yellow-400" : "text-red-400"}`}
+                                >
+                                  {campaignStats.engagement.openRate.toFixed(1)}
+                                  %
+                                </p>
+                                <p className="text-white/30 text-[9px] uppercase tracking-widest mt-0.5">
+                                  Abertura
+                                </p>
+                                <p className="text-white/40 text-xs mt-1">
+                                  {campaignStats.engagement.uniqueOpens} únicos
+                                </p>
+                              </div>
+
+                              {/* Cliques */}
+                              <div className="bg-white/5 rounded-xl p-3 text-center relative group/card">
+                                <div className="absolute top-2 right-2 opacity-0 group-hover/card:opacity-100 transition-opacity">
+                                  <div className="relative group/tip">
+                                    <Info className="h-3 w-3 text-white/30 hover:text-white/60 cursor-help transition-colors" />
+                                    <div className="absolute bottom-full right-0 mb-2 w-56 p-3 bg-[#0A1628] border border-white/15 rounded-xl text-left text-[10px] text-white/60 leading-relaxed opacity-0 group-hover/tip:opacity-100 transition-opacity pointer-events-none z-50 shadow-2xl">
+                                      <p className="font-black text-white/80 mb-1">
+                                        Click Rate
+                                      </p>
+                                      <p>
+                                        % de destinatários que clicaram em algum
+                                        link.{" "}
+                                        <span className="text-brand-cyan">
+                                          Ex: 5% = 50 pessoas de 1.000 entregues
+                                          clicaram no CTA.
+                                        </span>
+                                      </p>
+                                      <p className="mt-1 text-white/40">
+                                        ≥5% excelente · 2–5% bom · &lt;2%
+                                        revisar CTA
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                                <MousePointerClick
+                                  className={`h-4 w-4 mx-auto mb-1 ${campaignStats.engagement.clickRate >= 5 ? "text-green-400" : campaignStats.engagement.clickRate >= 2 ? "text-yellow-400" : "text-red-400"}`}
+                                />
+                                <p
+                                  className={`text-xl font-black ${campaignStats.engagement.clickRate >= 5 ? "text-green-400" : campaignStats.engagement.clickRate >= 2 ? "text-yellow-400" : "text-red-400"}`}
+                                >
+                                  {campaignStats.engagement.clickRate.toFixed(
+                                    1,
+                                  )}
+                                  %
+                                </p>
+                                <p className="text-white/30 text-[9px] uppercase tracking-widest mt-0.5">
+                                  Cliques
+                                </p>
+                                <p className="text-white/40 text-xs mt-1">
+                                  {campaignStats.engagement.uniqueClicks} únicos
+                                </p>
+                              </div>
+
+                              {/* Bounces + Spam */}
+                              <div className="bg-white/5 rounded-xl p-3 text-center relative group/card">
+                                <div className="absolute top-2 right-2 opacity-0 group-hover/card:opacity-100 transition-opacity">
+                                  <div className="relative group/tip">
+                                    <Info className="h-3 w-3 text-white/30 hover:text-white/60 cursor-help transition-colors" />
+                                    <div className="absolute bottom-full right-0 mb-2 w-60 p-3 bg-[#0A1628] border border-white/15 rounded-xl text-left text-[10px] text-white/60 leading-relaxed opacity-0 group-hover/tip:opacity-100 transition-opacity pointer-events-none z-50 shadow-2xl">
+                                      <p className="font-black text-white/80 mb-1">
+                                        Bounces + Spam
+                                      </p>
+                                      <p>
+                                        <span className="text-brand-orange">
+                                          Hard bounce:
+                                        </span>{" "}
+                                        endereço inválido permanentemente (ex:
+                                        email digitado errado).
+                                      </p>
+                                      <p className="mt-1">
+                                        <span className="text-brand-orange">
+                                          Spam:
+                                        </span>{" "}
+                                        destinatário marcou como indesejado —
+                                        prejudica a reputação do remetente.
+                                      </p>
+                                      <p className="mt-1 text-white/40">
+                                        Ideal: zero. Acima de 2% pode bloquear
+                                        envios futuros.
+                                      </p>
+                                      <p className="mt-1 text-white/30">
+                                        Descadastr.:{" "}
+                                        {campaignStats.engagement.unsubscribed}{" "}
+                                        pessoa(s) cancelaram
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                                <p
+                                  className={`text-xl font-black ${campaignStats.delivery.hardBounces + campaignStats.delivery.spam === 0 ? "text-green-400" : "text-red-400"}`}
+                                >
+                                  {campaignStats.delivery.hardBounces +
+                                    campaignStats.delivery.spam}
+                                </p>
+                                <p className="text-white/30 text-[9px] uppercase tracking-widest mt-0.5">
+                                  Bounces + Spam
+                                </p>
+                                <p className="text-white/40 text-xs mt-1">
+                                  {campaignStats.engagement.unsubscribed}{" "}
+                                  descad.
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Suppressed breakdown */}
+                            {campaignStats.campaign.suppressedByBrevo != null &&
+                              campaignStats.campaign.suppressedByBrevo > 0 && (
+                                <div className="mt-3 flex items-center gap-2 px-1">
+                                  <span className="text-[9px] font-black uppercase tracking-widest text-white/25">
+                                    Total da lista
+                                  </span>
+                                  <span className="text-xs font-black text-white/50">
+                                    {(
+                                      campaignStats.campaign.totalRecipients ??
+                                      campaignStats.campaign.totalQueued
+                                    ).toLocaleString("pt-BR")}
+                                  </span>
+                                  <span className="text-white/20 text-[9px]">
+                                    ·
+                                  </span>
+                                  <span className="text-[9px] text-white/25">
+                                    {campaignStats.campaign.totalQueued.toLocaleString(
+                                      "pt-BR",
+                                    )}{" "}
+                                    enfileirados
+                                  </span>
+                                  <span className="text-white/20 text-[9px]">
+                                    ·
+                                  </span>
+                                  <span className="text-[9px] text-brand-orange/70">
+                                    {campaignStats.campaign.suppressedByBrevo}{" "}
+                                    bloqueados pela Brevo
+                                  </span>
+                                </div>
+                              )}
+                          </>
+                        ) : null}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           )}
         </div>
       )}
-
-      {/* ── Step 3: Editor + preview ── */}
-      <div className="glass-card border-white/5 shadow-2xl rounded-[32px] p-6 lg:p-8">
-        <div className="flex items-center gap-3 mb-5">
-          <span className="bg-brand-pink text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black shrink-0">3</span>
-          <h2 className="text-sm font-black text-white uppercase tracking-widest">Editar & Enviar</h2>
-        </div>
-
-        {/* Tabs */}
-        <div className="flex flex-wrap items-center gap-2 mb-6">
-          <button
-            onClick={() => setActiveTab("editor")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-              activeTab === "editor"
-                ? "bg-brand-pink text-white shadow-lg shadow-brand-pink/20"
-                : "bg-white/5 text-white/50 hover:bg-white/10 hover:text-white"
-            }`}
-          >
-            <Code className="h-3.5 w-3.5" />
-            Editor HTML
-          </button>
-          <button
-            onClick={() => setActiveTab("preview")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-              activeTab === "preview"
-                ? "bg-brand-cyan text-brand-blue shadow-lg shadow-brand-cyan/20"
-                : "bg-white/5 text-white/50 hover:bg-white/10 hover:text-white"
-            }`}
-          >
-            <Eye className="h-3.5 w-3.5" />
-            Pré-visualização
-          </button>
-
-          <button
-            onClick={() => {
-              setActiveTab("editor");
-              setShowPasteArea(!showPasteArea);
-            }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-              showPasteArea && activeTab === "editor"
-                ? "bg-brand-cyan/25 text-brand-cyan border border-brand-cyan/35 shadow-lg shadow-brand-cyan/10"
-                : "bg-white/5 text-white/50 hover:bg-white/10 hover:text-white"
-            }`}
-          >
-            <Clipboard className="h-3.5 w-3.5" />
-            Colar resposta da IA
-          </button>
-        </div>
-
-        {activeTab === "editor" && (
-          <div className="space-y-5">
-
-            {/* ── Paste AI response ── */}
-            {showPasteArea && (
-              <div className="rounded-2xl border border-brand-cyan/20 overflow-hidden bg-brand-cyan/5 p-4 space-y-3">
-                <div className="flex items-center justify-between border-b border-brand-cyan/10 pb-2">
-                  <span className="flex items-center gap-2 text-brand-cyan text-xs font-black uppercase tracking-widest">
-                    <Clipboard className="h-3.5 w-3.5" />
-                    Colar resposta da IA
-                  </span>
-                  <button
-                    onClick={() => { setShowPasteArea(false); setAiResponseInput(""); }}
-                    className="text-white/40 hover:text-white/70 transition-colors cursor-pointer"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-                <p className="text-white/35 text-[10px] leading-relaxed">
-                  Cole aqui a resposta completa da IA — o sistema extrai automaticamente o <span className="text-white/60">título</span>, o <span className="text-white/60">assunto</span> e o <span className="text-white/60">HTML</span>.
-                </p>
-                <textarea
-                  value={aiResponseInput}
-                  onChange={(e) => setAiResponseInput(e.target.value)}
-                  rows={7}
-                  placeholder={"TITULO: Remarketing Feira — Maio 2026\nASSUNTO: Você perdeu a maior feira do Norte\n\n```html\n<!DOCTYPE html>...\n```"}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-3 text-white/80 text-xs font-mono leading-relaxed placeholder:text-white/15 focus:outline-none focus:border-brand-cyan/40 focus:ring-2 focus:ring-brand-cyan/10 transition-all resize-none overflow-x-auto"
-                />
-                <div className="flex gap-2">
-                  <Button
-                    onClick={handleApplyAIResponse}
-                    disabled={!aiResponseInput.trim()}
-                    className="flex-1 h-9 bg-brand-cyan text-brand-blue text-xs font-black uppercase tracking-widest rounded-xl hover:bg-brand-cyan/90 transition-all disabled:opacity-40 cursor-pointer"
-                  >
-                    <Check className="h-3.5 w-3.5 mr-1.5" />
-                    Aplicar
-                  </Button>
-                  <button
-                    onClick={() => { setShowPasteArea(false); setAiResponseInput(""); }}
-                    className="px-4 text-xs text-white/30 hover:text-white/60 font-bold transition-colors cursor-pointer"
-                  >
-                    Cancelar
-                  </button>
-                </div>
-              </div>
-            )}
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-2">Nome Interno da Campanha</p>
-                <Input
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder={`Ex: Remarketing ${headerFair?.name ?? "Feira"} — ${new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}`}
-                  className="bg-white/5 border-white/10 text-white placeholder:text-white/20 focus-visible:ring-brand-cyan/30"
-                />
-                <p className="text-white/20 text-[10px] mt-1.5 font-medium">Aparece no histórico — não é enviado ao visitante.</p>
-              </div>
-
-              <div>
-                <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-2">Assunto do Email</p>
-                <Input
-                  value={subject}
-                  onChange={(e) => setSubject(e.target.value)}
-                  placeholder="Ex: ExpoMultiMix te espera — venha hoje!"
-                  className="bg-white/5 border-white/10 text-white placeholder:text-white/20 focus-visible:ring-brand-pink/30"
-                />
-              </div>
-            </div>
-
-            <div>
-              <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-2">Conteúdo HTML</p>
-              <textarea
-                value={htmlContent}
-                onChange={(e) => setHtmlContent(e.target.value)}
-                rows={18}
-                placeholder={selectedTemplateId ? "" : "Escolha um template acima ou cole seu HTML aqui..."}
-                className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white/80 text-xs font-mono leading-relaxed placeholder:text-white/20 focus:outline-none focus:border-brand-pink/50 focus:ring-4 focus:ring-brand-pink/10 transition-all resize-none overflow-x-auto"
-              />
-            </div>
-          </div>
-        )}
-
-        {activeTab === "preview" && (
-          <div className="space-y-3">
-            <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white/60">
-              <span className="text-white/30 font-black uppercase tracking-widest text-xs mr-2">Assunto:</span>
-              {subject || <span className="italic text-white/20">sem assunto</span>}
-            </div>
-            {htmlContent ? (
-              <>
-                <div className="border border-white/10 rounded-2xl overflow-hidden">
-                  <iframe
-                    key={htmlContent.slice(0, 40)}
-                    srcDoc={htmlContent}
-                    title="Pré-visualização do Email"
-                    className="w-full"
-                    style={{ height: "640px", border: "none" }}
-                    sandbox="allow-same-origin"
-                  />
-                </div>
-                <p className="text-white/25 text-xs text-center">
-                  Visualização isolada — representa fielmente como o email aparecerá nos clientes de email.
-                </p>
-
-                {/* ── Revision request ── */}
-                <div className="mt-2 pt-5 border-t border-white/5 space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-brand-cyan/60" />
-                    <span className="text-white/50 font-black text-[10px] uppercase tracking-widest">Solicitar alterações com IA</span>
-                  </div>
-                  <textarea
-                    value={revisionComment}
-                    onChange={(e) => setRevisionComment(e.target.value)}
-                    placeholder='Ex: "Mude o botão CTA para laranja, aumente o título, remova a seção de depoimentos..."'
-                    rows={3}
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white text-sm placeholder:text-white/20 focus:outline-none focus:border-brand-cyan/50 focus:ring-4 focus:ring-brand-cyan/10 transition-all resize-none"
-                  />
-                  <Button
-                    onClick={handleGenerateRevision}
-                    disabled={!revisionComment.trim()}
-                    className="w-full h-10 bg-brand-cyan/10 border border-brand-cyan/20 text-brand-cyan font-black uppercase tracking-widest rounded-2xl hover:bg-brand-cyan/20 transition-all disabled:opacity-40 cursor-pointer"
-                  >
-                    <Sparkles className="h-4 w-4 mr-2" />
-                    Gerar Prompt de Revisão
-                  </Button>
-
-                  {revisionPrompt && (
-                    <div className="space-y-3 pt-1">
-                      <div className="flex items-center justify-between">
-                        <p className="text-white/40 text-[10px] font-black uppercase tracking-widest">Abrir no assistente de IA:</p>
-                        <button
-                          onClick={async () => {
-                            await navigator.clipboard.writeText(revisionPrompt);
-                            toast.success("Prompt de revisão copiado!");
-                          }}
-                          className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-white/30 hover:text-white/60 transition-colors"
-                        >
-                          <Copy className="h-3 w-3" />
-                          Copiar prompt
-                        </button>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {AI_SERVICES.map((ai) => (
-                          <button
-                            key={ai.name}
-                            onClick={() => handleOpenRevisionAI(ai.url, ai.name)}
-                            className="flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-black transition-all hover:scale-[1.03] active:scale-[0.97]"
-                            style={{ color: ai.color, borderColor: `${ai.color}40`, backgroundColor: `${ai.color}12` }}
-                            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = `${ai.color}22`; (e.currentTarget as HTMLButtonElement).style.borderColor = `${ai.color}80`; }}
-                            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = `${ai.color}12`; (e.currentTarget as HTMLButtonElement).style.borderColor = `${ai.color}40`; }}
-                          >
-                            {ai.icon}
-                            {ai.name}
-                            <ExternalLink className="h-3 w-3 opacity-50" />
-                          </button>
-                        ))}
-                      </div>
-                      <p className="text-white/20 text-[10px]">
-                        Clicar copia o prompt de revisão — cole com{" "}
-                        <kbd className="bg-white/10 px-1.5 py-0.5 rounded text-white/40 font-mono">Ctrl+V</kbd>{" "}
-                        na IA. Depois cole o HTML revisado no editor.
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </>
-            ) : (
-              <div className="h-64 flex items-center justify-center border border-white/5 rounded-2xl">
-                <p className="text-white/25 text-sm">Selecione um template para visualizar</p>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ── Send buttons — always visible ── */}
-        <div className="flex flex-col sm:flex-row gap-3 mt-6 pt-6 border-t border-white/5">
-          <Button
-            type="button"
-            disabled={loading || !headerFair}
-            onClick={() => openConfirmDialog("absent")}
-            className="flex-1 h-12 bg-white/10 border border-white/20 rounded-2xl text-white font-black uppercase tracking-widest hover:bg-white/20 transition-all active:scale-[0.98] cursor-pointer disabled:opacity-40"
-          >
-            <Users className="h-4 w-4 mr-2" />
-            Enviar para Ausentes
-          </Button>
-          <Button
-            type="button"
-            disabled={loading || !headerFair}
-            onClick={() => openConfirmDialog("all")}
-            className="flex-1 h-12 bg-brand-pink rounded-2xl text-white font-black uppercase tracking-widest hover:bg-brand-pink/90 transition-all shadow-xl shadow-brand-pink/20 active:scale-[0.98] cursor-pointer disabled:opacity-40"
-          >
-            {loading ? <LogoLoading size={16} minimal className="mr-2" /> : <Send className="h-4 w-4 mr-2" />}
-            {loading ? "Enviando..." : "Enviar para Todos os Inscritos"}
-          </Button>
-        </div>
-      </div>
-
-    </>
-  ) : (
-    /* ── Campaign History ── */
-    <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-black text-white uppercase tracking-tighter flex items-center gap-3">
-            <BarChart3 className="h-5 w-5 text-brand-cyan" />
-            Histórico de Campanhas
-          </h2>
-          <button
-            onClick={refreshCampaigns}
-            disabled={loadingCampaigns}
-            className="flex items-center gap-2 px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-black uppercase tracking-widest text-white/50 hover:text-white transition-all disabled:opacity-50"
-          >
-            <RefreshCcw className={`h-3.5 w-3.5 ${loadingCampaigns ? "animate-spin" : ""}`} />
-            Atualizar
-          </button>
-        </div>
-
-        {/* Account stats bar */}
-        {accountStats && (
-          <div className="glass-card rounded-2xl p-4 space-y-3">
-            {/* Plan + quick metrics row */}
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                <span className="text-white/40 text-xs font-black uppercase tracking-widest">Brevo {accountStats.plan.name}</span>
-                <span className="text-white/20 text-[9px]">· ciclo até {new Date(accountStats.plan.periodEnd).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}</span>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="text-center">
-                  <p className={`text-base font-black leading-none ${accountStats.last30Days.deliveryRate >= 95 ? "text-green-400" : accountStats.last30Days.deliveryRate >= 85 ? "text-yellow-400" : "text-red-400"}`}>
-                    {accountStats.last30Days.deliveryRate.toFixed(1)}%
-                  </p>
-                  <p className="text-white/30 text-[8px] uppercase tracking-widest mt-0.5">Entrega/30d</p>
-                </div>
-                <div className="text-center">
-                  <p className={`text-base font-black leading-none ${accountStats.last30Days.openRate >= 30 ? "text-green-400" : accountStats.last30Days.openRate >= 15 ? "text-yellow-400" : "text-red-400"}`}>
-                    {accountStats.last30Days.openRate.toFixed(1)}%
-                  </p>
-                  <p className="text-white/30 text-[8px] uppercase tracking-widest mt-0.5">Abertura/30d</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-base font-black leading-none text-white/60">{accountStats.last30Days.sent.toLocaleString("pt-BR")}</p>
-                  <p className="text-white/30 text-[8px] uppercase tracking-widest mt-0.5">Enviados/30d</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Credits bar */}
-            {(() => {
-              const planTotal = BREVO_PLAN_LIMITS[accountStats.plan.name] ?? accountStats.credits.total;
-              const used = planTotal - accountStats.credits.remaining;
-              const usedPct = planTotal > 0 ? Math.round((used / planTotal) * 100) : 0;
-              const remainPct = 100 - usedPct;
-              return (
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-white/30 text-[9px] font-black uppercase tracking-widest">Créditos de email</span>
-                    <span className="text-white/50 text-[10px] font-bold">
-                      <span className="text-brand-cyan">{accountStats.credits.remaining.toLocaleString("pt-BR")}</span>
-                      <span className="text-white/30"> disponíveis de </span>
-                      <span className="text-white/60">{planTotal.toLocaleString("pt-BR")}</span>
-                    </span>
-                  </div>
-                  <div className="h-2 bg-white/5 rounded-full overflow-hidden flex">
-                    {used > 0 && (
-                      <div
-                        className="h-full bg-brand-pink/50 transition-all duration-1000"
-                        style={{ width: `${usedPct}%` }}
-                      />
-                    )}
-                    <div
-                      className="h-full bg-brand-cyan/70 transition-all duration-1000 rounded-r-full"
-                      style={{ width: `${remainPct}%` }}
-                    />
-                  </div>
-                  <div className="flex justify-between mt-1">
-                    <span className="text-white/20 text-[8px]">
-                      {used.toLocaleString("pt-BR")} utilizados ({usedPct}%)
-                    </span>
-                    <span className="text-brand-cyan/50 text-[8px] font-bold">
-                      {remainPct}% disponível
-                    </span>
-                  </div>
-                </div>
-              );
-            })()}
-
-            {/* Suppressed contacts + sending insights */}
-            {(accountStats.suppressedContacts || accountStats.sendingInsights) && (
-              <div className="flex flex-wrap gap-3 pt-1 border-t border-white/5">
-                {accountStats.suppressedContacts && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-white/30">Bloqueados</span>
-                    <span className="text-xs font-black text-brand-orange">{accountStats.suppressedContacts.total.toLocaleString("pt-BR")}</span>
-                    <span className="text-[9px] text-white/20">(bounce, spam, descad.)</span>
-                  </div>
-                )}
-                {accountStats.sendingInsights && accountStats.sendingInsights.bestDaysToSend.length > 0 && (
-                  <div className="flex items-center gap-2 ml-auto">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-white/30">Melhores dias</span>
-                    <div className="flex items-center gap-1">
-                      {accountStats.sendingInsights.bestDaysToSend.slice(0, 3).map((day, i) => (
-                        <span
-                          key={day}
-                          className={`text-[9px] font-black px-1.5 py-0.5 rounded-md ${i === 0 ? "bg-brand-cyan/20 text-brand-cyan" : "bg-white/5 text-white/40"}`}
-                        >
-                          {day}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Campaign list */}
-        {campaigns.length === 0 ? (
-          <div className="glass-card rounded-2xl p-10 text-center">
-            <Inbox className="h-8 w-8 text-white/10 mx-auto mb-3" />
-            <p className="text-white/25 text-sm">Nenhuma campanha enviada ainda</p>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {campaigns.map((campaign) => {
-              const isSelected = selectedCampaignId === campaign.id;
-              const targetFair = fairs?.find((f) => f.id === campaign.targetFairId);
-              const sentDate = new Date(campaign.sentAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
-
-              return (
-                <div key={campaign.id} className={`glass-card rounded-2xl overflow-hidden border transition-all ${isSelected ? "border-brand-cyan/30" : "border-white/5"}`}>
-                  <button
-                    onClick={() => loadCampaignStats(campaign.id)}
-                    className="w-full flex items-center gap-4 p-4 text-left hover:bg-white/5 transition-all group"
-                  >
-                    <div className={`w-1 self-stretch rounded-full shrink-0 transition-colors ${isSelected ? "bg-brand-cyan" : "bg-white/10 group-hover:bg-white/20"}`} />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-black text-white truncate">{campaign.title}</p>
-                      <p className="text-xs text-white/40 truncate mt-0.5">{campaign.subject}</p>
-                    </div>
-                    <div className="flex items-center gap-3 shrink-0">
-                      <Badge className={`text-[9px] font-black uppercase tracking-widest border-0 ${campaign.sendTo === "all" ? "bg-brand-cyan/10 text-brand-cyan" : "bg-brand-pink/10 text-brand-pink"}`}>
-                        {campaign.sendTo === "all" ? "Todos" : "Ausentes"}
-                      </Badge>
-                      <div className="text-right hidden sm:block">
-                        <p className="text-xs text-white/60 font-bold">
-                          {(campaign.totalRecipients ?? campaign.totalQueued).toLocaleString("pt-BR")} emails
-                        </p>
-                        <p className="text-[9px] text-white/30">
-                          {campaign.suppressedByBrevo != null && campaign.suppressedByBrevo > 0
-                            ? `${campaign.suppressedByBrevo} bloqueados · ${targetFair?.name ?? sentDate}`
-                            : targetFair?.name ?? sentDate}
-                        </p>
-                      </div>
-                      <ChevronRight className={`h-4 w-4 text-white/30 transition-transform ${isSelected ? "rotate-90" : ""}`} />
-                    </div>
-                  </button>
-
-                  {isSelected && (
-                    <div className="border-t border-white/5 p-4">
-                      {loadingStats ? (
-                        <div className="flex items-center justify-center py-6 gap-2">
-                          <LogoLoading size={18} minimal className="animate-pulse" />
-                          <span className="text-white/40 text-xs">Carregando estatísticas...</span>
-                        </div>
-                      ) : campaignStats ? (
-                        <>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-
-                          {/* Entrega */}
-                          <div className="bg-white/5 rounded-xl p-3 text-center relative group/card">
-                            <div className="absolute top-2 right-2 opacity-0 group-hover/card:opacity-100 transition-opacity">
-                              <div className="relative group/tip">
-                                <Info className="h-3 w-3 text-white/30 hover:text-white/60 cursor-help transition-colors" />
-                                <div className="absolute bottom-full right-0 mb-2 w-56 p-3 bg-[#0A1628] border border-white/15 rounded-xl text-left text-[10px] text-white/60 leading-relaxed opacity-0 group-hover/tip:opacity-100 transition-opacity pointer-events-none z-50 shadow-2xl">
-                                  <p className="font-black text-white/80 mb-1">Taxa de Entrega</p>
-                                  <p>% dos emails que chegaram na caixa de entrada. <span className="text-brand-cyan">Ex: 96% = 960 de 1.000 entregues.</span></p>
-                                  <p className="mt-1 text-white/40">≥95% ótimo · 85–95% ok · &lt;85% investigar lista</p>
-                                </div>
-                              </div>
-                            </div>
-                            <p className={`text-xl font-black ${campaignStats.delivery.deliveryRate >= 95 ? "text-green-400" : campaignStats.delivery.deliveryRate >= 85 ? "text-yellow-400" : "text-red-400"}`}>
-                              {campaignStats.delivery.deliveryRate.toFixed(1)}%
-                            </p>
-                            <p className="text-white/30 text-[9px] uppercase tracking-widest mt-0.5">Taxa de Entrega</p>
-                            <p className="text-white/40 text-xs mt-1">{campaignStats.delivery.delivered}/{campaignStats.delivery.queued}</p>
-                          </div>
-
-                          {/* Abertura */}
-                          <div className="bg-white/5 rounded-xl p-3 text-center relative group/card">
-                            <div className="absolute top-2 right-2 opacity-0 group-hover/card:opacity-100 transition-opacity">
-                              <div className="relative group/tip">
-                                <Info className="h-3 w-3 text-white/30 hover:text-white/60 cursor-help transition-colors" />
-                                <div className="absolute bottom-full right-0 mb-2 w-56 p-3 bg-[#0A1628] border border-white/15 rounded-xl text-left text-[10px] text-white/60 leading-relaxed opacity-0 group-hover/tip:opacity-100 transition-opacity pointer-events-none z-50 shadow-2xl">
-                                  <p className="font-black text-white/80 mb-1">Open Rate</p>
-                                  <p>% de destinatários únicos que abriram o email. <span className="text-brand-cyan">Ex: 30% = 300 pessoas de 1.000 entregues abriram.</span></p>
-                                  <p className="mt-1 text-white/40">≥30% excelente · 15–30% bom · &lt;15% revisar subject</p>
-                                </div>
-                              </div>
-                            </div>
-                            <TrendingUp className={`h-4 w-4 mx-auto mb-1 ${campaignStats.engagement.openRate >= 30 ? "text-green-400" : campaignStats.engagement.openRate >= 15 ? "text-yellow-400" : "text-red-400"}`} />
-                            <p className={`text-xl font-black ${campaignStats.engagement.openRate >= 30 ? "text-green-400" : campaignStats.engagement.openRate >= 15 ? "text-yellow-400" : "text-red-400"}`}>
-                              {campaignStats.engagement.openRate.toFixed(1)}%
-                            </p>
-                            <p className="text-white/30 text-[9px] uppercase tracking-widest mt-0.5">Abertura</p>
-                            <p className="text-white/40 text-xs mt-1">{campaignStats.engagement.uniqueOpens} únicos</p>
-                          </div>
-
-                          {/* Cliques */}
-                          <div className="bg-white/5 rounded-xl p-3 text-center relative group/card">
-                            <div className="absolute top-2 right-2 opacity-0 group-hover/card:opacity-100 transition-opacity">
-                              <div className="relative group/tip">
-                                <Info className="h-3 w-3 text-white/30 hover:text-white/60 cursor-help transition-colors" />
-                                <div className="absolute bottom-full right-0 mb-2 w-56 p-3 bg-[#0A1628] border border-white/15 rounded-xl text-left text-[10px] text-white/60 leading-relaxed opacity-0 group-hover/tip:opacity-100 transition-opacity pointer-events-none z-50 shadow-2xl">
-                                  <p className="font-black text-white/80 mb-1">Click Rate</p>
-                                  <p>% de destinatários que clicaram em algum link. <span className="text-brand-cyan">Ex: 5% = 50 pessoas de 1.000 entregues clicaram no CTA.</span></p>
-                                  <p className="mt-1 text-white/40">≥5% excelente · 2–5% bom · &lt;2% revisar CTA</p>
-                                </div>
-                              </div>
-                            </div>
-                            <MousePointerClick className={`h-4 w-4 mx-auto mb-1 ${campaignStats.engagement.clickRate >= 5 ? "text-green-400" : campaignStats.engagement.clickRate >= 2 ? "text-yellow-400" : "text-red-400"}`} />
-                            <p className={`text-xl font-black ${campaignStats.engagement.clickRate >= 5 ? "text-green-400" : campaignStats.engagement.clickRate >= 2 ? "text-yellow-400" : "text-red-400"}`}>
-                              {campaignStats.engagement.clickRate.toFixed(1)}%
-                            </p>
-                            <p className="text-white/30 text-[9px] uppercase tracking-widest mt-0.5">Cliques</p>
-                            <p className="text-white/40 text-xs mt-1">{campaignStats.engagement.uniqueClicks} únicos</p>
-                          </div>
-
-                          {/* Bounces + Spam */}
-                          <div className="bg-white/5 rounded-xl p-3 text-center relative group/card">
-                            <div className="absolute top-2 right-2 opacity-0 group-hover/card:opacity-100 transition-opacity">
-                              <div className="relative group/tip">
-                                <Info className="h-3 w-3 text-white/30 hover:text-white/60 cursor-help transition-colors" />
-                                <div className="absolute bottom-full right-0 mb-2 w-60 p-3 bg-[#0A1628] border border-white/15 rounded-xl text-left text-[10px] text-white/60 leading-relaxed opacity-0 group-hover/tip:opacity-100 transition-opacity pointer-events-none z-50 shadow-2xl">
-                                  <p className="font-black text-white/80 mb-1">Bounces + Spam</p>
-                                  <p><span className="text-brand-orange">Hard bounce:</span> endereço inválido permanentemente (ex: email digitado errado).</p>
-                                  <p className="mt-1"><span className="text-brand-orange">Spam:</span> destinatário marcou como indesejado — prejudica a reputação do remetente.</p>
-                                  <p className="mt-1 text-white/40">Ideal: zero. Acima de 2% pode bloquear envios futuros.</p>
-                                  <p className="mt-1 text-white/30">Descadastr.: {campaignStats.engagement.unsubscribed} pessoa(s) cancelaram</p>
-                                </div>
-                              </div>
-                            </div>
-                            <p className={`text-xl font-black ${(campaignStats.delivery.hardBounces + campaignStats.delivery.spam) === 0 ? "text-green-400" : "text-red-400"}`}>
-                              {campaignStats.delivery.hardBounces + campaignStats.delivery.spam}
-                            </p>
-                            <p className="text-white/30 text-[9px] uppercase tracking-widest mt-0.5">Bounces + Spam</p>
-                            <p className="text-white/40 text-xs mt-1">{campaignStats.engagement.unsubscribed} descad.</p>
-                          </div>
-
-                        </div>
-
-                        {/* Suppressed breakdown */}
-                        {campaignStats.campaign.suppressedByBrevo != null && campaignStats.campaign.suppressedByBrevo > 0 && (
-                          <div className="mt-3 flex items-center gap-2 px-1">
-                            <span className="text-[9px] font-black uppercase tracking-widest text-white/25">Total da lista</span>
-                            <span className="text-xs font-black text-white/50">{(campaignStats.campaign.totalRecipients ?? campaignStats.campaign.totalQueued).toLocaleString("pt-BR")}</span>
-                            <span className="text-white/20 text-[9px]">·</span>
-                            <span className="text-[9px] text-white/25">{campaignStats.campaign.totalQueued.toLocaleString("pt-BR")} enfileirados</span>
-                            <span className="text-white/20 text-[9px]">·</span>
-                            <span className="text-[9px] text-brand-orange/70">{campaignStats.campaign.suppressedByBrevo} bloqueados pela Brevo</span>
-                          </div>
-                        )}
-                        </>
-                      ) : null}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-    )}
       <Dialog
         open={showAIDialog}
         onOpenChange={(open) => {
           setShowAIDialog(open);
-          if (!open) { setAiStep(1); setAiDescription(""); setGeneratedPrompt(""); setPromptCopied(false); }
+          if (!open) {
+            setAiStep(1);
+            setAiDescription("");
+            setGeneratedPrompt("");
+            setPromptCopied(false);
+          }
         }}
       >
         <DialogContent className="max-w-3xl bg-brand-blue/97 border-white/10 text-white p-0 overflow-hidden">
-
           {/* ── Step indicator ── */}
           <div className="flex items-center gap-0 border-b border-white/5">
             {([1, 2] as const).map((s) => (
@@ -2084,13 +2590,19 @@ export const MarketingPage: React.FC = () => {
                   aiStep === s
                     ? "text-brand-cyan border-b-2 border-brand-cyan -mb-px"
                     : aiStep > s
-                    ? "text-white/30"
-                    : "text-white/20"
+                      ? "text-white/30"
+                      : "text-white/20"
                 }`}
               >
-                <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-black shrink-0 ${
-                  aiStep > s ? "bg-brand-cyan/20 text-brand-cyan" : aiStep === s ? "bg-brand-cyan text-brand-blue" : "bg-white/10 text-white/30"
-                }`}>
+                <span
+                  className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-black shrink-0 ${
+                    aiStep > s
+                      ? "bg-brand-cyan/20 text-brand-cyan"
+                      : aiStep === s
+                        ? "bg-brand-cyan text-brand-blue"
+                        : "bg-white/10 text-white/30"
+                  }`}
+                >
                   {aiStep > s ? <Check className="h-2.5 w-2.5" /> : s}
                 </span>
                 {s === 1 ? "Descrever" : "Abrir na IA"}
@@ -2099,7 +2611,6 @@ export const MarketingPage: React.FC = () => {
           </div>
 
           <div className="p-6">
-
             {/* ════ STEP 1 ════ */}
             {aiStep === 1 && (
               <div className="space-y-5">
@@ -2109,7 +2620,8 @@ export const MarketingPage: React.FC = () => {
                     Descreva o email
                   </DialogTitle>
                   <DialogDescription className="text-white/35 text-sm">
-                    Diga o que você quer — a IA gera título, assunto e HTML completo com identidade visual da ExpoMultiMix.
+                    Diga o que você quer — a IA gera título, assunto e HTML
+                    completo com identidade visual da ExpoMultiMix.
                   </DialogDescription>
                 </DialogHeader>
 
@@ -2126,10 +2638,18 @@ export const MarketingPage: React.FC = () => {
                         <Mail className="h-3.5 w-3.5 text-brand-cyan" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-white font-black text-xs truncate">{headerFair.name}</p>
-                        {locationParts && <p className="text-white/40 text-[10px] truncate">{locationParts}</p>}
+                        <p className="text-white font-black text-xs truncate">
+                          {headerFair.name}
+                        </p>
+                        {locationParts && (
+                          <p className="text-white/40 text-[10px] truncate">
+                            {locationParts}
+                          </p>
+                        )}
                       </div>
-                      <span className="text-[9px] font-black text-brand-cyan bg-brand-cyan/10 px-2 py-0.5 rounded-full shrink-0">base do email</span>
+                      <span className="text-[9px] font-black text-brand-cyan bg-brand-cyan/10 px-2 py-0.5 rounded-full shrink-0">
+                        base do email
+                      </span>
                     </div>
 
                     {/* Logos status */}
@@ -2137,14 +2657,21 @@ export const MarketingPage: React.FC = () => {
                       <div className="flex items-center gap-2 p-2.5 bg-green-500/8 border border-green-500/20 rounded-xl">
                         <Check className="h-3.5 w-3.5 text-green-400 shrink-0" />
                         <p className="text-green-400 text-[10px] font-black uppercase tracking-widest">
-                          {logoUrls.length} logo{logoUrls.length !== 1 ? "s" : ""} de expositores incluídas no prompt
+                          {logoUrls.length} logo
+                          {logoUrls.length !== 1 ? "s" : ""} de expositores
+                          incluídas no prompt
                         </p>
                       </div>
                     ) : (
                       <div className="flex items-start gap-2 p-2.5 bg-brand-orange/8 border border-brand-orange/20 rounded-xl">
                         <AlertTriangle className="h-3.5 w-3.5 text-brand-orange shrink-0 mt-0.5" />
                         <p className="text-brand-orange text-[10px] leading-relaxed">
-                          <strong>Nenhuma logo encontrada para esta feira.</strong> Cadastre as logos dos expositores em <strong>Clientes → Galeria</strong> antes de gerar o email para que elas apareçam automaticamente.
+                          <strong>
+                            Nenhuma logo encontrada para esta feira.
+                          </strong>{" "}
+                          Cadastre as logos dos expositores em{" "}
+                          <strong>Clientes → Galeria</strong> antes de gerar o
+                          email para que elas apareçam automaticamente.
                         </p>
                       </div>
                     )}
@@ -2153,16 +2680,27 @@ export const MarketingPage: React.FC = () => {
 
                 {/* Description */}
                 <div>
-                  <p className="text-white/40 text-[10px] font-black uppercase tracking-widest mb-2">O que você quer no email?</p>
+                  <p className="text-white/40 text-[10px] font-black uppercase tracking-widest mb-2">
+                    O que você quer no email?
+                  </p>
                   <textarea
                     value={aiDescription}
                     onChange={(e) => setAiDescription(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) handleGeneratePrompt(); }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && (e.ctrlKey || e.metaKey))
+                        handleGeneratePrompt();
+                    }}
                     placeholder="Ex: Lembrete de que a feira começa amanhã, tom urgente e empolgante, CTA para confirmar presença..."
                     rows={5}
                     className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white text-sm placeholder:text-white/10 focus:outline-none focus:border-brand-cyan/50 focus:ring-4 focus:ring-brand-cyan/10 transition-all resize-none"
                   />
-                  <p className="text-white/20 text-[10px] mt-1.5">Dica: <kbd className="bg-white/8 px-1 rounded font-mono">Ctrl+Enter</kbd> para gerar</p>
+                  <p className="text-white/20 text-[10px] mt-1.5">
+                    Dica:{" "}
+                    <kbd className="bg-white/8 px-1 rounded font-mono">
+                      Ctrl+Enter
+                    </kbd>{" "}
+                    para gerar
+                  </p>
                 </div>
 
                 <Button
@@ -2186,20 +2724,37 @@ export const MarketingPage: React.FC = () => {
                     Prompt pronto — abra uma IA
                   </DialogTitle>
                   <DialogDescription className="text-white/35 text-sm">
-                    Clique em qualquer assistente abaixo. O prompt é copiado automaticamente — cole com <kbd className="bg-white/10 px-1 rounded font-mono text-white/50">Ctrl+V</kbd>.
+                    Clique em qualquer assistente abaixo. O prompt é copiado
+                    automaticamente — cole com{" "}
+                    <kbd className="bg-white/10 px-1 rounded font-mono text-white/50">
+                      Ctrl+V
+                    </kbd>
+                    .
                   </DialogDescription>
                 </DialogHeader>
 
                 {/* Copy bar */}
                 <div className="flex items-center gap-3 p-3 bg-brand-cyan/8 border border-brand-cyan/20 rounded-xl">
                   <div className="flex-1 min-w-0">
-                    <p className="text-white/60 text-[10px] font-mono truncate">{generatedPrompt.slice(0, 80)}…</p>
+                    <p className="text-white/60 text-[10px] font-mono truncate">
+                      {generatedPrompt.slice(0, 80)}…
+                    </p>
                   </div>
                   <button
                     onClick={handleCopyPrompt}
                     className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-cyan/15 hover:bg-brand-cyan/25 border border-brand-cyan/30 rounded-lg text-[10px] font-black uppercase tracking-widest text-brand-cyan transition-all shrink-0"
                   >
-                    {promptCopied ? <><Check className="h-3 w-3" />Copiado!</> : <><Copy className="h-3 w-3" />Copiar</>}
+                    {promptCopied ? (
+                      <>
+                        <Check className="h-3 w-3" />
+                        Copiado!
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-3 w-3" />
+                        Copiar
+                      </>
+                    )}
                   </button>
                 </div>
 
@@ -2210,14 +2765,36 @@ export const MarketingPage: React.FC = () => {
                       key={ai.name}
                       onClick={() => handleOpenAI(ai.url, ai.name)}
                       className="flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-all hover:scale-[1.02] active:scale-[0.97]"
-                      style={{ color: ai.color, borderColor: `${ai.color}35`, backgroundColor: `${ai.color}10` }}
-                      onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = `${ai.color}20`; (e.currentTarget as HTMLButtonElement).style.borderColor = `${ai.color}60`; }}
-                      onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = `${ai.color}10`; (e.currentTarget as HTMLButtonElement).style.borderColor = `${ai.color}35`; }}
+                      style={{
+                        color: ai.color,
+                        borderColor: `${ai.color}35`,
+                        backgroundColor: `${ai.color}10`,
+                      }}
+                      onMouseEnter={(e) => {
+                        (
+                          e.currentTarget as HTMLButtonElement
+                        ).style.backgroundColor = `${ai.color}20`;
+                        (
+                          e.currentTarget as HTMLButtonElement
+                        ).style.borderColor = `${ai.color}60`;
+                      }}
+                      onMouseLeave={(e) => {
+                        (
+                          e.currentTarget as HTMLButtonElement
+                        ).style.backgroundColor = `${ai.color}10`;
+                        (
+                          e.currentTarget as HTMLButtonElement
+                        ).style.borderColor = `${ai.color}35`;
+                      }}
                     >
                       <span className="shrink-0">{ai.icon}</span>
                       <span className="flex-1 min-w-0">
-                        <span className="block font-black text-xs">{ai.name}</span>
-                        <span className="block text-[9px] opacity-40 truncate">{ai.shortUrl}</span>
+                        <span className="block font-black text-xs">
+                          {ai.name}
+                        </span>
+                        <span className="block text-[9px] opacity-40 truncate">
+                          {ai.shortUrl}
+                        </span>
                       </span>
                       <ExternalLink className="h-3 w-3 opacity-30 shrink-0" />
                     </button>
@@ -2227,7 +2804,10 @@ export const MarketingPage: React.FC = () => {
                 {/* Footer actions */}
                 <div className="flex gap-2 pt-1">
                   <button
-                    onClick={() => { setAiStep(1); setGeneratedPrompt(""); }}
+                    onClick={() => {
+                      setAiStep(1);
+                      setGeneratedPrompt("");
+                    }}
                     className="flex items-center gap-1.5 px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-black uppercase tracking-widest text-white/40 hover:text-white transition-all"
                   >
                     <ChevronRight className="h-3.5 w-3.5 rotate-180" />
@@ -2248,7 +2828,6 @@ export const MarketingPage: React.FC = () => {
                 </div>
               </div>
             )}
-
           </div>
         </DialogContent>
       </Dialog>
@@ -2265,30 +2844,48 @@ export const MarketingPage: React.FC = () => {
               <div className="space-y-3 text-sm text-white/50 mt-2">
                 <div className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-1.5 text-left">
                   <p>
-                    <span className="text-white/30 font-black uppercase tracking-widest text-xs">Feira: </span>
-                    <span className="text-white font-bold">{headerFair?.name ?? "—"}</span>
+                    <span className="text-white/30 font-black uppercase tracking-widest text-xs">
+                      Feira:{" "}
+                    </span>
+                    <span className="text-white font-bold">
+                      {headerFair?.name ?? "—"}
+                    </span>
                   </p>
                   {locationParts && (
                     <p>
-                      <span className="text-white/30 font-black uppercase tracking-widest text-xs">Local: </span>
+                      <span className="text-white/30 font-black uppercase tracking-widest text-xs">
+                        Local:{" "}
+                      </span>
                       <span className="text-white/70">{locationParts}</span>
                     </p>
                   )}
                   <p>
-                    <span className="text-white/30 font-black uppercase tracking-widest text-xs">Assunto: </span>
+                    <span className="text-white/30 font-black uppercase tracking-widest text-xs">
+                      Assunto:{" "}
+                    </span>
                     <span className="text-white/70">{subject || "—"}</span>
                   </p>
                   <p>
-                    <span className="text-white/30 font-black uppercase tracking-widest text-xs">Destinatários: </span>
+                    <span className="text-white/30 font-black uppercase tracking-widest text-xs">
+                      Destinatários:{" "}
+                    </span>
                     <span className="text-brand-cyan font-bold">
-                      {pendingAudience === "all" ? "Todos os visitantes inscritos" : "Visitantes que não fizeram check-in"}
+                      {pendingAudience === "all"
+                        ? "Todos os visitantes inscritos"
+                        : "Visitantes que não fizeram check-in"}
                     </span>
                   </p>
                   {selectedTemplateId && (
                     <p>
-                      <span className="text-white/30 font-black uppercase tracking-widest text-xs">Template: </span>
+                      <span className="text-white/30 font-black uppercase tracking-widest text-xs">
+                        Template:{" "}
+                      </span>
                       <span className="text-white/70">
-                        {EMAIL_TEMPLATES.find((t) => t.id === selectedTemplateId)?.name}
+                        {
+                          EMAIL_TEMPLATES.find(
+                            (t) => t.id === selectedTemplateId,
+                          )?.name
+                        }
                       </span>
                     </p>
                   )}
@@ -2296,7 +2893,8 @@ export const MarketingPage: React.FC = () => {
                 <div className="flex items-start gap-2 p-3 bg-brand-orange/10 border border-brand-orange/20 rounded-xl">
                   <AlertTriangle className="h-4 w-4 text-brand-orange shrink-0 mt-0.5" />
                   <p className="text-brand-orange text-xs">
-                    Esta ação envia emails reais. Confirme que o conteúdo e a feira estão corretos.
+                    Esta ação envia emails reais. Confirme que o conteúdo e a
+                    feira estão corretos.
                   </p>
                 </div>
               </div>
