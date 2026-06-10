@@ -15,7 +15,8 @@ import { ExpensesCharts } from "./components/ExpensesCharts";
 import { ExpenseDetailModal } from "./components/ExpenseDetailModal";
 import { DeleteExpenseDialog } from "./components/DeleteExpenseDialog";
 import { CashFlowModal } from "../Finance/components/CashFlowModal";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { PageTabsList, PageTabsTrigger } from "@/components/ui/page-tabs";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -328,22 +329,14 @@ export default function ExpensesPage() {
           </p>
         </div>
 
-        <TabsList className="bg-white/5 backdrop-blur-md border border-white/10 p-1.5 rounded-2xl gap-1 h-auto">
-          <TabsTrigger
-            value="direct"
-            className="rounded-xl px-6 py-2.5 text-xs font-black uppercase tracking-wider text-white/50 transition-all duration-200 data-[state=active]:bg-linear-to-br data-[state=active]:from-[#00aacd] data-[state=active]:to-[#EB2970] data-[state=active]:text-white data-[state=active]:shadow-lg hover:text-white cursor-pointer"
-          >
-            Diretas&nbsp;
-            <span className="opacity-60">({directCount})</span>
-          </TabsTrigger>
-          <TabsTrigger
-            value="overhead"
-            className="rounded-xl px-6 py-2.5 text-xs font-black uppercase tracking-wider text-white/50 transition-all duration-200 data-[state=active]:bg-linear-to-br data-[state=active]:from-[#00aacd] data-[state=active]:to-[#EB2970] data-[state=active]:text-white data-[state=active]:shadow-lg hover:text-white cursor-pointer"
-          >
-            Overhead&nbsp;
-            <span className="opacity-60">({overheadCount})</span>
-          </TabsTrigger>
-        </TabsList>
+        <PageTabsList>
+          <PageTabsTrigger value="direct">
+            Diretas <span className="opacity-60 ml-1">({directCount})</span>
+          </PageTabsTrigger>
+          <PageTabsTrigger value="overhead">
+            Overhead <span className="opacity-60 ml-1">({overheadCount})</span>
+          </PageTabsTrigger>
+        </PageTabsList>
 
         <div className="flex flex-wrap items-end justify-end gap-3">
           <Button

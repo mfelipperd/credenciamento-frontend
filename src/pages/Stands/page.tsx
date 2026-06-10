@@ -7,7 +7,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { PageTabsList, PageTabsTrigger } from "@/components/ui/page-tabs";
 import { Settings, BarChart3, Map } from "lucide-react";
 import { StandMap } from "@/components/StandMap";
 import { StandConfigurator } from "@/components/StandConfigurator";
@@ -62,20 +63,20 @@ export const StandsPage: React.FC<StandsPageProps> = ({ fairId }) => {
               Configure e gerencie os stands da feira
             </p>
           </div>
-          <TabsList>
-            <TabsTrigger value="map" className="flex items-center gap-2">
+          <PageTabsList>
+            <PageTabsTrigger value="map">
               <Map className="h-4 w-4" />
               Mapa de Stands
-            </TabsTrigger>
-            <TabsTrigger value="stats" className="flex items-center gap-2">
+            </PageTabsTrigger>
+            <PageTabsTrigger value="stats">
               <BarChart3 className="h-4 w-4" />
               Estatísticas
-            </TabsTrigger>
-            <TabsTrigger value="config" className="flex items-center gap-2">
+            </PageTabsTrigger>
+            <PageTabsTrigger value="config">
               <Settings className="h-4 w-4" />
               Configurar
-            </TabsTrigger>
-          </TabsList>
+            </PageTabsTrigger>
+          </PageTabsList>
           <div />
         </div>
 

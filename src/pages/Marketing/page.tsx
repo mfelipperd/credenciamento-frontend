@@ -67,6 +67,8 @@ import {
   Trash2,
 } from "lucide-react";
 import { LogoLoading } from "@/components/LogoLoading";
+import { Tabs } from "@/components/ui/tabs";
+import { PageTabsList, PageTabsTrigger } from "@/components/ui/page-tabs";
 import type { Fair } from "@/interfaces/fairs";
 
 // ─── Date helpers ──────────────────────────────────────────────────────────────
@@ -1242,44 +1244,29 @@ export const MarketingPage: React.FC = () => {
 
   return (
     <div className="space-y-6 ">
-      {/* ── Header ── */}
-      <div className="space-y-2">
-        <h1 className="text-3xl font-black text-white uppercase tracking-tighter flex items-center gap-3">
-          <Mail className="h-8 w-8 text-brand-pink" />
-          Marketing por <span className="text-brand-cyan">Email</span>
-        </h1>
-        <div className="h-1.5 w-24 bg-linear-to-r from-brand-pink to-brand-cyan rounded-full" />
-        <p className="text-white/40 text-sm font-medium">
-          Selecione a feira, escolha um template e dispare para os visitantes
-          certos.
-        </p>
-      </div>
-
-      {/* ── Main Navigation Tabs ── */}
-      <div className="flex gap-4 border-b border-white/5 pb-1">
-        <button
-          onClick={() => setMainTab("create")}
-          className={`flex items-center gap-2 pb-3.5 px-1 text-sm font-black uppercase tracking-widest transition-all border-b-2 -mb-px cursor-pointer ${
-            mainTab === "create"
-              ? "text-brand-pink border-brand-pink font-black"
-              : "text-white/40 border-transparent hover:text-white/70"
-          }`}
-        >
-          <Send className="h-4 w-4" />
-          Enviar Campanha
-        </button>
-        <button
-          onClick={() => setMainTab("history")}
-          className={`flex items-center gap-2 pb-3.5 px-1 text-sm font-black uppercase tracking-widest transition-all border-b-2 -mb-px cursor-pointer ${
-            mainTab === "history"
-              ? "text-brand-cyan border-brand-cyan font-black"
-              : "text-white/40 border-transparent hover:text-white/70"
-          }`}
-        >
-          <BarChart3 className="h-4 w-4" />
-          Análise de Resultados
-        </button>
-      </div>
+      {/* ── Header + Tabs ── */}
+      <Tabs value={mainTab} onValueChange={(v) => setMainTab(v as "create" | "history")}>
+        <div className="flex flex-col gap-4 mb-4 md:grid md:grid-cols-[1fr_auto_1fr] md:items-end md:shrink-0">
+          <div className="space-y-2">
+            <h1 className="text-3xl font-black text-white uppercase tracking-tighter flex items-center gap-3">
+              <Mail className="h-8 w-8 text-brand-pink" />
+              Marketing por <span className="text-brand-cyan">Email</span>
+            </h1>
+            <div className="h-1.5 w-24 bg-linear-to-r from-brand-pink to-brand-cyan rounded-full" />
+          </div>
+          <PageTabsList className="self-start md:self-auto">
+            <PageTabsTrigger value="create">
+              <Send className="h-4 w-4" />
+              Enviar Campanha
+            </PageTabsTrigger>
+            <PageTabsTrigger value="history">
+              <BarChart3 className="h-4 w-4" />
+              Análise de Resultados
+            </PageTabsTrigger>
+          </PageTabsList>
+          <div className="hidden md:block" />
+        </div>
+      </Tabs>
 
       {mainTab === "create" ? (
         <>
