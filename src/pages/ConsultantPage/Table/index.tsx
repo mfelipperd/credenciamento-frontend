@@ -352,7 +352,7 @@ export const EnhancedTableConsultant = () => {
                   )}
                   {visibleColumns.cnpj && (
                     <TableCell className="px-6 text-center text-gray-600 dark:text-gray-300">
-                      {visitor.category === "visitante" ? "—" : visitor.cnpj}
+                      {visitor.cnpj}
                     </TableCell>
                   )}
                   {visibleColumns.phone && (
