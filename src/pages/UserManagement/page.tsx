@@ -3,100 +3,43 @@ import { useAuth } from "@/hooks/useAuth";
 import { useUsers } from "@/hooks/useUsers";
 import { EUserRole } from "@/enums/user.enum";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
-} from "@/components/ui/dropdown-menu";
-import { 
-  MoreHorizontal, 
-  Plus, 
-  Search, 
-  Eye, 
-  Edit, 
-  Trash2,
-  Users,
-  UserCheck,
-  UserX
-} from "lucide-react";
+import { Plus, Users, ShieldX } from "lucide-react";
 import { UserDetailModal } from "./components/UserDetailModal";
 import { UserFormModal } from "./components/UserFormModal";
 import { DeleteUserDialog } from "./components/DeleteUserDialog";
+import { UserStats } from "./components/UserStats";
+import { UserList } from "./components/UserList";
 import type { User } from "@/interfaces/user";
 
 export default function UserManagementPage() {
   const { user } = useAuth();
-  // const { data: fairs } = useFairs(); // Não usado neste componente
-  const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
 
-  // Removido - o hook useFairs já faz o fetch automaticamente
+  const { data: users, isLoading } = useUsers();
 
-  const { data: users, isLoading, error } = useUsers();
-
-  // Verificar se é admin
   if (user?.role !== EUserRole.ADMIN) {
     return (
-      <div className="container mx-auto p-6">
-        <Card>
-          <CardContent className="p-6 text-center">
-            <UserX className="h-12 w-12 mx-auto text-red-500 mb-4" />
-            <h2 className="text-xl font-semibold text-red-600 mb-2">
-              Acesso Negado
-            </h2>
-            <p className="text-gray-600">
-              Apenas administradores podem acessar esta página.
-            </p>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen flex items-center justify-center p-6">
+        <div className="bg-white/5 border border-white/10 rounded-[32px] p-12 text-center max-w-md">
+          <ShieldX className="h-12 w-12 mx-auto text-brand-pink mb-4" />
+          <h2 className="text-xl font-black text-white uppercase tracking-tighter mb-2">
+            Acesso Restrito
+          </h2>
+          <p className="text-white/40 text-sm">
+            Apenas administradores podem acessar esta área.
+          </p>
+        </div>
       </div>
     );
   }
 
-  // Filtrar usuários por termo de busca
-  const filteredUsers = users?.filter(user => 
-    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (user.cpf && user.cpf.includes(searchTerm))
-  ) || [];
-
-  // Estatísticas
-  const totalUsers = users?.length || 0;
-  const activeUsers = users?.filter(user => user.isActive).length || 0;
+  const totalUsers = users?.length ?? 0;
+  const activeUsers = users?.filter((u) => u.isActive).length ?? 0;
   const inactiveUsers = totalUsers - activeUsers;
-
-  const getRoleBadgeVariant = (role: EUserRole) => {
-    switch (role) {
-      case EUserRole.ADMIN:
-        return "destructive";
-      case EUserRole.PARTNER:
-        return "default";
-      default:
-        return "secondary";
-    }
-  };
-
-  const getRoleLabel = (role: EUserRole) => {
-    switch (role) {
-      case EUserRole.ADMIN:
-        return "Administrador";
-      case EUserRole.PARTNER:
-        return "Sócio";
-      case EUserRole.CONSULTANT:
-        return "Consultor";
-      default:
-        return "Usuário";
-    }
-  };
-
 
   const handleViewUser = (user: User) => {
     setSelectedUser(user);
@@ -118,213 +61,45 @@ export default function UserManagementPage() {
     setIsFormModalOpen(true);
   };
 
-  if (isLoading) {
-    return (
-      <div className="container mx-auto p-6">
-        <div className="space-y-6">
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold">Gerenciamento de Usuários</h1>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[1, 2, 3].map((i) => (
-              <Card key={i}>
-                <CardContent className="p-6">
-                  <div className="animate-pulse">
-                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                    <div className="h-8 bg-gray-200 rounded w-1/2"></div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="container mx-auto p-6">
-        <Card>
-          <CardContent className="p-6 text-center">
-            <UserX className="h-12 w-12 mx-auto text-red-500 mb-4" />
-            <h2 className="text-xl font-semibold text-red-600 mb-2">
-              Erro ao carregar usuários
-            </h2>
-            <p className="text-gray-600">
-              Não foi possível carregar a lista de usuários.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   return (
-    <div className="container mx-auto p-6 bg-gray-900 min-h-screen">
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-white">Gerenciamento de Usuários</h1>
-            <p className="text-gray-300">Gerencie usuários do sistema</p>
+    <div className="min-h-screen">
+      <div className="space-y-6 p-6">
+        {/* ── Header ────────────────────────────────────────────────── */}
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-2">
+            <h1 className="text-3xl font-black text-white uppercase tracking-tighter flex items-center gap-3">
+              <Users className="h-8 w-8 text-brand-pink" />
+              GESTÃO DE <span className="text-brand-cyan">OPERADORES</span>
+            </h1>
+            <div className="h-1.5 w-24 bg-linear-to-r from-brand-pink to-brand-cyan rounded-full" />
           </div>
-          <Button onClick={handleCreateUser} className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            Novo Usuário
+          <Button
+            onClick={handleCreateUser}
+            className="bg-linear-to-br from-[#00aacd] to-[#EB2970] text-white rounded-xl px-6 font-bold shadow-lg shadow-pink-500/20 transition-all hover:scale-105 active:scale-95 shrink-0"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Novo Operador
           </Button>
         </div>
 
-        {/* Estatísticas */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="bg-gray-800 border-gray-700">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-300">Total de Usuários</p>
-                  <p className="text-2xl font-bold text-white">{totalUsers}</p>
-                </div>
-                <Users className="h-8 w-8 text-blue-400" />
-              </div>
-            </CardContent>
-          </Card>
+        {/* ── Estatísticas ──────────────────────────────────────────── */}
+        <UserStats
+          total={totalUsers}
+          active={activeUsers}
+          inactive={inactiveUsers}
+          isLoading={isLoading}
+        />
 
-          <Card className="bg-gray-800 border-gray-700">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-300">Usuários Ativos</p>
-                  <p className="text-2xl font-bold text-green-400">{activeUsers}</p>
-                </div>
-                <UserCheck className="h-8 w-8 text-green-400" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gray-800 border-gray-700">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-300">Usuários Inativos</p>
-                  <p className="text-2xl font-bold text-red-400">{inactiveUsers}</p>
-                </div>
-                <UserX className="h-8 w-8 text-red-400" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Filtros */}
-        <Card className="bg-gray-800 border-gray-700">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
-                  placeholder="Buscar por nome, email ou CPF..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 bg-gray-700 border-gray-600 text-white placeholder-gray-400"
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Lista de Usuários */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredUsers.map((user) => (
-            <Card key={user.id} className="hover:shadow-lg transition-shadow bg-gray-800 border-gray-700">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <CardTitle className="text-lg text-white">{user.name}</CardTitle>
-                    <p className="text-sm text-gray-300">{user.email}</p>
-                  </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="text-gray-300 hover:text-white">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="bg-gray-800 border-gray-700">
-                      <DropdownMenuItem onClick={() => handleViewUser(user)} className="text-gray-300 hover:text-white hover:bg-gray-700">
-                        <Eye className="h-4 w-4 mr-2" />
-                        Ver Detalhes
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleEditUser(user)} className="text-gray-300 hover:text-white hover:bg-gray-700">
-                        <Edit className="h-4 w-4 mr-2" />
-                        Editar
-                      </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        onClick={() => handleDeleteUser(user)}
-                        className="text-red-400 hover:text-red-300 hover:bg-gray-700"
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Excluir
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-400">Função:</span>
-                    <Badge variant={getRoleBadgeVariant(user.role)}>
-                      {getRoleLabel(user.role)}
-                    </Badge>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-400">Status:</span>
-                    <Badge variant={user.isActive ? "default" : "secondary"}>
-                      {user.isActive ? "Ativo" : "Inativo"}
-                    </Badge>
-                  </div>
-
-                  {user.cpf && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-400">CPF:</span>
-                      <span className="text-sm font-mono text-gray-300">{user.cpf}</span>
-                    </div>
-                  )}
-
-                  {user.fairIds && user.fairIds.length > 0 && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-400">Feiras:</span>
-                      <span className="text-sm text-gray-300">{user.fairIds.length} feira(s)</span>
-                    </div>
-                  )}
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-400">Criado em:</span>
-                    <span className="text-sm text-gray-300">
-                      {user.createdAt ? new Date(user.createdAt).toLocaleDateString('pt-BR') : '-'}
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {filteredUsers.length === 0 && (
-          <Card className="bg-gray-800 border-gray-700">
-            <CardContent className="p-6 text-center">
-              <Users className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-              <h3 className="text-lg font-semibold text-gray-300 mb-2">
-                Nenhum usuário encontrado
-              </h3>
-              <p className="text-gray-400">
-                {searchTerm ? "Tente ajustar os filtros de busca." : "Comece criando um novo usuário."}
-              </p>
-            </CardContent>
-          </Card>
-        )}
+        {/* ── Lista ─────────────────────────────────────────────────── */}
+        <UserList
+          users={users ?? []}
+          isLoading={isLoading}
+          onView={handleViewUser}
+          onEdit={handleEditUser}
+          onDelete={handleDeleteUser}
+        />
       </div>
 
-      {/* Modais */}
       <UserDetailModal
         user={selectedUser}
         isOpen={isDetailModalOpen}

@@ -200,8 +200,8 @@ export function UserFormModal({ user, isOpen, onClose }: UserFormModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="w-[98vw] sm:min-w-[80vw] sm:max-w-5xl bg-brand-blue mx-auto rounded-[40px] border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.8)] p-0 ring-1 ring-white/5">
-        <DialogHeader className="p-10 border-b border-white/5 bg-white/2">
+      <DialogContent className="w-[98vw] sm:min-w-[80vw] sm:max-w-5xl max-h-[90vh] bg-brand-blue mx-auto rounded-[40px] border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.8)] p-0 ring-1 ring-white/5 flex flex-col overflow-hidden">
+        <DialogHeader className="p-10 border-b border-white/5 bg-white/2 shrink-0">
           <div className="flex flex-col gap-1">
              <span className="text-brand-pink font-black text-[10px] uppercase tracking-[0.4em]">Gestão de Acessos</span>
              <DialogTitle className="text-3xl font-black text-white uppercase tracking-tighter">
@@ -211,7 +211,7 @@ export function UserFormModal({ user, isOpen, onClose }: UserFormModalProps) {
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="p-10 space-y-10">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="p-10 space-y-10 overflow-y-auto flex-1">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {/* Nome */}
               <FormField
