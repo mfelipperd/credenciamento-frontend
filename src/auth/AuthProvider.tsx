@@ -94,37 +94,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
 
     if (user && user.role === EUserRole.CONSULTANT) {
-      // Se o usuário é um consultor, verificar se tem feiras associadas
       const userFairIds = user.fairIds || [];
-      
+
       if (userFairIds.length === 0) {
-        // Se não tem feiras associadas, redirecionar para login com mensagem
         navigate("/login", {
           replace: true,
-          state: { 
+          state: {
             from: location,
-            message: "Seu perfil não possui feiras associadas. Entre em contato para adquirir acesso."
+            message: "Seu perfil não possui feiras associadas. Entre em contato para adquirir acesso.",
           },
         });
         return;
       }
-      
-      // Se tem feiras associadas, redirecionar se estiver em páginas públicas/gerais
-      const restrictedPaths = ["/login", "/", ""];
-      if (restrictedPaths.includes(location.pathname)) {
-        const state = location.state;
-        if (state?.from) {
-          const { pathname, search = "" } = state.from;
-          if (location.pathname !== pathname) {
-            navigate(`${pathname}${search}`, { replace: true });
-            return;
-          }
-        }
-        
-        // Se não tem de onde vir, vai para o dashboard do consultor
-        if (location.pathname !== "/consultant-dashboard") {
-          navigate("/consultant-dashboard", { replace: true });
-        }
+
+      if (location.pathname !== "/consultant-dashboard") {
+        navigate("/consultant-dashboard", { replace: true });
       }
       return;
     }
