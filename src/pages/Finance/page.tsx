@@ -14,7 +14,6 @@ import type { RevenueFilters } from "@/interfaces/finance";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
