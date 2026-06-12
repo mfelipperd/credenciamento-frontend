@@ -9,7 +9,7 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Users, Lock, MessageCircle, MoreHorizontal, FileText, FileSpreadsheet, Loader2 } from "lucide-react";
+import { Users, Lock, MessageCircle, FileText, FileSpreadsheet, Loader2 } from "lucide-react";
 import { useVisitors } from "@/hooks/useVisitors";
 import { useUserSession } from "@/hooks/useUserSession";
 import { useAxio } from "@/hooks/useAxio";
@@ -31,20 +31,23 @@ export const EnhancedTableConsultant = () => {
     fairStatus,
   } = useUserSession();
 
-  const [search, setSearch] = useState(searchParams.get("search") ?? "");
-  const [debouncedSearch, setDebouncedSearch] = useState(search);
-  const [page, setPage] = useState(Number(searchParams.get("page")) || 1);
-  const [limit] = useState(Number(searchParams.get("limit")) || 50);
+  const page = Number(searchParams.get("page")) || 1;
+  const limit = Number(searchParams.get("limit")) || 50;
+  const search = searchParams.get("search") ?? "";
+  const debouncedSearch = search;
+
+  const handlePageChange = useCallback((newPage: number) => {
+    const params = new URLSearchParams(searchParams);
+    params.set("page", String(newPage));
+    setSearchParams(params, { replace: true });
+  }, [searchParams, setSearchParams]);
 
   useEffect(() => {
-    const urlSearch = searchParams.get("search") ?? "";
-    const urlPage = Number(searchParams.get("page")) || 1;
     const urlFairId = searchParams.get("fairId");
-
-    setSearch(urlSearch);
-    setPage(urlPage);
-    if (urlFairId) setSelectedFairId(urlFairId);
-  }, [searchParams, setSelectedFairId]);
+    if (urlFairId && urlFairId !== currentFairId) {
+      setSelectedFairId(urlFairId);
+    }
+  }, [searchParams, currentFairId, setSelectedFairId]);
 
   const {
     data: visitorsData,
@@ -148,41 +151,73 @@ export const EnhancedTableConsultant = () => {
   }, [api, currentFairId]);
 
   useEffect(() => {
-    const params = new URLSearchParams();
-    if (search) params.set("search", search);
-    params.set("page", String(page));
-    params.set("limit", String(limit));
-    if (currentFairId) params.set("fairId", currentFairId);
-    setSearchParams(params, { replace: true });
-  }, [search, page, limit, currentFairId, setSearchParams]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(search);
-      if (search !== (searchParams.get("search") ?? "")) setPage(1);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [search, searchParams]);
+    if (currentFairId) {
+      const urlFairId = searchParams.get("fairId");
+      const hasPage = searchParams.has("page");
+      const hasLimit = searchParams.has("limit");
+      
+      if (urlFairId !== currentFairId || !hasPage || !hasLimit) {
+        const params = new URLSearchParams(searchParams);
+        params.set("fairId", currentFairId);
+        if (!hasPage) params.set("page", String(page));
+        if (!hasLimit) params.set("limit", String(limit));
+        setSearchParams(params, { replace: true });
+      }
+    }
+  }, [currentFairId, searchParams, setSearchParams, page, limit]);
 
   return (
     <div className="flex flex-col min-h-screen bg-white dark:bg-slate-900">
 
       {/* ── Header ── */}
       <div className="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 px-6 py-5">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex items-center gap-3">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="flex items-center gap-4">
             <div className="bg-purple-100 dark:bg-purple-900/40 rounded-lg p-2.5">
               <Users className="h-5 w-5 text-purple-600 dark:text-purple-400" />
             </div>
-            <div>
-              <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Visitantes
-              </h1>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                {canAccessData && currentFairId
-                  ? "Dados dos visitantes da feira selecionada"
-                  : "Selecione uma feira para visualizar os dados"}
-              </p>
+            <div className="flex flex-col md:flex-row md:items-center gap-4">
+              <div>
+                <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Visitantes
+                </h1>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {canAccessData && currentFairId
+                    ? "Dados dos visitantes da feira selecionada"
+                    : "Selecione uma feira para visualizar os dados"}
+                </p>
+              </div>
+
+              {isConsultant && (
+                <div className="md:border-l border-gray-200 dark:border-slate-700 md:pl-4 py-1 text-xs">
+                  <p className="text-gray-600 dark:text-gray-400">
+                    <span className="font-semibold text-gray-800 dark:text-gray-200">{user?.name}</span>
+                    {" · "}
+                    {user?.email}
+                  </p>
+                  {fairStatus.type === "no_fairs" ? (
+                    <div className="flex items-center gap-2 mt-0.5 text-red-600 dark:text-red-400 font-semibold">
+                      <span>⚠️ {fairStatus.message}</span>
+                      <a
+                        href="https://api.whatsapp.com/send?phone=91982836424&text=Preciso%20de%20acesso%20aos%20dados%20da%20feira"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-red-600 hover:text-red-700 underline font-bold"
+                      >
+                        Solicitar acesso
+                      </a>
+                    </div>
+                  ) : !currentFairId ? (
+                    <p className="mt-0.5 text-amber-600 dark:text-amber-400 font-semibold">
+                      ⚠️ Selecione uma feira para acessar os dados.
+                    </p>
+                  ) : (
+                    <p className="mt-0.5 text-green-600 dark:text-green-400 font-semibold">
+                      ✅ {fairStatus.message}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
@@ -230,44 +265,6 @@ export const EnhancedTableConsultant = () => {
         </div>
       </div>
 
-      {/* ── Painel do consultor ── */}
-      {isConsultant && (
-        <div className="px-6 py-4 border-b border-gray-100 dark:border-slate-700 bg-gray-50 dark:bg-slate-800/50">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            <span className="font-medium text-gray-800 dark:text-gray-200">{user?.name}</span>
-            {" · "}
-            {user?.email}
-          </p>
-          {fairStatus.type === "no_fairs" ? (
-            <div className="mt-2 flex items-center gap-2 text-sm text-red-600 dark:text-red-400">
-              <span>⚠️ {fairStatus.message}</span>
-              <Button
-                asChild
-                size="sm"
-                variant="outline"
-                className="h-7 text-xs border-red-300 text-red-600 hover:bg-red-50"
-              >
-                <a
-                  href="https://api.whatsapp.com/send?phone=91982836424&text=Preciso%20de%20acesso%20aos%20dados%20da%20feira"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Solicitar acesso
-                </a>
-              </Button>
-            </div>
-          ) : !currentFairId ? (
-            <p className="mt-1 text-sm text-amber-600 dark:text-amber-400">
-              ⚠️ Selecione uma feira para acessar os dados.
-            </p>
-          ) : (
-            <p className="mt-1 text-sm text-green-600 dark:text-green-400">
-              ✅ {fairStatus.message}
-            </p>
-          )}
-        </div>
-      )}
-
       {/* ── Alerta sem acesso ── */}
       {!canAccessData && (
         <div className="mx-6 mt-4 mb-2 flex items-start gap-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-5">
@@ -314,14 +311,13 @@ export const EnhancedTableConsultant = () => {
               {visibleColumns.howDidYouKnow && <TableHead className="px-6">Como Conheceu</TableHead>}
               {visibleColumns.category && <TableHead className="px-6">Categoria</TableHead>}
               {visibleColumns.registrationDate && <TableHead className="px-6">Data Cadastro</TableHead>}
-              <TableHead className="px-6 text-center">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               <TableSkeleton
                 rows={limit > 10 ? 10 : limit}
-                columns={Object.values(visibleColumns).filter(Boolean).length + 1}
+                columns={Object.values(visibleColumns).filter(Boolean).length}
               />
             ) : visitors.length === 0 ? (
               <TableRow>
@@ -389,11 +385,6 @@ export const EnhancedTableConsultant = () => {
                       {new Date(visitor.registrationDate).toLocaleDateString("pt-BR")}
                     </TableCell>
                   )}
-                  <TableCell className="px-6 text-center">
-                    <Button variant="ghost" size="sm">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
                 </TableRow>
               ))
             )}
@@ -407,7 +398,7 @@ export const EnhancedTableConsultant = () => {
           variant="outline"
           size="sm"
           disabled={page === 1 || loading}
-          onClick={() => setPage((p) => p - 1)}
+          onClick={() => handlePageChange(page - 1)}
         >
           Anterior
         </Button>
@@ -425,7 +416,7 @@ export const EnhancedTableConsultant = () => {
           variant="outline"
           size="sm"
           disabled={(paginationMeta ? page >= paginationMeta.totalPages : false) || loading}
-          onClick={() => setPage((p) => p + 1)}
+          onClick={() => handlePageChange(page + 1)}
         >
           Próxima
         </Button>

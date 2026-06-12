@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, useRef } from "react";
-import { Outlet, useSearchParams } from "react-router-dom";
+import { Outlet, useSearchParams, useLocation } from "react-router-dom";
 import { useFairs } from "@/hooks/useFairs";
 import {
   LogOut,
@@ -30,6 +30,9 @@ export const MainLayout: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { user, availableFairIds } = useUserSession();
   const { signOut } = useAuth();
+  const location = useLocation();
+  const isConsultantDashboard = location.pathname === "/consultant-dashboard";
+  
   const [isSidebarOpen, setIsSidebarOpen] = useState(
     () => user?.role !== EUserRole.RECEPTIONIST,
   );
@@ -254,12 +257,14 @@ export const MainLayout: React.FC = () => {
     // App shell: altura travada no viewport — somente o <main> faz scroll
     <div className="h-screen flex overflow-hidden bg-background">
       {/* Sidebar */}
-      <Sidebar
-        isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
-        onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
-        search={search}
-      />
+      {!isConsultantDashboard && (
+        <Sidebar
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+          onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+          search={search}
+        />
+      )}
 
       {/* Coluna direita: cresce para preencher, não faz scroll */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
@@ -292,13 +297,15 @@ export const MainLayout: React.FC = () => {
             {/* Lado Esquerdo */}
             <div className="flex items-center gap-3 min-w-0">
               {/* Mobile: abre o drawer */}
-              <button
-                onClick={() => setIsSidebarOpen(true)}
-                className="p-2.5 rounded-xl hover:bg-white/10 transition-all active:scale-95 lg:hidden shrink-0 border border-white/5"
-                aria-label="Abrir menu"
-              >
-                <Menu className="h-5 w-5 text-white" />
-              </button>
+              {!isConsultantDashboard && (
+                <button
+                  onClick={() => setIsSidebarOpen(true)}
+                  className="p-2.5 rounded-xl hover:bg-white/10 transition-all active:scale-95 lg:hidden shrink-0 border border-white/5"
+                  aria-label="Abrir menu"
+                >
+                  <Menu className="h-5 w-5 text-white" />
+                </button>
+              )}
 
               <div className="flex items-center gap-4 min-w-0">
                 {/* Logo: sempre visível no mobile; no desktop só quando a sidebar está recolhida
@@ -309,14 +316,16 @@ export const MainLayout: React.FC = () => {
                   className={cn(
                     "h-7 sm:h-9 w-auto shrink-0",
                     // mobile: hidden xs → visible; desktop: oculto quando sidebar aberta
-                    isSidebarOpen
-                      ? "hidden xs:hidden lg:hidden"
-                      : "hidden xs:block",
+                    isConsultantDashboard
+                      ? "block"
+                      : isSidebarOpen
+                        ? "hidden xs:hidden lg:hidden"
+                        : "hidden xs:block",
                   )}
                 />
 
                 {/* Desktop: botão para expandir a sidebar quando recolhida */}
-                {!isSidebarOpen && (
+                {!isSidebarOpen && !isConsultantDashboard && (
                   <button
                     onClick={() => setIsSidebarOpen(true)}
                     className="hidden lg:flex p-2 rounded-xl hover:bg-white/10 transition-all text-white/50 hover:text-white shrink-0 border border-white/5"
@@ -331,7 +340,7 @@ export const MainLayout: React.FC = () => {
                 <div
                   className={cn(
                     "h-6 w-px bg-white/10 shrink-0",
-                    isSidebarOpen
+                    (isSidebarOpen && !isConsultantDashboard)
                       ? "hidden sm:hidden lg:hidden"
                       : "hidden sm:block",
                   )}
