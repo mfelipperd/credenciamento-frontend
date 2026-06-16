@@ -88,7 +88,9 @@ export const MainLayout: React.FC = () => {
   // Filtros locais para a busca de feiras no popover
   const [isFairPopoverOpen, setIsFairPopoverOpen] = useState(false);
   const [fairSearchText, setFairSearchText] = useState("");
-  const [selectedYearFilter, setSelectedYearFilter] = useState<string>("all");
+  const [selectedYearFilter, setSelectedYearFilter] = useState<string>(
+    new Date().getFullYear().toString()
+  );
   const [selectedStatusFilter, setSelectedStatusFilter] =
     useState<string>("all"); // "all", "active", "inactive"
 
