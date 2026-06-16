@@ -115,6 +115,8 @@ function countValidCnpjs(text: string): number {
     .filter((s) => s.length === 14).length;
 }
 
+import { ProspectMap } from "./ProspectMap";
+
 // ─── Chart theme (consistent with dashboard) ──────────────────────────────────
 
 const geoChartBase: ApexOptions = {
@@ -223,17 +225,51 @@ function GeoSection({ geo, loading }: GeoSectionProps) {
 
   const barHeight = (count: number) => Math.max(count * 28 + 40, 120);
 
+  const hasMap = !!geo.mapbox?.statesGeoJson?.features?.length;
+  const hasNeighborhoodMap = !!geo.mapbox?.neighborhoodsGeoJson?.features?.length;
+
   return (
     <div className="glass-card border-white/5 rounded-[32px] p-6 space-y-6">
+      {/* Header */}
       <div className="flex items-center gap-3">
         <MapPin className="h-5 w-5 text-brand-pink" />
         <h2 className="text-sm font-black text-white uppercase tracking-widest">
           Distribuição Geográfica
         </h2>
+        {hasMap && (
+          <div className="flex items-center gap-1.5 ml-auto flex-wrap">
+            <span className="w-2.5 h-2.5 rounded-full bg-brand-pink inline-block" />
+            <span className="text-[9px] text-white/30 font-black uppercase tracking-widest">Estados</span>
+            <span className="w-2.5 h-2.5 rounded-full bg-brand-cyan inline-block ml-2" />
+            <span className="text-[9px] text-white/30 font-black uppercase tracking-widest">Cidades</span>
+            {hasNeighborhoodMap && (
+              <>
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block ml-2" />
+                <span className="text-[9px] text-white/30 font-black uppercase tracking-widest">Bairros</span>
+              </>
+            )}
+          </div>
+        )}
       </div>
 
+      {/* ── Map highlight ── */}
+      {loading ? (
+        <div className="h-[420px] bg-white/5 rounded-2xl animate-pulse" />
+      ) : hasMap ? (
+        <ProspectMap
+          statesGeoJson={geo.mapbox!.statesGeoJson}
+          citiesGeoJson={geo.mapbox!.citiesGeoJson}
+          neighborhoodsGeoJson={geo.mapbox?.neighborhoodsGeoJson}
+          fairCenter={geo.fairCenter}
+          height={420}
+        />
+      ) : (
+        <EmptyGeo label="Mapa disponível após enriquecimento dos CNPJs" height={200} />
+      )}
+
+      {/* ── Bar charts below the map ── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* States */}
+        {/* States bar */}
         <div className="space-y-2">
           <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">
             Top Estados
@@ -252,7 +288,7 @@ function GeoSection({ geo, loading }: GeoSectionProps) {
           )}
         </div>
 
-        {/* Cities */}
+        {/* Cities bar */}
         <div className="space-y-2">
           <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">
             Top Cidades
@@ -276,7 +312,7 @@ function GeoSection({ geo, loading }: GeoSectionProps) {
       <div className="space-y-2">
         <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">
           Top Bairros
-          <span className="ml-2 text-white/15 normal-case font-normal">
+          <span className="ml-2 text-white/15 normal-case font-normal tracking-normal">
             · populado conforme CNPJs são enriquecidos
           </span>
         </p>
@@ -290,16 +326,19 @@ function GeoSection({ geo, loading }: GeoSectionProps) {
             height={barHeight(neighborhoodCategories.length)}
           />
         ) : (
-          <EmptyGeo label="Bairros serão exibidos após o enriquecimento dos CNPJs" />
+          <EmptyGeo label="Bairros exibidos após enriquecimento dos CNPJs" />
         )}
       </div>
     </div>
   );
 }
 
-function EmptyGeo({ label }: { label: string }) {
+function EmptyGeo({ label, height = 96 }: { label: string; height?: number }) {
   return (
-    <div className="h-24 flex items-center justify-center border border-white/5 rounded-xl">
+    <div
+      style={{ height }}
+      className="flex items-center justify-center border border-white/5 rounded-xl"
+    >
       <p className="text-white/20 text-xs font-black uppercase tracking-widest text-center px-4">
         {label}
       </p>
@@ -647,7 +686,12 @@ export const ProspectsTab: React.FC<ProspectsTabProps> = ({ fairId }) => {
       )}
 
       {/* Geographic Distribution */}
-      {geoAnalytics && <GeoSection geo={geoAnalytics} loading={loadingAnalytics} />}
+      {geoAnalytics && (
+        <GeoSection
+          geo={geoAnalytics}
+          loading={loadingAnalytics}
+        />
+      )}
 
       {/* Prospects list */}
       <div className="glass-card border-white/5 rounded-[32px] p-6 space-y-4">

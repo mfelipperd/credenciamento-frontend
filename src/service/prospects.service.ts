@@ -78,28 +78,60 @@ export interface PaginatedProspects {
   totalPages: number;
 }
 
+export interface GeoJsonFeature {
+  type: "Feature";
+  geometry: { type: "Point"; coordinates: [number, number] };
+  properties: { state?: string; city?: string; count: number; percentage: number };
+}
+
+export interface GeoJsonCollection {
+  type: "FeatureCollection";
+  features: GeoJsonFeature[];
+}
+
 export interface ProspectGeoAnalytics {
-  byState: Array<{ state: string; count: number; percentage: number }>;
-  byCity: Array<{ city: string; state: string; count: number }>;
+  fairCenter?: {
+    longitude: number;
+    latitude: number;
+    city: string | null;
+    state: string | null;
+    zoom: number;
+  } | null;
+  summary?: {
+    totalProspects: number;
+    withState: number;
+    withCity: number;
+    withNeighborhood: number;
+    withCoordinates: number;
+    uniqueStates: number;
+    uniqueCities: number;
+    uniqueNeighborhoods: number;
+  };
+  byState: Array<{ state: string; count: number; percentage: number; coordinates?: [number, number] | null }>;
+  byCity: Array<{ city: string; state: string; count: number; coordinates?: [number, number] | null }>;
   byNeighborhood: Array<{
     neighborhood: string;
     city: string;
     state: string;
     count: number;
+    coordinates?: [number, number] | null;
   }>;
-  bySectorPerState: Array<{ state: string; sector: string; count: number }>;
+  bySectorPerState: Array<{ state: string; sectors: Array<{ sector: string; count: number }> }>;
   charts: {
     stateBar: {
       categories: string[];
       series: [{ name: string; data: number[] }];
     };
-    cityTreemap: {
-      series: [{ data: Array<{ x: string; y: number }> }];
-    };
+    cityTreemap: Array<{ x: string; y: number }>;
     neighborhoodBar: {
       categories: string[];
       series: [{ name: string; data: number[] }];
     };
+  };
+  mapbox?: {
+    statesGeoJson: GeoJsonCollection;
+    citiesGeoJson: GeoJsonCollection;
+    neighborhoodsGeoJson: GeoJsonCollection;
   };
 }
 
