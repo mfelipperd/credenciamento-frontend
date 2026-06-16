@@ -142,6 +142,15 @@ export const AppEndpoints = {
     COMPARE_MARGINS:         (fairIds: string[]) => `/charts/compare/margins?fairIds=${fairIds.join(",")}`,
     COMPARE_EXPENSES:        (fairIds: string[]) => `/charts/compare/expenses-breakdown?fairIds=${fairIds.join(",")}`,
   },
+  PROSPECTS: {
+    BY_FAIR: (fairId: string) => `/fairs/${fairId}/prospects`,
+    BY_ID: (fairId: string, id: string) => `/fairs/${fairId}/prospects/${id}`,
+    IMPORT_CNPJS: (fairId: string) => `/fairs/${fairId}/prospects/import-cnpjs`,
+    UPDATE_STATUS: (fairId: string, id: string) => `/fairs/${fairId}/prospects/${id}/status`,
+    ENRICH: (fairId: string, id: string) => `/fairs/${fairId}/prospects/${id}/enrich`,
+    ANALYTICS: (fairId: string) => `/fairs/${fairId}/prospects/analytics`,
+    ENRICH_ALL: (fairId: string) => `/fairs/${fairId}/prospects/enrich-all`,
+  },
   FAIR_PARTNERS: {
     BASE: "/fair-partners",
     BY_FAIR: (fairId: string) => `/fair-partners/fair/${fairId}`,
