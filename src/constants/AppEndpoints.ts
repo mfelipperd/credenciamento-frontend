@@ -149,6 +149,7 @@ export const AppEndpoints = {
     UPDATE_STATUS: (fairId: string, id: string) => `/fairs/${fairId}/prospects/${id}/status`,
     ENRICH: (fairId: string, id: string) => `/fairs/${fairId}/prospects/${id}/enrich`,
     ANALYTICS: (fairId: string) => `/fairs/${fairId}/prospects/analytics`,
+    GEO_ANALYTICS: (fairId: string) => `/fairs/${fairId}/prospects/analytics/geo`,
     ENRICH_ALL: (fairId: string) => `/fairs/${fairId}/prospects/enrich-all`,
   },
   FAIR_PARTNERS: {

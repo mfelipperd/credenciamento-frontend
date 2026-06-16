@@ -78,6 +78,31 @@ export interface PaginatedProspects {
   totalPages: number;
 }
 
+export interface ProspectGeoAnalytics {
+  byState: Array<{ state: string; count: number; percentage: number }>;
+  byCity: Array<{ city: string; state: string; count: number }>;
+  byNeighborhood: Array<{
+    neighborhood: string;
+    city: string;
+    state: string;
+    count: number;
+  }>;
+  bySectorPerState: Array<{ state: string; sector: string; count: number }>;
+  charts: {
+    stateBar: {
+      categories: string[];
+      series: [{ name: string; data: number[] }];
+    };
+    cityTreemap: {
+      series: [{ data: Array<{ x: string; y: number }> }];
+    };
+    neighborhoodBar: {
+      categories: string[];
+      series: [{ name: string; data: number[] }];
+    };
+  };
+}
+
 export interface DashboardOverview {
   fairId: string;
   totalVisitors: number;
@@ -165,6 +190,15 @@ export const useProspectsService = () => {
     return response as Prospect | null;
   };
 
+  const getProspectGeoAnalytics = async (
+    fairId: string
+  ): Promise<ProspectGeoAnalytics | null> => {
+    const response = await handleRequest({
+      request: () => api.get(AppEndpoints.PROSPECTS.GEO_ANALYTICS(fairId)),
+    });
+    return response as ProspectGeoAnalytics | null;
+  };
+
   const deleteProspect = async (
     fairId: string,
     id: string
@@ -178,6 +212,7 @@ export const useProspectsService = () => {
   return {
     getDashboardOverview,
     getProspectAnalytics,
+    getProspectGeoAnalytics,
     getProspects,
     updateProspectStatus,
     importCnpjs,

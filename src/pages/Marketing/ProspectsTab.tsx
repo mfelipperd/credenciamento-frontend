@@ -1,4 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
+import Chart from "react-apexcharts";
+import type { ApexOptions } from "apexcharts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +25,7 @@ import {
   type ProspectType,
   type Prospect,
   type ProspectAnalytics,
+  type ProspectGeoAnalytics,
   type DashboardOverview,
 } from "@/service/prospects.service";
 import { toast } from "sonner";
@@ -41,6 +44,7 @@ import {
   ChevronRight,
   CheckCircle2,
   Sparkles,
+  MapPin,
 } from "lucide-react";
 
 // ─── Config ──────────────────────────────────────────────────────────────────
@@ -111,6 +115,198 @@ function countValidCnpjs(text: string): number {
     .filter((s) => s.length === 14).length;
 }
 
+// ─── Chart theme (consistent with dashboard) ──────────────────────────────────
+
+const geoChartBase: ApexOptions = {
+  chart: {
+    background: "transparent",
+    foreColor: "rgba(255,255,255,0.4)",
+    toolbar: { show: false },
+    zoom: { enabled: false },
+    animations: { enabled: true, speed: 400 },
+  },
+  theme: { mode: "dark" },
+  grid: { borderColor: "rgba(255,255,255,0.05)", strokeDashArray: 4 },
+  tooltip: { theme: "dark", style: { fontSize: "12px" } },
+  plotOptions: {
+    bar: {
+      horizontal: true,
+      borderRadius: 4,
+      dataLabels: { position: "right" },
+    },
+  },
+  dataLabels: {
+    enabled: true,
+    style: { fontSize: "10px", fontWeight: "bold" },
+    offsetX: 4,
+  },
+  xaxis: {
+    labels: {
+      style: { colors: "rgba(255,255,255,0.3)", fontSize: "10px" },
+    },
+    axisBorder: { show: false },
+    axisTicks: { show: false },
+  },
+  yaxis: {
+    labels: {
+      style: { colors: "rgba(255,255,255,0.5)", fontSize: "11px" },
+      maxWidth: 120,
+    },
+  },
+};
+
+// ─── GeoSection ───────────────────────────────────────────────────────────────
+
+interface GeoSectionProps {
+  geo: ProspectGeoAnalytics;
+  loading: boolean;
+}
+
+function GeoSection({ geo, loading }: GeoSectionProps) {
+  // States chart — top 12
+  const stateCategories = geo.charts?.stateBar?.categories?.slice(0, 12) ?? [];
+  const stateSeries = [
+    {
+      name: "Prospects",
+      data: geo.charts?.stateBar?.series?.[0]?.data?.slice(0, 12) ?? [],
+    },
+  ];
+
+  // Cities chart — top 12 from byCity
+  const topCities = (geo.byCity ?? []).slice(0, 12);
+  const cityCategories = topCities.map((c) => `${c.city}/${c.state}`);
+  const citySeries = [{ name: "Prospects", data: topCities.map((c) => c.count) }];
+
+  // Neighborhoods chart — top 12
+  const neighborhoodCategories =
+    geo.charts?.neighborhoodBar?.categories?.slice(0, 12) ?? [];
+  const neighborhoodSeries = [
+    {
+      name: "Prospects",
+      data: geo.charts?.neighborhoodBar?.series?.[0]?.data?.slice(0, 12) ?? [],
+    },
+  ];
+
+  const hasStates = stateCategories.length > 0;
+  const hasCities = cityCategories.length > 0;
+  const hasNeighborhoods = neighborhoodCategories.length > 0;
+
+  const stateOptions: ApexOptions = {
+    ...geoChartBase,
+    colors: ["#00aacd"],
+    xaxis: {
+      ...geoChartBase.xaxis,
+      categories: stateCategories,
+    },
+    dataLabels: { ...geoChartBase.dataLabels, formatter: (v) => String(v) },
+  };
+
+  const cityOptions: ApexOptions = {
+    ...geoChartBase,
+    colors: ["#EB2970"],
+    xaxis: {
+      ...geoChartBase.xaxis,
+      categories: cityCategories,
+    },
+    dataLabels: { ...geoChartBase.dataLabels, formatter: (v) => String(v) },
+  };
+
+  const neighborhoodOptions: ApexOptions = {
+    ...geoChartBase,
+    colors: ["#f59e0b"],
+    xaxis: {
+      ...geoChartBase.xaxis,
+      categories: neighborhoodCategories,
+    },
+    dataLabels: { ...geoChartBase.dataLabels, formatter: (v) => String(v) },
+  };
+
+  const barHeight = (count: number) => Math.max(count * 28 + 40, 120);
+
+  return (
+    <div className="glass-card border-white/5 rounded-[32px] p-6 space-y-6">
+      <div className="flex items-center gap-3">
+        <MapPin className="h-5 w-5 text-brand-pink" />
+        <h2 className="text-sm font-black text-white uppercase tracking-widest">
+          Distribuição Geográfica
+        </h2>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* States */}
+        <div className="space-y-2">
+          <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">
+            Top Estados
+          </p>
+          {loading ? (
+            <div className="h-48 bg-white/5 rounded-xl animate-pulse" />
+          ) : hasStates ? (
+            <Chart
+              type="bar"
+              series={stateSeries}
+              options={stateOptions}
+              height={barHeight(stateCategories.length)}
+            />
+          ) : (
+            <EmptyGeo label="Nenhum estado mapeado ainda" />
+          )}
+        </div>
+
+        {/* Cities */}
+        <div className="space-y-2">
+          <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">
+            Top Cidades
+          </p>
+          {loading ? (
+            <div className="h-48 bg-white/5 rounded-xl animate-pulse" />
+          ) : hasCities ? (
+            <Chart
+              type="bar"
+              series={citySeries}
+              options={cityOptions}
+              height={barHeight(cityCategories.length)}
+            />
+          ) : (
+            <EmptyGeo label="Nenhuma cidade mapeada ainda" />
+          )}
+        </div>
+      </div>
+
+      {/* Neighborhoods — full width */}
+      <div className="space-y-2">
+        <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">
+          Top Bairros
+          <span className="ml-2 text-white/15 normal-case font-normal">
+            · populado conforme CNPJs são enriquecidos
+          </span>
+        </p>
+        {loading ? (
+          <div className="h-32 bg-white/5 rounded-xl animate-pulse" />
+        ) : hasNeighborhoods ? (
+          <Chart
+            type="bar"
+            series={neighborhoodSeries}
+            options={neighborhoodOptions}
+            height={barHeight(neighborhoodCategories.length)}
+          />
+        ) : (
+          <EmptyGeo label="Bairros serão exibidos após o enriquecimento dos CNPJs" />
+        )}
+      </div>
+    </div>
+  );
+}
+
+function EmptyGeo({ label }: { label: string }) {
+  return (
+    <div className="h-24 flex items-center justify-center border border-white/5 rounded-xl">
+      <p className="text-white/20 text-xs font-black uppercase tracking-widest text-center px-4">
+        {label}
+      </p>
+    </div>
+  );
+}
+
 // ─── Component ───────────────────────────────────────────────────────────────
 
 interface ProspectsTabProps {
@@ -121,6 +317,7 @@ export const ProspectsTab: React.FC<ProspectsTabProps> = ({ fairId }) => {
   const {
     getDashboardOverview,
     getProspectAnalytics,
+    getProspectGeoAnalytics,
     getProspects,
     updateProspectStatus,
     importCnpjs,
@@ -131,6 +328,7 @@ export const ProspectsTab: React.FC<ProspectsTabProps> = ({ fairId }) => {
   // Dashboard state
   const [overview, setOverview] = useState<DashboardOverview | null>(null);
   const [analytics, setAnalytics] = useState<ProspectAnalytics | null>(null);
+  const [geoAnalytics, setGeoAnalytics] = useState<ProspectGeoAnalytics | null>(null);
   const [loadingAnalytics, setLoadingAnalytics] = useState(false);
 
   // Prospects list state
@@ -162,12 +360,14 @@ export const ProspectsTab: React.FC<ProspectsTabProps> = ({ fairId }) => {
   const loadAnalytics = useCallback(async () => {
     if (!fairId) return;
     setLoadingAnalytics(true);
-    const [ov, an] = await Promise.all([
+    const [ov, an, geo] = await Promise.all([
       getDashboardOverview(fairId),
       getProspectAnalytics(fairId),
+      getProspectGeoAnalytics(fairId),
     ]);
     if (ov) setOverview(ov);
     if (an) setAnalytics(an);
+    if (geo) setGeoAnalytics(geo);
     setLoadingAnalytics(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fairId]);
@@ -445,6 +645,9 @@ export const ProspectsTab: React.FC<ProspectsTabProps> = ({ fairId }) => {
           </div>
         </div>
       )}
+
+      {/* Geographic Distribution */}
+      {geoAnalytics && <GeoSection geo={geoAnalytics} loading={loadingAnalytics} />}
 
       {/* Prospects list */}
       <div className="glass-card border-white/5 rounded-[32px] p-6 space-y-4">
