@@ -1,4 +1,13 @@
-import { DollarSign, TrendingUp, Calendar, Lightbulb, Target, BarChart3, Users, CreditCard } from "lucide-react";
+import {
+  DollarSign,
+  TrendingUp,
+  Calendar,
+  Lightbulb,
+  Target,
+  BarChart3,
+  Users,
+  CreditCard,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -13,11 +22,17 @@ interface PartnerViewProps {
   isAdminView?: boolean;
 }
 
-export function PartnerView({ partner: propPartner, fairId, isAdminView = false }: PartnerViewProps) {
-  
+export function PartnerView({
+  partner: propPartner,
+  fairId,
+  isAdminView = false,
+}: PartnerViewProps) {
   const partner = propPartner;
-  
-  const { data: financialSummary } = useFairPartnerFinancialSummary(fairId || "", partner?.partnerId || "");
+
+  const { data: financialSummary } = useFairPartnerFinancialSummary(
+    fairId || "",
+    partner?.partnerId || "",
+  );
   const { data: cashFlowData } = useCashFlowAnalysis(fairId || "");
 
   const formatCurrency = (value: number | null | undefined) => {
@@ -37,10 +52,11 @@ export function PartnerView({ partner: propPartner, fairId, isAdminView = false 
     return `${Number(value).toFixed(1)}%`;
   };
 
-
   // Calcular lucro do sócio baseado na porcentagem
-  const totalFairProfit = cashFlowData?.netProfit || 0;
-  const partnerProfit = partner ? (totalFairProfit * partner.percentage) / 100 : 0;
+  const totalFairProfit = cashFlowData?.netBalance ?? 0;
+  const partnerProfit = partner
+    ? (totalFairProfit * partner.percentage) / 100
+    : 0;
   const monthlyIdealWithdrawal = partnerProfit / 12;
   const quarterlyIdealWithdrawal = partnerProfit / 4;
   const yearlyIdealWithdrawal = partnerProfit;
@@ -64,21 +80,21 @@ export function PartnerView({ partner: propPartner, fairId, isAdminView = false 
         type: "success",
         icon: "💰",
         title: "Saldo Alto",
-        description: `Você tem R$ ${formatCurrency(availableBalance)} disponível. Considere fazer retiradas mensais de R$ ${formatCurrency(monthlyIdeal)} para manter um fluxo regular.`
+        description: `Você tem R$ ${formatCurrency(availableBalance)} disponível. Considere fazer retiradas mensais de R$ ${formatCurrency(monthlyIdeal)} para manter um fluxo regular.`,
       });
     } else if (availableBalance > monthlyIdeal) {
       insights.push({
         type: "warning",
         icon: "⚠️",
         title: "Saldo Moderado",
-        description: `Seu saldo de R$ ${formatCurrency(availableBalance)} permite retiradas. Recomendamos retirar R$ ${formatCurrency(monthlyIdeal)} por mês.`
+        description: `Seu saldo de R$ ${formatCurrency(availableBalance)} permite retiradas. Recomendamos retirar R$ ${formatCurrency(monthlyIdeal)} por mês.`,
       });
     } else {
       insights.push({
         type: "info",
         icon: "ℹ️",
         title: "Saldo Baixo",
-        description: `Seu saldo atual é R$ ${formatCurrency(availableBalance)}. Aguarde mais lucros antes de fazer retiradas.`
+        description: `Seu saldo atual é R$ ${formatCurrency(availableBalance)}. Aguarde mais lucros antes de fazer retiradas.`,
       });
     }
 
@@ -88,21 +104,21 @@ export function PartnerView({ partner: propPartner, fairId, isAdminView = false 
         type: "success",
         icon: "🎯",
         title: "Sócio Majoritário",
-        description: `Com ${formatPercentage(partner.percentage)} de participação, você pode considerar retiradas trimestrais de R$ ${formatCurrency(quarterlyIdealWithdrawal)}.`
+        description: `Com ${formatPercentage(partner.percentage)} de participação, você pode considerar retiradas trimestrais de R$ ${formatCurrency(quarterlyIdealWithdrawal)}.`,
       });
     } else if (partner.percentage >= 25) {
       insights.push({
         type: "info",
         icon: "📊",
         title: "Participação Significativa",
-        description: `Sua participação de ${formatPercentage(partner.percentage)} sugere retiradas mensais de R$ ${formatCurrency(monthlyIdeal)}.`
+        description: `Sua participação de ${formatPercentage(partner.percentage)} sugere retiradas mensais de R$ ${formatCurrency(monthlyIdeal)}.`,
       });
     } else {
       insights.push({
         type: "info",
         icon: "💡",
         title: "Participação Menor",
-        description: `Com ${formatPercentage(partner.percentage)} de participação, considere retiradas menores e mais frequentes.`
+        description: `Com ${formatPercentage(partner.percentage)} de participação, considere retiradas menores e mais frequentes.`,
       });
     }
 
@@ -114,14 +130,15 @@ export function PartnerView({ partner: propPartner, fairId, isAdminView = false 
         type: "warning",
         icon: "📅",
         title: "Sem Retiradas Recentes",
-        description: "Você não fez retiradas nos últimos 3 meses. Considere fazer uma retirada se o saldo permitir."
+        description:
+          "Você não fez retiradas nos últimos 3 meses. Considere fazer uma retirada se o saldo permitir.",
       });
     } else if (recentWithdrawals.length >= 3) {
       insights.push({
         type: "success",
         icon: "✅",
         title: "Retiradas Regulares",
-        description: `Excelente! Você fez ${recentWithdrawals.length} retiradas nos últimos 3 meses, mantendo um fluxo regular.`
+        description: `Excelente! Você fez ${recentWithdrawals.length} retiradas nos últimos 3 meses, mantendo um fluxo regular.`,
       });
     }
 
@@ -157,7 +174,9 @@ export function PartnerView({ partner: propPartner, fairId, isAdminView = false 
     return (
       <div className="text-center py-8">
         <p className="text-gray-600 dark:text-gray-400">
-          {isAdminView ? "Selecione um sócio para visualizar" : "Não foi possível carregar os dados do sócio."}
+          {isAdminView
+            ? "Selecione um sócio para visualizar"
+            : "Não foi possível carregar os dados do sócio."}
         </p>
       </div>
     );
@@ -169,10 +188,13 @@ export function PartnerView({ partner: propPartner, fairId, isAdminView = false 
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            {isAdminView ? `Visão do Sócio: ${partner.partnerName || "Nome não disponível"}` : `Olá, ${partner.partnerName || "Nome não disponível"}!`}
+            {isAdminView
+              ? `Visão do Sócio: ${partner.partnerName || "Nome não disponível"}`
+              : `Olá, ${partner.partnerName || "Nome não disponível"}!`}
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
-            {isAdminView ? "Perspectiva do sócio" : "Seu painel de sócio"} - {formatPercentage(partner.percentage)} de participação
+            {isAdminView ? "Perspectiva do sócio" : "Seu painel de sócio"} -{" "}
+            {formatPercentage(partner.percentage)} de participação
           </p>
         </div>
         {!isAdminView && (
@@ -196,9 +218,7 @@ export function PartnerView({ partner: propPartner, fairId, isAdminView = false 
             <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
               {formatPercentage(partner.percentage)}
             </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              da feira
-            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">da feira</p>
           </CardContent>
         </Card>
 
@@ -268,11 +288,11 @@ export function PartnerView({ partner: propPartner, fairId, isAdminView = false 
               <div
                 key={index}
                 className={`p-4 rounded-lg border-l-4 ${
-                  insight.type === "success" 
-                    ? "bg-green-50 dark:bg-green-900/20 border-green-500" 
+                  insight.type === "success"
+                    ? "bg-green-50 dark:bg-green-900/20 border-green-500"
                     : insight.type === "warning"
-                    ? "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-500"
-                    : "bg-blue-50 dark:bg-blue-900/20 border-blue-500"
+                      ? "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-500"
+                      : "bg-blue-50 dark:bg-blue-900/20 border-blue-500"
                 }`}
               >
                 <div className="flex items-start gap-3">
@@ -355,34 +375,46 @@ export function PartnerView({ partner: propPartner, fairId, isAdminView = false 
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
-                <h4 className="font-semibold text-gray-900 dark:text-white">Ganhos</h4>
+                <h4 className="font-semibold text-gray-900 dark:text-white">
+                  Ganhos
+                </h4>
                 <div className="space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Total Ganho</span>
+                    <span className="text-gray-600 dark:text-gray-400">
+                      Total Ganho
+                    </span>
                     <span className="font-semibold text-green-600 dark:text-green-400">
                       {formatCurrency(financialSummary.totalEarnings)}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Seu Lucro Atual</span>
+                    <span className="text-gray-600 dark:text-gray-400">
+                      Seu Lucro Atual
+                    </span>
                     <span className="font-semibold text-purple-600 dark:text-purple-400">
                       {formatCurrency(partnerProfit)}
                     </span>
                   </div>
                 </div>
               </div>
-              
+
               <div className="space-y-4">
-                <h4 className="font-semibold text-gray-900 dark:text-white">Retiradas</h4>
+                <h4 className="font-semibold text-gray-900 dark:text-white">
+                  Retiradas
+                </h4>
                 <div className="space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Valor Pendente</span>
+                    <span className="text-gray-600 dark:text-gray-400">
+                      Valor Pendente
+                    </span>
                     <span className="font-semibold text-orange-600 dark:text-orange-400">
                       {formatCurrency(financialSummary.pendingWithdrawals)}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Saldo Disponível</span>
+                    <span className="text-gray-600 dark:text-gray-400">
+                      Saldo Disponível
+                    </span>
                     <span className="font-semibold text-orange-600 dark:text-orange-400">
                       {formatCurrency(financialSummary.availableBalance)}
                     </span>

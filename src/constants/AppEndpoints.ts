@@ -40,11 +40,14 @@ export const AppEndpoints = {
     BASE: "/partners",
     ME: "/partners/me",
     BY_ID: (id: string) => `/partners/${id}`,
-    FINANCIAL_SUMMARY: (partnerId: string) => `/partners/${partnerId}/financial-summary`,
+    FINANCIAL_SUMMARY: (partnerId: string) =>
+      `/partners/${partnerId}/financial-summary`,
     AVAILABLE_PERCENTAGE: "/partners/available-percentage",
-    COMPLETE_DASHBOARD: (partnerId: string) => `/partners/${partnerId}/complete-dashboard`,
+    COMPLETE_DASHBOARD: (partnerId: string) =>
+      `/partners/${partnerId}/complete-dashboard`,
     WITHDRAWALS: (partnerId: string) => `/partners/${partnerId}/withdrawals`,
-    WITHDRAWALS_BY_FAIR: (partnerId: string, fairId: string) => `/partners/${partnerId}/withdrawals/fair/${fairId}`,
+    WITHDRAWALS_BY_FAIR: (partnerId: string, fairId: string) =>
+      `/partners/${partnerId}/withdrawals/fair/${fairId}`,
     APPROVE_WITHDRAWAL: (id: string) => `/partners/withdrawals/${id}/approve`,
     REJECT_WITHDRAWAL: (id: string) => `/partners/withdrawals/${id}/reject`,
     UPDATE_WITHDRAWAL: (id: string) => `/partners/withdrawals/${id}`,
@@ -63,46 +66,60 @@ export const AppEndpoints = {
     BRAND_BY_ID: (id: string) => `/finance/brands/${id}`,
     CLIENT_IMAGES: (clientId: string) => `/finance/clients/${clientId}/images`,
     CLIENT_IMAGES_ALL: "/finance/clients/images",
-    CLIENT_IMAGE_BY_ID: (imageId: string) => `/finance/clients/images/${imageId}`,
-    CLIENT_IMAGE_LINK_FAIR: (imageId: string, fairId: string) => `/finance/clients/images/${imageId}/link-fair/${fairId}`,
-    CLIENT_IMAGES_BY_FAIR: (fairId: string) => `/finance/clients/images/by-fair/${fairId}`,
+    CLIENT_IMAGE_BY_ID: (imageId: string) =>
+      `/finance/clients/images/${imageId}`,
+    CLIENT_IMAGE_LINK_FAIR: (imageId: string, fairId: string) =>
+      `/finance/clients/images/${imageId}/link-fair/${fairId}`,
+    CLIENT_IMAGES_BY_FAIR: (fairId: string) =>
+      `/finance/clients/images/by-fair/${fairId}`,
     CATEGORIES: "/finance/categories",
     CATEGORY_BY_ID: (id: string) => `/finance/categories/${id}`,
     CATEGORIES_BY_FAIR: (fairId: string) => `/categories/fair/${fairId}`,
     ACCOUNTS: "/accounts",
     ACCOUNT_BY_ID: (id: string) => `/accounts/${id}`,
-    CASH_FLOW_DISTRIBUTE: (fairId: string) => `/cash-flow/distribute-profit/${fairId}`,
-    CASH_FLOW_ANALYSIS: (fairId: string) => `/cash-flow/analysis/fair/${fairId}`,
+    CASH_FLOW_DISTRIBUTE: (fairId: string) =>
+      `/cash-flow/distribute-profit/${fairId}`,
+    CASH_FLOW_ANALYSIS: (fairId: string) =>
+      `/cash-flow/report/consolidated/${fairId}`,
     REVENUES: "/finance/revenues",
     REVENUE_BY_ID: (id: string) => `/finance/revenues/${id}`,
-    REVENUE_BY_CLIENT: (clientId: string) => `/finance/revenues/client/${clientId}`,
+    REVENUE_BY_CLIENT: (clientId: string) =>
+      `/finance/revenues/client/${clientId}`,
     REVENUE_CANCEL: (id: string) => `/finance/revenues/${id}/cancel`,
     REVENUE_STATS: (fairId: string) => `/finance/revenues/stats/${fairId}`,
     REVENUE_KPIS: "/finance/kpis",
     REVENUE_TOP_COMPANIES: "/finance/top-empresas",
     REVENUE_BY_TYPE: "/finance/revenues/analytics/by-type",
     REVENUE_BY_MODEL: "/finance/revenues/analytics/by-model",
-    REVENUE_INSTALLMENTS_GENERATE: (id: string) => `/finance/revenues/${id}/installments/generate`,
-    REVENUE_INSTALLMENT_UPDATE: (id: string) => `/finance/revenues/installment/${id}`,
-    REVENUE_INSTALLMENT_PAY: (id: string) => `/finance/revenues/installment/${id}/confirm-payment`,
+    REVENUE_INSTALLMENTS_GENERATE: (id: string) =>
+      `/finance/revenues/${id}/installments/generate`,
+    REVENUE_INSTALLMENT_UPDATE: (id: string) =>
+      `/finance/revenues/installment/${id}`,
+    REVENUE_INSTALLMENT_PAY: (id: string) =>
+      `/finance/revenues/installment/${id}/confirm-payment`,
     REVENUE_ATTACHMENTS: (id: string) => `/finance/revenues/${id}/attachments`,
-    REVENUE_ATTACHMENT_BY_ID: (revenueId: string, attachmentId: string) => `/finance/revenues/${revenueId}/attachments/${attachmentId}`,
+    REVENUE_ATTACHMENT_BY_ID: (revenueId: string, attachmentId: string) =>
+      `/finance/revenues/${revenueId}/attachments/${attachmentId}`,
     EXPENSES: "/expenses",
     /** Despesa por ID no contexto da feira (PATCH/DELETE via fairId) */
-    EXPENSE_BY_ID: (fairId: string, id: string) => `/fairs/${fairId}/expenses/${id}`,
+    EXPENSE_BY_ID: (fairId: string, id: string) =>
+      `/fairs/${fairId}/expenses/${id}`,
     /** Acesso direto a uma despesa por ID, sem contexto de feira (GET) */
     EXPENSE_SIMPLE_BY_ID: (id: string) => `/expenses/${id}`,
     EXPENSES_BY_FAIR: (fairId: string) => `/fairs/${fairId}/expenses`,
     EXPENSES_TOTAL: (fairId: string) => `/fairs/${fairId}/expenses/total`,
-    EXPENSES_BY_CATEGORY: (fairId: string) => `/fairs/${fairId}/expenses/total-by-category`,
-    EXPENSES_BY_ACCOUNT: (fairId: string) => `/fairs/${fairId}/expenses/total-by-account`,
+    EXPENSES_BY_CATEGORY: (fairId: string) =>
+      `/fairs/${fairId}/expenses/total-by-category`,
+    EXPENSES_BY_ACCOUNT: (fairId: string) =>
+      `/fairs/${fairId}/expenses/total-by-account`,
     /** Marcar despesa como overhead com rateio (isOverhead=true) — sistema novo */
     EXPENSE_SET_OVERHEAD: (id: string) => `/expenses/${id}/set-overhead`,
     OVERHEAD_EXPENSES: "/overhead-expenses",
     OVERHEAD_EXPENSE_BY_ID: (id: string) => `/overhead-expenses/${id}`,
     OVERHEAD_CATEGORIES: "/overhead-expenses/categories",
     /** Converter despesa direta para overhead_expenses (sistema legado) */
-    EXPENSE_CONVERT_TO_OVERHEAD: (id: string) => `/expenses/${id}/convert-to-overhead`,
+    EXPENSE_CONVERT_TO_OVERHEAD: (id: string) =>
+      `/expenses/${id}/convert-to-overhead`,
   },
   FAIR_IMAGES: {
     UPLOAD: (fairId: string) => `/fairs/${fairId}/images`,
@@ -132,24 +149,35 @@ export const AppEndpoints = {
     CONVERSIONS_HOW_DID_YOU_KNOW: "/dashboard/conversions/how-did-you-know",
   },
   CHARTS: {
-    FAIR_KPI:                (fairId: string) => `/charts/fair/${fairId}/kpi`,
-    EXPENSES_BY_CATEGORY:    (fairId: string) => `/charts/fair/${fairId}/expenses-by-category`,
-    REVENUES_BY_STATUS:      (fairId: string) => `/charts/fair/${fairId}/revenues-by-status`,
-    REVENUE_FORECAST:        (fairId: string) => `/charts/fair/${fairId}/revenue-forecast`,
-    VISITORS_TIMELINE:       (fairId: string) => `/charts/fair/${fairId}/visitors-timeline`,
-    CHECKINS_BY_HOUR:        (fairId: string) => `/charts/fair/${fairId}/checkins-by-hour`,
-    COMPARE:                 (fairIds: string[]) => `/charts/compare?fairIds=${fairIds.join(",")}`,
-    COMPARE_MARGINS:         (fairIds: string[]) => `/charts/compare/margins?fairIds=${fairIds.join(",")}`,
-    COMPARE_EXPENSES:        (fairIds: string[]) => `/charts/compare/expenses-breakdown?fairIds=${fairIds.join(",")}`,
+    FAIR_KPI: (fairId: string) => `/charts/fair/${fairId}/kpi`,
+    EXPENSES_BY_CATEGORY: (fairId: string) =>
+      `/charts/fair/${fairId}/expenses-by-category`,
+    REVENUES_BY_STATUS: (fairId: string) =>
+      `/charts/fair/${fairId}/revenues-by-status`,
+    REVENUE_FORECAST: (fairId: string) =>
+      `/charts/fair/${fairId}/revenue-forecast`,
+    VISITORS_TIMELINE: (fairId: string) =>
+      `/charts/fair/${fairId}/visitors-timeline`,
+    CHECKINS_BY_HOUR: (fairId: string) =>
+      `/charts/fair/${fairId}/checkins-by-hour`,
+    COMPARE: (fairIds: string[]) =>
+      `/charts/compare?fairIds=${fairIds.join(",")}`,
+    COMPARE_MARGINS: (fairIds: string[]) =>
+      `/charts/compare/margins?fairIds=${fairIds.join(",")}`,
+    COMPARE_EXPENSES: (fairIds: string[]) =>
+      `/charts/compare/expenses-breakdown?fairIds=${fairIds.join(",")}`,
   },
   PROSPECTS: {
     BY_FAIR: (fairId: string) => `/fairs/${fairId}/prospects`,
     BY_ID: (fairId: string, id: string) => `/fairs/${fairId}/prospects/${id}`,
     IMPORT_CNPJS: (fairId: string) => `/fairs/${fairId}/prospects/import-cnpjs`,
-    UPDATE_STATUS: (fairId: string, id: string) => `/fairs/${fairId}/prospects/${id}/status`,
-    ENRICH: (fairId: string, id: string) => `/fairs/${fairId}/prospects/${id}/enrich`,
+    UPDATE_STATUS: (fairId: string, id: string) =>
+      `/fairs/${fairId}/prospects/${id}/status`,
+    ENRICH: (fairId: string, id: string) =>
+      `/fairs/${fairId}/prospects/${id}/enrich`,
     ANALYTICS: (fairId: string) => `/fairs/${fairId}/prospects/analytics`,
-    GEO_ANALYTICS: (fairId: string) => `/fairs/${fairId}/prospects/analytics/geo`,
+    GEO_ANALYTICS: (fairId: string) =>
+      `/fairs/${fairId}/prospects/analytics/geo`,
     ENRICH_ALL: (fairId: string) => `/fairs/${fairId}/prospects/enrich-all`,
   },
   WHATSAPP: {
@@ -170,8 +198,11 @@ export const AppEndpoints = {
     ME_FAIRS: "/fair-partners/me/fairs",
     BY_ID: (id: string) => `/fair-partners/${id}`,
     SUMMARY: (fairId: string) => `/fair-partners/fair/${fairId}/summary`,
-    FINANCIAL_SUMMARY: (fairId: string, partnerId: string) => `/fair-partners/fair/${fairId}/partner/${partnerId}/financial-summary`,
-    AVAILABLE_PERCENTAGE: (fairId: string) => `/fair-partners/fair/${fairId}/available-percentage`,
-    FINANCIAL_OVERVIEW: (fairId: string) => `/fair-partners/fair/${fairId}/financial-overview`,
-  }
+    FINANCIAL_SUMMARY: (fairId: string, partnerId: string) =>
+      `/fair-partners/fair/${fairId}/partner/${partnerId}/financial-summary`,
+    AVAILABLE_PERCENTAGE: (fairId: string) =>
+      `/fair-partners/fair/${fairId}/available-percentage`,
+    FINANCIAL_OVERVIEW: (fairId: string) =>
+      `/fair-partners/fair/${fairId}/financial-overview`,
+  },
 } as const;

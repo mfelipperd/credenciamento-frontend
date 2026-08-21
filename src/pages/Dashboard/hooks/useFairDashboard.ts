@@ -14,6 +14,7 @@ export function useFairDashboard(fairId: string) {
     queryFn: () => api.get<FairKpi>(AppEndpoints.CHARTS.FAIR_KPI(fairId)).then((r) => r.data),
     enabled,
     staleTime: STALE,
+    retry: false,
   });
 
   const expensesByCategory = useQuery<ApexDonutData>({
@@ -73,6 +74,7 @@ export function useFairDashboard(fairId: string) {
     checkinsByHour: checkinsByHour.data ?? null,
     isLoading,
     kpiLoading: kpi.isLoading,
+    kpiError: kpi.error,
   };
 }
 
