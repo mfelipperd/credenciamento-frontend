@@ -105,11 +105,11 @@ function SummaryRow({ icon: Icon, label, value, highlight, color }: SummaryRowPr
       <div className="flex items-center gap-2 min-w-0">
         <Icon
           size={13}
-          className={filled ? (color || "text-white/60") : "text-white/20"}
+          className={filled ? (color || "text-slate-300") : "text-slate-600"}
         />
         <span
           className={`text-xs font-medium truncate ${
-            filled ? "text-white/50" : "text-white/20"
+            filled ? "text-slate-300" : "text-slate-600"
           }`}
         >
           {label}
@@ -121,7 +121,7 @@ function SummaryRow({ icon: Icon, label, value, highlight, color }: SummaryRowPr
             ? "text-[#00aacd] text-sm"
             : filled
             ? "text-white"
-            : "text-white/20"
+            : "text-slate-600"
         }`}
       >
         {value ?? "—"}
@@ -473,7 +473,7 @@ export function ReceitaDrawer({
         </div>
 
         {/* Step Indicator */}
-        <div className="flex items-center justify-center gap-0 px-8 py-5 border-b border-white/10 shrink-0">
+        <div className="flex items-center justify-center gap-0 px-8 py-5 border-b border-slate-800 shrink-0">
           {STEPS.map((step, idx) => {
             const done = currentStep > step.id;
             const active = currentStep === step.id;
@@ -487,14 +487,14 @@ export function ReceitaDrawer({
                         ? "bg-[#00aacd] border-[#00aacd] text-white"
                         : active
                         ? "border-[#00aacd] text-[#00aacd] bg-[#00aacd]/10"
-                        : "border-white/10 text-white/20"
+                        : "border-slate-700 text-slate-500"
                     }`}
                   >
                     {done ? <Check size={12} /> : <Icon size={13} />}
                   </div>
                   <span
                     className={`text-[11px] font-black uppercase tracking-wider transition-colors ${
-                      active ? "text-white" : done ? "text-[#00aacd]" : "text-white/20"
+                      active ? "text-white" : done ? "text-[#00aacd]" : "text-slate-500"
                     }`}
                   >
                     {step.label}
@@ -503,7 +503,7 @@ export function ReceitaDrawer({
                 {idx < STEPS.length - 1 && (
                   <div
                     className={`h-px w-10 mx-3 transition-colors duration-300 ${
-                      done ? "bg-[#00aacd]" : "bg-white/10"
+                      done ? "bg-[#00aacd]" : "bg-slate-700"
                     }`}
                   />
                 )}
@@ -521,9 +521,9 @@ export function ReceitaDrawer({
             {/* ── Step 1: Cliente ── */}
             {currentStep === 1 && (
               <div className="space-y-5 flex-1">
-                <div className="bg-white/5 rounded-3xl p-5 border border-white/10 space-y-4">
+                <div className="bg-slate-900 rounded-3xl p-5 border border-slate-700/60 space-y-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-xl bg-[#00aacd]/10 text-[#00aacd]">
+                    <div className="p-2 rounded-xl bg-[#00aacd]/15 text-[#00aacd]">
                       <User className="w-4 h-4" />
                     </div>
                     <h3 className="text-base font-black text-white tracking-tight">
@@ -533,10 +533,10 @@ export function ReceitaDrawer({
 
                   {selectedClient ? (
                     <div className="flex items-center gap-2">
-                      <div className="flex-1 p-3 bg-[#00aacd]/10 border border-[#00aacd]/20 rounded-xl">
+                      <div className="flex-1 p-3 bg-[#00aacd]/10 border border-[#00aacd]/25 rounded-xl">
                         <p className="text-sm font-bold text-[#00aacd]">{selectedClient.name}</p>
                         {selectedClient.cnpj && (
-                          <p className="text-xs text-white/40 mt-0.5">{selectedClient.cnpj}</p>
+                          <p className="text-xs text-slate-400 mt-0.5">{selectedClient.cnpj}</p>
                         )}
                       </div>
                       <Button
@@ -544,7 +544,7 @@ export function ReceitaDrawer({
                         variant="ghost"
                         size="sm"
                         onClick={() => setSelectedClient(null)}
-                        className="text-white/30 hover:text-white hover:bg-white/10 h-8 w-8 p-0"
+                        className="text-slate-400 hover:text-white hover:bg-white/10 h-8 w-8 p-0"
                       >
                         <X className="w-4 h-4" />
                       </Button>
@@ -552,35 +552,35 @@ export function ReceitaDrawer({
                   ) : (
                     <div className="space-y-2">
                       <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                         <Input
                           placeholder="Buscar cliente por nome ou CNPJ..."
                           value={clientSearch}
                           onChange={(e) => setClientSearch(e.target.value)}
-                          className="pl-9 bg-white/5 border-white/10 text-white placeholder:text-white/30 rounded-xl h-10"
+                          className="pl-9 bg-slate-800/70 border-slate-600/60 text-white placeholder:text-slate-400 rounded-xl h-10"
                         />
                       </div>
 
                       {isLoadingClients && (
-                        <p className="text-xs text-white/40 px-1">Buscando clientes...</p>
+                        <p className="text-xs text-slate-400 px-1">Buscando clientes...</p>
                       )}
 
                       {filteredClients.length > 0 && (
-                        <div className="max-h-44 overflow-y-auto rounded-xl border border-white/10 divide-y divide-white/5 bg-slate-900">
+                        <div className="max-h-44 overflow-y-auto rounded-xl border border-slate-700/60 divide-y divide-slate-700/60 bg-slate-800/60">
                           {filteredClients.map((client) => (
                             <button
                               key={client.id}
                               type="button"
-                              className="w-full text-left px-3 py-2.5 hover:bg-white/5 transition-colors"
+                              className="w-full text-left px-3 py-2.5 hover:bg-white/10 transition-colors"
                               onClick={() => handleClientSelect(client)}
                             >
                               <p className="text-sm font-semibold text-white">{client.name}</p>
                               <div className="flex gap-3 mt-0.5">
                                 {client.cnpj && (
-                                  <span className="text-xs text-white/30">{client.cnpj}</span>
+                                  <span className="text-xs text-slate-400">{client.cnpj}</span>
                                 )}
                                 {client.email && (
-                                  <span className="text-xs text-white/30">{client.email}</span>
+                                  <span className="text-xs text-slate-400">{client.email}</span>
                                 )}
                               </div>
                             </button>
@@ -613,16 +613,16 @@ export function ReceitaDrawer({
                     className={`p-5 rounded-3xl border-2 text-left transition-all duration-200 space-y-2 ${
                       revenueType === "STAND"
                         ? "border-[#F39B0C] bg-[#F39B0C]/10"
-                        : "border-white/10 bg-white/5 hover:bg-white/8 hover:border-white/20"
+                        : "border-slate-700/60 bg-slate-900 hover:bg-slate-800/80 hover:border-slate-600"
                     }`}
                   >
-                    <div className={`p-2 rounded-xl w-fit ${revenueType === "STAND" ? "bg-[#F39B0C]/20 text-[#F39B0C]" : "bg-white/5 text-white/30"}`}>
+                    <div className={`p-2 rounded-xl w-fit ${revenueType === "STAND" ? "bg-[#F39B0C]/20 text-[#F39B0C]" : "bg-slate-800 text-slate-400"}`}>
                       <MapPin className="w-4 h-4" />
                     </div>
-                    <p className={`font-black text-sm ${revenueType === "STAND" ? "text-white" : "text-white/40"}`}>
+                    <p className={`font-black text-sm ${revenueType === "STAND" ? "text-white" : "text-slate-300"}`}>
                       Stand / Balcão
                     </p>
-                    <p className="text-xs text-white/30 leading-snug">
+                    <p className="text-xs text-slate-400 leading-snug">
                       Venda de espaço físico na feira
                     </p>
                   </button>
@@ -639,16 +639,16 @@ export function ReceitaDrawer({
                     className={`p-5 rounded-3xl border-2 text-left transition-all duration-200 space-y-2 ${
                       revenueType === "PATROCINIO"
                         ? "border-[#a855f7] bg-[#a855f7]/10"
-                        : "border-white/10 bg-white/5 hover:bg-white/8 hover:border-white/20"
+                        : "border-slate-700/60 bg-slate-900 hover:bg-slate-800/80 hover:border-slate-600"
                     }`}
                   >
-                    <div className={`p-2 rounded-xl w-fit ${revenueType === "PATROCINIO" ? "bg-[#a855f7]/20 text-[#a855f7]" : "bg-white/5 text-white/30"}`}>
+                    <div className={`p-2 rounded-xl w-fit ${revenueType === "PATROCINIO" ? "bg-[#a855f7]/20 text-[#a855f7]" : "bg-slate-800 text-slate-400"}`}>
                       <Star className="w-4 h-4" />
                     </div>
-                    <p className={`font-black text-sm ${revenueType === "PATROCINIO" ? "text-white" : "text-white/40"}`}>
+                    <p className={`font-black text-sm ${revenueType === "PATROCINIO" ? "text-white" : "text-slate-300"}`}>
                       Patrocínio
                     </p>
-                    <p className="text-xs text-white/30 leading-snug">
+                    <p className="text-xs text-slate-400 leading-snug">
                       Cota de patrocínio sem stand físico
                     </p>
                   </button>
@@ -656,7 +656,7 @@ export function ReceitaDrawer({
 
                 {/* Stand selector — somente para STAND */}
                 {revenueType === "STAND" && fairId && (
-                  <div className="bg-white/5 rounded-3xl p-5 border border-white/10">
+                  <div className="bg-slate-900 rounded-3xl p-5 border border-slate-700/60">
                     <StandSelector
                       fairId={fairId}
                       value={standNumber || selectedStand?.standNumber}
@@ -667,12 +667,12 @@ export function ReceitaDrawer({
                 )}
 
                 {/* Modelo de entrada — filtrado por tipo */}
-                <div className="bg-white/5 rounded-3xl p-5 border border-white/10 space-y-3">
-                  <Label className="text-xs font-black text-white/50 uppercase tracking-widest">
+                <div className="bg-slate-900 rounded-3xl p-5 border border-slate-700/60 space-y-3">
+                  <Label className="text-xs font-black text-slate-300 uppercase tracking-widest">
                     {revenueType === "STAND" ? "Modelo de Stand *" : "Cota de Patrocínio *"}
                   </Label>
                   <Select onValueChange={handleEntryModelSelect}>
-                    <SelectTrigger className="h-10 rounded-xl border-white/10 bg-white/5 text-white">
+                    <SelectTrigger className="h-10 rounded-xl border-slate-600/60 bg-slate-800/70 text-white">
                       <SelectValue placeholder={
                         filteredEntryModels.length === 0
                           ? "Nenhum modelo cadastrado para este tipo"
@@ -691,7 +691,7 @@ export function ReceitaDrawer({
                     <span className="text-xs text-red-400">{errors.entryModelId.message}</span>
                   )}
                   {filteredEntryModels.length === 0 && (
-                    <p className="text-xs text-white/30">
+                    <p className="text-xs text-slate-400">
                       Configure os modelos em Feiras → Configurar Entrada.
                     </p>
                   )}
@@ -703,9 +703,9 @@ export function ReceitaDrawer({
             {currentStep === 3 && (
               <div className="space-y-4 flex-1">
                 {/* Valores */}
-                <div className="bg-white/5 rounded-3xl p-5 border border-white/10 space-y-4">
+                <div className="bg-slate-900 rounded-3xl p-5 border border-slate-700/60 space-y-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-xl bg-[#22c55e]/10 text-[#22c55e]">
+                    <div className="p-2 rounded-xl bg-[#22c55e]/15 text-[#22c55e]">
                       <DollarSign className="w-4 h-4" />
                     </div>
                     <h3 className="text-base font-black text-white tracking-tight">
@@ -715,46 +715,59 @@ export function ReceitaDrawer({
 
                   {selectedEntryModel ? (
                     <div className="grid grid-cols-3 gap-3">
-                      <ControlledInput
-                        control={control}
-                        name="baseValueCents"
-                        label="Valor Base"
-                        placeholder="0,00"
-                        mask={maskCurrencyBRL}
-                        disabled
-                      />
                       <div>
+                        <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block">
+                          Valor Base
+                        </Label>
                         <ControlledInput
                           control={control}
-                          name="discountCents"
-                          label="Desconto"
+                          name="baseValueCents"
                           placeholder="0,00"
                           mask={maskCurrencyBRL}
                           disabled
+                          className="bg-slate-800/70 border-slate-600/60 text-white disabled:opacity-60"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block">
+                          Desconto
+                        </Label>
+                        <ControlledInput
+                          control={control}
+                          name="discountCents"
+                          placeholder="0,00"
+                          mask={maskCurrencyBRL}
+                          disabled
+                          className="bg-slate-800/70 border-slate-600/60 text-white disabled:opacity-60"
                         />
                         <p className="text-[9px] text-[#EB2970] font-black mt-1 uppercase tracking-wider">
                           Automático
                         </p>
                       </div>
-                      <ControlledInput
-                        control={control}
-                        name="contractValueCents"
-                        label="Valor Final *"
-                        placeholder="0,00"
-                        mask={maskCurrencyBRL}
-                      />
+                      <div>
+                        <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block">
+                          Valor Final *
+                        </Label>
+                        <ControlledInput
+                          control={control}
+                          name="contractValueCents"
+                          placeholder="0,00"
+                          mask={maskCurrencyBRL}
+                          className="bg-slate-800/70 border-slate-600/60 text-white"
+                        />
+                      </div>
                     </div>
                   ) : (
-                    <p className="text-xs text-white/30">
+                    <p className="text-xs text-slate-400">
                       Selecione um modelo no passo anterior para ver os valores.
                     </p>
                   )}
                 </div>
 
                 {/* Pagamento */}
-                <div className="bg-white/5 rounded-3xl p-5 border border-white/10 space-y-4">
+                <div className="bg-slate-900 rounded-3xl p-5 border border-slate-700/60 space-y-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-xl bg-[#a855f7]/10 text-[#a855f7]">
+                    <div className="p-2 rounded-xl bg-[#a855f7]/15 text-[#a855f7]">
                       <CreditCard className="w-4 h-4" />
                     </div>
                     <h3 className="text-base font-black text-white tracking-tight">
@@ -806,12 +819,12 @@ export function ReceitaDrawer({
                 </div>
 
                 {/* Notas */}
-                <div className="bg-white/5 rounded-3xl p-5 border border-white/10 space-y-3">
+                <div className="bg-slate-900 rounded-3xl p-5 border border-slate-700/60 space-y-3">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-xl bg-white/5 text-white/40">
+                    <div className="p-2 rounded-xl bg-slate-800 text-slate-400">
                       <FileText className="w-4 h-4" />
                     </div>
-                    <h3 className="text-base font-black text-white/60 tracking-tight">
+                    <h3 className="text-base font-black text-slate-200 tracking-tight">
                       Observações
                     </h3>
                   </div>
@@ -819,15 +832,15 @@ export function ReceitaDrawer({
                     {...register("notes")}
                     placeholder="Detalhes adicionais sobre esta receita..."
                     rows={3}
-                    className="w-full p-3 border border-white/10 rounded-2xl resize-none bg-white/5 text-sm text-white placeholder:text-white/20 focus:ring-2 focus:ring-[#00aacd]/20 outline-none transition-all"
+                    className="w-full p-3 border border-slate-600/60 rounded-2xl resize-none bg-slate-800/70 text-sm text-white placeholder:text-slate-500 focus:ring-2 focus:ring-[#00aacd]/20 outline-none transition-all"
                   />
                 </div>
               </div>
             )}
 
             {/* ── Resumo da Receita ── */}
-            {currentStep === 3 && <div className="bg-white/3 rounded-3xl p-5 border border-white/10 space-y-3 shrink-0">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30">
+            {currentStep === 3 && <div className="bg-slate-900/80 rounded-3xl p-5 border border-slate-700/60 space-y-3 shrink-0">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
                 Resumo da Receita
               </p>
               <div className="space-y-2.5">
@@ -849,7 +862,7 @@ export function ReceitaDrawer({
                   }
                   color="text-[#F39B0C]"
                 />
-                <div className="border-t border-white/10 pt-2.5 space-y-2">
+                <div className="border-t border-slate-700/60 pt-2.5 space-y-2">
                   <SummaryRow
                     icon={DollarSign}
                     label="Valor Final"
@@ -873,7 +886,7 @@ export function ReceitaDrawer({
                 variant="ghost"
                 onClick={onClose}
                 disabled={createRevenueMutation.isPending}
-                className="text-white/30 hover:text-white hover:bg-white/10 rounded-xl font-bold h-11 px-5 text-sm"
+                className="text-slate-400 hover:text-white hover:bg-white/10 rounded-xl font-bold h-11 px-5 text-sm"
               >
                 Cancelar
               </Button>
@@ -885,7 +898,7 @@ export function ReceitaDrawer({
                   type="button"
                   variant="ghost"
                   onClick={handlePrevStep}
-                  className="text-white/50 hover:text-white hover:bg-white/10 rounded-xl font-bold h-11 px-5 text-sm border border-white/10"
+                  className="text-slate-300 hover:text-white hover:bg-white/10 rounded-xl font-bold h-11 px-5 text-sm border border-slate-700/60"
                 >
                   Anterior
                 </Button>
@@ -895,7 +908,7 @@ export function ReceitaDrawer({
                 <Button
                   type="button"
                   onClick={handleNextStep}
-                  className="bg-white/10 hover:bg-white/15 text-white rounded-xl font-black h-11 px-6 text-sm border border-white/10 flex items-center gap-2 transition-all"
+                  className="bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-black h-11 px-6 text-sm border border-slate-600/60 flex items-center gap-2 transition-all"
                 >
                   Próximo <ChevronRight className="w-4 h-4" />
                 </Button>
@@ -919,16 +932,16 @@ export function ReceitaDrawer({
         {/* Modal: sem stand */}
         {showStandConfirmation && (
           <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
-            <div className="bg-slate-900 rounded-[32px] p-8 max-w-md mx-4 border border-white/10 shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="bg-slate-900 rounded-[32px] p-8 max-w-md mx-4 border border-slate-700/60 shadow-2xl animate-in zoom-in-95 duration-200">
               <div className="flex items-center gap-4 mb-6">
-                <div className="p-3 bg-yellow-500/10 rounded-2xl">
+                <div className="p-3 bg-yellow-500/15 rounded-2xl">
                   <AlertTriangle className="w-8 h-8 text-yellow-500" />
                 </div>
                 <h3 className="text-xl font-black text-white tracking-tighter">
                   Confirmar Patrocínio
                 </h3>
               </div>
-              <p className="text-white/50 mb-8 leading-relaxed text-sm">
+              <p className="text-slate-300 mb-8 leading-relaxed text-sm">
                 Você está cadastrando uma receita sem stand físico. Isso será tratado como um{" "}
                 <strong className="text-white">serviço ou patrocínio</strong>. Confirmar?
               </p>
@@ -936,7 +949,7 @@ export function ReceitaDrawer({
                 <Button
                   variant="ghost"
                   onClick={handleCancelWithoutStand}
-                  className="rounded-xl font-bold h-11 px-6 border border-white/10 text-white/60 hover:text-white"
+                  className="rounded-xl font-bold h-11 px-6 border border-slate-700/60 text-slate-300 hover:text-white"
                 >
                   Voltar
                 </Button>

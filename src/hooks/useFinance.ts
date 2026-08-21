@@ -20,11 +20,13 @@ import { AppEndpoints } from "@/constants/AppEndpoints";
 // Hook para buscar estatísticas de receitas
 export const useRevenueStats = (fairId: string) => {
   const api = useAxio();
-  
+
   return useQuery({
     queryKey: ["finance", "revenue-stats", fairId],
     queryFn: async () => {
-      const response = await api.get(AppEndpoints.FINANCE.REVENUE_STATS(fairId));
+      const response = await api.get(
+        AppEndpoints.FINANCE.REVENUE_STATS(fairId),
+      );
       return response.data as RevenueStats;
     },
     enabled: !!fairId,
@@ -34,27 +36,30 @@ export const useRevenueStats = (fairId: string) => {
 // Hook para buscar receitas
 export const useRevenues = (filters: RevenueFilters) => {
   const api = useAxio();
-  
+
   return useQuery({
     queryKey: ["finance", "revenues", "list", filters],
     queryFn: async () => {
       const params = new URLSearchParams();
       params.append("fairId", filters.fairId);
-      
+
       // Adicionar outros filtros se presentes
       if (filters.page) params.append("page", filters.page.toString());
-      if (filters.pageSize) params.append("pageSize", filters.pageSize.toString());
-      if (filters.type && filters.type !== "all") params.append("type", filters.type);
-      if (filters.status && filters.status !== "all") params.append("status", filters.status);
+      if (filters.pageSize)
+        params.append("pageSize", filters.pageSize.toString());
+      if (filters.type && filters.type !== "all")
+        params.append("type", filters.type);
+      if (filters.status && filters.status !== "all")
+        params.append("status", filters.status);
       if (filters.q) params.append("q", filters.q);
       if (filters.from) params.append("from", filters.from);
       if (filters.to) params.append("to", filters.to);
       if (filters.dateField) params.append("dateField", filters.dateField);
 
       const url = `${AppEndpoints.FINANCE.REVENUES}?${params.toString()}`;
-      
+
       const response = await api.get(url);
-      
+
       // Normalizar a resposta da API
       // Se a API retorna um array diretamente, convertemos para PagedResponse
       if (Array.isArray(response.data)) {
@@ -62,10 +67,10 @@ export const useRevenues = (filters: RevenueFilters) => {
           items: response.data,
           page: filters.page || 1,
           pageSize: filters.pageSize || 20,
-          total: response.data.length
+          total: response.data.length,
         };
       }
-      
+
       // Se já é um PagedResponse, retorna como está
       return response.data;
     },
@@ -76,7 +81,7 @@ export const useRevenues = (filters: RevenueFilters) => {
 // Hook para buscar detalhes de uma receita
 export const useRevenueDetail = (id: string, fairId: string) => {
   const api = useAxio();
-  
+
   return useQuery({
     queryKey: ["finance", "revenues", "detail", id],
     queryFn: async () => {
@@ -90,16 +95,18 @@ export const useRevenueDetail = (id: string, fairId: string) => {
 // Hook para buscar KPIs
 export const useFinanceKpis = (fairId: string, from?: string, to?: string) => {
   const api = useAxio();
-  
+
   return useQuery({
     queryKey: ["finance", "kpis", fairId, from, to],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (from) params.append("from", from);
       if (to) params.append("to", to);
-      
+
       const queryString = params.toString() ? `?${params.toString()}` : "";
-      const response = await api.get(`${AppEndpoints.FINANCE.REVENUE_KPIS}${queryString}`);
+      const response = await api.get(
+        `${AppEndpoints.FINANCE.REVENUE_KPIS}${queryString}`,
+      );
       return response.data;
     },
     enabled: !!fairId,
@@ -109,16 +116,18 @@ export const useFinanceKpis = (fairId: string, from?: string, to?: string) => {
 // Hook para buscar top empresas
 export const useTopEmpresas = (fairId: string, from?: string, to?: string) => {
   const api = useAxio();
-  
+
   return useQuery({
     queryKey: ["finance", "top-empresas", fairId, from, to],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (from) params.append("from", from);
       if (to) params.append("to", to);
-      
+
       const queryString = params.toString() ? `?${params.toString()}` : "";
-      const response = await api.get(`${AppEndpoints.FINANCE.REVENUE_TOP_COMPANIES}${queryString}`);
+      const response = await api.get(
+        `${AppEndpoints.FINANCE.REVENUE_TOP_COMPANIES}${queryString}`,
+      );
       return response.data;
     },
     enabled: !!fairId,
@@ -128,7 +137,7 @@ export const useTopEmpresas = (fairId: string, from?: string, to?: string) => {
 // Hook para buscar entry models
 export const useEntryModels = (fairId?: string, type?: EntryModelType) => {
   const api = useAxio();
-  
+
   return useQuery({
     queryKey: ["finance", "entry-models", fairId, type],
     queryFn: async () => {
@@ -137,7 +146,9 @@ export const useEntryModels = (fairId?: string, type?: EntryModelType) => {
       if (type) params.append("type", type);
 
       const queryString = params.toString() ? `?${params.toString()}` : "";
-      const response = await api.get(`${AppEndpoints.FINANCE.ENTRY_MODELS}${queryString}`);
+      const response = await api.get(
+        `${AppEndpoints.FINANCE.ENTRY_MODELS}${queryString}`,
+      );
       return response.data as EntryModel[];
     },
   });
@@ -146,11 +157,13 @@ export const useEntryModels = (fairId?: string, type?: EntryModelType) => {
 // Hook para buscar entry model específico
 export const useEntryModel = (id: string) => {
   const api = useAxio();
-  
+
   return useQuery({
     queryKey: ["finance", "entry-models", "detail", id],
     queryFn: async () => {
-      const response = await api.get(AppEndpoints.FINANCE.ENTRY_MODEL_BY_ID(id));
+      const response = await api.get(
+        AppEndpoints.FINANCE.ENTRY_MODEL_BY_ID(id),
+      );
       return response.data;
     },
     enabled: !!id,
@@ -169,7 +182,9 @@ export const useClients = (fairId?: string, q?: string) => {
       if (q) params.append("q", q);
 
       const queryString = params.toString() ? `?${params.toString()}` : "";
-      const response = await api.get(`${AppEndpoints.FINANCE.CLIENTS}${queryString}`);
+      const response = await api.get(
+        `${AppEndpoints.FINANCE.CLIENTS}${queryString}`,
+      );
       return response.data as Client[];
     },
   });
@@ -178,7 +193,7 @@ export const useClients = (fairId?: string, q?: string) => {
 // Hook para buscar cliente específico
 export const useClient = (id: string) => {
   const api = useAxio();
-  
+
   return useQuery({
     queryKey: ["finance", "clients", "detail", id],
     queryFn: async () => {
@@ -219,8 +234,17 @@ export const useUpdateRevenue = () => {
   const api = useAxio();
 
   return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<CreateRevenueForm> }) => {
-      const response = await api.patch(AppEndpoints.FINANCE.REVENUE_BY_ID(id), data);
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: Partial<CreateRevenueForm>;
+    }) => {
+      const response = await api.patch(
+        AppEndpoints.FINANCE.REVENUE_BY_ID(id),
+        data,
+      );
       return response.data;
     },
     onSuccess: () => {
@@ -265,7 +289,9 @@ export const useCreateEntryModel = () => {
   const api = useAxio();
 
   return useMutation({
-    mutationFn: async (data: Omit<EntryModel, "id" | "createdAt" | "updatedAt">) => {
+    mutationFn: async (
+      data: Omit<EntryModel, "id" | "createdAt" | "updatedAt">,
+    ) => {
       const response = await api.post(AppEndpoints.FINANCE.ENTRY_MODELS, data);
       return response.data;
     },
@@ -285,8 +311,17 @@ export const useUpdateEntryModel = () => {
   const api = useAxio();
 
   return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<Omit<EntryModel, "id" | "createdAt" | "updatedAt">> }) => {
-      const response = await api.patch(AppEndpoints.FINANCE.ENTRY_MODEL_BY_ID(id), data);
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: Partial<Omit<EntryModel, "id" | "createdAt" | "updatedAt">>;
+    }) => {
+      const response = await api.patch(
+        AppEndpoints.FINANCE.ENTRY_MODEL_BY_ID(id),
+        data,
+      );
       return response.data;
     },
     onSuccess: () => {
@@ -344,8 +379,17 @@ export const useUpdateClient = () => {
   const api = useAxio();
 
   return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<CreateClientForm> }) => {
-      const response = await api.patch(AppEndpoints.FINANCE.CLIENT_BY_ID(id), data);
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: Partial<CreateClientForm>;
+    }) => {
+      const response = await api.patch(
+        AppEndpoints.FINANCE.CLIENT_BY_ID(id),
+        data,
+      );
       return response.data;
     },
     onSuccess: () => {
@@ -383,11 +427,22 @@ export const useAddBrand = () => {
   const api = useAxio();
 
   return useMutation({
-    mutationFn: async ({ clientId, name, logo }: { clientId: string; name: string; logo: File }) => {
+    mutationFn: async ({
+      clientId,
+      name,
+      logo,
+    }: {
+      clientId: string;
+      name: string;
+      logo: File;
+    }) => {
       const formData = new FormData();
       formData.append("name", name);
       formData.append("logo", logo);
-      const response = await api.post(AppEndpoints.FINANCE.CLIENT_BRANDS(clientId), formData);
+      const response = await api.post(
+        AppEndpoints.FINANCE.CLIENT_BRANDS(clientId),
+        formData,
+      );
       return response.data as Brand;
     },
     onSuccess: () => {
@@ -405,11 +460,22 @@ export const useUpdateBrand = () => {
   const api = useAxio();
 
   return useMutation({
-    mutationFn: async ({ id, name, logo }: { id: string; name?: string; logo?: File }) => {
+    mutationFn: async ({
+      id,
+      name,
+      logo,
+    }: {
+      id: string;
+      name?: string;
+      logo?: File;
+    }) => {
       const formData = new FormData();
       if (name) formData.append("name", name);
       if (logo) formData.append("logo", logo);
-      const response = await api.patch(AppEndpoints.FINANCE.BRAND_BY_ID(id), formData);
+      const response = await api.patch(
+        AppEndpoints.FINANCE.BRAND_BY_ID(id),
+        formData,
+      );
       return response.data as Brand;
     },
     onSuccess: () => {
@@ -446,16 +512,31 @@ export const useUpdateExpense = () => {
   const api = useAxio();
 
   return useMutation({
-    mutationFn: async ({ id, data, fairId }: { id: string; data: UpdateExpenseForm; fairId: string }) => {
-      const response = await api.patch(AppEndpoints.FINANCE.EXPENSE_BY_ID(fairId, id), data);
+    mutationFn: async ({
+      id,
+      data,
+      fairId,
+    }: {
+      id: string;
+      data: UpdateExpenseForm;
+      fairId: string;
+    }) => {
+      const response = await api.patch(
+        AppEndpoints.FINANCE.EXPENSE_BY_ID(fairId, id),
+        data,
+      );
       return response.data;
     },
     onSuccess: () => {
       // Invalida queries relacionadas
       queryClient.invalidateQueries({ queryKey: ["expenses"] });
       queryClient.invalidateQueries({ queryKey: ["expenses-total"] });
-      queryClient.invalidateQueries({ queryKey: ["expenses-total-by-category"] });
-      queryClient.invalidateQueries({ queryKey: ["expenses-total-by-account"] });
+      queryClient.invalidateQueries({
+        queryKey: ["expenses-total-by-category"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["expenses-total-by-account"],
+      });
       toast.success("Despesa atualizada com sucesso!");
     },
     onError: (error) => {
@@ -475,7 +556,7 @@ export const useClientImages = (clientId: string, fairId?: string) => {
       if (fairId) params.append("fairId", fairId);
       const qs = params.toString();
       const response = await api.get(
-        `${AppEndpoints.FINANCE.CLIENT_IMAGES(clientId)}${qs ? `?${qs}` : ""}`
+        `${AppEndpoints.FINANCE.CLIENT_IMAGES(clientId)}${qs ? `?${qs}` : ""}`,
       );
       return response.data as ClientImage[];
     },
@@ -504,12 +585,14 @@ export const useUploadClientImages = () => {
       if (caption?.trim()) formData.append("caption", caption.trim());
       const response = await api.post(
         `${AppEndpoints.FINANCE.CLIENT_IMAGES(clientId)}?fairId=${fairId}`,
-        formData
+        formData,
       );
       return response.data as ClientImage[];
     },
     onSuccess: (_, { clientId }) => {
-      queryClient.invalidateQueries({ queryKey: ["finance", "client-images", clientId] });
+      queryClient.invalidateQueries({
+        queryKey: ["finance", "client-images", clientId],
+      });
       toast.success("Fotos enviadas com sucesso!");
     },
     onError: (error: unknown) => {
@@ -526,7 +609,9 @@ export const useFairImages = (fairId?: string) => {
     queryKey: ["finance", "fair-images", fairId],
     queryFn: async () => {
       const qs = fairId ? `?fairId=${fairId}` : "";
-      const response = await api.get(`${AppEndpoints.FINANCE.CLIENT_IMAGES_ALL}${qs}`);
+      const response = await api.get(
+        `${AppEndpoints.FINANCE.CLIENT_IMAGES_ALL}${qs}`,
+      );
       return response.data as ClientImage[];
     },
     enabled: !!fairId,
@@ -550,11 +635,16 @@ export const useUploadFairImages = () => {
       const formData = new FormData();
       files.forEach((f) => formData.append("images", f));
       if (caption?.trim()) formData.append("caption", caption.trim());
-      const response = await api.post(AppEndpoints.FAIR_IMAGES.UPLOAD(fairId), formData);
+      const response = await api.post(
+        AppEndpoints.FAIR_IMAGES.UPLOAD(fairId),
+        formData,
+      );
       return response.data as ClientImage[];
     },
     onSuccess: (_, { fairId }) => {
-      queryClient.invalidateQueries({ queryKey: ["finance", "fair-images", fairId] });
+      queryClient.invalidateQueries({
+        queryKey: ["finance", "fair-images", fairId],
+      });
       toast.success("Imagens enviadas com sucesso!");
     },
     onError: (error: unknown) => {
@@ -572,7 +662,9 @@ export const useDeleteFairImage = () => {
       await api.delete(AppEndpoints.FINANCE.CLIENT_IMAGE_BY_ID(imageId));
     },
     onSuccess: (_, { fairId }) => {
-      queryClient.invalidateQueries({ queryKey: ["finance", "fair-images", fairId] });
+      queryClient.invalidateQueries({
+        queryKey: ["finance", "fair-images", fairId],
+      });
       toast.success("Imagem removida com sucesso!");
     },
     onError: (error: unknown) => {
@@ -587,7 +679,9 @@ export const useClientImagesByFair = (fairId?: string) => {
   return useQuery({
     queryKey: ["finance", "client-images-by-fair", fairId],
     queryFn: async () => {
-      const response = await api.get(AppEndpoints.FINANCE.CLIENT_IMAGES_BY_FAIR(fairId!));
+      const response = await api.get(
+        AppEndpoints.FINANCE.CLIENT_IMAGES_BY_FAIR(fairId!),
+      );
       return response.data as ClientImage[];
     },
     enabled: !!fairId,
@@ -603,7 +697,9 @@ export const useDeleteClientImage = () => {
       await api.delete(AppEndpoints.FINANCE.CLIENT_IMAGE_BY_ID(imageId));
     },
     onSuccess: (_, { clientId }) => {
-      queryClient.invalidateQueries({ queryKey: ["finance", "client-images", clientId] });
+      queryClient.invalidateQueries({
+        queryKey: ["finance", "client-images", clientId],
+      });
       toast.success("Foto removida com sucesso!");
     },
     onError: (error: unknown) => {
@@ -613,13 +709,24 @@ export const useDeleteClientImage = () => {
 };
 
 // Hook para análise de fluxo de caixa
-export const useCashFlowAnalysis = (fairId: string) => {
+import type {
+  CashFlowReport,
+  CashFlowReportParams,
+} from "@/interfaces/finance";
+
+export const useCashFlowAnalysis = (
+  fairId: string,
+  params?: CashFlowReportParams,
+) => {
   const api = useAxio();
-  
+
   return useQuery({
-    queryKey: ["cash-flow-analysis", fairId],
+    queryKey: ["cash-flow-analysis", fairId, params],
     queryFn: async () => {
-      const response = await api.get(AppEndpoints.FINANCE.CASH_FLOW_ANALYSIS(fairId));
+      const response = await api.get<CashFlowReport>(
+        AppEndpoints.FINANCE.CASH_FLOW_ANALYSIS(fairId),
+        { params },
+      );
       return response.data;
     },
     enabled: !!fairId,

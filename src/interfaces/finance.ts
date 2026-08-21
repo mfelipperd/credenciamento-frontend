@@ -277,7 +277,7 @@ export type AccountType = (typeof AccountType)[keyof typeof AccountType];
 // Endpoint: GET /categories/fair/:fairId
 export interface DirectExpenseCategory {
   id: string;
-  name: string;          // ← "name" (tabela `categories`)
+  name: string; // ← "name" (tabela `categories`)
   parentId?: string;
   global: boolean;
   fairId?: string;
@@ -302,24 +302,43 @@ export interface UpdateFinanceCategoryForm {
   global?: boolean;
 }
 
-// Interface para análise de fluxo de caixa
-export interface CashFlowAnalysis {
-  fairId: string;
-  totalRevenue: number | null;
-  totalExpenses: number | null;
-  netProfit: number | null;
-  profitMargin: number | null;
-  isProfitable: boolean;
-  revenueCount: number | null;
-  expenseCount: number | null;
-  averageRevenue: number | null;
-  averageExpense: number | null;
-  largestRevenue: number | null;
-  largestExpense: number | null;
-  performance: "excellent" | "good" | "average" | "poor" | null;
-  recommendations: string[];
-  summary: string | null;
+export type TaxAnnex = "III" | "V";
+
+export interface CashFlowReportTaxes {
+  cnae: "8230-0/01";
+  annex: TaxAnnex;
+  rbt12: number | null;
+  rbt12Complete: boolean;
+  bracket: number | null;
+  nominalRate: number | null;
+  deduction: number | null;
+  effectiveRate: number | null;
+  amount: number | null;
+  message: string;
 }
+
+export interface CashFlowReport {
+  fairId: string;
+  fairName: string;
+  totalRevenue: number;
+  receivedRevenue: number;
+  receivableRevenue: number;
+  permutaRevenue: number;
+  totalExpenses: number;
+  taxes: CashFlowReportTaxes;
+  netBalanceAfterTaxes: number | null;
+  netBalance: number;
+  profitMargin: number;
+  isProfitable: boolean;
+  summary: string;
+}
+
+export interface CashFlowReportParams {
+  rbt12?: number;
+  annex?: TaxAnnex;
+}
+
+export type CashFlowAnalysis = CashFlowReport;
 
 // Interfaces para contas bancárias
 export interface Account {
@@ -420,7 +439,11 @@ export interface AllocatedDirect {
   percentualDesteFair: number;
   valorAlocado: number;
   account: { id: string; nomeConta: string; banco: string } | null;
-  feirasRateadas: Array<{ fairId: string; fairName: string; percentual: number }>;
+  feirasRateadas: Array<{
+    fairId: string;
+    fairName: string;
+    percentual: number;
+  }>;
   source: "direct_overhead";
 }
 
@@ -435,7 +458,11 @@ export interface AllocatedLegacy {
   percentualDesteFair: number;
   valorAlocado: number;
   account: { id: string; nomeConta: string; banco: string } | null;
-  feirasRateadas: Array<{ fairId: string; fairName: string; percentual: number }>;
+  feirasRateadas: Array<{
+    fairId: string;
+    fairName: string;
+    percentual: number;
+  }>;
 }
 
 /** @deprecated Use AllocatedLegacy */

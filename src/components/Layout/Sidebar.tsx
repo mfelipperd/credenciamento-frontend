@@ -5,6 +5,7 @@ import {
   HomeIcon,
   User2,
   Mail,
+  MessageCircle,
   DollarSign,
   Users,
   CreditCard,
@@ -41,6 +42,12 @@ const navigationItems = [
     name: "Marketing",
     href: "/marketing",
     icon: Mail,
+    roles: [EUserRole.ADMIN, EUserRole.PARTNER, EUserRole.CONSULTANT],
+  },
+  {
+    name: "WhatsApp",
+    href: "/whatsapp-marketing",
+    icon: MessageCircle,
     roles: [EUserRole.ADMIN, EUserRole.PARTNER, EUserRole.CONSULTANT],
   },
   {

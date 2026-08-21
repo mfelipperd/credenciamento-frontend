@@ -14,7 +14,8 @@ import type {
   CreateClientForm,
   Installment,
   EntryModelType,
-  CashFlowAnalysis,
+  CashFlowReport,
+  CashFlowReportParams,
 } from "@/interfaces/finance";
 
 import { AppEndpoints } from "@/constants/AppEndpoints";
@@ -26,7 +27,7 @@ export const useFinanceService = () => {
   // Entry Models
   const getEntryModels = async (
     fairId?: string,
-    type?: EntryModelType
+    type?: EntryModelType,
   ): Promise<EntryModel[] | undefined> => {
     const params = new URLSearchParams();
     if (fairId) params.append("fairId", fairId);
@@ -37,7 +38,7 @@ export const useFinanceService = () => {
         api.get(
           `${AppEndpoints.FINANCE.ENTRY_MODELS}${
             params.toString() ? `?${params.toString()}` : ""
-          }`
+          }`,
         ),
     });
   };
@@ -49,7 +50,7 @@ export const useFinanceService = () => {
   };
 
   const createEntryModel = async (
-    data: Omit<EntryModel, "id" | "createdAt" | "updatedAt">
+    data: Omit<EntryModel, "id" | "createdAt" | "updatedAt">,
   ): Promise<EntryModel | undefined> => {
     return handleRequest<EntryModel>({
       request: () => api.post(AppEndpoints.FINANCE.ENTRY_MODELS, data),
@@ -59,17 +60,16 @@ export const useFinanceService = () => {
 
   const updateEntryModel = async (
     id: string,
-    data: Partial<Omit<EntryModel, "id" | "createdAt" | "updatedAt">>
+    data: Partial<Omit<EntryModel, "id" | "createdAt" | "updatedAt">>,
   ): Promise<EntryModel | undefined> => {
     return handleRequest<EntryModel>({
-      request: () => api.patch(AppEndpoints.FINANCE.ENTRY_MODEL_BY_ID(id), data),
+      request: () =>
+        api.patch(AppEndpoints.FINANCE.ENTRY_MODEL_BY_ID(id), data),
       successMessage: "Modelo de entrada atualizado com sucesso!",
     });
   };
 
-  const deleteEntryModel = async (
-    id: string
-  ): Promise<void> => {
+  const deleteEntryModel = async (id: string): Promise<void> => {
     await handleRequest<{ success: boolean }>({
       request: () => api.delete(AppEndpoints.FINANCE.ENTRY_MODEL_BY_ID(id)),
       successMessage: "Modelo de entrada removido com sucesso!",
@@ -77,7 +77,10 @@ export const useFinanceService = () => {
   };
 
   // Clients
-  const getClients = async (fairId?: string, q?: string): Promise<Client[] | undefined> => {
+  const getClients = async (
+    fairId?: string,
+    q?: string,
+  ): Promise<Client[] | undefined> => {
     const params = new URLSearchParams();
     if (fairId) params.append("fairId", fairId);
     if (q) params.append("q", q);
@@ -87,7 +90,7 @@ export const useFinanceService = () => {
         api.get(
           `${AppEndpoints.FINANCE.CLIENTS}${
             params.toString() ? `?${params.toString()}` : ""
-          }`
+          }`,
         ),
     });
   };
@@ -99,7 +102,7 @@ export const useFinanceService = () => {
   };
 
   const getClientByEmail = async (
-    email: string
+    email: string,
   ): Promise<Client | undefined> => {
     return handleRequest<Client>({
       request: () => api.get(AppEndpoints.FINANCE.CLIENT_BY_EMAIL(email)),
@@ -117,18 +120,27 @@ export const useFinanceService = () => {
   };
 
   // Brands
-  const addBrand = async (clientId: string, name: string, logo: File): Promise<Brand | undefined> => {
+  const addBrand = async (
+    clientId: string,
+    name: string,
+    logo: File,
+  ): Promise<Brand | undefined> => {
     const formData = new FormData();
     formData.append("name", name);
     formData.append("logo", logo);
 
     return handleRequest<Brand>({
-      request: () => api.post(AppEndpoints.FINANCE.CLIENT_BRANDS(clientId), formData),
+      request: () =>
+        api.post(AppEndpoints.FINANCE.CLIENT_BRANDS(clientId), formData),
       successMessage: "Marca adicionada com sucesso!",
     });
   };
 
-  const updateBrand = async (id: string, name?: string, logo?: File): Promise<Brand | undefined> => {
+  const updateBrand = async (
+    id: string,
+    name?: string,
+    logo?: File,
+  ): Promise<Brand | undefined> => {
     const formData = new FormData();
     if (name) formData.append("name", name);
     if (logo) formData.append("logo", logo);
@@ -147,7 +159,7 @@ export const useFinanceService = () => {
   };
 
   const createClient = async (
-    data: CreateClientForm
+    data: CreateClientForm,
   ): Promise<Client | undefined> => {
     return handleRequest<Client>({
       request: () => api.post(AppEndpoints.FINANCE.CLIENTS, data),
@@ -157,7 +169,7 @@ export const useFinanceService = () => {
 
   const updateClient = async (
     id: string,
-    data: Partial<CreateClientForm>
+    data: Partial<CreateClientForm>,
   ): Promise<Client | undefined> => {
     return handleRequest<Client>({
       request: () => api.patch(AppEndpoints.FINANCE.CLIENT_BY_ID(id), data),
@@ -174,7 +186,7 @@ export const useFinanceService = () => {
 
   // Revenues
   const getRevenues = async (
-    filters: RevenueFilters
+    filters: RevenueFilters,
   ): Promise<PagedResponse<RevenueListItem> | undefined> => {
     const params = new URLSearchParams();
 
@@ -187,7 +199,8 @@ export const useFinanceService = () => {
     const response = await handleRequest<
       PagedResponse<RevenueListItem> | RevenueListItem[]
     >({
-      request: () => api.get(`${AppEndpoints.FINANCE.REVENUES}?${params.toString()}`),
+      request: () =>
+        api.get(`${AppEndpoints.FINANCE.REVENUES}?${params.toString()}`),
     });
 
     // Se a resposta for um array, convertemos para o formato PagedResponse
@@ -205,7 +218,7 @@ export const useFinanceService = () => {
 
   const getRevenueDetail = async (
     id: string,
-    fairId?: string
+    fairId?: string,
   ): Promise<RevenueDetail | undefined> => {
     const params = new URLSearchParams();
     if (fairId) params.append("fairId", fairId);
@@ -215,14 +228,14 @@ export const useFinanceService = () => {
         api.get(
           `${AppEndpoints.FINANCE.REVENUE_BY_ID(id)}${
             params.toString() ? `?${params.toString()}` : ""
-          }`
+          }`,
         ),
     });
   };
 
   const getRevenuesByClient = async (
     clientId: string,
-    fairId?: string
+    fairId?: string,
   ): Promise<RevenueListItem[] | undefined> => {
     const params = new URLSearchParams();
     if (fairId) params.append("fairId", fairId);
@@ -237,7 +250,7 @@ export const useFinanceService = () => {
   };
 
   const createRevenue = async (
-    data: CreateRevenueForm
+    data: CreateRevenueForm,
   ): Promise<RevenueDetail | undefined> => {
     return handleRequest<RevenueDetail>({
       request: () => api.post(AppEndpoints.FINANCE.REVENUES, data),
@@ -248,7 +261,7 @@ export const useFinanceService = () => {
   const updateRevenue = async (
     id: string,
     data: Partial<CreateRevenueForm>,
-    fairId?: string
+    fairId?: string,
   ): Promise<RevenueDetail | undefined> => {
     const params = new URLSearchParams();
     if (fairId) params.append("fairId", fairId);
@@ -259,7 +272,7 @@ export const useFinanceService = () => {
           `${AppEndpoints.FINANCE.REVENUE_BY_ID(id)}${
             params.toString() ? `?${params.toString()}` : ""
           }`,
-          data
+          data,
         ),
       successMessage: "Receita atualizada com sucesso!",
     });
@@ -297,14 +310,15 @@ export const useFinanceService = () => {
   const getKpis = async (
     fairId: string,
     from?: string,
-    to?: string
+    to?: string,
   ): Promise<Kpis | undefined> => {
     const params = new URLSearchParams({ fairId });
     if (from) params.append("from", from);
     if (to) params.append("to", to);
 
     return handleRequest<Kpis>({
-      request: () => api.get(`${AppEndpoints.FINANCE.REVENUE_KPIS}?${params.toString()}`),
+      request: () =>
+        api.get(`${AppEndpoints.FINANCE.REVENUE_KPIS}?${params.toString()}`),
     });
   };
 
@@ -313,7 +327,7 @@ export const useFinanceService = () => {
     metric: "contratado" | "pago" = "contratado",
     limit: number = 10,
     from?: string,
-    to?: string
+    to?: string,
   ): Promise<TopEmpresa[] | undefined> => {
     const params = new URLSearchParams({
       fairId,
@@ -326,7 +340,7 @@ export const useFinanceService = () => {
     return handleRequest<TopEmpresa[]>({
       request: () =>
         api.get(
-          `${AppEndpoints.FINANCE.REVENUE_TOP_COMPANIES}?${params.toString()}`
+          `${AppEndpoints.FINANCE.REVENUE_TOP_COMPANIES}?${params.toString()}`,
         ),
     });
   };
@@ -334,7 +348,7 @@ export const useFinanceService = () => {
   const getRevenuesByType = async (
     fairId: string,
     from?: string,
-    to?: string
+    to?: string,
   ): Promise<Array<{ tipo: string; totalContrato: number }> | undefined> => {
     const params = new URLSearchParams({ fairId });
     if (from) params.append("from", from);
@@ -350,7 +364,7 @@ export const useFinanceService = () => {
     fairId: string,
     tipo: EntryModelType,
     from?: string,
-    to?: string
+    to?: string,
   ): Promise<
     Array<{ modeloId: string; nome: string; totalContrato: number }> | undefined
   > => {
@@ -362,7 +376,9 @@ export const useFinanceService = () => {
       Array<{ modeloId: string; nome: string; totalContrato: number }>
     >({
       request: () =>
-        api.get(`${AppEndpoints.FINANCE.REVENUE_BY_MODEL}?${params.toString()}`),
+        api.get(
+          `${AppEndpoints.FINANCE.REVENUE_BY_MODEL}?${params.toString()}`,
+        ),
     });
   };
 
@@ -377,24 +393,25 @@ export const useFinanceService = () => {
 
   const updateInstallment = async (
     id: string,
-    data: { dueDate?: string; valueCents?: number }
+    data: { dueDate?: string; valueCents?: number },
   ): Promise<Installment | undefined> => {
     return handleRequest<Installment>({
-      request: () => api.put(AppEndpoints.FINANCE.REVENUE_INSTALLMENT_UPDATE(id), data),
+      request: () =>
+        api.put(AppEndpoints.FINANCE.REVENUE_INSTALLMENT_UPDATE(id), data),
       successMessage: "Parcela atualizada com sucesso!",
     });
   };
 
   const payInstallment = async (
     id: string,
-    data: { paidAt: string; proofUrl?: string; fairId: string }
+    data: { paidAt: string; proofUrl?: string; fairId: string },
   ): Promise<Installment | undefined> => {
     const { fairId, ...bodyData } = data;
     return handleRequest<Installment>({
       request: () =>
         api.patch(
           `${AppEndpoints.FINANCE.REVENUE_INSTALLMENT_PAY(id)}?fairId=${fairId}`,
-          bodyData
+          bodyData,
         ),
       successMessage: "Parcela baixada com sucesso!",
     });
@@ -405,7 +422,7 @@ export const useFinanceService = () => {
     installmentId: string,
     paidAt: string,
     fairId: string,
-    proofUrl?: string
+    proofUrl?: string,
   ): Promise<Installment | undefined> => {
     return payInstallment(installmentId, { paidAt, proofUrl, fairId });
   };
@@ -413,39 +430,50 @@ export const useFinanceService = () => {
   // Attachments
   const uploadAttachment = async (
     revenueId: string,
-    file: File
+    file: File,
   ): Promise<{ id: string; url: string } | undefined> => {
     const formData = new FormData();
     formData.append("file", file);
 
     return handleRequest<{ id: string; url: string }>({
       request: () =>
-        api.post(AppEndpoints.FINANCE.REVENUE_ATTACHMENTS(revenueId), formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
+        api.post(
+          AppEndpoints.FINANCE.REVENUE_ATTACHMENTS(revenueId),
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
           },
-        }),
+        ),
       successMessage: "Arquivo anexado com sucesso!",
     });
   };
 
   const deleteAttachment = async (
     revenueId: string,
-    attachmentId: string
+    attachmentId: string,
   ): Promise<void> => {
     await handleRequest<{ success: boolean }>({
       request: () =>
         api.delete(
-          AppEndpoints.FINANCE.REVENUE_ATTACHMENT_BY_ID(revenueId, attachmentId)
+          AppEndpoints.FINANCE.REVENUE_ATTACHMENT_BY_ID(
+            revenueId,
+            attachmentId,
+          ),
         ),
       successMessage: "Arquivo removido com sucesso!",
     });
   };
 
   // Cash Flow Analysis
-  const getCashFlowAnalysis = async (fairId: string): Promise<CashFlowAnalysis | undefined> => {
-    return handleRequest<CashFlowAnalysis>({
-      request: () => api.get(AppEndpoints.FINANCE.CASH_FLOW_ANALYSIS(fairId)),
+  const getCashFlowAnalysis = async (
+    fairId: string,
+    params?: CashFlowReportParams,
+  ): Promise<CashFlowReport | undefined> => {
+    return handleRequest<CashFlowReport>({
+      request: () =>
+        api.get(AppEndpoints.FINANCE.CASH_FLOW_ANALYSIS(fairId), { params }),
     });
   };
 

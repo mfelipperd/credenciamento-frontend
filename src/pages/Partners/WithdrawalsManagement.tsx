@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, X, Eye, Filter, Edit } from "lucide-react";
+import { Check, X, Eye, Filter, Edit, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -234,20 +234,24 @@ export function WithdrawalsManagement() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen space-y-6 p-4 pb-10 text-white sm:p-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Gestão de Saques</h1>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="mb-1 text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Movimentações financeiras</p>
+          <h1 className="text-3xl font-black tracking-tighter text-white sm:text-4xl">
+            Gestão de <span className="text-brand-cyan">Saques</span>
+          </h1>
+          <div className="my-2 h-1.5 w-24 rounded-full bg-linear-to-r from-brand-pink to-brand-cyan" />
+          <p className="text-sm font-medium text-white/40">
             Aprovar e gerenciar solicitações de saque dos sócios
           </p>
         </div>
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <Card className="glass-card border border-white/5 bg-white/3">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-200">
               Pendentes
@@ -261,7 +265,7 @@ export function WithdrawalsManagement() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="glass-card border border-white/5 bg-white/3">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-200">
               Aprovados
@@ -275,7 +279,7 @@ export function WithdrawalsManagement() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="glass-card border border-white/5 bg-white/3">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-200">
               Rejeitados
@@ -289,7 +293,7 @@ export function WithdrawalsManagement() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="glass-card border border-white/5 bg-white/3">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-200">
               Valor Total
@@ -320,23 +324,22 @@ export function WithdrawalsManagement() {
         </Card>
       </div>
 
-      {/* Filtros */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Filtros</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-4">
+      {/* Busca e filtro compactos */}
+      <div className="glass-card rounded-2xl border border-white/5 bg-white/3 p-3">
+          <div className="flex flex-col gap-3 sm:flex-row">
             <div className="flex-1">
+              <div className="relative max-w-md">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
               <Input
                 placeholder="Buscar por motivo ou dados bancários..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="max-w-md"
+                className="h-10 border-white/10 bg-white/5 pl-9 text-white placeholder:text-white/30"
               />
+              </div>
             </div>
             <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as PartnerWithdrawal['status'] | "all")}>
-              <SelectTrigger className="w-48">
+              <SelectTrigger className="h-10 w-full border-white/10 bg-white/5 text-white sm:w-48">
                 <SelectValue placeholder="Filtrar por status" />
               </SelectTrigger>
               <SelectContent>
@@ -348,15 +351,14 @@ export function WithdrawalsManagement() {
               </SelectContent>
             </Select>
           </div>
-        </CardContent>
-      </Card>
+      </div>
 
       {/* Lista de Saques */}
-      <div className="space-y-4">
+      <div className="space-y-3">
         {filteredWithdrawals.map((withdrawal: PartnerWithdrawal) => (
-          <Card key={withdrawal.id} className="hover:shadow-lg transition-shadow">
+          <Card key={withdrawal.id} className="glass-card border border-white/5 bg-white/3 transition-all hover:-translate-y-0.5 hover:border-white/10 hover:bg-white/5">
             <CardContent className="p-6">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-4">
                     <div>
