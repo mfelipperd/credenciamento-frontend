@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Users, DollarSign, TrendingUp, Eye, Edit, Trash2, MoreHorizontal, UserCheck, BarChart3 } from "lucide-react";
+import { Plus, Users, DollarSign, TrendingUp, Eye, Edit, Trash2, MoreHorizontal, UserCheck, BarChart3, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -80,9 +80,9 @@ export default function PartnersPage() {
     (partner.partnerCpf || "").includes(searchTerm)
   ) || [];
 
-  const totalPercentage = fairPartners?.reduce((sum, partner) => sum + partner.percentage, 0) || 0;
-  const totalEarnings = fairPartners?.reduce((sum, partner) => sum + partner.totalEarnings, 0) || 0;
-  const totalAvailable = fairPartners?.reduce((sum, partner) => sum + partner.availableBalance, 0) || 0;
+  const totalPercentage = fairPartners?.reduce((sum, partner) => sum + Number(partner.percentage || 0), 0) || 0;
+  const totalEarnings = fairPartners?.reduce((sum, partner) => sum + Number(partner.totalEarnings || 0), 0) || 0;
+  const totalAvailable = fairPartners?.reduce((sum, partner) => sum + Number(partner.availableBalance || 0), 0) || 0;
 
   const handleDeletePartner = async (fairPartnerId: string) => {
     try {
@@ -133,13 +133,17 @@ export default function PartnersPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen space-y-6 p-4 pb-10 text-white sm:p-6">
       <Tabs defaultValue="socios">
         {/* Header: título à esquerda, tabs centralizado, botão à direita */}
-        <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-4 mb-4">
+        <div className="mb-6 flex flex-col gap-5 xl:grid xl:grid-cols-[1fr_auto_1fr] xl:items-end">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Sócios</h1>
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="mb-1 text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Participações e resultados</p>
+            <h1 className="flex items-center gap-3 text-3xl font-black tracking-tighter text-white sm:text-4xl">
+              <Users className="h-8 w-8 text-brand-pink" />
+              Gestão de <span className="text-brand-cyan">Sócios</span>
+            </h1>
+            <p className="mt-1 text-sm font-medium text-white/40">
               Gestão de sócios e distribuição de lucros
             </p>
           </div>
@@ -155,9 +159,9 @@ export default function PartnersPage() {
               </PageTabsTrigger>
             )}
           </PageTabsList>
-          <div className="flex justify-end">
+          <div className="flex justify-start xl:justify-end">
             {isAdmin && (
-              <Button onClick={() => setIsCreateDialogOpen(true)}>
+              <Button onClick={() => setIsCreateDialogOpen(true)} className="h-11 rounded-xl border-none bg-linear-to-br from-[#00aacd] to-[#EB2970] px-6 font-bold text-white shadow-lg shadow-pink-500/20 transition-all hover:scale-105 active:scale-95">
                 <Plus className="w-4 h-4 mr-2" />
                 Novo Sócio
               </Button>
@@ -169,11 +173,11 @@ export default function PartnersPage() {
           <FairFinancialOverview fairId={fairId} />
         </TabsContent>
 
-        <TabsContent value="socios">
+        <TabsContent value="socios" className="space-y-4">
 
       {/* KPIs */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <Card className="glass-card border border-white/5 bg-white/3">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-200">
               Total de Sócios
@@ -187,7 +191,7 @@ export default function PartnersPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="glass-card border border-white/5 bg-white/3">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-200">
               Porcentagem Utilizada
@@ -204,7 +208,7 @@ export default function PartnersPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="glass-card border border-white/5 bg-white/3">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-200">
               Total Ganho
@@ -218,7 +222,7 @@ export default function PartnersPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="glass-card border border-white/5 bg-white/3">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-200">
               Saldo Disponível
@@ -233,88 +237,74 @@ export default function PartnersPage() {
         </Card>
       </div>
 
-      {/* Filtros */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Filtros</CardTitle>
-        </CardHeader>
-        <CardContent>
+      {/* Busca compacta */}
+      <div className="glass-card rounded-2xl border border-white/5 bg-white/3 p-3">
+        <div className="relative max-w-md">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
           <Input
             placeholder="Buscar por nome, email ou CPF..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="max-w-md"
+            className="h-10 border-white/10 bg-white/5 pl-9 text-white placeholder:text-white/30"
           />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Lista de Sócios */}
-      <div className="space-y-4">
+      <div className="space-y-3">
         {filteredPartners.length === 0 && !isLoading && (
-          <Card>
+          <Card className="glass-card border border-white/5 bg-white/3">
             <CardContent className="p-6 text-center">
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="text-white/50">
                 Nenhum sócio encontrado para esta feira. 
                 {isAdmin && " Use o botão 'Novo Sócio' para associar um sócio à feira."}
-              </p>
-              <p className="text-sm text-gray-500 mt-2">
-                FairId atual: {fairId || "Não definido"}
-              </p>
-              <p className="text-sm text-gray-500">
-                Você é admin: {isAdmin ? "Sim" : "Não"}
               </p>
             </CardContent>
           </Card>
         )}
         {filteredPartners.map((partner) => (
-          <Card key={partner.id} className="hover:shadow-lg transition-shadow">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-4">
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+          <Card key={partner.id} className="glass-card relative border border-white/5 bg-white/3 py-0 transition-all hover:-translate-y-0.5 hover:border-white/10 hover:bg-white/5">
+            <CardContent className="p-4 pr-12 lg:pr-4">
+              <div className="grid gap-4 lg:grid-cols-[minmax(240px,1.4fr)_repeat(3,minmax(120px,1fr))_auto] lg:items-center">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <div className="min-w-0">
+                      <h3 className="truncate text-base font-semibold text-gray-900 dark:text-white">
                         {partner.partnerName || "Nome não disponível"}
                       </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <p className="truncate text-xs text-gray-600 dark:text-gray-400">
                         {partner.partnerEmail || "Email não disponível"} • {partner.partnerCpf || "CPF não disponível"}
                       </p>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant={partner.isActive ? "default" : "secondary"}>
+                    <div className="flex shrink-0 items-center gap-1.5">
+                      <Badge variant={partner.isActive ? "default" : "secondary"} className="h-6 px-2 text-[10px]">
                         {partner.isActive ? "Ativo" : "Inativo"}
                       </Badge>
-                      <Badge variant="outline">
+                      <Badge variant="outline" className="h-6 px-2 text-[10px]">
                         {formatPercentage(partner.percentage)}
                       </Badge>
                     </div>
                   </div>
-                  
-                  <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Total Ganho</p>
-                      <p className="text-lg font-semibold text-green-600 dark:text-green-400">
-                        {formatCurrency(partner.totalEarnings)}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Valor Pendente</p>
-                      <p className="text-lg font-semibold text-orange-600 dark:text-orange-400">
-                        {formatCurrency(partner.pendingWithdrawals)}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Saldo Disponível</p>
-                      <p className="text-lg font-semibold text-purple-600 dark:text-purple-400">
-                        {formatCurrency(partner.availableBalance)}
-                      </p>
-                    </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-3 border-t border-white/5 pt-3 lg:contents">
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Total ganho</p>
+                    <p className="mt-0.5 text-sm font-semibold text-green-600 dark:text-green-400">{formatCurrency(partner.totalEarnings)}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Pendente</p>
+                    <p className="mt-0.5 text-sm font-semibold text-orange-600 dark:text-orange-400">{formatCurrency(partner.pendingWithdrawals)}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Disponível</p>
+                    <p className="mt-0.5 text-sm font-semibold text-purple-600 dark:text-purple-400">{formatCurrency(partner.availableBalance)}</p>
                   </div>
                 </div>
 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm">
+                    <Button variant="ghost" size="sm" className="absolute right-3 top-3 h-8 w-8 p-0 text-white/50 lg:static">
                       <MoreHorizontal className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>

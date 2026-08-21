@@ -152,6 +152,17 @@ export const AppEndpoints = {
     GEO_ANALYTICS: (fairId: string) => `/fairs/${fairId}/prospects/analytics/geo`,
     ENRICH_ALL: (fairId: string) => `/fairs/${fairId}/prospects/enrich-all`,
   },
+  WHATSAPP: {
+    INSTANCE_STATUS: "/whatsapp/instance/status",
+    WARMUP_STATUS: "/whatsapp/warmup-status",
+    CAMPAIGNS_PREVIEW: "/whatsapp/campaigns/preview",
+    CAMPAIGNS_SEND: "/whatsapp/campaigns/send",
+    CAMPAIGNS: "/whatsapp/campaigns",
+    CAMPAIGN_RECIPIENTS: (id: string) => `/whatsapp/campaigns/${id}/recipients`,
+    CAMPAIGN_PAUSE: (id: string) => `/whatsapp/campaigns/${id}/pause`,
+    CAMPAIGN_RESUME: (id: string) => `/whatsapp/campaigns/${id}/resume`,
+    CAMPAIGN_CANCEL: (id: string) => `/whatsapp/campaigns/${id}/cancel`,
+  },
   FAIR_PARTNERS: {
     BASE: "/fair-partners",
     BY_FAIR: (fairId: string) => `/fair-partners/fair/${fairId}`,
