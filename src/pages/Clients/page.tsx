@@ -1,556 +1,64 @@
-import { useState, useMemo, type ReactNode } from "react";
-import {
-  useClients,
-  useCreateClient,
-  useUpdateClient,
-  useDeleteClient,
-} from "@/hooks/useFinance";
+import { useMemo, useState, type ReactNode } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Building2, Images, Plus, Search, Users, WalletCards } from "lucide-react";
+import { toast } from "sonner";
 import { useSearchParams } from "@/hooks/useSearchParams";
+import { useExhibitorsService } from "@/service/exhibitors.service";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
-  Plus,
-  Search,
-  MoreHorizontal,
-  Edit,
-  Trash2,
-  Tag,
-  Building2,
-  AlertTriangle,
-  CheckCircle2,
-  ImageOff,
-  Camera,
-  Images,
-} from "lucide-react";
-import { ClientFormModal } from "./components/ClientFormModal";
-import { BrandsModal } from "./components/BrandsModal";
-import { ClientImagesModal } from "./components/ClientImagesModal";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { PageTabsList, PageTabsTrigger } from "@/components/ui/page-tabs";
 import { FairGalleryTab } from "./components/FairGalleryTab";
-import type { Client, CreateClientForm } from "@/interfaces/finance";
-
-type FilterTab = "all" | "participating" | "others";
-type PageTab = "expositores" | "galeria";
+import type { Exhibitor, ExhibitorType } from "@/interfaces/exhibitors";
+import { exhibitorTypeLabels, memberRoleLabels, participationStatusLabels, credentialStatusLabels } from "@/interfaces/exhibitors";
 
 export function ClientsPage() {
   const [, , fairId] = useSearchParams();
-  const [pageTab, setPageTab] = useState<PageTab>("expositores");
+  const service = useExhibitorsService();
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
-  const [tab, setTab] = useState<FilterTab>("all");
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingClient, setEditingClient] = useState<Client | null>(null);
-  const [deletingClient, setDeletingClient] = useState<Client | null>(null);
-  const [brandsClient, setBrandsClient] = useState<Client | null>(null);
-  const [imagesClient, setImagesClient] = useState<Client | null>(null);
-
-  // Sempre busca todos — fairId apenas aciona a flag isParticipatingInFair
-  const { data: clients = [], isLoading } = useClients(fairId);
-
-  const createMutation = useCreateClient();
-  const updateMutation = useUpdateClient();
-  const deleteMutation = useDeleteClient();
-
-  const allClients = clients as Client[];
-
-  const filtered = useMemo(() => {
-    let list = allClients;
-
-    if (search.trim()) {
-      const term = search.toLowerCase();
-      list = list.filter(
-        (c) =>
-          c.name.toLowerCase().includes(term) ||
-          c.cnpj?.toLowerCase().includes(term) ||
-          c.email?.toLowerCase().includes(term) ||
-          c.responsavel?.toLowerCase().includes(term)
-      );
-    }
-
-    if (tab === "participating") {
-      list = list.filter((c) => c.isParticipatingInFair === true);
-    } else if (tab === "others") {
-      list = list.filter((c) => c.isParticipatingInFair === false);
-    }
-
-    return list;
-  }, [allClients, search, tab]);
-
-  const participating = allClients.filter((c) => c.isParticipatingInFair === true).length;
-  const others = allClients.filter((c) => c.isParticipatingInFair === false).length;
-  const withBrands = allClients.filter((c) => (c.brands?.length ?? 0) > 0).length;
-
-  const handleCreate = (data: Omit<CreateClientForm, "fairId">) => {
-    if (!fairId) return;
-    createMutation.mutate(
-      { ...data, fairId },
-      { onSuccess: () => setIsFormOpen(false) }
-    );
-  };
-
-  const handleUpdate = (data: Omit<CreateClientForm, "fairId">) => {
-    if (!editingClient) return;
-    updateMutation.mutate(
-      { id: editingClient.id, data },
-      { onSuccess: () => setEditingClient(null) }
-    );
-  };
-
-  const handleDelete = () => {
-    if (!deletingClient) return;
-    deleteMutation.mutate(deletingClient.id, {
-      onSuccess: () => setDeletingClient(null),
-    });
-  };
+  const [selected, setSelected] = useState<Exhibitor | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [name, setName] = useState("");
+  const [cnpj, setCnpj] = useState("");
+  const [type, setType] = useState<ExhibitorType>("OTHER");
+  const { data: exhibitors = [], isLoading } = useQuery({ queryKey: ["exhibitors"], queryFn: service.list });
+  const filtered = useMemo(() => exhibitors.filter(e => `${e.name} ${e.cnpj ?? ""}`.toLowerCase().includes(search.toLowerCase())), [exhibitors, search]);
+  const create = useMutation({ mutationFn: service.create, onSuccess: async (item) => { await queryClient.invalidateQueries({ queryKey: ["exhibitors"] }); setCreating(false); setName(""); setCnpj(""); setSelected(item); toast.success("Expositor cadastrado com sucesso"); }, onError: () => toast.error("Não foi possível cadastrar o expositor") });
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="relative rounded-3xl overflow-hidden bg-linear-to-br from-[#00aacd] to-[#EB2970] p-8">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3 blur-3xl" />
-        <div className="relative z-10">
-          <p className="text-white/60 text-[10px] font-black uppercase tracking-[0.2em] mb-1">
-            Gestão de Feiras
-          </p>
-          <h1 className="text-3xl font-black text-white tracking-tighter">
-            Expositores
-          </h1>
-          <p className="text-white/60 text-sm mt-1">
-            Todos os expositores cadastrados na plataforma
-          </p>
+    <div className="min-h-screen space-y-6 p-4 pb-10 text-white sm:p-6">
+      <Tabs defaultValue="exhibitors" className="space-y-6">
+        <div className="flex flex-col gap-5 xl:grid xl:grid-cols-[1fr_auto_1fr] xl:items-end">
+          <div><p className="mb-1 text-[10px] font-black uppercase tracking-[.2em] text-white/40">Organizações e credenciais</p><h1 className="flex items-center gap-3 text-4xl font-black tracking-tighter"><Building2 className="h-8 w-8 text-brand-pink" />Gestão de <span className="text-brand-cyan">Expositores</span></h1><p className="mt-1 text-sm text-white/40">Empresas, equipes e participações em feiras</p></div>
+          <PageTabsList><PageTabsTrigger value="exhibitors"><Building2 className="h-4 w-4" />Expositores</PageTabsTrigger><PageTabsTrigger value="gallery"><Images className="h-4 w-4" />Galeria</PageTabsTrigger></PageTabsList>
+          <div className="flex xl:justify-end"><Button onClick={() => setCreating(true)} className="bg-linear-to-br from-brand-cyan to-brand-pink font-bold text-white"><Plus className="mr-2 h-4 w-4" />Novo expositor</Button></div>
         </div>
-      </div>
-
-      {/* Tabs de página */}
-      <div className="flex gap-1 border-b border-slate-100 dark:border-white/10">
-        {(
-          [
-            { key: "expositores", label: "Expositores", icon: <Building2 className="w-4 h-4" /> },
-            { key: "galeria", label: "Galeria da Feira", icon: <Images className="w-4 h-4" /> },
-          ] as { key: PageTab; label: string; icon: ReactNode }[]
-        ).map(({ key, label, icon }) => (
-          <button
-            key={key}
-            onClick={() => setPageTab(key)}
-            className={`flex items-center gap-2 px-5 py-2.5 text-sm font-bold rounded-t-xl transition-colors ${
-              pageTab === key
-                ? "text-[#00aacd] border-b-2 border-[#00aacd] -mb-px bg-[#00aacd]/5"
-                : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-            }`}
-          >
-            {icon}
-            {label}
-          </button>
-        ))}
-      </div>
-
-      {/* Galeria da Feira */}
-      {pageTab === "galeria" && (
-        <FairGalleryTab fairId={fairId} />
-      )}
-
-      {/* Conteúdo da aba Expositores */}
-      {pageTab === "expositores" && <>
-
-      {/* KPI chips */}
-      <div className="flex flex-wrap gap-3">
-        <KpiChip
-          icon={<Building2 className="w-4 h-4 text-[#00aacd]" />}
-          value={allClients.length}
-          label="Total"
-        />
-        {fairId && (
-          <>
-            <KpiChip
-              icon={<CheckCircle2 className="w-4 h-4 text-green-500" />}
-              value={participating}
-              label="Nesta feira"
-              className="bg-green-50 dark:bg-green-900/20 border-green-100 dark:border-green-800/30"
-              valueClassName="text-green-700 dark:text-green-400"
-            />
-            {others > 0 && (
-              <KpiChip
-                icon={<Building2 className="w-4 h-4 text-slate-400" />}
-                value={others}
-                label="Outras feiras"
-                className="bg-slate-50 dark:bg-white/5 border-slate-100 dark:border-white/10"
-                valueClassName="text-slate-500"
-              />
-            )}
-          </>
-        )}
-        <KpiChip
-          icon={<Tag className="w-4 h-4 text-purple-500" />}
-          value={withBrands}
-          label="Com marcas"
-          className="bg-purple-50 dark:bg-purple-900/20 border-purple-100 dark:border-purple-800/30"
-          valueClassName="text-purple-700 dark:text-purple-400"
-        />
-      </div>
-
-      {/* Barra de ações */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <Input
-            placeholder="Buscar por nome, CNPJ, email ou responsável..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-        <Button
-          onClick={() => setIsFormOpen(true)}
-          disabled={!fairId}
-          title={!fairId ? "Selecione uma feira para criar um expositor" : undefined}
-          className="bg-linear-to-br from-[#00aacd] to-[#EB2970] text-white font-bold shrink-0 disabled:opacity-50"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Novo Expositor
-        </Button>
-      </div>
-
-      {/* Tabs de filtro — só aparecem quando há fairId */}
-      {fairId && (
-        <div className="flex gap-2 border-b border-slate-100 dark:border-white/10 pb-1">
-          {(
-            [
-              { key: "all", label: "Todos", count: allClients.length },
-              { key: "participating", label: "Nesta feira", count: participating },
-              { key: "others", label: "Outras feiras", count: others },
-            ] as { key: FilterTab; label: string; count: number }[]
-          ).map(({ key, label, count }) => (
-            <button
-              key={key}
-              onClick={() => setTab(key)}
-              className={`px-4 py-2 text-sm font-bold rounded-t-xl transition-colors ${
-                tab === key
-                  ? "text-[#00aacd] border-b-2 border-[#00aacd] -mb-px"
-                  : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-              }`}
-            >
-              {label}
-              <span className="ml-1.5 text-[10px] font-black bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-400 rounded-full px-1.5 py-0.5">
-                {count}
-              </span>
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* Grid */}
-      {isLoading ? (
-        <GridSkeleton />
-      ) : filtered.length === 0 ? (
-        <EmptyState hasSearch={!!search} tab={tab} hasFair={!!fairId} />
-      ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
-          {filtered.map((client) => (
-            <ClientCard
-              key={client.id}
-              client={client}
-              hasFair={!!fairId}
-              onEdit={() => setEditingClient(client)}
-              onDelete={() => setDeletingClient(client)}
-              onBrands={() => setBrandsClient(client)}
-              onImages={() => { setImagesClient(client); }}
-            />
-          ))}
-        </div>
-      )}
-
-      </> /* fim aba expositores */}
-
-      {/* Modais — fora do condicional para não desmontar ao trocar aba */}
-      <ClientFormModal
-        open={isFormOpen}
-        onClose={() => setIsFormOpen(false)}
-        onSubmit={handleCreate}
-        isPending={createMutation.isPending}
-      />
-      <ClientFormModal
-        open={!!editingClient}
-        onClose={() => setEditingClient(null)}
-        onSubmit={handleUpdate}
-        isPending={updateMutation.isPending}
-        editingClient={editingClient}
-      />
-      <BrandsModal
-        client={brandsClient}
-        open={!!brandsClient}
-        onClose={() => setBrandsClient(null)}
-      />
-      <ClientImagesModal
-        client={imagesClient}
-        open={!!imagesClient}
-        fairId={fairId}
-        onClose={() => setImagesClient(null)}
-      />
-      <AlertDialog
-        open={!!deletingClient}
-        onOpenChange={(o) => !o && setDeletingClient(null)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Remover Expositor</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja remover{" "}
-              <strong>{deletingClient?.name}</strong>? Todas as marcas vinculadas
-              também serão excluídas. Esta ação não pode ser desfeita.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              className="bg-red-600 hover:bg-red-700 text-white"
-              disabled={deleteMutation.isPending}
-            >
-              {deleteMutation.isPending ? "Removendo..." : "Remover"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        <TabsContent value="gallery"><FairGalleryTab fairId={fairId} /></TabsContent>
+        <TabsContent value="exhibitors" className="space-y-4">
+          <div className="flex flex-wrap gap-3"><Stat icon={<Building2 />} value={exhibitors.length} label="Expositores" /><Stat icon={<Users />} value={exhibitors.reduce((n,e)=>n+e.financeClients.length,0)} label="Vínculos financeiros" /><Stat icon={<WalletCards />} value={exhibitors.filter(e=>e.financeClients.length>0).length} label="Com cliente financeiro" /></div>
+          <div className="relative max-w-lg"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" /><Input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Buscar expositor por nome ou CNPJ..." className="border-white/10 bg-white/5 pl-9 text-white" /></div>
+          {isLoading ? <p className="py-16 text-center text-white/40">Carregando expositores...</p> : <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{filtered.map(e=><button key={e.id} onClick={()=>setSelected(e)} className="glass-card rounded-2xl border border-white/5 p-4 text-left transition hover:border-brand-cyan/30 hover:bg-white/5"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><h3 className="truncate font-bold text-white">{e.name}</h3><p className="mt-1 text-xs text-white/40">{e.cnpj || "CNPJ não informado"}</p></div><Badge variant="outline" className="shrink-0 text-white/60">{exhibitorTypeLabels[e.type]}</Badge></div><div className="mt-4 flex items-center justify-between text-xs text-white/40"><span>{e.financeClients.length} vínculo(s) financeiro(s)</span><span className={e.isActive?"text-green-400":"text-red-400"}>{e.isActive?"Ativo":"Inativo"}</span></div></button>)}</div>}
+        </TabsContent>
+      </Tabs>
+      <Dialog open={creating} onOpenChange={setCreating}><DialogContent><DialogHeader><DialogTitle>Novo expositor</DialogTitle></DialogHeader><div className="space-y-4"><Input value={name} onChange={e=>setName(e.target.value)} placeholder="Nome da empresa ou marca" /><Input value={cnpj} onChange={e=>setCnpj(e.target.value)} placeholder="CNPJ (opcional)" /><Select value={type} onValueChange={v=>setType(v as ExhibitorType)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{Object.entries(exhibitorTypeLabels).map(([v,l])=><SelectItem key={v} value={v}>{l}</SelectItem>)}</SelectContent></Select><Button disabled={!name.trim()||create.isPending} onClick={()=>create.mutate({name:name.trim(),cnpj:cnpj||undefined,type})} className="w-full">{create.isPending?"Salvando...":"Cadastrar expositor"}</Button></div></DialogContent></Dialog>
+      <ExhibitorDetails exhibitor={selected} onClose={()=>setSelected(null)} />
     </div>
   );
 }
 
-// ── Sub-componentes ──────────────────────────────────────────────────────────
-
-interface KpiChipProps {
-  icon: ReactNode;
-  value: number;
-  label: string;
-  className?: string;
-  valueClassName?: string;
+function ExhibitorDetails({ exhibitor, onClose }: { exhibitor: Exhibitor | null; onClose: () => void }) {
+  const service = useExhibitorsService();
+  const id = exhibitor?.id ?? "";
+  const { data: team = [], isLoading: loadingTeam } = useQuery({ queryKey:["exhibitors",id,"team"], queryFn:()=>service.team(id), enabled:!!id });
+  const { data: fairs = [], isLoading: loadingFairs } = useQuery({ queryKey:["exhibitors",id,"fairs"], queryFn:()=>service.fairs(id), enabled:!!id });
+  return <Dialog open={!!exhibitor} onOpenChange={open=>!open&&onClose()}><DialogContent className="max-h-[90vh] max-w-5xl overflow-y-auto"><DialogHeader><DialogTitle>{exhibitor?.name}</DialogTitle></DialogHeader>{exhibitor&&<Tabs defaultValue="general" className="space-y-4"><PageTabsList className="h-auto flex-wrap"><PageTabsTrigger value="general">Dados gerais</PageTabsTrigger><PageTabsTrigger value="team">Equipe ({team.length})</PageTabsTrigger><PageTabsTrigger value="fairs">Feiras ({fairs.length})</PageTabsTrigger><PageTabsTrigger value="finance">Clientes financeiros ({exhibitor.financeClients.length})</PageTabsTrigger></PageTabsList><TabsContent value="general" className="grid gap-3 sm:grid-cols-2"><Info label="Nome" value={exhibitor.name}/><Info label="Tipo" value={exhibitorTypeLabels[exhibitor.type]}/><Info label="CNPJ" value={exhibitor.cnpj||"Não informado"}/><Info label="Situação" value={exhibitor.isActive?"Ativo":"Inativo"}/></TabsContent><TabsContent value="team">{loadingTeam?<Loading/>:<div className="space-y-2">{team.map(m=><Row key={m.id} title={m.name} subtitle={`${memberRoleLabels[m.role]}${m.jobTitle?` • ${m.jobTitle}`:""}`} meta={m.userId?"Acesso ativo":"Sem acesso ao sistema"}/>)}</div>}</TabsContent><TabsContent value="fairs">{loadingFairs?<Loading/>:<div className="space-y-3">{fairs.map(f=><div key={f.id} className="rounded-xl border border-white/10 p-4"><div className="flex justify-between"><b>{f.fair.name}</b><Badge>{participationStatusLabels[f.status]}</Badge></div><div className="mt-3 space-y-2">{f.members.map(c=><Row key={c.id} title={c.member.name} subtitle={c.credentialCode} meta={credentialStatusLabels[c.status]}/>)}</div></div>)}</div>}</TabsContent><TabsContent value="finance" className="space-y-2">{exhibitor.financeClients.map(link=><Row key={link.id} title={link.client.name} subtitle={link.client.cnpj||"Sem CNPJ"} meta="Vinculado"/>)}</TabsContent></Tabs>}</DialogContent></Dialog>;
 }
 
-function KpiChip({ icon, value, label, className = "", valueClassName = "text-slate-800 dark:text-white" }: KpiChipProps) {
-  return (
-    <div className={`bg-white dark:bg-white/5 rounded-2xl px-5 py-3 border border-slate-100 dark:border-white/10 flex items-center gap-2 ${className}`}>
-      {icon}
-      <span className={`font-black ${valueClassName}`}>{value}</span>
-      <span className="text-sm text-slate-500">{label}</span>
-    </div>
-  );
-}
-
-interface ClientCardProps {
-  client: Client;
-  hasFair: boolean;
-  onEdit: () => void;
-  onDelete: () => void;
-  onBrands: () => void;
-  onImages: () => void;
-}
-
-function ClientCard({ client, hasFair, onEdit, onDelete, onBrands, onImages }: ClientCardProps) {
-  const brands = client.brands ?? [];
-  const isParticipating = client.isParticipatingInFair === true;
-  const isOther = hasFair && client.isParticipatingInFair === false;
-
-  return (
-    <div
-      className={`
-        relative flex flex-col rounded-2xl border overflow-hidden transition-all duration-200
-        hover:shadow-lg hover:-translate-y-0.5 group
-        ${isParticipating
-          ? "border-[#00aacd]/40 bg-white dark:bg-white/5 shadow-sm shadow-[#00aacd]/10"
-          : isOther
-          ? "border-slate-200 dark:border-white/8 bg-slate-50/50 dark:bg-white/3 opacity-70 hover:opacity-100"
-          : "border-slate-200 dark:border-white/10 bg-white dark:bg-white/5"
-        }
-      `}
-    >
-      {/* Badge de participação */}
-      {hasFair && (
-        <div className="absolute top-2 left-2 z-10">
-          {isParticipating ? (
-            <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider bg-[#00aacd] text-white px-2 py-0.5 rounded-full shadow">
-              <CheckCircle2 className="w-2.5 h-2.5" />
-              Nesta feira
-            </span>
-          ) : (
-            <span className="text-[9px] font-bold uppercase tracking-wider bg-slate-200 dark:bg-white/10 text-slate-500 dark:text-slate-400 px-2 py-0.5 rounded-full">
-              Outra feira
-            </span>
-          )}
-        </div>
-      )}
-
-      {/* Menu de ações */}
-      <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button className="w-7 h-7 flex items-center justify-center rounded-lg bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm hover:bg-white dark:hover:bg-slate-700 shadow-sm transition-colors">
-              <MoreHorizontal className="w-3.5 h-3.5 text-slate-600 dark:text-slate-300" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-36">
-            <DropdownMenuItem onClick={onBrands}>
-              <Tag className="w-3.5 h-3.5 mr-2" />
-              Marcas
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={onImages}>
-              <Camera className="w-3.5 h-3.5 mr-2" />
-              Fotos
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={onEdit}>
-              <Edit className="w-3.5 h-3.5 mr-2" />
-              Editar
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={onDelete}
-              className="text-red-600 focus:text-red-600"
-            >
-              <Trash2 className="w-3.5 h-3.5 mr-2" />
-              Remover
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-
-      {/* Área de logos das marcas */}
-      <div
-        className={`
-          aspect-square w-full flex items-center justify-center cursor-pointer
-          ${isParticipating
-            ? "bg-linear-to-br from-[#00aacd]/8 to-[#EB2970]/8"
-            : "bg-slate-100/60 dark:bg-white/5"
-          }
-        `}
-        onClick={onBrands}
-      >
-        {brands.length === 0 ? (
-          <div className="flex flex-col items-center gap-1 text-slate-300 dark:text-slate-600">
-            <ImageOff className="w-8 h-8" />
-            <span className="text-[10px] font-bold uppercase tracking-wider">
-              Sem marcas
-            </span>
-          </div>
-        ) : brands.length === 1 ? (
-          <img
-            src={brands[0].logoUrl}
-            alt={brands[0].name}
-            className={`w-3/4 h-3/4 object-contain transition-all ${isOther ? "grayscale" : ""}`}
-          />
-        ) : (
-          <div className="grid grid-cols-2 gap-1.5 w-full h-full p-3">
-            {brands.slice(0, 4).map((b, i) => (
-              <div
-                key={b.id}
-                className="relative flex items-center justify-center bg-white dark:bg-white/10 rounded-lg overflow-hidden"
-              >
-                <img
-                  src={b.logoUrl}
-                  alt={b.name}
-                  title={b.name}
-                  className={`w-full h-full object-contain p-1 transition-all ${isOther ? "grayscale" : ""}`}
-                />
-                {i === 3 && brands.length > 4 && (
-                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-lg">
-                    <span className="text-white text-xs font-black">
-                      +{brands.length - 3}
-                    </span>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Rodapé do card */}
-      <div className="p-3 space-y-1">
-        <p
-          className={`font-bold text-sm leading-tight line-clamp-2 ${
-            isOther ? "text-slate-500 dark:text-slate-400" : "text-slate-900 dark:text-white"
-          }`}
-        >
-          {client.name}
-        </p>
-
-        <div className="flex items-center justify-between gap-1">
-          {client.cnpj ? (
-            <span className="text-[10px] text-slate-400 truncate">{client.cnpj}</span>
-          ) : (
-            <span className="text-[10px] text-amber-400 flex items-center gap-0.5">
-              <AlertTriangle className="w-2.5 h-2.5" />
-              Sem CNPJ
-            </span>
-          )}
-          {brands.length > 0 && (
-            <Badge
-              variant="outline"
-              className="text-[9px] px-1.5 py-0 h-4 text-purple-600 border-purple-200 bg-purple-50 dark:bg-purple-900/20 dark:border-purple-700 shrink-0"
-            >
-              {brands.length} marca{brands.length > 1 ? "s" : ""}
-            </Badge>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function GridSkeleton() {
-  return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
-      {Array.from({ length: 10 }).map((_, i) => (
-        <div
-          key={i}
-          className="rounded-2xl border border-slate-100 dark:border-white/10 overflow-hidden animate-pulse"
-        >
-          <div className="aspect-square bg-slate-100 dark:bg-white/5" />
-          <div className="p-3 space-y-2">
-            <div className="h-4 bg-slate-100 dark:bg-white/5 rounded-lg w-3/4" />
-            <div className="h-3 bg-slate-100 dark:bg-white/5 rounded-lg w-1/2" />
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function EmptyState({
-  hasSearch,
-  tab,
-  hasFair,
-}: {
-  hasSearch: boolean;
-  tab: FilterTab;
-  hasFair: boolean;
-}) {
-  const msgs: Record<FilterTab, string> = {
-    all: hasSearch
-      ? "Nenhum expositor encontrado para essa busca."
-      : "Nenhum expositor cadastrado ainda.",
-    participating: "Nenhum expositor participando desta feira.",
-    others: "Todos os expositores estão nesta feira.",
-  };
-
-  return (
-    <div className="flex flex-col items-center justify-center py-24 gap-3 text-slate-400">
-      <Building2 className="w-12 h-12 opacity-20" />
-      <p className="font-medium text-slate-500">{msgs[tab]}</p>
-      {!hasSearch && tab === "all" && hasFair && (
-        <p className="text-sm">Clique em "Novo Expositor" para começar.</p>
-      )}
-    </div>
-  );
-}
+function Stat({icon,value,label}:{icon:ReactNode;value:number;label:string}) { return <div className="glass-card flex items-center gap-3 rounded-xl border border-white/5 px-4 py-3"><span className="text-brand-cyan [&_svg]:h-4 [&_svg]:w-4">{icon}</span><b>{value}</b><span className="text-xs text-white/40">{label}</span></div> }
+function Info({label,value}:{label:string;value:string}) { return <div className="rounded-xl border border-white/10 p-4"><p className="text-[10px] uppercase tracking-wider text-white/40">{label}</p><p className="mt-1 font-semibold">{value}</p></div> }
+function Row({title,subtitle,meta}:{title:string;subtitle:string;meta:string}) { return <div className="flex items-center justify-between gap-3 rounded-xl border border-white/10 p-3"><div><p className="font-semibold">{title}</p><p className="text-xs text-white/40">{subtitle}</p></div><span className="text-xs text-white/50">{meta}</span></div> }
+function Loading(){return <p className="py-10 text-center text-white/40">Carregando...</p>}

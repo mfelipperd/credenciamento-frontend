@@ -36,6 +36,17 @@ export const AppEndpoints = {
     LINK_REVENUE: (id: string) => `/finance/stands/${id}/link-revenue`,
     UNLINK_REVENUE: (id: string) => `/finance/stands/${id}/unlink-revenue`,
   },
+  EXHIBITORS: {
+    BASE: "/exhibitors",
+    TEAM: (id: string) => `/exhibitors/${id}/team`,
+    FAIRS: (id: string) => `/exhibitors/${id}/fairs`,
+    FINANCE_CLIENTS: (id: string) => `/exhibitors/${id}/finance-clients`,
+    CREDENTIAL_MEMBER: (participationId: string, memberId: string) =>
+      `/exhibitors/fairs/${participationId}/members/${memberId}`,
+    INVITATIONS: (id: string) => `/exhibitors/${id}/invitations`,
+    ACCEPT_INVITATION: "/exhibitors/invitations/accept",
+    MY_ORGANIZATIONS: "/exhibitors/me/organizations",
+  },
   PARTNERS: {
     BASE: "/partners",
     ME: "/partners/me",
