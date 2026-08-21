@@ -132,6 +132,9 @@ importers:
       '@types/date-fns':
         specifier: ^2.5.3
         version: 2.6.3
+      '@types/geojson':
+        specifier: ^7946.0.16
+        version: 7946.0.16
       '@types/node':
         specifier: ^22.15.8
         version: 22.19.7
