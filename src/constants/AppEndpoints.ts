@@ -38,6 +38,7 @@ export const AppEndpoints = {
   },
   EXHIBITORS: {
     BASE: "/exhibitors",
+    BY_ID: (id: string) => `/exhibitors/${id}`,
     TEAM: (id: string) => `/exhibitors/${id}/team`,
     FAIRS: (id: string) => `/exhibitors/${id}/fairs`,
     FINANCE_CLIENTS: (id: string) => `/exhibitors/${id}/finance-clients`,

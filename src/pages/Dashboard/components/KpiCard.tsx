@@ -8,12 +8,13 @@ interface KpiCardProps {
   accentColor?: string;
   icon?: LucideIcon;
   loading?: boolean;
+  featured?: boolean;
 }
 
-export function KpiCard({ label, value, subtext, accentColor = "#00aacd", icon: Icon, loading }: KpiCardProps) {
+export function KpiCard({ label, value, subtext, accentColor = "#00aacd", icon: Icon, loading, featured }: KpiCardProps) {
   if (loading) {
     return (
-      <div className="relative p-5 rounded-2xl bg-white/3 border border-white/5 overflow-hidden">
+      <div className="relative min-h-24 overflow-hidden rounded-2xl border border-white/5 bg-white/3 p-3.5 sm:min-h-28 sm:p-5">
         <Skeleton className="h-3 w-24 mb-3" />
         <Skeleton className="h-7 w-36 mb-2" />
         <Skeleton className="h-3 w-28" />
@@ -23,7 +24,7 @@ export function KpiCard({ label, value, subtext, accentColor = "#00aacd", icon: 
 
   return (
     <div
-      className="relative p-5 rounded-2xl bg-white/3 border border-white/5 overflow-hidden hover:bg-white/5 transition-colors"
+      className={`relative min-h-24 overflow-hidden rounded-2xl border bg-white/3 p-3.5 transition-colors hover:bg-white/5 sm:min-h-28 sm:p-5 ${featured ? "border-white/10 shadow-lg shadow-black/10" : "border-white/5"}`}
       style={{ borderLeftColor: accentColor, borderLeftWidth: 3 }}
     >
       <div className="flex items-start justify-between gap-2">
@@ -33,12 +34,12 @@ export function KpiCard({ label, value, subtext, accentColor = "#00aacd", icon: 
         {Icon && <Icon className="w-4 h-4 shrink-0" style={{ color: accentColor }} />}
       </div>
 
-      <p className="text-2xl font-black text-white mt-2 leading-none tabular-nums" style={{ color: accentColor }}>
+      <p className="mt-2 truncate text-lg font-black leading-none tabular-nums text-white sm:text-2xl" style={{ color: accentColor }} title={value}>
         {value}
       </p>
 
       {subtext && (
-        <p className="text-[10px] text-white/35 font-medium mt-1.5 leading-snug">
+        <p className="mt-1.5 line-clamp-2 text-[9px] font-medium leading-snug text-white/35 sm:text-[10px]">
           {subtext}
         </p>
       )}

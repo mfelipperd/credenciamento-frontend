@@ -1,11 +1,12 @@
 import { useAxio } from "@/hooks/useAxio";
 import { AppEndpoints } from "@/constants/AppEndpoints";
-import type { CreateExhibitor, CreateExhibitorFair, CreateExhibitorMember, Exhibitor, ExhibitorFair, ExhibitorMember, MemberRole } from "@/interfaces/exhibitors";
+import type { CreateExhibitor, CreateExhibitorFair, CreateExhibitorMember, Exhibitor, ExhibitorCompleteDetails, ExhibitorFair, ExhibitorMember, MemberRole } from "@/interfaces/exhibitors";
 
 export const useExhibitorsService = () => {
   const api = useAxio();
   return {
     list: () => api.get<Exhibitor[]>(AppEndpoints.EXHIBITORS.BASE).then(r => r.data),
+    details: (id: string) => api.get<ExhibitorCompleteDetails>(AppEndpoints.EXHIBITORS.BY_ID(id)).then(r => r.data),
     create: (data: CreateExhibitor) => api.post<Exhibitor>(AppEndpoints.EXHIBITORS.BASE, data).then(r => r.data),
     team: (id: string) => api.get<ExhibitorMember[]>(AppEndpoints.EXHIBITORS.TEAM(id)).then(r => r.data),
     addMember: (id: string, data: CreateExhibitorMember) => api.post<ExhibitorMember>(AppEndpoints.EXHIBITORS.TEAM(id), data).then(r => r.data),
