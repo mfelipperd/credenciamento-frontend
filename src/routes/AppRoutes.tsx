@@ -22,6 +22,7 @@ const ConsultantPage = lazy(() => import("@/pages/ConsultantPage").then(m => ({ 
 const ErrorTestPage = lazy(() => import("@/pages/ErrorTestPage").then(m => ({ default: m.ErrorTestPage })));
 const MarketingPage = lazy(() => import("@/pages/Marketing/page").then(m => ({ default: m.MarketingPage })));
 const WhatsappMarketingPage = lazy(() => import("@/pages/WhatsappMarketing/page").then(m => ({ default: m.WhatsappMarketingPage })));
+const PushMarketingPage = lazy(() => import("@/pages/PushMarketing/page").then(m => ({ default: m.PushMarketingPage })));
 const FinancePage = lazy(() => import("@/pages/Finance/page").then(m => ({ default: m.FinancePage })));
 const ExpensesPage = lazy(() => import("@/pages/Expenses/page"));
 const PartnersPage = lazy(() => import("@/pages/Partners/page"));
@@ -86,6 +87,7 @@ export const AppRoutes = createBrowserRouter([
               { path: "/visitor/:id", element: <Lazy><Visitor /></Lazy> },
               { path: "/marketing", element: <Lazy><MarketingPage /></Lazy> },
               { path: "/whatsapp-marketing", element: <Lazy><WhatsappMarketingPage /></Lazy> },
+              { path: "/push-marketing", element: <Lazy><PushMarketingPage /></Lazy> },
               {
                 path: "/financeiro/receitas",
                 element: <AdminRouteGuard><Lazy><FinancePage /></Lazy></AdminRouteGuard>,
