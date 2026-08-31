@@ -145,6 +145,9 @@ export const AppEndpoints = {
     CAMPAIGN_STATS: (id: string) => `/emails/campaigns/${id}/stats`,
     ACCOUNT_STATS: "/emails/account-stats",
   },
+  PUSH: {
+    SEND: "/push/send",
+  },
   WITHDRAWALS: {
     BASE: "/partners/withdrawals",
     BY_ID: (id: string) => `/partners/withdrawals/${id}`,

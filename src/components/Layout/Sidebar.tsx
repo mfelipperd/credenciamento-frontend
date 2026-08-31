@@ -6,6 +6,7 @@ import {
   User2,
   Mail,
   MessageCircle,
+  Bell,
   DollarSign,
   Users,
   CreditCard,
@@ -48,6 +49,12 @@ const navigationItems = [
     name: "WhatsApp",
     href: "/whatsapp-marketing",
     icon: MessageCircle,
+    roles: [EUserRole.ADMIN, EUserRole.PARTNER, EUserRole.CONSULTANT],
+  },
+  {
+    name: "Push",
+    href: "/push-marketing",
+    icon: Bell,
     roles: [EUserRole.ADMIN, EUserRole.PARTNER, EUserRole.CONSULTANT],
   },
   {
