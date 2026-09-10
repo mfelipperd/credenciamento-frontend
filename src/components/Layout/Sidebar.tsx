@@ -5,6 +5,7 @@ import {
   HomeIcon,
   User2,
   Mail,
+  Bell,
   DollarSign,
   BarChart3,
   Settings,
@@ -47,6 +48,12 @@ const navigationItems = [
     href: "/financeiro",
     icon: DollarSign,
     roles: [EUserRole.ADMIN],
+  },
+  {
+    name: "Push",
+    href: "/push-marketing",
+    icon: Bell,
+    roles: [EUserRole.ADMIN, EUserRole.PARTNER, EUserRole.CONSULTANT],
   },
   {
     name: "Expositores",

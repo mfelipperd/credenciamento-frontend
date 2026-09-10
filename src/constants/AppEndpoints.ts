@@ -127,6 +127,9 @@ export const AppEndpoints = {
     CAMPAIGN_STATS: (id: string) => `/emails/campaigns/${id}/stats`,
     ACCOUNT_STATS: "/emails/account-stats",
   },
+  PUSH: {
+    SEND: "/push/send",
+  },
   DASHBOARD: {
     OVERVIEW: "/dashboard/overview",
     VISITORS_CHECKED_IN: "/dashboard/visitors/checked-in",
