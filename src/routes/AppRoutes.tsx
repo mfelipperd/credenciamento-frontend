@@ -1,10 +1,11 @@
-import { createBrowserRouter, Outlet } from "react-router-dom";
+import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import { AuthProvider, ProtectedRoute } from "@/auth/AuthProvider";
 import { MainLayout } from "@/components/Layout/mainLayout";
 import { PublicLayout } from "@/components/Layout/PublicLayout";
 import { AdminRouteGuard } from "@/components/AdminRouteGuard";
 import { LogoLoading } from "@/components/LogoLoading";
+import { isCredenciamentoMode } from "@/lib/appMode";
 
 // Eager — páginas críticas do caminho de autenticação
 import { Login } from "@/pages/Login/page";
@@ -81,51 +82,58 @@ export const AppRoutes = createBrowserRouter([
         children: [
           {
             element: <MainLayout />,
-            children: [
-              { path: "/", element: <Lazy><Dashboard /></Lazy> },
-              { path: "/visitors-table", element: <Lazy><TableVisitors /></Lazy> },
-              { path: "/visitor/:id", element: <Lazy><Visitor /></Lazy> },
-              { path: "/marketing", element: <Lazy><MarketingPage /></Lazy> },
-              { path: "/whatsapp-marketing", element: <Lazy><WhatsappMarketingPage /></Lazy> },
-              { path: "/push-marketing", element: <Lazy><PushMarketingPage /></Lazy> },
-              {
-                path: "/financeiro/receitas",
-                element: <AdminRouteGuard><Lazy><FinancePage /></Lazy></AdminRouteGuard>,
-              },
-              {
-                path: "/expenses",
-                element: <AdminRouteGuard><Lazy><ExpensesPage /></Lazy></AdminRouteGuard>,
-              },
-              {
-                path: "/partners",
-                element: <AdminRouteGuard><Lazy><PartnersPage /></Lazy></AdminRouteGuard>,
-              },
-              {
-                path: "/partners/withdrawals",
-                element: <AdminRouteGuard><Lazy><WithdrawalsManagement /></Lazy></AdminRouteGuard>,
-              },
-              {
-                path: "/partner-dashboard",
-                element: <Lazy><PartnerDashboard /></Lazy>,
-              },
-              {
-                path: "/user-management",
-                element: <AdminRouteGuard><Lazy><UserManagementPage /></Lazy></AdminRouteGuard>,
-              },
-              {
-                path: "/clientes",
-                element: <AdminRouteGuard><Lazy><ClientsPage /></Lazy></AdminRouteGuard>,
-              },
-              {
-                path: "/fairs",
-                element: <AdminRouteGuard><Lazy><FairsPage /></Lazy></AdminRouteGuard>,
-              },
-              {
-                path: "/fairs/:id",
-                element: <AdminRouteGuard><Lazy><FairDetailPage /></Lazy></AdminRouteGuard>,
-              },
-              { path: "/consultant-dashboard", element: <Lazy><ConsultantPage /></Lazy> },
-            ],
+            children: isCredenciamentoMode
+              ? [
+                  { path: "/", element: <Navigate to="/visitors-table" replace /> },
+                  { path: "/visitors-table", element: <Lazy><TableVisitors /></Lazy> },
+                  { path: "/visitor/:id", element: <Lazy><Visitor /></Lazy> },
+                  { path: "*", element: <Navigate to="/visitors-table" replace /> },
+                ]
+              : [
+                  { path: "/", element: <Lazy><Dashboard /></Lazy> },
+                  { path: "/visitors-table", element: <Lazy><TableVisitors /></Lazy> },
+                  { path: "/visitor/:id", element: <Lazy><Visitor /></Lazy> },
+                  { path: "/marketing", element: <Lazy><MarketingPage /></Lazy> },
+                  { path: "/whatsapp-marketing", element: <Lazy><WhatsappMarketingPage /></Lazy> },
+                  { path: "/push-marketing", element: <Lazy><PushMarketingPage /></Lazy> },
+                  {
+                    path: "/financeiro/receitas",
+                    element: <AdminRouteGuard><Lazy><FinancePage /></Lazy></AdminRouteGuard>,
+                  },
+                  {
+                    path: "/expenses",
+                    element: <AdminRouteGuard><Lazy><ExpensesPage /></Lazy></AdminRouteGuard>,
+                  },
+                  {
+                    path: "/partners",
+                    element: <AdminRouteGuard><Lazy><PartnersPage /></Lazy></AdminRouteGuard>,
+                  },
+                  {
+                    path: "/partners/withdrawals",
+                    element: <AdminRouteGuard><Lazy><WithdrawalsManagement /></Lazy></AdminRouteGuard>,
+                  },
+                  {
+                    path: "/partner-dashboard",
+                    element: <Lazy><PartnerDashboard /></Lazy>,
+                  },
+                  {
+                    path: "/user-management",
+                    element: <AdminRouteGuard><Lazy><UserManagementPage /></Lazy></AdminRouteGuard>,
+                  },
+                  {
+                    path: "/clientes",
+                    element: <AdminRouteGuard><Lazy><ClientsPage /></Lazy></AdminRouteGuard>,
+                  },
+                  {
+                    path: "/fairs",
+                    element: <AdminRouteGuard><Lazy><FairsPage /></Lazy></AdminRouteGuard>,
+                  },
+                  {
+                    path: "/fairs/:id",
+                    element: <AdminRouteGuard><Lazy><FairDetailPage /></Lazy></AdminRouteGuard>,
+                  },
+                  { path: "/consultant-dashboard", element: <Lazy><ConsultantPage /></Lazy> },
+                ],
           },
         ],
       },

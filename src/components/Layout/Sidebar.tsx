@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { useUserSession } from "@/hooks/useUserSession";
 import { EUserRole } from "@/enums/user.enum";
+import { isCredenciamentoMode } from "@/lib/appMode";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -111,9 +112,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, onToggle, sea
   const location = useLocation();
   const { user } = useUserSession();
 
-  // Filtrar itens baseado no role do usuário
-  const filteredItems = navigationItems.filter((item) =>
-    item.roles.includes(user?.role as EUserRole)
+  // Filtrar itens baseado no role do usuário — e, no domínio de credenciamento, restringir a Visitantes
+  const filteredItems = navigationItems.filter(
+    (item) =>
+      item.roles.includes(user?.role as EUserRole) &&
+      (!isCredenciamentoMode || item.href === "/visitors-table")
   );
 
   return (
