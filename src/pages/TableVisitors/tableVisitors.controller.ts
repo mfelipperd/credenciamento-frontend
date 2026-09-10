@@ -1,22 +1,17 @@
 import { useVisitorsService } from "@/service/visitors.service";
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useVisitors, useDeleteVisitor } from "@/hooks/useVisitors";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "@/hooks/useSearchParams";
 import { toast } from "sonner";
+import { getAxiosErrorMessage } from "@/utils/handleAxiosError";
 
 export const useTableVisitorsController = () => {
   const [, , fairId] = useSearchParams();
   const [id, setId] = useState<string>("");
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [openCreateForm, setOpenCreateForm] = useState<boolean>(false);
-  const {
-    getVisitorsPaginated,
-    loading,
-    visitors,
-    paginationMeta,
-    error,
-    deleteVisitor,
-    exportVisitorsPdf,
-  } = useVisitorsService();
+  // exportVisitorsPdf é uma ação pontual (download de blob) — mantém o service só pra isso
+  const { exportVisitorsPdf } = useVisitorsService();
   const [search, setSearch] = useState("");
   const [isExporting, setIsExporting] = useState(false);
   const [dateFrom, setDateFrom] = useState<string>("");
@@ -78,32 +73,32 @@ export const useTableVisitorsController = () => {
     return () => clearTimeout(timer);
   }, [search]);
 
-  // Função para decidir entre busca simples ou paginada
-  const fetchVisitors = useCallback(async () => {
-    if (!fairId) return;
+  // Busca cacheada via React Query — reaproveita dados entre navegações e evita
+  // refetch desnecessário enquanto os filtros não mudam (staleTime global)
+  const {
+    data,
+    isLoading: loading,
+    error: queryError,
+    refetch,
+  } = useVisitors({
+    fairId,
+    search: debouncedSearch,
+    searchField: searchField !== "all" ? searchField : undefined,
+    page: currentPage,
+    limit: itemsPerPage,
+    sortBy: "name",
+    sortOrder: "asc",
+    dateFrom: dateFrom || undefined,
+    dateTo: dateTo || undefined,
+  });
 
-    try {
-      // SEMPRE usa paginação server-side para melhor performance e consistência
-      await getVisitorsPaginated({
-        fairId,
-        search: debouncedSearch,
-        searchField: searchField !== "all" ? searchField : undefined,
-        page: currentPage,
-        limit: itemsPerPage,
-        sortBy: "name",
-        sortOrder: "asc",
-        dateFrom: dateFrom || undefined,
-        dateTo: dateTo || undefined,
-      });
-    } catch {
-      // Erro já é tratado no service, apenas ignora aqui para não quebrar o fluxo
-    }
-  }, [fairId, debouncedSearch, searchField, currentPage, itemsPerPage, dateFrom, dateTo, getVisitorsPaginated]);
+  const visitors = data?.data ?? [];
+  const paginationMeta = data?.meta ?? null;
+  const error = queryError
+    ? getAxiosErrorMessage(queryError, "Erro ao carregar visitantes. Tente novamente.")
+    : null;
 
-  // Buscar dados quando parâmetros mudarem
-  useEffect(() => {
-    fetchVisitors();
-  }, [fetchVisitors]);
+  const deleteVisitorMutation = useDeleteVisitor();
 
   const handleCreateForm = () => {
     setOpenCreateForm((prev) => !prev);
@@ -163,7 +158,7 @@ export const useTableVisitorsController = () => {
       if (typeof totalPagesVal === 'number' && !isNaN(totalPagesVal)) {
         return totalPagesVal;
       }
-      
+
       const totalItemsVal = paginationMeta.totalItems ?? (paginationMeta as Record<string, unknown>).total;
       if (typeof totalItemsVal === 'number' && !isNaN(totalItemsVal)) {
         return Math.ceil(totalItemsVal / itemsPerPage) || 1;
@@ -197,14 +192,16 @@ export const useTableVisitorsController = () => {
   }, [visitors, paginationMeta]);
 
   const reload = () => {
-    fetchVisitors();
+    refetch();
   };
 
   const handleDelete = async () => {
-    const result = await deleteVisitor(id);
-    if (!result) return;
-    await fetchVisitors(); // Recarrega dados após deletar
-    setIsOpen(false);
+    try {
+      await deleteVisitorMutation.mutateAsync(id);
+      setIsOpen(false);
+    } catch {
+      // Erro já é tratado (toast) dentro de useDeleteVisitor
+    }
   };
 
   const openDeleteModal = (id: string) => {

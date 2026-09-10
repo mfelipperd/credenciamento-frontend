@@ -1,32 +1,20 @@
-import React, { useEffect, useState } from "react";
+import React, { useMemo } from "react";
 import ReactApexChart from "react-apexcharts";
-import { useDashboardService } from "@/service/dashboard.service";
+import { useDashboardData } from "@/hooks/useDashboardData";
+import { AppEndpoints } from "@/constants/AppEndpoints";
+import type { DashboardByOriginResponse } from "@/interfaces/dashboard";
 import { Share2 } from "lucide-react";
 import { LogoLoading } from "@/components/LogoLoading";
 
 const ORIGIN_COLORS = ["#5CB1FC"];
 
 export const OriginBarChart: React.FC<{ fairId: string }> = ({ fairId }) => {
-  const { getVisitorsByOrigin, loading } = useDashboardService();
-  const lastFetchedRef = React.useRef<string>("");
-  const [categories, setCategories] = useState<string[]>([]);
-  const [series, setSeries] = useState<number[]>([]);
-
-  useEffect(() => {
-    if (!fairId || fairId.trim() === "" || lastFetchedRef.current === fairId) return;
-    lastFetchedRef.current = fairId;
-
-    (async () => {
-      const data = await getVisitorsByOrigin(fairId);
-      if (!data) return;
-
-      const counts = data.visitorsByOrigin.map((v) => Number(v.count));
-      const origins = data.visitorsByOrigin.map((v) => v.origin);
-
-      setSeries(counts);
-      setCategories(origins);
-    })();
-  }, [fairId, getVisitorsByOrigin]);
+  const { data, isLoading: loading } = useDashboardData<DashboardByOriginResponse>(AppEndpoints.DASHBOARD.VISITORS_ORIGIN, fairId);
+  const { categories, series } = useMemo(() => {
+    const items = data?.visitorsByOrigin ?? [];
+    const counts = items.map(v => Number(v.count));
+    return { categories: items.map(v => v.origin), series: counts };
+  }, [data]);
 
   const options: ApexCharts.ApexOptions = {
     chart: {

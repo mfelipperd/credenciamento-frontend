@@ -1,6 +1,8 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import ReactApexChart from "react-apexcharts";
-import { useVisitorsService } from "@/service/visitors.service";
+import { useDashboardData } from "@/hooks/useDashboardData";
+import { AppEndpoints } from "@/constants/AppEndpoints";
+import type { CheckinPerHourResponse } from "@/interfaces/visitors";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, Activity } from "lucide-react";
 import {
@@ -15,19 +17,9 @@ import { LogoLoading } from "@/components/LogoLoading";
 const CHART_COLORS = ["#00aacd", "#EB2970", "#F39B0C", "#10B981"];
 
 export const CheckinPerHourChart: React.FC<{ fairId: string }> = ({ fairId }) => {
-  const { getCheckinPerHour, checkinPerHour: result, loading } = useVisitorsService();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const lastFetchedRef = React.useRef<string>("");
-
-  useEffect(() => {
-    const isoDay = selectedDate ? format(selectedDate, "yyyy-MM-dd") : "all";
-    const cacheKey = `${fairId}-${isoDay}`;
-
-    if (fairId && lastFetchedRef.current !== cacheKey) {
-      lastFetchedRef.current = cacheKey;
-      getCheckinPerHour(fairId, isoDay === "all" ? undefined : isoDay);
-    }
-  }, [fairId, selectedDate, getCheckinPerHour]);
+  const filterDay = selectedDate ? format(selectedDate, "yyyy-MM-dd") : undefined;
+  const { data: result, isLoading: loading } = useDashboardData<CheckinPerHourResponse>(AppEndpoints.CHECKINS.TODAY, fairId, filterDay);
 
   const chartData = useMemo(() => {
     if (!result) return { series: [], categories: [] };

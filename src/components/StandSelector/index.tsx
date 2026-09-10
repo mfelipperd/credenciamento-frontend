@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import { useAvailableStands } from "@/hooks/useAvailableStands";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import {
@@ -11,7 +12,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { StandMap } from "@/components/StandMap";
-import { useStandService } from "@/service/stands.service";
 import type { Stand } from "@/interfaces/finance";
 import { formatCurrencyFromCents } from "@/utils/masks";
 
@@ -28,46 +28,11 @@ export const StandSelector: React.FC<StandSelectorProps> = ({
   onChange,
   error,
 }) => {
-  const [availableStands, setAvailableStands] = useState<Stand[]>([]);
-  const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<"dropdown" | "map">("dropdown");
-  const [selectedStand, setSelectedStand] = useState<Stand | null>(null);
-
-  const { getAvailableStands } = useStandService();
-
-  const loadAvailableStands = async () => {
-    setLoading(true);
-    try {
-      const result = await getAvailableStands(fairId);
-      if (result) {
-        setAvailableStands(result);
-      }
-    } catch (error) {
-      console.error("Erro ao carregar stands disponíveis:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadAvailableStands();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fairId]);
-
-  // Efeito separado para reagir às mudanças do valor
-  useEffect(() => {
-    if (value && availableStands.length > 0) {
-      const stand = availableStands.find((s) => s.standNumber === value);
-      if (stand) {
-        setSelectedStand(stand);
-      }
-    } else if (!value) {
-      setSelectedStand(null);
-    }
-  }, [value, availableStands]);
+  const { data: availableStands = [], isLoading: loading } = useAvailableStands(fairId);
+  const selectedStand = availableStands.find((stand) => stand.standNumber === value) ?? null;
 
   const handleStandSelect = (stand: Stand) => {
-    setSelectedStand(stand);
     onChange(stand.standNumber, stand);
   };
 

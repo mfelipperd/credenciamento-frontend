@@ -1,4 +1,8 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useDashboardData } from "@/hooks/useDashboardData";
+import { AppEndpoints } from "@/constants/AppEndpoints";
+import type { DashboardOverviewReponse } from "@/interfaces/dashboard";
 import Chart from "react-apexcharts";
 import type { ApexOptions } from "apexcharts";
 import { Button } from "@/components/ui/button";
@@ -24,9 +28,7 @@ import {
   type ProspectStatus,
   type ProspectType,
   type Prospect,
-  type ProspectAnalytics,
   type ProspectGeoAnalytics,
-  type DashboardOverview,
 } from "@/service/prospects.service";
 import { toast } from "sonner";
 import {
@@ -352,9 +354,12 @@ interface ProspectsTabProps {
   fairId?: string;
 }
 
-export const ProspectsTab: React.FC<ProspectsTabProps> = ({ fairId }) => {
+export const ProspectsTab: React.FC<ProspectsTabProps> = ({ fairId }) => (
+  <ProspectsTabContent key={fairId ?? "no-fair"} fairId={fairId} />
+);
+
+const ProspectsTabContent: React.FC<ProspectsTabProps> = ({ fairId }) => {
   const {
-    getDashboardOverview,
     getProspectAnalytics,
     getProspectGeoAnalytics,
     getProspects,
@@ -364,22 +369,13 @@ export const ProspectsTab: React.FC<ProspectsTabProps> = ({ fairId }) => {
     deleteProspect,
   } = useProspectsService();
 
-  // Dashboard state
-  const [overview, setOverview] = useState<DashboardOverview | null>(null);
-  const [analytics, setAnalytics] = useState<ProspectAnalytics | null>(null);
-  const [geoAnalytics, setGeoAnalytics] = useState<ProspectGeoAnalytics | null>(null);
-  const [loadingAnalytics, setLoadingAnalytics] = useState(false);
-
-  // Prospects list state
-  const [prospects, setProspects] = useState<Prospect[]>([]);
-  const [totalProspects, setTotalProspects] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
-  const [loadingList, setLoadingList] = useState(false);
+  const queryClient = useQueryClient();
 
   // Filters
   const [filterType, setFilterType] = useState<string>("ALL");
   const [filterStatus, setFilterStatus] = useState<string>("ALL");
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
   const LIMIT = 15;
 
@@ -396,56 +392,53 @@ export const ProspectsTab: React.FC<ProspectsTabProps> = ({ fairId }) => {
 
   // ─── Data loaders ──────────────────────────────────────────────────────────
 
-  const loadAnalytics = useCallback(async () => {
-    if (!fairId) return;
-    setLoadingAnalytics(true);
-    const [ov, an, geo] = await Promise.all([
-      getDashboardOverview(fairId),
-      getProspectAnalytics(fairId),
-      getProspectGeoAnalytics(fairId),
-    ]);
-    if (ov) setOverview(ov);
-    if (an) setAnalytics(an);
-    if (geo) setGeoAnalytics(geo);
-    setLoadingAnalytics(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fairId]);
+  const analyticsQuery = useQuery({
+    queryKey: ["prospects", fairId, "analytics"],
+    queryFn: async () => {
+      const [analytics, geoAnalytics] = await Promise.all([
+        getProspectAnalytics(fairId!),
+        getProspectGeoAnalytics(fairId!),
+      ]);
+      return { analytics, geoAnalytics };
+    },
+    enabled: !!fairId,
+    staleTime: 30_000,
+    retry: false,
+  });
+  const { data: overview, isLoading: loadingOverview } = useDashboardData<DashboardOverviewReponse>(
+    AppEndpoints.DASHBOARD.OVERVIEW, fairId,
+  );
+  const { analytics, geoAnalytics } = analyticsQuery.data ?? {};
+  const loadingAnalytics = analyticsQuery.isLoading || loadingOverview;
 
-  const loadProspects = useCallback(async () => {
-    if (!fairId) return;
-    setLoadingList(true);
-    const params: Record<string, string | number> = {
+  const listQuery = useQuery({
+    queryKey: ["prospects", fairId, "list", { page, filterType, filterStatus, search: debouncedSearch }],
+    queryFn: () => getProspects(fairId!, {
       page,
       limit: LIMIT,
-    };
-    if (filterType !== "ALL") params.type = filterType;
-    if (filterStatus !== "ALL") params.status = filterStatus;
-    if (search.trim()) params.search = search.trim();
-
-    const result = await getProspects(fairId, params);
-    if (result) {
-      setProspects(Array.isArray(result.data) ? result.data : []);
-      setTotalProspects(result.total ?? 0);
-      setTotalPages(result.totalPages ?? 1);
-    }
-    setLoadingList(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fairId, page, filterType, filterStatus, search]);
-
-  useEffect(() => {
-    loadAnalytics();
-  }, [loadAnalytics]);
+      type: filterType === "ALL" ? undefined : filterType,
+      status: filterStatus === "ALL" ? undefined : filterStatus,
+      search: debouncedSearch || undefined,
+    }),
+    enabled: !!fairId,
+    staleTime: 30_000,
+    retry: false,
+  });
+  const prospects = listQuery.data?.data ?? [];
+  const totalProspects = listQuery.data?.total ?? 0;
+  const totalPages = listQuery.data?.totalPages ?? 1;
+  const loadingList = listQuery.isFetching;
+  const loadProspects = () => listQuery.refetch({ cancelRefetch: false });
+  const refreshProspects = () => queryClient.invalidateQueries({ queryKey: ["prospects", fairId] });
 
   useEffect(() => {
-    loadProspects();
-  }, [loadProspects]);
-
-  // Reset to page 1 when filters change
-  useEffect(() => {
-    setPage(1);
-  }, [filterType, filterStatus, search]);
-
-  // ─── Actions ───────────────────────────────────────────────────────────────
+    if (search.trim() === debouncedSearch) return;
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search.trim());
+      setPage(1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search, debouncedSearch]);
 
   const handleStatusChange = async (
     prospect: Prospect,
@@ -454,11 +447,7 @@ export const ProspectsTab: React.FC<ProspectsTabProps> = ({ fairId }) => {
     setUpdatingStatusId(prospect.id);
     const result = await updateProspectStatus(fairId!, prospect.id, newStatus);
     if (result) {
-      setProspects((prev) =>
-        prev.map((p) =>
-          p.id === prospect.id ? { ...p, status: newStatus } : p
-        )
-      );
+      void refreshProspects();
       toast.success(
         `Status atualizado para ${STATUS_CONFIG[newStatus].label}`
       );
@@ -470,9 +459,7 @@ export const ProspectsTab: React.FC<ProspectsTabProps> = ({ fairId }) => {
     setEnrichingId(prospect.id);
     const result = await enrichProspect(fairId!, prospect.id);
     if (result) {
-      setProspects((prev) =>
-        prev.map((p) => (p.id === prospect.id ? result : p))
-      );
+      void refreshProspects();
       toast.success("Prospect enriquecido com sucesso");
     }
     setEnrichingId(null);
@@ -482,8 +469,7 @@ export const ProspectsTab: React.FC<ProspectsTabProps> = ({ fairId }) => {
     setDeletingId(id);
     const ok = await deleteProspect(fairId!, id);
     if (ok) {
-      setProspects((prev) => prev.filter((p) => p.id !== id));
-      setTotalProspects((prev) => prev - 1);
+      void refreshProspects();
       toast.success("Prospect removido");
     }
     setDeletingId(null);
@@ -504,15 +490,13 @@ export const ProspectsTab: React.FC<ProspectsTabProps> = ({ fairId }) => {
     setImporting(true);
     const result = await importCnpjs(fairId, cnpjs, importType);
     setImporting(false);
-
     if (result) {
       toast.success(
         `Importados: ${result.imported} | Ignorados: ${result.skipped} | Erros: ${result.errors}`
       );
       setShowImport(false);
       setImportText("");
-      loadProspects();
-      loadAnalytics();
+      void refreshProspects();
     }
   };
 
@@ -707,7 +691,7 @@ export const ProspectsTab: React.FC<ProspectsTabProps> = ({ fairId }) => {
                 className="pl-9 bg-white/5 border-white/10 text-white placeholder:text-white/20 rounded-xl text-sm h-9"
               />
             </div>
-            <Select value={filterType} onValueChange={setFilterType}>
+            <Select value={filterType} onValueChange={(value) => { setFilterType(value); setPage(1); }}>
               <SelectTrigger className="w-36 bg-white/5 border-white/10 text-white/60 rounded-xl h-9 text-[10px] font-black uppercase tracking-widest">
                 <Filter className="h-3 w-3 mr-1 shrink-0" />
                 <SelectValue />
@@ -718,7 +702,7 @@ export const ProspectsTab: React.FC<ProspectsTabProps> = ({ fairId }) => {
                 <SelectItem value="VISITANTE">Visitante</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
+            <Select value={filterStatus} onValueChange={(value) => { setFilterStatus(value); setPage(1); }}>
               <SelectTrigger className="w-36 bg-white/5 border-white/10 text-white/60 rounded-xl h-9 text-[10px] font-black uppercase tracking-widest">
                 <SelectValue />
               </SelectTrigger>

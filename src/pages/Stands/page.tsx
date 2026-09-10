@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Card,
   CardContent,
@@ -21,27 +22,20 @@ interface StandsPageProps {
 }
 
 export const StandsPage: React.FC<StandsPageProps> = ({ fairId }) => {
-  const [stats, setStats] = useState<StandStats | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
+  const queryClient = useQueryClient();
   const { getStandStats } = useStandService();
 
-  const loadStats = useCallback(async () => {
-    try {
-      const result = await getStandStats(fairId);
-      if (result) {
-        setStats(result);
-      }
-    } catch (error) {
-      console.error("Erro ao carregar estatísticas:", error);
-    }
-  }, [fairId, getStandStats]);
-
-  useEffect(() => {
-    loadStats();
-  }, [loadStats, refreshKey]);
+  const { data: stats = null } = useQuery<StandStats | undefined>({
+    queryKey: ["stand-stats", fairId],
+    queryFn: () => getStandStats(fairId),
+    enabled: !!fairId,
+  });
 
   const handleConfigSuccess = () => {
+    queryClient.invalidateQueries({ queryKey: ["stand-stats", fairId] });
+    queryClient.invalidateQueries({ queryKey: ["stands", fairId] });
     setRefreshKey((prev) => prev + 1);
   };
 

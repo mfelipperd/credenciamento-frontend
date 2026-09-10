@@ -447,21 +447,30 @@ export const FormularioCredenciamento: React.FC = () => {
 
   useEffect(() => {
     const cleaned = zipCode?.replace(/\D/g, "");
+    setIsFetchingCep(false);
     if (cleaned?.length !== 8) return;
-    setIsFetchingCep(true);
-    fetch(`https://viacep.com.br/ws/${cleaned}/json/`)
-      .then((r) => r.json())
-      .then((data) => {
-        if (!data.erro) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => {
+      setIsFetchingCep(true);
+      fetch(`https://viacep.com.br/ws/${cleaned}/json/`, { signal: controller.signal })
+        .then((r) => r.json())
+        .then((data) => {
+          if (controller.signal.aborted || data.erro) return;
           setValue("street", data.logradouro || "");
           setValue("neighborhood", data.bairro || "");
           setValue("city", data.localidade || "");
           setValue("state", data.uf || "");
-        }
-      })
-      .catch(() => {})
-      .finally(() => setIsFetchingCep(false));
-  }, [zipCode, setValue, setIsFetchingCep]);
+        })
+        .catch(() => {})
+        .finally(() => {
+          if (!controller.signal.aborted) setIsFetchingCep(false);
+        });
+    }, 300);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [zipCode, setValue]);
 
   useEffect(() => {
     // Adiciona uma verificação para evitar chamadas desnecessárias

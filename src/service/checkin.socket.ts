@@ -3,6 +3,7 @@ import io from "socket.io-client";
 import type { Visitor } from "@/interfaces/visitors";
 
 let socket: ReturnType<typeof io> | null = null;
+let subscribers = 0;
 
 /**
  * Escuta o WebSocket e chama o callback quando os dados do visitante chegam
@@ -19,21 +20,33 @@ export function useCheckinSocket(
       });
     }
 
-    socket.on("connect", () => {
+    const connection = socket;
+    subscribers += 1;
+    const handleConnect = () => {
       console.log("🟢 Conectado ao WebSocket");
-    });
+    };
 
-    socket.on("checkinConfirmed", (visitorData: Visitor) => {
+    const handleVisitor = (visitorData: Visitor) => {
       onVisitorReceived(visitorData);
-    });
+    };
 
-    socket.on("disconnect", () => {
+    const handleDisconnect = () => {
       console.warn("🔴 WebSocket desconectado");
-    });
+    };
+
+    connection.on("connect", handleConnect);
+    connection.on("checkinConfirmed", handleVisitor);
+    connection.on("disconnect", handleDisconnect);
 
     return () => {
-      // opcional: manter conexão ativa ou não
-      // socket?.disconnect(); // descomente se quiser encerrar ao desmontar
+      connection.off("connect", handleConnect);
+      connection.off("checkinConfirmed", handleVisitor);
+      connection.off("disconnect", handleDisconnect);
+      subscribers -= 1;
+      if (subscribers === 0) {
+        connection.disconnect();
+        socket = null;
+      }
     };
   }, [onVisitorReceived]);
 }

@@ -1,4 +1,5 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -382,34 +383,27 @@ export const MarketingPage: React.FC = () => {
 
   const [mainTab, setMainTab] = useState<"create" | "history" | "prospects" | "whatsapp" | "push">("create");
 
-  // Campaign history + account stats
-  const [campaigns, setCampaigns] = useState<
-    import("@/service/marketing.service").Campaign[]
-  >([]);
-  const [accountStats, setAccountStats] = useState<
-    import("@/service/marketing.service").AccountStats | null
-  >(null);
-  const [loadingCampaigns, setLoadingCampaigns] = useState(false);
+  // Campaign history + account stats — cacheados via React Query
+  const queryClient = useQueryClient();
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(
     null,
   );
-  const [campaignStats, setCampaignStats] = useState<
-    import("@/service/marketing.service").CampaignStats | null
-  >(null);
-  const [loadingStats, setLoadingStats] = useState(false);
 
-  useEffect(() => {
-    const load = async () => {
-      const [campaignData, statsData] = await Promise.all([
-        getCampaigns(),
-        getAccountStats(),
-      ]);
-      if (campaignData) setCampaigns(campaignData);
-      if (statsData) setAccountStats(statsData);
-    };
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const { data: campaigns = [], isFetching: loadingCampaigns } = useQuery({
+    queryKey: ["marketing", "campaigns"],
+    queryFn: async () => (await getCampaigns()) ?? [],
+  });
+
+  const { data: accountStats = null } = useQuery({
+    queryKey: ["marketing", "account-stats"],
+    queryFn: getAccountStats,
+  });
+
+  const { data: campaignStats = null, isFetching: loadingStats } = useQuery({
+    queryKey: ["marketing", "campaign-stats", selectedCampaignId],
+    queryFn: () => getCampaignStats(selectedCampaignId!),
+    enabled: !!selectedCampaignId,
+  });
 
   // selectedFair = remarketing target (optional); headerFair = template base (always from URL)
   const selectedFair = fairs?.find((f) => f.id === selectedFairId);
@@ -467,41 +461,14 @@ export const MarketingPage: React.FC = () => {
     setShowConfirmDialog(true);
   };
 
-  const refreshCampaigns = useCallback(async () => {
-    setLoadingCampaigns(true);
-    try {
-      const [campaignData, statsData] = await Promise.all([
-        getCampaigns(),
-        getAccountStats(),
-      ]);
-      if (campaignData) setCampaigns(campaignData);
-      if (statsData) setAccountStats(statsData);
-    } finally {
-      setLoadingCampaigns(false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const refreshCampaigns = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ["marketing", "campaigns"] });
+    queryClient.invalidateQueries({ queryKey: ["marketing", "account-stats"] });
+  }, [queryClient]);
 
-  const loadCampaignStats = useCallback(
-    async (campaignId: string) => {
-      if (selectedCampaignId === campaignId) {
-        setSelectedCampaignId(null);
-        setCampaignStats(null);
-        return;
-      }
-      setSelectedCampaignId(campaignId);
-      setCampaignStats(null);
-      setLoadingStats(true);
-      try {
-        const stats = await getCampaignStats(campaignId);
-        if (stats) setCampaignStats(stats);
-      } finally {
-        setLoadingStats(false);
-      }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [selectedCampaignId],
-  );
+  const loadCampaignStats = useCallback((campaignId: string) => {
+    setSelectedCampaignId((prev) => (prev === campaignId ? null : campaignId));
+  }, []);
 
   const handleSend = useCallback(async () => {
     if (!headerFair) return;
@@ -532,8 +499,8 @@ export const MarketingPage: React.FC = () => {
               : `Status: ${res.status}`,
           },
         );
-        const updated = await getCampaigns();
-        if (updated) setCampaigns(updated);
+        queryClient.invalidateQueries({ queryKey: ["marketing", "campaigns"] });
+        queryClient.invalidateQueries({ queryKey: ["marketing", "account-stats"] });
         if (res.campaignId) setSelectedCampaignId(res.campaignId);
         setMainTab("history");
       } else {

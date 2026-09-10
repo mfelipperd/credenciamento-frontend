@@ -135,7 +135,7 @@ export const useTopEmpresas = (fairId: string, from?: string, to?: string) => {
 };
 
 // Hook para buscar entry models
-export const useEntryModels = (fairId?: string, type?: EntryModelType) => {
+export const useEntryModels = (fairId?: string, type?: EntryModelType, enabled = true) => {
   const api = useAxio();
 
   return useQuery({
@@ -151,6 +151,7 @@ export const useEntryModels = (fairId?: string, type?: EntryModelType) => {
       );
       return response.data as EntryModel[];
     },
+    enabled,
   });
 };
 
@@ -171,7 +172,7 @@ export const useEntryModel = (id: string) => {
 };
 
 // Hook para buscar clientes
-export const useClients = (fairId?: string, q?: string) => {
+export const useClients = (fairId?: string, q?: string, enabled = true) => {
   const api = useAxio();
 
   return useQuery({
@@ -187,6 +188,7 @@ export const useClients = (fairId?: string, q?: string) => {
       );
       return response.data as Client[];
     },
+    enabled,
   });
 };
 
@@ -214,7 +216,9 @@ export const useCreateRevenue = () => {
       const response = await api.post(AppEndpoints.FINANCE.REVENUES, data);
       return response.data;
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["stands", variables.fairId] });
+      queryClient.invalidateQueries({ queryKey: ["finance-revenues"] });
       // Invalida queries relacionadas
       queryClient.invalidateQueries({ queryKey: ["finance", "revenues"] });
       queryClient.invalidateQueries({ queryKey: ["finance", "kpis"] });

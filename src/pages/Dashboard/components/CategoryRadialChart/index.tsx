@@ -1,39 +1,22 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useMemo } from "react";
 import ReactApexChart from "react-apexcharts";
-import { useDashboardService } from "@/service/dashboard.service";
+import { useDashboardData } from "@/hooks/useDashboardData";
+import { AppEndpoints } from "@/constants/AppEndpoints";
+import type { DashboardByCategoryResponse } from "@/interfaces/dashboard";
 import { UserCircle2 } from "lucide-react";
 import { LogoLoading } from "@/components/LogoLoading";
 
 const CATEGORY_COLORS = ["#EB2970", "#00aacd", "#F39B0C", "#10B981"];
 
 export const CategoryRadialChart: React.FC<{ fairId: string }> = ({ fairId }) => {
-  const { getVisitorsByCategory, loading } = useDashboardService();
-  const lastFetchedFairIdRef = useRef<string | null>(null);
-  const [labels, setLabels] = useState<string[]>([]);
-  const [absoluteValues, setAbsoluteValues] = useState<number[]>([]);
-  const [series, setSeries] = useState<number[]>([]);
-
-  useEffect(() => {
-    (async () => {
-      if (!fairId || fairId.trim() === "" || lastFetchedFairIdRef.current === fairId) return;
-
-      lastFetchedFairIdRef.current = fairId;
-      const data = await getVisitorsByCategory(fairId);
-      if (!data) return;
-
-      const counts = data.visitorsByCategory.map((v) => Number(v.count));
-      const lbls = data.visitorsByCategory.map((v) => v.visitor_category);
-      const total = counts.reduce((sum, n) => sum + n, 0);
-
-      const srs = counts.map((count) =>
-        total > 0 ? Math.round((count / total) * 100) : 0
-      );
-
-      setAbsoluteValues(counts);
-      setLabels(lbls);
-      setSeries(srs);
-    })();
-  }, [fairId, getVisitorsByCategory]);
+  const { data, isLoading: loading } = useDashboardData<DashboardByCategoryResponse>(AppEndpoints.DASHBOARD.VISITORS_CATEGORY, fairId);
+  const { labels, absoluteValues, series } = useMemo(() => {
+    const items = data?.visitorsByCategory ?? [];
+    const counts = items.map(v => Number(v.count));
+    const total = counts.reduce((sum, n) => sum + n, 0);
+    return { labels: items.map(v => v.visitor_category), absoluteValues: counts,
+      series: counts.map(count => total > 0 ? Math.round(count / total * 100) : 0) };
+  }, [data]);
 
   const options: ApexCharts.ApexOptions = {
     chart: { type: "radialBar", background: "transparent", fontFamily: "inherit" },

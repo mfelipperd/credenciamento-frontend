@@ -1,8 +1,9 @@
-import { useDashboardService } from "@/service/dashboard.service";
-import React, { useEffect, useState } from "react";
+import { useDashboardData } from "@/hooks/useDashboardData";
+import { AppEndpoints } from "@/constants/AppEndpoints";
+import React, { useMemo } from "react";
 import ReactApexChart from "react-apexcharts";
 import { LogoLoading } from "@/components/LogoLoading";
-import type { ConversionByHowDidYouKnow } from "@/interfaces/dashboard";
+import type { DashboardConversionResponse } from "@/interfaces/dashboard";
 
 interface ConversionChartState {
   series: number[];
@@ -37,138 +38,85 @@ const LABEL_MAPPING: Record<string, string> = {
 export const ConversionByHowDidYouKnowChart: React.FC<{ fairId: string }> = ({
   fairId,
 }) => {
-  const { getConversionsByHowDidYouKnow, loading } = useDashboardService();
-  const [chart, setChart] = useState<ConversionChartState>({
-    series: [],
-    options: {
-      chart: {
-        height: 380,
-        type: "donut",
-        animations: {
+  const { data, isLoading: loading } = useDashboardData<DashboardConversionResponse>(AppEndpoints.DASHBOARD.CONVERSIONS_HOW_DID_YOU_KNOW, fairId);
+  const chart = useMemo<ConversionChartState>(() => {
+    const conversions = data?.conversions ?? [];
+    const series = conversions.map(item => item.totalCheckIns);
+    const labels = conversions.map(item => LABEL_MAPPING[item.howDidYouKnow] || item.howDidYouKnow);
+    const total = series.reduce((sum, n) => sum + n, 0);
+    return {
+      series,
+      options: {
+        colors: CONVERSION_COLORS.slice(0, series.length),
+        chart: {
+          height: 380,
+          type: "donut",
+          animations: {
+            enabled: true,
+            speed: 800,
+          },
+        },
+        dataLabels: {
           enabled: true,
-          speed: 800,
-        },
-      },
-      dataLabels: {
-        enabled: true,
-        formatter: function (val: number) {
-          return val.toFixed(1) + "%";
-        },
-        style: {
-          fontSize: "12px",
-          fontWeight: "bold",
-          colors: ["#ffffff"],
-        },
-      },
-      plotOptions: {
-        pie: {
-          donut: {
-            size: "70%",
-            labels: {
-              show: true,
-              total: {
-                show: true,
-                label: "Total de Conversões",
-                fontSize: "16px",
-                fontWeight: "bold",
-                color: "#ffffff",
-                formatter: () => "0",
-              },
-              value: {
-                show: true,
-                fontSize: "24px",
-                fontWeight: "bold",
-                color: "#ffffff",
-              },
-            },
-          },
-        },
-      },
-      legend: {
-        show: false, // Vamos criar nossa própria legenda customizada
-      },
-      tooltip: {
-        enabled: true,
-        y: {
           formatter: function (val: number) {
-            return val + " conversões";
+            return val.toFixed(1) + "%";
+          },
+          style: {
+            fontSize: "12px",
+            fontWeight: "bold",
+            colors: ["#ffffff"],
           },
         },
-      },
-      responsive: [
-        {
-          breakpoint: 480,
-          options: {
-            chart: {
-              width: 300,
-              height: 300,
-            },
-          },
-        },
-      ],
-      labels: [],
-    },
-  });
-
-  useEffect(() => {
-    // Só faz a chamada se fairId existe e é válido
-    if (!fairId || fairId.trim() === "") {
-      console.log(
-        "ConversionByHowDidYouKnowChart: fairId não disponível, pulando chamada"
-      );
-      return;
-    }
-
-    (async () => {
-      const data = await getConversionsByHowDidYouKnow(fairId);
-      if (!data || !data.conversions.length) return;
-
-      const series = data.conversions.map(
-        (item: ConversionByHowDidYouKnow) => item.totalCheckIns
-      );
-      const rawLabels = data.conversions.map(
-        (item: ConversionByHowDidYouKnow) => item.howDidYouKnow
-      );
-      const labels = rawLabels.map(
-        (label: string) => LABEL_MAPPING[label] || label
-      );
-      const total = series.reduce((sum: number, n: number) => sum + n, 0);
-
-      setChart({
-        series,
-        options: {
-          ...chart.options,
-          colors: CONVERSION_COLORS.slice(0, series.length),
-          labels,
-          plotOptions: {
-            pie: {
-              donut: {
-                size: "70%",
-                labels: {
+        plotOptions: {
+          pie: {
+            donut: {
+              size: "70%",
+              labels: {
+                show: true,
+                total: {
                   show: true,
-                  total: {
-                    show: true,
-                    label: "Total de Conversões",
-                    fontSize: "16px",
-                    fontWeight: "bold",
-                    color: "#ffffff",
-                    formatter: () => total.toString(),
-                  },
-                  value: {
-                    show: true,
-                    fontSize: "24px",
-                    fontWeight: "bold",
-                    color: "#ffffff",
-                  },
+                  label: "Total de Conversões",
+                  fontSize: "16px",
+                  fontWeight: "bold",
+                  color: "#ffffff",
+                  formatter: () => total.toString(),
+                },
+                value: {
+                  show: true,
+                  fontSize: "24px",
+                  fontWeight: "bold",
+                  color: "#ffffff",
                 },
               },
             },
           },
         },
-      });
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fairId]);
+        legend: {
+          show: false, // Vamos criar nossa própria legenda customizada
+        },
+        tooltip: {
+          enabled: true,
+          y: {
+            formatter: function (val: number) {
+              return val + " conversões";
+            },
+          },
+        },
+        responsive: [
+          {
+            breakpoint: 480,
+            options: {
+              chart: {
+                width: 300,
+                height: 300,
+              },
+            },
+          },
+        ],
+        labels,
+      },
+    };
+  }, [data]);
 
   if (loading) {
     return (

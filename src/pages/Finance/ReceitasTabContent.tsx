@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "@/hooks/useSearchParams";
 import { useFinanceService } from "@/service/finance.service";
@@ -22,6 +22,10 @@ import { Plus, Grid, ChevronDown, ChevronUp } from "lucide-react";
 
 export function ReceitasTabContent() {
   const [, , fairId] = useSearchParams();
+  return <ReceitasForFair key={fairId ?? "no-fair"} fairId={fairId} />;
+}
+
+function ReceitasForFair({ fairId }: { fairId?: string }) {
   const queryClient = useQueryClient();
 
   const [filters, setFilters] = useState<RevenueFilters>({
@@ -29,16 +33,6 @@ export function ReceitasTabContent() {
     pageSize: 20,
     fairId: fairId || "",
   });
-
-  // Atualiza o fairId nos filtros quando a URL muda
-  useEffect(() => {
-    if (fairId) {
-      setFilters((prev) => ({
-        ...prev,
-        fairId: fairId,
-      }));
-    }
-  }, [fairId]);
 
   const [selectedRevenueId, setSelectedRevenueId] = useState<string | null>(
     null

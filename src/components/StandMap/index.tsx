@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -26,34 +27,19 @@ export const StandMap: React.FC<StandMapProps> = ({
   selectable = false,
   showOnlyAvailable = false,
 }) => {
-  const [stands, setStands] = useState<Stand[]>([]);
-  const [loading, setLoading] = useState(true);
   const [selectedStand, setSelectedStand] = useState<Stand | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
+  const queryClient = useQueryClient();
   const { getStands, getAvailableStands, unlinkStandFromRevenue } =
     useStandService();
 
-  const loadStands = async () => {
-    setLoading(true);
-    try {
-      const result = showOnlyAvailable
-        ? await getAvailableStands(fairId)
-        : await getStands(fairId);
-      if (result) {
-        setStands(result);
-      }
-    } catch (error) {
-      console.error("Erro ao carregar stands:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadStands();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fairId, showOnlyAvailable]);
+  const { data: stands = [], isLoading: loading } = useQuery({
+    queryKey: ["stands", fairId, showOnlyAvailable ? "available" : "all"],
+    queryFn: () =>
+      showOnlyAvailable ? getAvailableStands(fairId) : getStands(fairId),
+    enabled: !!fairId,
+  });
 
   const handleStandClick = (stand: Stand) => {
     if (selectable && stand.isAvailable && onStandSelect) {
@@ -75,7 +61,8 @@ export const StandMap: React.FC<StandMapProps> = ({
   const handleUnlinkStand = async (standId: string) => {
     try {
       await unlinkStandFromRevenue(standId);
-      await loadStands();
+      queryClient.invalidateQueries({ queryKey: ["stands", fairId] });
+      queryClient.invalidateQueries({ queryKey: ["stand-stats", fairId] });
       setDialogOpen(false);
     } catch (error) {
       console.error("Erro ao desvincular stand:", error);

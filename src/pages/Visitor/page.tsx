@@ -19,9 +19,7 @@ export const Visitor = () => {
   const [generatedUrl, setGeneratedUrl] = useState("");
 
 
-  useCheckinSocket((socketVisitor) => {
-    setVisitor(socketVisitor);
-  });
+  useCheckinSocket(setVisitor);
 
   useEffect(() => {
     if (checkinId && fairId) {

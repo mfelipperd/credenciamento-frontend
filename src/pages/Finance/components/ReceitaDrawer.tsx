@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuth } from "@/hooks/useAuth";
-import { useStandService } from "@/service/stands.service";
+import { useAvailableStands } from "@/hooks/useAvailableStands";
 import {
   useClients,
   useEntryModels,
@@ -158,7 +158,7 @@ export function ReceitaDrawer({
   const [showStandConfirmation, setShowStandConfirmation] = useState(false);
 
   const { user } = useAuth();
-  const standService = useStandService();
+  const { data: availableStands } = useAvailableStands(fairId, isOpen && !!prefilledStandNumber);
 
   const {
     register,
@@ -188,8 +188,8 @@ export function ReceitaDrawer({
   const paymentMethod = watch("paymentMethod");
   const standNumber = watch("standNumber");
 
-  const { data: allClients = [], isLoading: isLoadingClients } = useClients(fairId);
-  const { data: entryModels = [] } = useEntryModels(fairId);
+  const { data: allClients = [], isLoading: isLoadingClients } = useClients(fairId, undefined, isOpen && !!fairId);
+  const { data: entryModels = [] } = useEntryModels(fairId, undefined, isOpen && !!fairId);
 
   const filteredClients = useMemo(() => {
     if (!clientSearch.trim()) return allClients;
@@ -222,26 +222,17 @@ export function ReceitaDrawer({
   }, [isOpen, reset]);
 
   useEffect(() => {
-    const loadPrefilledStand = async () => {
-      if (prefilledStandNumber && isOpen && fairId) {
-        setValue("standNumber", prefilledStandNumber);
-        try {
-          const availableStands = await standService.getAvailableStands(fairId);
-          if (availableStands) {
-            const stand = availableStands.find(
-              (s) => s.standNumber === prefilledStandNumber
-            );
-            if (stand) {
-              setSelectedStand({ standNumber: prefilledStandNumber, stand });
-            }
-          }
-        } catch (error) {
-          console.error("Erro ao buscar stand pré-selecionado:", error);
-        }
-      }
-    };
-    loadPrefilledStand();
-  }, [prefilledStandNumber, isOpen, fairId, standService, setValue]);
+    if (isOpen && fairId && prefilledStandNumber) {
+      setValue("standNumber", prefilledStandNumber);
+      setSelectedStand(null);
+    }
+  }, [prefilledStandNumber, isOpen, fairId, setValue]);
+
+  useEffect(() => {
+    if (!isOpen || !prefilledStandNumber || standNumber !== prefilledStandNumber) return;
+    const stand = availableStands?.find((s) => s.standNumber === prefilledStandNumber);
+    setSelectedStand(stand ? { standNumber: prefilledStandNumber, stand } : null);
+  }, [availableStands, prefilledStandNumber, isOpen, standNumber]);
 
   useEffect(() => {
     if (selectedEntryModel) {

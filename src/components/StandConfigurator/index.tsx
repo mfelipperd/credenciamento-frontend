@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,6 +30,7 @@ export const StandConfigurator: React.FC<StandConfiguratorProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>("");
 
+  const queryClient = useQueryClient();
   const { configureStands } = useStandService();
 
   const isEditing = currentStandCount > 0;
@@ -66,42 +68,22 @@ export const StandConfigurator: React.FC<StandConfiguratorProps> = ({
     setIsLoading(true);
     setError("");
 
-    try {
-      await configureStands({
-        fairId: fairId,
-        totalStands: count,
-        price: 1500,
-      });
-      onConfigurationChange();
-      handleClose();
-    } catch (error: unknown) {
-      console.error("Erro ao configurar stands:", error);
+    const result = await configureStands({
+      fairId: fairId,
+      totalStands: count,
+      price: 1500,
+    });
+    setIsLoading(false);
 
-      // Type guard para verificar se é um erro de axios
-      const isAxiosError = (
-        err: unknown
-      ): err is { response?: { data?: { message?: string[] } } } => {
-        return typeof err === "object" && err !== null && "response" in err;
-      };
-
-      if (isAxiosError(error)) {
-        const errorMessage = error.response?.data?.message;
-        if (
-          Array.isArray(errorMessage) &&
-          errorMessage.some((msg) => msg.includes("fairId must be a number"))
-        ) {
-          setError(
-            "⚠️ Problema no backend: A API está esperando fairId como número, mas deveria aceitar UUID. Entre em contato com o desenvolvedor."
-          );
-        } else {
-          setError("Erro ao configurar stands. Tente novamente.");
-        }
-      } else {
-        setError("Erro ao configurar stands. Tente novamente.");
-      }
-    } finally {
-      setIsLoading(false);
+    if (!result) {
+      setError("Erro ao configurar stands. Tente novamente.");
+      return;
     }
+
+    queryClient.invalidateQueries({ queryKey: ["stands", fairId] });
+    queryClient.invalidateQueries({ queryKey: ["stand-stats", fairId] });
+    onConfigurationChange();
+    handleClose();
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

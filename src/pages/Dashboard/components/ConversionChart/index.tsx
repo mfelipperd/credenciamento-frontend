@@ -1,9 +1,10 @@
-import { useDashboardService } from "@/service/dashboard.service";
-import React, { useEffect, useState } from "react";
+import { useDashboardData } from "@/hooks/useDashboardData";
+import { AppEndpoints } from "@/constants/AppEndpoints";
+import React, { useMemo } from "react";
 import ReactApexChart from "react-apexcharts";
 import { TrendingUp } from "lucide-react";
 import { LogoLoading } from "@/components/LogoLoading";
-import type { ConversionByHowDidYouKnow } from "@/interfaces/dashboard";
+import type { DashboardConversionResponse } from "@/interfaces/dashboard";
 
 const CONVERSION_COLORS = ["#00aacd"];
 
@@ -20,21 +21,8 @@ const HOW_DID_YOU_KNOW_LABELS: Record<string, string> = {
 };
 
 export const ConversionChart: React.FC<{ fairId: string }> = ({ fairId }) => {
-  const { getConversionsByHowDidYouKnow, loading } = useDashboardService();
-  const lastFetchedRef = React.useRef<string>("");
-  const [data, setData] = useState<ConversionByHowDidYouKnow[]>([]);
-
-  useEffect(() => {
-    if (!fairId || fairId.trim() === "" || lastFetchedRef.current === fairId) return;
-    lastFetchedRef.current = fairId;
-
-    (async () => {
-      const result = await getConversionsByHowDidYouKnow(fairId);
-      if (!result || !result.conversions) return;
-
-      setData(result.conversions.sort((a, b) => b.conversionRate - a.conversionRate));
-    })();
-  }, [fairId, getConversionsByHowDidYouKnow]);
+  const { data: result, isLoading: loading } = useDashboardData<DashboardConversionResponse>(AppEndpoints.DASHBOARD.CONVERSIONS_HOW_DID_YOU_KNOW, fairId);
+  const data = useMemo(() => [...(result?.conversions ?? [])].sort((a, b) => b.conversionRate - a.conversionRate), [result]);
 
   const series = [{
     name: "Taxa de Conversão",

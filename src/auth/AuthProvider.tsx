@@ -97,6 +97,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const userFairIds = user.fairIds || [];
 
       if (userFairIds.length === 0) {
+        if (location.pathname === "/login") return;
         navigate("/login", {
           replace: true,
           state: {

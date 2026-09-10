@@ -19,6 +19,8 @@ export interface VisitorsFilters {
   limit?: number;
   sortBy?: string;
   sortOrder?: "asc" | "desc";
+  dateFrom?: string;
+  dateTo?: string;
 }
 
 
@@ -45,6 +47,8 @@ export const useVisitors = (filters: VisitorsFilters) => {
         params.limit = filters.limit.toString();
       if (filters.sortBy?.trim()) params.sortBy = filters.sortBy.trim();
       if (filters.sortOrder?.trim()) params.sortOrder = filters.sortOrder.trim();
+      if (filters.dateFrom?.trim()) params.dateFrom = filters.dateFrom.trim();
+      if (filters.dateTo?.trim()) params.dateTo = filters.dateTo.trim();
 
       const response = await api.get(AppEndpoints.VISITORS.BASE, { params });
 
@@ -132,6 +136,10 @@ export const useCheckinVisitor = () => {
       return response.data;
     },
     onSuccess: (_, { fairId }) => {
+      queryClient.invalidateQueries({
+        queryKey: ["dashboard-data"],
+        predicate: (query) => query.queryKey[2] === fairId,
+      });
       // Invalida queries relacionadas
       queryClient.invalidateQueries({ queryKey: queryKeys.visitors.lists() });
       queryClient.invalidateQueries({ queryKey: queryKeys.visitors.checkinsByFair(fairId) });
