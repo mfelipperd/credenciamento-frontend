@@ -24,6 +24,7 @@ import { LogoLoading } from "../LogoLoading";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import type { Fair } from "@/interfaces/fairs";
+import { isCredenciamentoMode } from "@/lib/appMode";
 
 export const MainLayout: React.FC = () => {
   const { data: fairs, isLoading: loading } = useFairs();
@@ -584,11 +585,13 @@ export const MainLayout: React.FC = () => {
                       </p>
                     </div>
 
-                    {/* Ações */}
-                    <div className="space-y-0.5 py-1">
-                      <ModalCreateFair />
-                      <CreateUserModal />
-                    </div>
+                    {/* Ações — criação de feira/usuário é ação de gestão, não aparece no domínio de credenciamento */}
+                    {!isCredenciamentoMode && (
+                      <div className="space-y-0.5 py-1">
+                        <ModalCreateFair />
+                        <CreateUserModal />
+                      </div>
+                    )}
 
                     {/* Separador + Logout */}
                     <div className="border-t border-white/5 mt-1 pt-1">

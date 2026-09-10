@@ -48,24 +48,6 @@ export const AppEndpoints = {
     ACCEPT_INVITATION: "/exhibitors/invitations/accept",
     MY_ORGANIZATIONS: "/exhibitors/me/organizations",
   },
-  PARTNERS: {
-    BASE: "/partners",
-    ME: "/partners/me",
-    BY_ID: (id: string) => `/partners/${id}`,
-    FINANCIAL_SUMMARY: (partnerId: string) =>
-      `/partners/${partnerId}/financial-summary`,
-    AVAILABLE_PERCENTAGE: "/partners/available-percentage",
-    COMPLETE_DASHBOARD: (partnerId: string) =>
-      `/partners/${partnerId}/complete-dashboard`,
-    WITHDRAWALS: (partnerId: string) => `/partners/${partnerId}/withdrawals`,
-    WITHDRAWALS_BY_FAIR: (partnerId: string, fairId: string) =>
-      `/partners/${partnerId}/withdrawals/fair/${fairId}`,
-    APPROVE_WITHDRAWAL: (id: string) => `/partners/withdrawals/${id}/approve`,
-    REJECT_WITHDRAWAL: (id: string) => `/partners/withdrawals/${id}/reject`,
-    UPDATE_WITHDRAWAL: (id: string) => `/partners/withdrawals/${id}`,
-    DELETE_WITHDRAWAL: (id: string) => `/partners/withdrawals/${id}`,
-    BY_WITHDRAWAL_ID: (id: string) => `/partners/withdrawals/${id}`,
-  },
   FINANCE: {
     ENTRY_MODELS: "/finance/entry-models",
     ENTRY_MODEL_BY_ID: (id: string) => `/finance/entry-models/${id}`,
@@ -145,12 +127,6 @@ export const AppEndpoints = {
     CAMPAIGN_STATS: (id: string) => `/emails/campaigns/${id}/stats`,
     ACCOUNT_STATS: "/emails/account-stats",
   },
-  WITHDRAWALS: {
-    BASE: "/partners/withdrawals",
-    BY_ID: (id: string) => `/partners/withdrawals/${id}`,
-    APPROVE: (id: string) => `/partners/withdrawals/${id}/approve`,
-    REJECT: (id: string) => `/partners/withdrawals/${id}/reject`,
-  },
   DASHBOARD: {
     OVERVIEW: "/dashboard/overview",
     VISITORS_CHECKED_IN: "/dashboard/visitors/checked-in",
@@ -202,19 +178,5 @@ export const AppEndpoints = {
     CAMPAIGN_PAUSE: (id: string) => `/whatsapp/campaigns/${id}/pause`,
     CAMPAIGN_RESUME: (id: string) => `/whatsapp/campaigns/${id}/resume`,
     CAMPAIGN_CANCEL: (id: string) => `/whatsapp/campaigns/${id}/cancel`,
-  },
-  FAIR_PARTNERS: {
-    BASE: "/fair-partners",
-    BY_FAIR: (fairId: string) => `/fair-partners/fair/${fairId}`,
-    BY_PARTNER: (partnerId: string) => `/fair-partners/partner/${partnerId}`,
-    ME_FAIRS: "/fair-partners/me/fairs",
-    BY_ID: (id: string) => `/fair-partners/${id}`,
-    SUMMARY: (fairId: string) => `/fair-partners/fair/${fairId}/summary`,
-    FINANCIAL_SUMMARY: (fairId: string, partnerId: string) =>
-      `/fair-partners/fair/${fairId}/partner/${partnerId}/financial-summary`,
-    AVAILABLE_PERCENTAGE: (fairId: string) =>
-      `/fair-partners/fair/${fairId}/available-percentage`,
-    FINANCIAL_OVERVIEW: (fairId: string) =>
-      `/fair-partners/fair/${fairId}/financial-overview`,
   },
 } as const;

@@ -1,10 +1,11 @@
-import { createBrowserRouter, Outlet } from "react-router-dom";
+import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import { AuthProvider, ProtectedRoute } from "@/auth/AuthProvider";
 import { MainLayout } from "@/components/Layout/mainLayout";
 import { PublicLayout } from "@/components/Layout/PublicLayout";
 import { AdminRouteGuard } from "@/components/AdminRouteGuard";
 import { LogoLoading } from "@/components/LogoLoading";
+import { isCredenciamentoMode } from "@/lib/appMode";
 
 // Eager — páginas críticas do caminho de autenticação
 import { Login } from "@/pages/Login/page";
@@ -21,12 +22,7 @@ const SucessFormTotem = lazy(() => import("@/pages/SucessTotem/page").then(m => 
 const ConsultantPage = lazy(() => import("@/pages/ConsultantPage").then(m => ({ default: m.ConsultantPage })));
 const ErrorTestPage = lazy(() => import("@/pages/ErrorTestPage").then(m => ({ default: m.ErrorTestPage })));
 const MarketingPage = lazy(() => import("@/pages/Marketing/page").then(m => ({ default: m.MarketingPage })));
-const WhatsappMarketingPage = lazy(() => import("@/pages/WhatsappMarketing/page").then(m => ({ default: m.WhatsappMarketingPage })));
 const FinancePage = lazy(() => import("@/pages/Finance/page").then(m => ({ default: m.FinancePage })));
-const ExpensesPage = lazy(() => import("@/pages/Expenses/page"));
-const PartnersPage = lazy(() => import("@/pages/Partners/page"));
-const PartnerDashboard = lazy(() => import("@/pages/Partners/PartnerDashboard").then(m => ({ default: m.PartnerDashboard })));
-const WithdrawalsManagement = lazy(() => import("@/pages/Partners/WithdrawalsManagement").then(m => ({ default: m.WithdrawalsManagement })));
 const UserManagementPage = lazy(() => import("@/pages/UserManagement/page"));
 const FairsPage = lazy(() => import("@/pages/Fairs/page"));
 const FairDetailPage = lazy(() => import("@/pages/Fairs/FairDetail/page"));
@@ -80,50 +76,40 @@ export const AppRoutes = createBrowserRouter([
         children: [
           {
             element: <MainLayout />,
-            children: [
-              { path: "/", element: <Lazy><Dashboard /></Lazy> },
-              { path: "/visitors-table", element: <Lazy><TableVisitors /></Lazy> },
-              { path: "/visitor/:id", element: <Lazy><Visitor /></Lazy> },
-              { path: "/marketing", element: <Lazy><MarketingPage /></Lazy> },
-              { path: "/whatsapp-marketing", element: <Lazy><WhatsappMarketingPage /></Lazy> },
-              {
-                path: "/financeiro/receitas",
-                element: <AdminRouteGuard><Lazy><FinancePage /></Lazy></AdminRouteGuard>,
-              },
-              {
-                path: "/expenses",
-                element: <AdminRouteGuard><Lazy><ExpensesPage /></Lazy></AdminRouteGuard>,
-              },
-              {
-                path: "/partners",
-                element: <AdminRouteGuard><Lazy><PartnersPage /></Lazy></AdminRouteGuard>,
-              },
-              {
-                path: "/partners/withdrawals",
-                element: <AdminRouteGuard><Lazy><WithdrawalsManagement /></Lazy></AdminRouteGuard>,
-              },
-              {
-                path: "/partner-dashboard",
-                element: <Lazy><PartnerDashboard /></Lazy>,
-              },
-              {
-                path: "/user-management",
-                element: <AdminRouteGuard><Lazy><UserManagementPage /></Lazy></AdminRouteGuard>,
-              },
-              {
-                path: "/clientes",
-                element: <AdminRouteGuard><Lazy><ClientsPage /></Lazy></AdminRouteGuard>,
-              },
-              {
-                path: "/fairs",
-                element: <AdminRouteGuard><Lazy><FairsPage /></Lazy></AdminRouteGuard>,
-              },
-              {
-                path: "/fairs/:id",
-                element: <AdminRouteGuard><Lazy><FairDetailPage /></Lazy></AdminRouteGuard>,
-              },
-              { path: "/consultant-dashboard", element: <Lazy><ConsultantPage /></Lazy> },
-            ],
+            children: isCredenciamentoMode
+              ? [
+                  { path: "/", element: <Navigate to="/visitors-table" replace /> },
+                  { path: "/visitors-table", element: <Lazy><TableVisitors /></Lazy> },
+                  { path: "/visitor/:id", element: <Lazy><Visitor /></Lazy> },
+                  { path: "*", element: <Navigate to="/visitors-table" replace /> },
+                ]
+              : [
+                  { path: "/", element: <Lazy><Dashboard /></Lazy> },
+                  { path: "/visitors-table", element: <Lazy><TableVisitors /></Lazy> },
+                  { path: "/visitor/:id", element: <Lazy><Visitor /></Lazy> },
+                  { path: "/marketing", element: <Lazy><MarketingPage /></Lazy> },
+                  {
+                    path: "/financeiro",
+                    element: <AdminRouteGuard><Lazy><FinancePage /></Lazy></AdminRouteGuard>,
+                  },
+                  {
+                    path: "/user-management",
+                    element: <AdminRouteGuard><Lazy><UserManagementPage /></Lazy></AdminRouteGuard>,
+                  },
+                  {
+                    path: "/clientes",
+                    element: <AdminRouteGuard><Lazy><ClientsPage /></Lazy></AdminRouteGuard>,
+                  },
+                  {
+                    path: "/fairs",
+                    element: <AdminRouteGuard><Lazy><FairsPage /></Lazy></AdminRouteGuard>,
+                  },
+                  {
+                    path: "/fairs/:id",
+                    element: <AdminRouteGuard><Lazy><FairDetailPage /></Lazy></AdminRouteGuard>,
+                  },
+                  { path: "/consultant-dashboard", element: <Lazy><ConsultantPage /></Lazy> },
+                ],
           },
         ],
       },

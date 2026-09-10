@@ -5,10 +5,7 @@ import {
   HomeIcon,
   User2,
   Mail,
-  MessageCircle,
   DollarSign,
-  Users,
-  CreditCard,
   BarChart3,
   Settings,
   X,
@@ -17,6 +14,7 @@ import {
 } from "lucide-react";
 import { useUserSession } from "@/hooks/useUserSession";
 import { EUserRole } from "@/enums/user.enum";
+import { isCredenciamentoMode } from "@/lib/appMode";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -45,14 +43,8 @@ const navigationItems = [
     roles: [EUserRole.ADMIN, EUserRole.PARTNER, EUserRole.CONSULTANT],
   },
   {
-    name: "WhatsApp",
-    href: "/whatsapp-marketing",
-    icon: MessageCircle,
-    roles: [EUserRole.ADMIN, EUserRole.PARTNER, EUserRole.CONSULTANT],
-  },
-  {
-    name: "Receitas",
-    href: "/financeiro/receitas",
+    name: "Financeiro",
+    href: "/financeiro",
     icon: DollarSign,
     roles: [EUserRole.ADMIN],
   },
@@ -60,30 +52,6 @@ const navigationItems = [
     name: "Expositores",
     href: "/clientes",
     icon: Store,
-    roles: [EUserRole.ADMIN],
-  },
-  {
-    name: "Despesas",
-    href: "/expenses",
-    icon: DollarSign,
-    roles: [EUserRole.ADMIN],
-  },
-  {
-    name: "Sócios",
-    href: "/partners",
-    icon: Users,
-    roles: [EUserRole.ADMIN],
-  },
-  {
-    name: "Meu Painel",
-    href: "/partner-dashboard",
-    icon: Users,
-    roles: [EUserRole.PARTNER],
-  },
-  {
-    name: "Saques",
-    href: "/partners/withdrawals",
-    icon: CreditCard,
     roles: [EUserRole.ADMIN],
   },
   {
@@ -104,9 +72,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, onToggle, sea
   const location = useLocation();
   const { user } = useUserSession();
 
-  // Filtrar itens baseado no role do usuário
-  const filteredItems = navigationItems.filter((item) =>
-    item.roles.includes(user?.role as EUserRole)
+  // Filtrar itens baseado no role do usuário — e, no domínio de credenciamento, restringir a Visitantes
+  const filteredItems = navigationItems.filter(
+    (item) =>
+      item.roles.includes(user?.role as EUserRole) &&
+      (!isCredenciamentoMode || item.href === "/visitors-table")
   );
 
   return (

@@ -281,7 +281,6 @@ export function RevenueDetailModal({
     }) =>
       financeService.confirmInstallmentPayment(installmentId, paidAt, fairId!, proofUrl),
     onSuccess: () => {
-      toast.success("Pagamento confirmado com sucesso!");
       queryClient.invalidateQueries({
         predicate: (query) =>
           query.queryKey[0] === "revenue-detail" ||
@@ -291,17 +290,12 @@ export function RevenueDetailModal({
       setIsConfirmPaymentOpen(false);
       setSelectedInstallmentId(null);
     },
-    onError: (error) => {
-      console.error("Erro ao confirmar pagamento:", error);
-      toast.error("Erro ao confirmar pagamento. Tente novamente.");
-    },
   });
 
   const updateRevenueMutation = useMutation({
     mutationFn: (data: Partial<CreateRevenueForm>) =>
       financeService.updateRevenue(revenueId!, data, fairId),
     onSuccess: () => {
-      toast.success("Receita atualizada com sucesso!");
       queryClient.invalidateQueries({
         predicate: (query) =>
           query.queryKey[0] === "revenue-detail" ||
@@ -309,10 +303,6 @@ export function RevenueDetailModal({
           query.queryKey[0] === "finance-kpis",
       });
       setIsEditing(false);
-    },
-    onError: (error) => {
-      console.error("Erro ao atualizar receita:", error);
-      toast.error("Erro ao atualizar receita. Tente novamente.");
     },
   });
 
