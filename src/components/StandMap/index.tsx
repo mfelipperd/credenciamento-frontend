@@ -55,11 +55,6 @@ export const StandMap: React.FC<StandMapProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fairId, showOnlyAvailable]);
 
-  useEffect(() => {
-    loadStands();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const handleStandClick = (stand: Stand) => {
     if (selectable && stand.isAvailable && onStandSelect) {
       onStandSelect(stand);

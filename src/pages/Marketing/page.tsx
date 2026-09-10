@@ -51,8 +51,10 @@ import {
   ExternalLink,
   Info,
   Target,
+  MessageCircle,
 } from "lucide-react";
 import { ProspectsTab } from "./ProspectsTab";
+import { WhatsappTabContent } from "./WhatsappTabContent";
 import { LogoLoading } from "@/components/LogoLoading";
 import { Tabs } from "@/components/ui/tabs";
 import { PageTabsList, PageTabsTrigger } from "@/components/ui/page-tabs";
@@ -376,7 +378,7 @@ export const MarketingPage: React.FC = () => {
   const [generatedPrompt, setGeneratedPrompt] = useState("");
   const [promptCopied, setPromptCopied] = useState(false);
 
-  const [mainTab, setMainTab] = useState<"create" | "history" | "prospects">("create");
+  const [mainTab, setMainTab] = useState<"create" | "history" | "prospects" | "whatsapp">("create");
 
   // Campaign history + account stats
   const [campaigns, setCampaigns] = useState<
@@ -558,12 +560,12 @@ export const MarketingPage: React.FC = () => {
   return (
     <div className="space-y-6 ">
       {/* ── Header + Tabs ── */}
-      <Tabs value={mainTab} onValueChange={(v) => setMainTab(v as "create" | "history" | "prospects")}>
+      <Tabs value={mainTab} onValueChange={(v) => setMainTab(v as "create" | "history" | "prospects" | "whatsapp")}>
         <div className="flex flex-col gap-4 mb-4 md:grid md:grid-cols-[1fr_auto_1fr] md:items-end md:shrink-0">
           <div className="space-y-2">
             <h1 className="text-3xl font-black text-white uppercase tracking-tighter flex items-center gap-3">
               <Mail className="h-8 w-8 text-brand-pink" />
-              EMAIL <span className="text-brand-cyan">MARKETING</span>
+              MARKETING
             </h1>
             <div className="h-1.5 w-24 bg-linear-to-r from-brand-pink to-brand-cyan rounded-full" />
           </div>
@@ -579,6 +581,10 @@ export const MarketingPage: React.FC = () => {
             <PageTabsTrigger value="prospects">
               <Target className="h-4 w-4" />
               Prospecção B2B
+            </PageTabsTrigger>
+            <PageTabsTrigger value="whatsapp">
+              <MessageCircle className="h-4 w-4" />
+              WhatsApp
             </PageTabsTrigger>
           </PageTabsList>
           <div className="hidden md:block" />
@@ -1334,8 +1340,10 @@ export const MarketingPage: React.FC = () => {
             </div>
           )}
         </div>
-      ) : (
+      ) : mainTab === "prospects" ? (
         <ProspectsTab fairId={headerFairId} />
+      ) : (
+        <WhatsappTabContent />
       )}
       <Dialog
         open={showAIDialog}

@@ -60,11 +60,6 @@ export const useActiveUsers = () => {
   });
 };
 
-// Hook para buscar apenas sócios (usuários com role partner)
-export const usePartners = () => {
-  return useUsersByRole("partner");
-};
-
 // Hook para criar usuário
 export const useCreateUser = () => {
   const api = useAxio();

@@ -21,7 +21,6 @@ import {
   formatCurrencyFromCents,
   maskCurrencyBRL,
 } from "@/utils/masks";
-import { toast } from "sonner";
 
 // Schema de validação
 const entryModelSchema = z.object({
@@ -87,10 +86,6 @@ export function EntryModelsDialog({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["entry-models"] });
       form.reset();
-      toast.success("Modelo criado com sucesso!");
-    },
-    onError: () => {
-      toast.error("Erro ao criar modelo");
     },
   });
 
@@ -113,38 +108,14 @@ export function EntryModelsDialog({
       queryClient.invalidateQueries({ queryKey: ["entry-models"] });
       setEditingModel(null);
       form.reset();
-      toast.success("Modelo atualizado com sucesso!");
-    },
-    onError: () => {
-      toast.error("Erro ao atualizar modelo");
     },
   });
 
   // Mutation para deletar entry model
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => {
-      console.log("Attempting to delete entry model:", { id, fairId });
-      if (!fairId) {
-        console.warn("Fair ID não fornecido, mas tentando deletar mesmo assim");
-      }
-      return financeService.deleteEntryModel(id);
-    },
+    mutationFn: (id: string) => financeService.deleteEntryModel(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["entry-models"] });
-      toast.success("Modelo removido com sucesso!");
-    },
-    onError: (error: unknown) => {
-      console.error("Erro detalhado ao deletar modelo:", error);
-      if (error && typeof error === "object" && "response" in error) {
-        const axiosError = error as {
-          response?: { data?: unknown; status?: number };
-        };
-        console.error("Error response:", axiosError.response?.data);
-        console.error("Error status:", axiosError.response?.status);
-      }
-      const message =
-        error instanceof Error ? error.message : "Erro interno do servidor";
-      toast.error(`Erro ao remover modelo: ${message}`);
     },
   });
 

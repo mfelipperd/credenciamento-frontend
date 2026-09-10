@@ -4,7 +4,6 @@ import { useExpensesService } from "@/service/expenses.service";
 import { useFairService } from "@/service/fair.service";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useUpdateExpense } from "@/hooks/useFinance";
-import { toast } from "sonner";
 import { Plus, Filter, BarChart3, ChevronDown, Calendar, DollarSign, ListFilter, Building } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,8 +14,6 @@ import { ExpensesCharts } from "./components/ExpensesCharts";
 import { ExpenseDetailModal } from "./components/ExpenseDetailModal";
 import { DeleteExpenseDialog } from "./components/DeleteExpenseDialog";
 import { CashFlowModal } from "../Finance/components/CashFlowModal";
-import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { PageTabsList, PageTabsTrigger } from "@/components/ui/page-tabs";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,13 +32,14 @@ import type {
 } from "@/interfaces/finance";
 import type { CombinedOverheadEntry } from "./components/OverheadExpensesTable";
 
-export default function ExpensesPage() {
+export function DespesasTabContent() {
   const [, , fairId] = useSearchParams();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [defaultShared, setDefaultShared] = useState(false);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [isChartsOpen, setIsChartsOpen] = useState(false);
-  
+  const [activeSection, setActiveSection] = useState<"direct" | "overhead">("direct");
+
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
   const [expenseToDelete, setExpenseToDelete] = useState<Expense | null>(null);
   const [overheadToDelete, setOverheadToDelete] = useState<CombinedOverheadEntry | null>(null);
@@ -97,14 +95,9 @@ export default function ExpensesPage() {
     mutationFn: (data: CreateExpenseForm) =>
       expensesService.createExpense(fairId!, data),
     onSuccess: () => {
-      toast.success("Despesa criada com sucesso!");
       queryClient.invalidateQueries({ queryKey: ["expenses", fairId] });
       queryClient.invalidateQueries({ queryKey: ["expenses-total", fairId] });
       setIsFormOpen(false);
-    },
-    onError: (error) => {
-      console.error("Erro ao criar despesa:", error);
-      toast.error("Erro ao criar despesa. Tente novamente.");
     },
   });
 
@@ -115,14 +108,9 @@ export default function ExpensesPage() {
   const deleteExpenseMutation = useMutation({
     mutationFn: (id: string) => expensesService.deleteExpense(fairId!, id),
     onSuccess: () => {
-      toast.success("Despesa removida com sucesso!");
       queryClient.invalidateQueries({ queryKey: ["expenses", fairId] });
       queryClient.invalidateQueries({ queryKey: ["expenses-total", fairId] });
       setExpenseToDelete(null);
-    },
-    onError: (error) => {
-      console.error("Erro ao remover despesa:", error);
-      toast.error("Erro ao remover despesa. Tente novamente.");
     },
   });
 
@@ -131,13 +119,8 @@ export default function ExpensesPage() {
     mutationFn: (data: CreateOverheadExpenseForm) =>
       expensesService.createOverheadExpense(data),
     onSuccess: () => {
-      toast.success("Despesa overhead criada com sucesso!");
       queryClient.invalidateQueries({ queryKey: ["expenses", fairId] });
       queryClient.invalidateQueries({ queryKey: ["expenses-total", fairId] });
-    },
-    onError: (error) => {
-      console.error("Erro ao criar despesa overhead:", error);
-      toast.error("Erro ao criar despesa overhead. Tente novamente.");
     },
   });
 
@@ -146,13 +129,8 @@ export default function ExpensesPage() {
     mutationFn: ({ id, data }: { id: string; data: UpdateOverheadExpenseForm }) =>
       expensesService.updateOverheadExpense(id, data),
     onSuccess: () => {
-      toast.success("Despesa overhead atualizada com sucesso!");
       queryClient.invalidateQueries({ queryKey: ["expenses", fairId] });
       queryClient.invalidateQueries({ queryKey: ["expenses-total", fairId] });
-    },
-    onError: (error) => {
-      console.error("Erro ao atualizar despesa overhead:", error);
-      toast.error("Erro ao atualizar despesa overhead. Tente novamente.");
     },
   });
 
@@ -160,14 +138,9 @@ export default function ExpensesPage() {
   const deleteOverheadExpenseMutation = useMutation({
     mutationFn: (id: string) => expensesService.deleteOverheadExpense(id),
     onSuccess: () => {
-      toast.success("Despesa overhead removida com sucesso!");
       queryClient.invalidateQueries({ queryKey: ["expenses", fairId] });
       queryClient.invalidateQueries({ queryKey: ["expenses-total", fairId] });
       setOverheadToDelete(null);
-    },
-    onError: (error) => {
-      console.error("Erro ao remover despesa overhead:", error);
-      toast.error("Erro ao remover despesa overhead. Tente novamente.");
     },
   });
 
@@ -179,10 +152,6 @@ export default function ExpensesPage() {
       queryClient.invalidateQueries({ queryKey: ["expenses", fairId] });
       queryClient.invalidateQueries({ queryKey: ["expenses-total", fairId] });
       setExpenseToConvert(null);
-    },
-    onError: (error) => {
-      console.error("Erro ao converter despesa:", error);
-      toast.error("Erro ao converter despesa. Tente novamente.");
     },
   });
 
@@ -313,32 +282,33 @@ export default function ExpensesPage() {
   const averageValue = totalCount > 0 ? totalValue / totalCount : 0;
 
   return (
-    <div className="text-white space-y-8 pb-12">
-      {/* Header + Tabs na mesma linha */}
-      <Tabs defaultValue="direct">
-      <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-4">
-        <div>
-          <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.2em] mb-1">
-            Custos e Operações
-          </p>
-          <h1 className="text-4xl font-black text-white tracking-tighter">
-            Controle de Despesas
-          </h1>
-          <p className="text-white/40 text-sm font-medium mt-1">
-            Gestão inteligente de custos diretos e rateios overhead compartilhados
-          </p>
+    <div className="text-white space-y-8">
+      {/* Diretas/Overhead switch + ações */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="grid grid-cols-2 gap-1 bg-white/5 border border-white/10 rounded-2xl p-1">
+          <button
+            onClick={() => setActiveSection("direct")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+              activeSection === "direct"
+                ? "bg-brand-pink text-white shadow-lg shadow-brand-pink/30"
+                : "text-white/50 hover:text-white"
+            }`}
+          >
+            Diretas <span className="opacity-60">({directCount})</span>
+          </button>
+          <button
+            onClick={() => setActiveSection("overhead")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+              activeSection === "overhead"
+                ? "bg-brand-pink text-white shadow-lg shadow-brand-pink/30"
+                : "text-white/50 hover:text-white"
+            }`}
+          >
+            Overhead <span className="opacity-60">({overheadCount})</span>
+          </button>
         </div>
 
-        <PageTabsList>
-          <PageTabsTrigger value="direct">
-            Diretas <span className="opacity-60 ml-1">({directCount})</span>
-          </PageTabsTrigger>
-          <PageTabsTrigger value="overhead">
-            Overhead <span className="opacity-60 ml-1">({overheadCount})</span>
-          </PageTabsTrigger>
-        </PageTabsList>
-
-        <div className="flex flex-wrap items-end justify-end gap-3">
+        <div className="flex flex-wrap items-center justify-end gap-3">
           <Button
             variant="outline"
             onClick={() => setIsChartsOpen(!isChartsOpen)}
@@ -379,7 +349,7 @@ export default function ExpensesPage() {
 
       {/* KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card 
+        <Card
           className="glass-card border border-white/5 bg-white/3 backdrop-blur-md rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:bg-white/5 hover:border-white/10 relative group overflow-hidden"
           onClick={() => setShowCashFlowModal(true)}
         >
@@ -486,7 +456,7 @@ export default function ExpensesPage() {
 
       {/* Tabelas de Despesas */}
       <div className="space-y-6">
-        <TabsContent value="direct" className="outline-hidden">
+        {activeSection === "direct" && (
           <Card className="glass-card border border-white/5 rounded-2xl p-6 overflow-hidden">
             <CardHeader className="p-0 pb-4">
               <CardTitle className="text-lg font-bold text-white">Lista de Despesas Diretas</CardTitle>
@@ -502,9 +472,9 @@ export default function ExpensesPage() {
               />
             </CardContent>
           </Card>
-        </TabsContent>
-        
-        <TabsContent value="overhead" className="outline-hidden">
+        )}
+
+        {activeSection === "overhead" && (
           <Card className="glass-card border border-white/5 rounded-2xl p-6 overflow-hidden">
             <CardHeader className="p-0 pb-4">
               <CardTitle className="text-lg font-bold text-white">Custos Compartilhados (Overhead)</CardTitle>
@@ -518,9 +488,8 @@ export default function ExpensesPage() {
               />
             </CardContent>
           </Card>
-        </TabsContent>
+        )}
       </div>
-      </Tabs>
 
       {/* Modal de Formulário Unificado */}
       <ExpenseForm

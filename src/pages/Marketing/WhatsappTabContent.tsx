@@ -19,8 +19,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Tabs } from "@/components/ui/tabs";
-import { PageTabsList, PageTabsTrigger } from "@/components/ui/page-tabs";
 import { LogoLoading } from "@/components/LogoLoading";
 import { useFairs } from "@/hooks/useFairs";
 import { useSearchParams } from "@/hooks/useSearchParams";
@@ -41,7 +39,6 @@ import type {
 } from "@/service/whatsapp.service";
 import { toast } from "sonner";
 import {
-  MessageCircle,
   Send,
   Eye,
   Users,
@@ -102,14 +99,14 @@ const RECIPIENT_STATUS_CLASS: Record<WhatsappRecipientStatus, string> = {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export const WhatsappMarketingPage: React.FC = () => {
+export const WhatsappTabContent: React.FC = () => {
   const { data: fairs, isLoading: loadingFairs } = useFairs();
   const [, , headerFairId] = useSearchParams();
 
   const { data: instanceStatus, isLoading: loadingInstance } = useWhatsappInstanceStatus();
   const { data: warmup } = useWhatsappWarmupStatus();
 
-  const [mainTab, setMainTab] = useState<"send" | "history">("send");
+  const [view, setView] = useState<"send" | "history">("send");
 
   const [targetFairId, setTargetFairId] = useState<string>(headerFairId ?? "");
   const [sendTo, setSendTo] = useState<WhatsappSendTo>("all");
@@ -206,35 +203,39 @@ export const WhatsappMarketingPage: React.FC = () => {
         }
       );
       setSelectedCampaignId(res.id);
-      setMainTab("history");
+      setView("history");
     }
   };
 
   return (
     <div className="space-y-6">
-      {/* ── Header + Tabs ── */}
-      <Tabs value={mainTab} onValueChange={(v) => setMainTab(v as "send" | "history")}>
-        <div className="flex flex-col gap-4 mb-4 md:grid md:grid-cols-[1fr_auto_1fr] md:items-end md:shrink-0">
-          <div className="space-y-2">
-            <h1 className="text-3xl font-black text-white uppercase tracking-tighter flex items-center gap-3">
-              <MessageCircle className="h-8 w-8 text-brand-pink" />
-              WHATSAPP <span className="text-brand-cyan">MARKETING</span>
-            </h1>
-            <div className="h-1.5 w-24 bg-linear-to-r from-brand-pink to-brand-cyan rounded-full" />
-          </div>
-          <PageTabsList className="self-start md:self-auto">
-            <PageTabsTrigger value="send">
-              <Send className="h-4 w-4" />
-              Enviar Campanha
-            </PageTabsTrigger>
-            <PageTabsTrigger value="history">
-              <BarChart3 className="h-4 w-4" />
-              Histórico
-            </PageTabsTrigger>
-          </PageTabsList>
-          <div className="hidden md:block" />
+      {/* ── Enviar / Histórico switch ── */}
+      <div className="flex items-center justify-end">
+        <div className="grid grid-cols-2 gap-1 bg-white/5 border border-white/10 rounded-2xl p-1">
+          <button
+            onClick={() => setView("send")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+              view === "send"
+                ? "bg-brand-pink text-white shadow-lg shadow-brand-pink/30"
+                : "text-white/50 hover:text-white"
+            }`}
+          >
+            <Send className="h-4 w-4" />
+            Enviar Campanha
+          </button>
+          <button
+            onClick={() => setView("history")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+              view === "history"
+                ? "bg-brand-pink text-white shadow-lg shadow-brand-pink/30"
+                : "text-white/50 hover:text-white"
+            }`}
+          >
+            <BarChart3 className="h-4 w-4" />
+            Histórico
+          </button>
         </div>
-      </Tabs>
+      </div>
 
       {/* ── Instance disconnected banner ── */}
       {!loadingInstance && !isConnected && (
@@ -276,7 +277,7 @@ export const WhatsappMarketingPage: React.FC = () => {
         </div>
       )}
 
-      {mainTab === "send" ? (
+      {view === "send" ? (
         <div className="flex flex-col lg:flex-row gap-6 items-start">
           {/* ── Right: Preview (70%) ── */}
           <div className="order-2 lg:order-2 flex-1 min-w-0 glass-card border-white/5 shadow-2xl rounded-[32px] p-6 lg:p-8 space-y-5">

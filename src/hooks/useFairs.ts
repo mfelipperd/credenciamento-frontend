@@ -1,7 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useFairService } from "@/service/fair.service";
-import { toast } from "sonner";
-import { getAxiosErrorMessage } from "@/utils/handleAxiosError";
 import type {
   UpdateFairForm,
   FairFilters,
@@ -55,10 +53,6 @@ export const useCreateFair = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["fairs"] });
       queryClient.invalidateQueries({ queryKey: ["fairs", "stats"] });
-      toast.success("Feira criada com sucesso!");
-    },
-    onError: (error: unknown) => {
-      toast.error(getAxiosErrorMessage(error, "Erro ao criar feira"));
     },
   });
 };
@@ -75,10 +69,6 @@ export const useUpdateFair = () => {
       queryClient.invalidateQueries({ queryKey: ["fairs"] });
       queryClient.invalidateQueries({ queryKey: ["fairs", id] });
       queryClient.invalidateQueries({ queryKey: ["fairs", "stats"] });
-      toast.success("Feira atualizada com sucesso!");
-    },
-    onError: (error: unknown) => {
-      toast.error(getAxiosErrorMessage(error, "Erro ao atualizar feira"));
     },
   });
 };
@@ -93,10 +83,6 @@ export const useDeleteFair = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["fairs"] });
       queryClient.invalidateQueries({ queryKey: ["fairs", "stats"] });
-      toast.success("Feira excluída com sucesso!");
-    },
-    onError: (error: unknown) => {
-      toast.error(getAxiosErrorMessage(error, "Erro ao excluir feira"));
     },
   });
 };
@@ -114,12 +100,6 @@ export const useToggleFairActive = () => {
         queryClient.invalidateQueries({ queryKey: ["fairs", data.id] });
       }
       queryClient.invalidateQueries({ queryKey: ["fairs", "stats"] });
-      toast.success(
-        `Feira ${data?.isActive ? "ativada" : "desativada"} com sucesso!`
-      );
-    },
-    onError: (error: unknown) => {
-      toast.error(getAxiosErrorMessage(error, "Erro ao alterar status da feira"));
     },
   });
 };
