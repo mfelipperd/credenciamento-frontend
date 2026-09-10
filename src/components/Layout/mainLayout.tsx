@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useRef } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Outlet, useSearchParams, useLocation } from "react-router-dom";
 import { useFairs } from "@/hooks/useFairs";
 import {
@@ -27,7 +27,7 @@ import type { Fair } from "@/interfaces/fairs";
 import { isCredenciamentoMode } from "@/lib/appMode";
 
 export const MainLayout: React.FC = () => {
-  const { data: fairs, isLoading: loading } = useFairs();
+  const { data: fairs, isLoading: loading, isError: fairsError, refetch: refetchFairs } = useFairs();
   const [searchParams, setSearchParams] = useSearchParams();
   const { user, availableFairIds } = useUserSession();
   const { signOut } = useAuth();
@@ -83,8 +83,7 @@ export const MainLayout: React.FC = () => {
     return availableFairs[0]?.id ?? "";
   };
 
-  const [selectedId, setSelectedId] = useState(getInitialFairId);
-  const hasInitialized = useRef(false);
+  const selectedId = getInitialFairId();
 
   // Filtros locais para a busca de feiras no popover
   const [isFairPopoverOpen, setIsFairPopoverOpen] = useState(false);
@@ -176,9 +175,11 @@ export const MainLayout: React.FC = () => {
   ]);
 
   const handleSelectChange = (id: string) => {
-    setSelectedId(id);
     setSavedFairId(id);
-    setSearchParams({ fairId: id });
+    const params = new URLSearchParams(searchParams);
+    params.set("fairId", id);
+    params.set("page", "1");
+    setSearchParams(params);
   };
 
   const selectedFair = useMemo(() => {
@@ -217,38 +218,15 @@ export const MainLayout: React.FC = () => {
 
   const search = `?fairId=${selectedId}`;
 
-  // Removido - o hook useFairs já faz o fetch automaticamente
-
-  // Sincroniza o selectedId apenas quando a lista de feiras fica não-vazia pela primeira vez
   useEffect(() => {
-    if (availableFairs.length === 0 || hasInitialized.current) return;
-    hasInitialized.current = true;
+    if (loading || fairsError || !selectedId || searchParams.get("fairId") === selectedId) return;
+    const params = new URLSearchParams(searchParams);
+    params.set("fairId", selectedId);
+    setSearchParams(params, { replace: true });
+  }, [loading, fairsError, selectedId, searchParams, setSearchParams]);
 
-    const urlFairId = searchParams.get("fairId");
-    const newId =
-      (urlFairId && availableFairs.find((f: Fair) => f.id === urlFairId)
-        ? urlFairId
-        : null) ??
-      (savedFairId && availableFairs.find((f: Fair) => f.id === savedFairId)
-        ? savedFairId
-        : null) ??
-      availableFairs[0]?.id ??
-      "";
-
-    // Só atualiza o estado local se mudou
-    if (newId && newId !== selectedId) {
-      setSelectedId(newId);
-    }
-
-    // Só atualiza a URL se não houver fairId nela
-    if (newId && !urlFairId) {
-      setSearchParams({ fairId: newId }, { replace: true });
-    }
-  }, [availableFairs, searchParams, selectedId, savedFairId, setSearchParams]);
-
-  // Só bloqueia a renderização enquanto o carregamento inicial estiver em progresso
-  // Se houver erro ou feiras vazias, renderiza o layout mesmo assim para não travar
-  if (loading && availableFairs.length === 0) {
+  const selectingFair = !fairsError && !!selectedId && searchParams.get("fairId") !== selectedId;
+  if (loading || selectingFair) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-brand-blue">
         <LogoLoading size={80} />
@@ -612,7 +590,24 @@ export const MainLayout: React.FC = () => {
 
         {/* Content — cresce para preencher, único elemento que faz scroll */}
         <main className="flex-1  bg-brand-blue p-6 h-[80%] pb-0 pt-2 overflow-auto">
-          <Outlet />
+          {fairsError ? (
+            <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 text-center">
+              <p>Não foi possível carregar as feiras. Tente novamente para continuar.</p>
+              <button
+                type="button"
+                className="rounded-lg bg-brand-blue px-4 py-2 text-white"
+                onClick={() => void refetchFairs({ cancelRefetch: false })}
+              >
+                Carregar feiras novamente
+              </button>
+            </div>
+          ) : availableFairs.length === 0 && !["/fairs", "/user-management"].some(
+            (path) => location.pathname === path || location.pathname.startsWith(`${path}/`),
+          ) ? (
+            <div className="flex min-h-[60vh] items-center justify-center text-center">
+              <p>Nenhuma feira disponível para seu perfil. Cadastre uma feira ou solicite acesso ao administrador.</p>
+            </div>
+          ) : <Outlet />}
         </main>
 
         {/* Footer — fixo no fundo, fora do scroll */}

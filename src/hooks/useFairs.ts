@@ -1,21 +1,26 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useFairService } from "@/service/fair.service";
+import { useAuth } from "@/hooks/useAuth";
+import { useAxio } from "@/hooks/useAxio";
+import { AppEndpoints } from "@/constants/AppEndpoints";
 import type {
   UpdateFairForm,
   FairFilters,
+  Fair,
 } from "@/interfaces/fairs";
 
 // Hook para listar feiras
 export const useFairs = (filters?: FairFilters) => {
-  const fairService = useFairService();
+  const api = useAxio();
+  const { user, isAuthenticated } = useAuth();
 
   return useQuery({
-    queryKey: ["fairs", filters ?? null],
+    queryKey: ["fairs", "list", user?.id, filters ?? null],
     queryFn: async () => {
-      const result = await fairService.getFairs(filters);
-      // React Query v5 não aceita undefined — retorna [] como fallback seguro
-      return result ?? [];
+      const response = await api.get<Fair[]>(AppEndpoints.FAIRS.BASE, { params: filters });
+      return response.data;
     },
+    enabled: isAuthenticated && !!user?.id,
   });
 };
 

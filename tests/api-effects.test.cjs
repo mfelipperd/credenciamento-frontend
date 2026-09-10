@@ -179,6 +179,98 @@ function timers() {
   };
 }
 
+test("fair list starts only after login, needs no fairId and is shared by header and pages", async (t) => {
+  const client = clientFor(t);
+  let auth = { isAuthenticated: false, user: null };
+  let calls = 0;
+  const { useFairs } = loadModule("src/hooks/useFairs.ts", {
+    "@tanstack/react-query": { useQuery: (options) => options },
+    "@/service/fair.service": {},
+    "@/hooks/useAuth": { useAuth: () => auth },
+    "@/hooks/useAxio": { useAxio: () => ({ get: async (url, options) => {
+      calls++;
+      assert.equal(url, "/fairs");
+      assert.equal(options.params, undefined);
+      return { data: [{ id: `fair-${auth.user.id}` }] };
+    } }) },
+    "@/constants/AppEndpoints": { AppEndpoints: { FAIRS: { BASE: "/fairs" } } },
+  });
+  const header = new QueryObserver(client, { ...useFairs(), staleTime: 300_000 });
+  const stopHeader = header.subscribe(() => {});
+  assert.equal(calls, 0);
+  auth = { isAuthenticated: true, user: { id: "user-a" } };
+  header.setOptions({ ...useFairs(), staleTime: 300_000 });
+  await tick();
+  assert.equal(calls, 1);
+  const page = new QueryObserver(client, { ...useFairs(), staleTime: 300_000 });
+  const stopPage = page.subscribe(() => {});
+  assert.equal(calls, 1);
+  assert.equal(page.getCurrentResult().data[0].id, "fair-user-a");
+  stopPage();
+  auth = { isAuthenticated: true, user: { id: "user-b" } };
+  header.setOptions({ ...useFairs(), staleTime: 300_000 });
+  await tick();
+  assert.equal(calls, 2);
+  assert.equal(header.getCurrentResult().data[0].id, "fair-user-b");
+  stopHeader();
+});
+
+test("failed fair list remains an error and can be retried instead of caching an empty success", async (t) => {
+  const client = clientFor(t);
+  let fail = true;
+  const { useFairs } = loadModule("src/hooks/useFairs.ts", {
+    "@tanstack/react-query": { useQuery: (options) => options },
+    "@/service/fair.service": {},
+    "@/hooks/useAuth": { useAuth: () => ({ isAuthenticated: true, user: { id: "user" } }) },
+    "@/hooks/useAxio": { useAxio: () => ({ get: async () => {
+      if (fail) throw new Error("offline");
+      return { data: [{ id: "fair-a" }] };
+    } }) },
+    "@/constants/AppEndpoints": { AppEndpoints: { FAIRS: { BASE: "/fairs" } } },
+  });
+  const observer = new QueryObserver(client, useFairs());
+  const stop = observer.subscribe(() => {});
+  await tick();
+  assert.equal(observer.getCurrentResult().isError, true);
+  assert.equal(observer.getCurrentResult().data, undefined);
+  fail = false;
+  await observer.refetch();
+  assert.equal(observer.getCurrentResult().data[0].id, "fair-a");
+  stop();
+});
+
+test("header selects a valid fair and repairs URL without discarding existing filters", () => {
+  const file = "src/components/Layout/mainLayout.tsx";
+  const selection = expressionFrom(file, (node) =>
+    ts.isVariableDeclaration(node) && node.name.getText() === "getInitialFairId");
+  const sync = expressionFrom(file, (node) =>
+    ts.isCallExpression(node) && node.expression.getText() === "useEffect");
+  const context = {
+    URLSearchParams,
+    availableFairs: [{ id: "fair-a" }, { id: "fair-b" }],
+    searchParams: new URLSearchParams("fairId=invalid&search=visitor&page=2"),
+    savedFairId: "fair-b",
+  };
+  const selectedId = evaluate(selection.found.initializer.getText(selection.source), context)();
+  assert.equal(selectedId, "fair-b");
+  let navigations = 0;
+  const runSync = () => evaluate(sync.found.arguments[0].getText(sync.source), {
+    ...context, selectedId, loading: false, fairsError: false,
+    setSearchParams: (params) => { context.searchParams = params; navigations++; },
+  })();
+  runSync();
+  runSync();
+  assert.equal(navigations, 1);
+  assert.equal(context.searchParams.get("fairId"), "fair-b");
+  assert.equal(context.searchParams.get("search"), "visitor");
+  assert.equal(context.searchParams.get("page"), "2");
+  context.searchParams = new URLSearchParams("fairId=fair-a");
+  assert.equal(evaluate(selection.found.initializer.getText(selection.source), context)(), "fair-a");
+  context.searchParams = new URLSearchParams();
+  context.savedFairId = "unavailable";
+  assert.equal(evaluate(selection.found.initializer.getText(selection.source), context)(), "fair-a");
+});
+
 test("prospect typing commits only the final search and resets page together", () => {
   const { found, source } = expressionFrom("src/pages/Marketing/ProspectsTab.tsx", (node) =>
     ts.isCallExpression(node) && node.expression.getText() === "useEffect");

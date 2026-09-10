@@ -12,11 +12,13 @@ import type { AuthResponse } from "@/interfaces/auth";
 import type { User } from "@/interfaces/user";
 import { useAuth } from "@/hooks/useAuth";
 import { EUserRole } from "@/enums/user.enum";
+import { useQueryClient } from "@tanstack/react-query";
 
 const STORAGE_USER_KEY = "app_user";
 const STORAGE_TOKEN_KEY = "app_token";
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const queryClient = useQueryClient();
   const [user, setUser] = useState<User | null>(() => {
     const stored = localStorage.getItem(STORAGE_USER_KEY) || sessionStorage.getItem(STORAGE_USER_KEY);
     return stored ? JSON.parse(stored) : null;
@@ -31,6 +33,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const isAuthenticated = !!token;
 
   const signIn = useCallback(({ access_token, user }: AuthResponse) => {
+    // Cada login precisa obter a lista de feiras com as permissões atuais.
+    queryClient.removeQueries({ queryKey: ["fairs"] });
     const rememberMe = localStorage.getItem("remember_me") === "true";
     
     if (rememberMe) {
@@ -46,7 +50,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
     setUser(user);
     setToken(access_token);
-  }, []);
+  }, [queryClient]);
 
   const signOut = useCallback(() => {
     localStorage.removeItem(STORAGE_USER_KEY);
