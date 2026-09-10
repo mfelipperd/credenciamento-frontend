@@ -45,7 +45,10 @@ export function PasswordInput<T extends FieldValues>({
             <Input
               {...inputProps}
               id={String(name)}
+              name={name}
+              ref={field.ref}
               type={showPassword ? "text" : "password"}
+              autoComplete={inputProps.autoComplete ?? "current-password"}
               value={displayValue}
               onChange={(e) => {
                 const raw = e.target.value;
@@ -54,7 +57,7 @@ export function PasswordInput<T extends FieldValues>({
                 field.onChange(masked);
               }}
               onBlur={field.onBlur}
-              className={cn("pr-10", inputProps.className)}
+              className={cn("pr-10 no-native-reveal", inputProps.className)}
             />
             <button
               type="button"

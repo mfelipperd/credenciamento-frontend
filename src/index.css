@@ -92,9 +92,20 @@ body {
   scrollbar-color: var(--brand-cyan) transparent;
 }
 
-.no-edge-reveal::-ms-reveal,
-.no-edge-reveal::-ms-clear {
+/* Esconde os ícones nativos de "ver senha" / autofill de cada navegador,
+   pra não duplicar com o botão de olho customizado (PasswordInput) */
+.no-native-reveal::-ms-reveal,
+.no-native-reveal::-ms-clear {
   display: none;
+}
+
+.no-native-reveal::-webkit-credentials-auto-fill-button,
+.no-native-reveal::-webkit-textfield-decoration-container {
+  visibility: hidden;
+  display: none !important;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
 }
 
 /* Dialog z-index overrides to appear above header (z-1000) */

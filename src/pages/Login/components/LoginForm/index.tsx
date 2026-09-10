@@ -22,6 +22,9 @@ export const LoginForm = () => {
             name="email"
             placeholder="E-mail Corporativo"
             type="email"
+            autoComplete="username"
+            autoFocus
+            enterKeyHint="next"
             className="h-14 text-base bg-slate-100/50 border-slate-200 shadow-inner focus:border-brand-pink focus:ring-4 focus:ring-brand-pink/10 transition-all rounded-xl font-bold text-slate-900 placeholder:text-slate-300"
           />
         </div>
@@ -39,6 +42,8 @@ export const LoginForm = () => {
             control={controller.form.control}
             name="password"
             placeholder="••••••••"
+            autoComplete="current-password"
+            enterKeyHint="go"
             className="h-14 text-base bg-slate-100/50 border-slate-200 shadow-inner focus:border-brand-pink focus:ring-4 focus:ring-brand-pink/10 transition-all rounded-xl font-bold text-slate-900 placeholder:text-slate-300"
           />
         </div>

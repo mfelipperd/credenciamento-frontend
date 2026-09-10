@@ -41,6 +41,8 @@ export function ControlledInput<T extends FieldValues>({
             <Input
               {...inputProps}
               id={String(name)}
+              name={name}
+              ref={field.ref}
               value={displayValue}
               onChange={(e) => {
                 const raw = e.target.value;
