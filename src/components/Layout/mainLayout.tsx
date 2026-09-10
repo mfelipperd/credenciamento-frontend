@@ -542,8 +542,8 @@ export const MainLayout: React.FC = () => {
                 <span className="text-[10px] text-white/40 font-black uppercase tracking-[0.2em]">
                   Operador
                 </span>
-                <span className="text-xs text-white font-bold truncate max-w-30">
-                  {user?.email.split("@")[0]}
+                <span className="text-xs text-white font-bold truncate max-w-56">
+                  {user?.email}
                 </span>
               </div>
 

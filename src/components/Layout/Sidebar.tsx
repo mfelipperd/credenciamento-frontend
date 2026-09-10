@@ -162,14 +162,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, onToggle, sea
             })}
           </div>
         </nav>
-
-        {/* Footer */}
-        <div className="p-6 border-t border-white/5">
-          <div className="flex items-center gap-3 text-[10px] text-white/40 font-bold uppercase tracking-wider">
-            <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
-            <span className="truncate">Conectado: {user?.email}</span>
-          </div>
-        </div>
       </div>
 
       {/* Desktop Sidebar — ocupa h-full do app-shell, só a nav faz scroll interno */}
@@ -249,16 +241,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, onToggle, sea
             })}
           </div>
         </nav>
-
-        {/* Footer */}
-        <div className="p-7 border-t border-white/5 mt-auto">
-          <div className="p-5 rounded-2xl bg-white/5 border border-white/5 backdrop-blur-sm">
-            <div className="flex items-center gap-3 text-[11px] text-white/50 font-black uppercase tracking-[0.15em] break-all">
-              <div className="w-2.5 h-2.5 bg-green-400 rounded-full shadow-[0_0_12px_rgba(74,222,128,0.6)] animate-pulse" />
-              <span>{user?.email}</span>
-            </div>
-          </div>
-        </div>
       </div>
     </>
   );
