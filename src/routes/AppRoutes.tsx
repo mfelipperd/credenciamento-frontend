@@ -22,7 +22,6 @@ const SucessFormTotem = lazy(() => import("@/pages/SucessTotem/page").then(m => 
 const ConsultantPage = lazy(() => import("@/pages/ConsultantPage").then(m => ({ default: m.ConsultantPage })));
 const ErrorTestPage = lazy(() => import("@/pages/ErrorTestPage").then(m => ({ default: m.ErrorTestPage })));
 const MarketingPage = lazy(() => import("@/pages/Marketing/page").then(m => ({ default: m.MarketingPage })));
-const PushMarketingPage = lazy(() => import("@/pages/PushMarketing/page").then(m => ({ default: m.PushMarketingPage })));
 const FinancePage = lazy(() => import("@/pages/Finance/page").then(m => ({ default: m.FinancePage })));
 const UserManagementPage = lazy(() => import("@/pages/UserManagement/page"));
 const FairsPage = lazy(() => import("@/pages/Fairs/page"));
@@ -89,7 +88,6 @@ export const AppRoutes = createBrowserRouter([
                   { path: "/visitors-table", element: <Lazy><TableVisitors /></Lazy> },
                   { path: "/visitor/:id", element: <Lazy><Visitor /></Lazy> },
                   { path: "/marketing", element: <Lazy><MarketingPage /></Lazy> },
-                  { path: "/push-marketing", element: <Lazy><PushMarketingPage /></Lazy> },
                   {
                     path: "/financeiro",
                     element: <AdminRouteGuard><Lazy><FinancePage /></Lazy></AdminRouteGuard>,

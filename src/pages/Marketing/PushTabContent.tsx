@@ -14,11 +14,11 @@ import {
 import { LogoLoading } from "@/components/LogoLoading";
 import { useSendPush } from "@/hooks/usePush";
 import { toast } from "sonner";
-import { Bell, Send, Eye, AlertTriangle, Globe } from "lucide-react";
+import { Send, Eye, AlertTriangle, Globe } from "lucide-react";
 
 const DEFAULT_URL = "https://www.expomultimix.com.br";
 
-export const PushMarketingPage: React.FC = () => {
+export const PushTabContent: React.FC = () => {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [url, setUrl] = useState("");
@@ -60,18 +60,10 @@ export const PushMarketingPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* ── Header ── */}
-      <div className="space-y-2">
-        <h1 className="text-3xl font-black text-white uppercase tracking-tighter flex items-center gap-3">
-          <Bell className="h-8 w-8 text-brand-pink" />
-          NOTIFICAÇÕES <span className="text-brand-cyan">PUSH</span>
-        </h1>
-        <div className="h-1.5 w-24 bg-linear-to-r from-brand-pink to-brand-cyan rounded-full" />
-        <p className="text-white/40 text-sm">
-          Envia uma notificação no navegador de todos os visitantes do site público que já
-          permitiram receber notificações — sem precisar de email ou telefone.
-        </p>
-      </div>
+      <p className="text-white/40 text-sm">
+        Envia uma notificação no navegador de todos os visitantes do site público que já
+        permitiram receber notificações — sem precisar de email ou telefone.
+      </p>
 
       <div className="flex flex-col lg:flex-row gap-6 items-start">
         {/* ── Right: Preview (70%) ── */}
