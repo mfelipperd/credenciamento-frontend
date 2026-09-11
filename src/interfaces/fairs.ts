@@ -34,6 +34,7 @@ export interface Fair {
   edition?: string | null;
   description?: string | null;
   bannerUrl?: string | null;
+  floorPlanUrl?: string | null;
   status: FairStatus;
   isActive: boolean;
   createdAt: string;
@@ -99,6 +100,7 @@ export interface CreateFairForm {
   edition?: string;
   description?: string;
   bannerUrl?: string;
+  floorPlanUrl?: string;
   status?: FairStatus;
 
   // Local
@@ -142,6 +144,7 @@ export interface UpdateFairForm {
   edition?: string;
   description?: string;
   bannerUrl?: string;
+  floorPlanUrl?: string;
   status?: FairStatus;
 
   // Local

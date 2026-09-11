@@ -39,6 +39,7 @@ import {
   Users,
   Navigation,
   Image,
+  Map,
 } from "lucide-react";
 import type {
   Fair,
@@ -82,6 +83,7 @@ const fairFormSchema = z.object({
   edition: z.string().optional(),
   description: z.string().optional(),
   bannerUrl: z.string().optional(),
+  floorPlanUrl: z.string().optional(),
   status: z.enum(["upcoming", "ongoing", "ended", "cancelled"]).optional(),
 
   // Local
@@ -159,6 +161,7 @@ export const FairForm: React.FC<FairFormProps> = ({
       edition: "",
       description: "",
       bannerUrl: "",
+      floorPlanUrl: "",
       status: "upcoming",
       location: "",
       venueName: "",
@@ -196,6 +199,7 @@ export const FairForm: React.FC<FairFormProps> = ({
         edition: fair.edition ?? "",
         description: fair.description ?? "",
         bannerUrl: fair.bannerUrl ?? "",
+        floorPlanUrl: fair.floorPlanUrl ?? "",
         status: fair.status ?? "upcoming",
         location: fair.location ?? "",
         venueName: fair.venueName ?? "",
@@ -316,6 +320,7 @@ export const FairForm: React.FC<FairFormProps> = ({
     if (strOr(data.edition)) formData.edition = strOr(data.edition);
     if (strOr(data.description)) formData.description = strOr(data.description);
     if (strOr(data.bannerUrl)) formData.bannerUrl = strOr(data.bannerUrl);
+    if (strOr(data.floorPlanUrl)) formData.floorPlanUrl = strOr(data.floorPlanUrl);
     if (data.status) formData.status = data.status;
 
     // Local
@@ -476,6 +481,21 @@ export const FairForm: React.FC<FairFormProps> = ({
                         </FormLabel>
                         <FormControl>
                           <Input {...field} placeholder="https://..." />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="floorPlanUrl"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-1">
+                          <Map className="h-3.5 w-3.5" /> Planta do pavilhão (SVG)
+                        </FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="/floor-plans/manaus-2027.svg" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
