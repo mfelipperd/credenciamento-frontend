@@ -593,6 +593,7 @@ function IdentitySection({ fair, isEditing, isSaving, onEdit, onCancel, onSave }
   const [edition, setEdition] = useState(fair.edition ?? "");
   const [description, setDescription] = useState(fair.description ?? "");
   const [bannerUrl, setBannerUrl] = useState(fair.bannerUrl ?? "");
+  const [floorPlanUrl, setFloorPlanUrl] = useState(fair.floorPlanUrl ?? "");
   const [status, setStatus] = useState<FairStatus>(fair.status ?? "upcoming");
 
   const reset = () => {
@@ -600,12 +601,13 @@ function IdentitySection({ fair, isEditing, isSaving, onEdit, onCancel, onSave }
     setEdition(fair.edition ?? "");
     setDescription(fair.description ?? "");
     setBannerUrl(fair.bannerUrl ?? "");
+    setFloorPlanUrl(fair.floorPlanUrl ?? "");
     setStatus(fair.status ?? "upcoming");
   };
 
   const handleSave = () => {
     if (!name.trim()) { toast.error("Nome é obrigatório"); return; }
-    onSave({ name: name.trim(), edition: edition || undefined, description: description || undefined, bannerUrl: bannerUrl || undefined, status });
+    onSave({ name: name.trim(), edition: edition || undefined, description: description || undefined, bannerUrl: bannerUrl || undefined, floorPlanUrl: floorPlanUrl || undefined, status });
   };
 
   return (
@@ -651,6 +653,7 @@ function IdentitySection({ fair, isEditing, isSaving, onEdit, onCancel, onSave }
               </Select>
             </div>
             <EditField label="Banner (URL da imagem)" value={bannerUrl} onChange={setBannerUrl} placeholder="https://..." />
+            <EditField label="Planta do pavilhão (SVG)" value={floorPlanUrl} onChange={setFloorPlanUrl} placeholder="/floor-plans/manaus-2027.svg" />
           </div>
         </div>
       ) : (
@@ -677,6 +680,16 @@ function IdentitySection({ fair, isEditing, isSaving, onEdit, onCancel, onSave }
                 className="text-xs text-brand-cyan/70 hover:text-brand-cyan flex items-center gap-1 truncate">
                 <Image className="h-3 w-3 shrink-0" />
                 <span className="truncate">{fair.bannerUrl}</span>
+              </a>
+            </div>
+          )}
+          {fair.floorPlanUrl && (
+            <div className="sm:col-span-2 lg:col-span-4">
+              <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest mb-1">Planta do pavilhão</p>
+              <a href={fair.floorPlanUrl} target="_blank" rel="noopener noreferrer"
+                className="text-xs text-brand-cyan/70 hover:text-brand-cyan flex items-center gap-1 truncate">
+                <Image className="h-3 w-3 shrink-0" />
+                <span className="truncate">{fair.floorPlanUrl}</span>
               </a>
             </div>
           )}
