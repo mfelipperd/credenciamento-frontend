@@ -36,6 +36,10 @@ export const AppEndpoints = {
     LINK_REVENUE: (id: string) => `/finance/stands/${id}/link-revenue`,
     UNLINK_REVENUE: (id: string) => `/finance/stands/${id}/unlink-revenue`,
   },
+  EXHIBITOR_AUTH: {
+    FIRST_ACCESS: "/public/exhibitor-auth/first-access",
+    LOGIN: "/public/exhibitor-auth/login",
+  },
   EXHIBITORS: {
     BASE: "/exhibitors",
     BY_ID: (id: string) => `/exhibitors/${id}`,

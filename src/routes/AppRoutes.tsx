@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import { AuthProvider, ProtectedRoute } from "@/auth/AuthProvider";
+import { ExhibitorAuthProvider } from "@/auth/ExhibitorAuthProvider";
 import { MainLayout } from "@/components/Layout/mainLayout";
 import { PublicLayout } from "@/components/Layout/PublicLayout";
 import { AdminRouteGuard } from "@/components/AdminRouteGuard";
@@ -27,6 +28,9 @@ const UserManagementPage = lazy(() => import("@/pages/UserManagement/page"));
 const FairsPage = lazy(() => import("@/pages/Fairs/page"));
 const FairDetailPage = lazy(() => import("@/pages/Fairs/FairDetail/page"));
 const ClientsPage = lazy(() => import("@/pages/Clients/page").then(m => ({ default: m.ClientsPage })));
+const ExhibitorPortalPage = lazy(() =>
+  import("@/pages/ExhibitorPortal/page").then((m) => ({ default: m.ExhibitorPortalPage }))
+);
 
 const PageFallback = () => (
   <div className="flex items-center justify-center min-h-[60vh]">
@@ -58,6 +62,14 @@ export const AppRoutes = createBrowserRouter([
   {
     path: "/error-test",
     element: <PublicLayout><Lazy><ErrorTestPage /></Lazy></PublicLayout>,
+  },
+  {
+    path: "/portal-expositor",
+    element: (
+      <ExhibitorAuthProvider>
+        <Lazy><ExhibitorPortalPage /></Lazy>
+      </ExhibitorAuthProvider>
+    ),
   },
 
   {
