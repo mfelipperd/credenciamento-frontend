@@ -10,9 +10,19 @@ interface Props {
 }
 
 export function VisitorsTimelineChart({ data, loading }: Props) {
-  const hasData = data && data.series.length > 0 && data.series.some((s) => s.data.some((v) => v > 0));
+  const hasData =
+    data &&
+    data.series.length > 0 &&
+    data.series.some((s) => s.data.some((v) => v > 0));
 
-  if (!hasData) return <EmptyChart label="Evolução de Inscrições" loading={loading} height={260} />;
+  if (!hasData)
+    return (
+      <EmptyChart
+        label="Evolução de Inscrições"
+        loading={loading}
+        height={260}
+      />
+    );
 
   const options: ApexOptions = {
     ...darkBase,
@@ -28,19 +38,31 @@ export function VisitorsTimelineChart({ data, loading }: Props) {
     },
     yaxis: [
       {
-        title: { text: "Acumulado", style: { color: "rgba(255,255,255,0.3)", fontSize: "10px" } },
-        labels: { style: { colors: "rgba(255,255,255,0.4)", fontSize: "10px" } },
+        title: {
+          text: "Acumulado",
+          style: { color: "rgba(255,255,255,0.3)", fontSize: "10px" },
+        },
+        labels: {
+          style: { colors: "rgba(255,255,255,0.4)", fontSize: "10px" },
+        },
       },
       {
         opposite: true,
-        title: { text: "No dia", style: { color: "rgba(255,255,255,0.3)", fontSize: "10px" } },
-        labels: { style: { colors: "rgba(255,255,255,0.4)", fontSize: "10px" } },
+        title: {
+          text: "No dia",
+          style: { color: "rgba(255,255,255,0.3)", fontSize: "10px" },
+        },
+        labels: {
+          style: { colors: "rgba(255,255,255,0.4)", fontSize: "10px" },
+        },
       },
     ],
     markers: { size: 3 },
     legend: { ...darkBase.legend, position: "top" },
-    tooltip: { ...darkBase.tooltip, shared: true },
+    tooltip: { ...darkBase.tooltip, shared: true, intersect: false },
   };
 
-  return <Chart type="line" series={data.series} options={options} height={260} />;
+  return (
+    <Chart type="line" series={data.series} options={options} height={260} />
+  );
 }

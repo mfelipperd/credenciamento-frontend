@@ -23,13 +23,20 @@ const HOW_DID_YOU_KNOW_LABELS: Record<string, string> = {
 };
 
 export const ConversionChart: React.FC<{ fairId: string }> = ({ fairId }) => {
-  const { data: result, isLoading: loading } = useDashboardData<DashboardConversionResponse>(AppEndpoints.DASHBOARD.CONVERSIONS_HOW_DID_YOU_KNOW, fairId);
+  const { data: result, isLoading: loading } =
+    useDashboardData<DashboardConversionResponse>(
+      AppEndpoints.DASHBOARD.CONVERSIONS_HOW_DID_YOU_KNOW,
+      fairId,
+    );
 
   // Ordena por volume de inscritos, não só por taxa de conversão — um canal
   // com 90% de conversão mas 5 inscritos não é "melhor" que um com 40% de
   // conversão e 300 inscritos.
   const data = useMemo(
-    () => [...(result?.conversions ?? [])].sort((a, b) => b.totalRegistered - a.totalRegistered),
+    () =>
+      [...(result?.conversions ?? [])].sort(
+        (a, b) => b.totalRegistered - a.totalRegistered,
+      ),
     [result],
   );
 
@@ -61,7 +68,9 @@ export const ConversionChart: React.FC<{ fairId: string }> = ({ fairId }) => {
       padding: { right: 24 },
     },
     xaxis: {
-      categories: data.map((c) => HOW_DID_YOU_KNOW_LABELS[c.howDidYouKnow] || c.howDidYouKnow),
+      categories: data.map(
+        (c) => HOW_DID_YOU_KNOW_LABELS[c.howDidYouKnow] || c.howDidYouKnow,
+      ),
       axisBorder: { show: false },
       axisTicks: { show: false },
       labels: {
@@ -91,9 +100,11 @@ export const ConversionChart: React.FC<{ fairId: string }> = ({ fairId }) => {
     tooltip: {
       theme: "dark",
       shared: true,
+      intersect: false,
       custom: function ({ dataPointIndex }) {
         const item = data[dataPointIndex];
-        const label = HOW_DID_YOU_KNOW_LABELS[item.howDidYouKnow] || item.howDidYouKnow;
+        const label =
+          HOW_DID_YOU_KNOW_LABELS[item.howDidYouKnow] || item.howDidYouKnow;
 
         const costRows =
           item.spend != null
@@ -163,7 +174,9 @@ export const ConversionChart: React.FC<{ fairId: string }> = ({ fairId }) => {
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center opacity-20">
             <TrendingUp size={48} className="mb-4" />
-            <p className="text-xs font-black uppercase tracking-widest">Aguardando dados de conversão</p>
+            <p className="text-xs font-black uppercase tracking-widest">
+              Aguardando dados de conversão
+            </p>
           </div>
         )}
       </div>
