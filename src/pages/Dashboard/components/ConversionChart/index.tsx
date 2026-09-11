@@ -5,8 +5,10 @@ import ReactApexChart from "react-apexcharts";
 import { TrendingUp } from "lucide-react";
 import { LogoLoading } from "@/components/LogoLoading";
 import type { DashboardConversionResponse } from "@/interfaces/dashboard";
+import { currency } from "../../utils/format";
 
-const CONVERSION_COLORS = ["#00aacd"];
+const REGISTERED_COLOR = "#00aacd";
+const ATTENDED_COLOR = "#00E396";
 
 const HOW_DID_YOU_KNOW_LABELS: Record<string, string> = {
   facebook: "Facebook",
@@ -22,46 +24,44 @@ const HOW_DID_YOU_KNOW_LABELS: Record<string, string> = {
 
 export const ConversionChart: React.FC<{ fairId: string }> = ({ fairId }) => {
   const { data: result, isLoading: loading } = useDashboardData<DashboardConversionResponse>(AppEndpoints.DASHBOARD.CONVERSIONS_HOW_DID_YOU_KNOW, fairId);
-  const data = useMemo(() => [...(result?.conversions ?? [])].sort((a, b) => b.conversionRate - a.conversionRate), [result]);
 
-  const series = [{
-    name: "Taxa de Conversão",
-    data: data.map(c => Math.round(c.conversionRate))
-  }];
+  // Ordena por volume de inscritos, não só por taxa de conversão — um canal
+  // com 90% de conversão mas 5 inscritos não é "melhor" que um com 40% de
+  // conversão e 300 inscritos.
+  const data = useMemo(
+    () => [...(result?.conversions ?? [])].sort((a, b) => b.totalRegistered - a.totalRegistered),
+    [result],
+  );
+
+  const series = [
+    { name: "Inscritos", data: data.map((c) => c.totalRegistered) },
+    { name: "Compareceram", data: data.map((c) => c.visitorsWithCheckins) },
+  ];
 
   const options: ApexCharts.ApexOptions = {
     chart: {
       type: "bar",
+      stacked: false,
       toolbar: { show: false },
       background: "transparent",
       fontFamily: "inherit",
     },
-    colors: CONVERSION_COLORS,
+    colors: [REGISTERED_COLOR, ATTENDED_COLOR],
     plotOptions: {
       bar: {
         horizontal: true,
         borderRadius: 4,
-        barHeight: "60%",
-        dataLabels: { position: "end" }
+        barHeight: "70%",
       },
     },
-    dataLabels: {
-      enabled: true,
-      formatter: (val) => `${val}%`,
-      style: {
-        fontSize: "10px",
-        fontWeight: 900,
-        colors: ["#ffffff"]
-      },
-      offsetX: 30,
-    },
+    dataLabels: { enabled: false },
     grid: {
       borderColor: "rgba(255, 255, 255, 0.05)",
       xaxis: { lines: { show: true } },
-      padding: { right: 40 }
+      padding: { right: 24 },
     },
     xaxis: {
-      categories: data.map(c => HOW_DID_YOU_KNOW_LABELS[c.howDidYouKnow] || c.howDidYouKnow),
+      categories: data.map((c) => HOW_DID_YOU_KNOW_LABELS[c.howDidYouKnow] || c.howDidYouKnow),
       axisBorder: { show: false },
       axisTicks: { show: false },
       labels: {
@@ -81,30 +81,68 @@ export const ConversionChart: React.FC<{ fairId: string }> = ({ fairId }) => {
         },
       },
     },
+    legend: {
+      show: true,
+      position: "top",
+      horizontalAlign: "left",
+      labels: { colors: "rgba(255, 255, 255, 0.6)" },
+      fontSize: "11px",
+    },
     tooltip: {
       theme: "dark",
-      custom: function({ dataPointIndex }) {
+      shared: true,
+      custom: function ({ dataPointIndex }) {
         const item = data[dataPointIndex];
+        const label = HOW_DID_YOU_KNOW_LABELS[item.howDidYouKnow] || item.howDidYouKnow;
+
+        const costRows =
+          item.spend != null
+            ? `
+              <div class="flex justify-between gap-8">
+                <span class="text-xs text-white/60">Gasto no canal:</span>
+                <span class="text-xs font-bold text-white">${currency(item.spend)}</span>
+              </div>
+              <div class="flex justify-between gap-8">
+                <span class="text-xs text-white/60">Custo por inscrito (CPL):</span>
+                <span class="text-xs font-bold text-white">${item.cpl != null ? currency(item.cpl) : "—"}</span>
+              </div>
+              <div class="flex justify-between gap-8">
+                <span class="text-xs text-white/60">Custo por comparecimento (CPA):</span>
+                <span class="text-xs font-bold text-white">${item.cpa != null ? currency(item.cpa) : "—"}</span>
+              </div>
+              ${
+                item.sharedWithChannels.length > 0
+                  ? `<div class="text-[10px] text-white/40 italic pt-1">Verba compartilhada com: ${item.sharedWithChannels
+                      .map((c) => HOW_DID_YOU_KNOW_LABELS[c] || c)
+                      .join(", ")} — não some o gasto entre os dois.</div>`
+                  : ""
+              }
+            `
+            : `<div class="text-xs text-white/40 italic">Sem despesa de mídia paga associada a este canal.</div>`;
+
         return `
-          <div class="p-3 bg-brand-blue border border-white/10 rounded-xl shadow-2xl">
-            <div class="text-[10px] font-black uppercase tracking-widest text-white/40 mb-2">${HOW_DID_YOU_KNOW_LABELS[item.howDidYouKnow] || item.howDidYouKnow}</div>
+          <div class="p-3 bg-brand-blue border border-white/10 rounded-xl shadow-2xl max-w-xs">
+            <div class="text-[10px] font-black uppercase tracking-widest text-white/40 mb-2">${label}</div>
             <div class="space-y-1">
               <div class="flex justify-between gap-8">
-                <span class="text-xs text-white/60">Inscritos:</span>
+                <span class="text-xs" style="color:${REGISTERED_COLOR}">Inscritos:</span>
                 <span class="text-xs font-bold text-white">${item.totalRegistered}</span>
               </div>
               <div class="flex justify-between gap-8">
-                <span class="text-xs text-white/60">Check-ins:</span>
-                <span class="text-xs font-bold text-white">${item.totalCheckIns}</span>
+                <span class="text-xs" style="color:${ATTENDED_COLOR}">Compareceram:</span>
+                <span class="text-xs font-bold text-white">${item.visitorsWithCheckins}</span>
               </div>
-              <div class="pt-1 mt-1 border-t border-white/5 flex justify-between gap-8">
+              <div class="flex justify-between gap-8">
                 <span class="text-xs text-brand-cyan font-bold">Conversão:</span>
                 <span class="text-xs font-black text-brand-cyan">${item.conversionRate.toFixed(1)}%</span>
+              </div>
+              <div class="pt-1 mt-1 border-t border-white/5 space-y-1">
+                ${costRows}
               </div>
             </div>
           </div>
         `;
-      }
+      },
     },
   };
 

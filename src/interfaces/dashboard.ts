@@ -46,9 +46,24 @@ export interface ConversionByHowDidYouKnow {
   visitorsWithCheckins: number;
   totalCheckIns: number;
   conversionRate: number;
+  percentOfTotal: number;
+  /** Gasto de mídia paga casado por palavra-chave (categoria/descrição da despesa). Null quando o canal é orgânico ou não tem despesa casada. */
+  spend: number | null;
+  /** Custo por lead: spend / totalRegistered. Mede a eficiência do canal em gerar inscrição. */
+  cpl: number | null;
+  /** Custo por comparecimento: spend / visitorsWithCheckins. Mede a eficiência do canal em levar a pessoa até a feira de fato. */
+  cpa: number | null;
+  /**
+   * Outras respostas de canal que compartilham a MESMA despesa/verba que esta
+   * (ex: "instagram" e "facebook" pagos por uma única despesa de Meta Ads).
+   * Ao exibir `spend`, nunca some entre canais que aparecem na lista um do
+   * outro — é o mesmo dinheiro contado uma vez por canal, não dinheiro extra.
+   */
+  sharedWithChannels: string[];
 }
 
 export interface DashboardConversionResponse {
   fairId: string;
+  totalVisitors: number;
   conversions: ConversionByHowDidYouKnow[];
 }
