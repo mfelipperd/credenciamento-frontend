@@ -8,6 +8,7 @@ import {
   useClients,
   useEntryModels,
   useCreateRevenue,
+  useCreateClient,
 } from "@/hooks/useFinance";
 import {
   Sheet,
@@ -40,6 +41,7 @@ import {
   ChevronRight,
   Star,
   MapPin,
+  UserPlus,
 } from "lucide-react";
 import { toast } from "sonner";
 import { maskCurrencyBRL } from "@/utils/masks";
@@ -156,6 +158,13 @@ export function ReceitaDrawer({
     type: string;
   } | null>(null);
   const [showStandConfirmation, setShowStandConfirmation] = useState(false);
+  const [showNewClientForm, setShowNewClientForm] = useState(false);
+  const [newClient, setNewClient] = useState({
+    name: "",
+    cnpj: "",
+    email: "",
+    phone: "",
+  });
 
   const { user } = useAuth();
   const { data: availableStands } = useAvailableStands(fairId, isOpen && !!prefilledStandNumber);
@@ -203,6 +212,7 @@ export function ReceitaDrawer({
   }, [allClients, clientSearch]);
 
   const createRevenueMutation = useCreateRevenue();
+  const createClientMutation = useCreateClient();
 
   const filteredEntryModels = useMemo(
     () => entryModels.filter((m) => m.type === revenueType),
@@ -218,6 +228,8 @@ export function ReceitaDrawer({
       setSelectedStand(null);
       setSelectedEntryModel(null);
       setClientSearch("");
+      setShowNewClientForm(false);
+      setNewClient({ name: "", cnpj: "", email: "", phone: "" });
     }
   }, [isOpen, reset]);
 
@@ -323,6 +335,35 @@ export function ReceitaDrawer({
     setSelectedClient(client);
     setValue("clientId", client.id);
     setClientSearch("");
+  };
+
+  const handleOpenNewClientForm = () => {
+    setNewClient({ name: clientSearch, cnpj: "", email: "", phone: "" });
+    setShowNewClientForm(true);
+  };
+
+  const handleCreateClient = () => {
+    if (!fairId) return;
+    if (!newClient.name.trim()) {
+      toast.error("Informe o nome do cliente");
+      return;
+    }
+    createClientMutation.mutate(
+      {
+        fairId,
+        name: newClient.name.trim(),
+        cnpj: newClient.cnpj.trim() || undefined,
+        email: newClient.email.trim() || undefined,
+        phone: newClient.phone.trim() || undefined,
+      },
+      {
+        onSuccess: (client) => {
+          handleClientSelect({ id: client.id, name: client.name });
+          setShowNewClientForm(false);
+          setNewClient({ name: "", cnpj: "", email: "", phone: "" });
+        },
+      }
+    );
   };
 
   const handleStandSelect = (standNumber: number, stand: Stand) => {
@@ -576,6 +617,87 @@ export function ReceitaDrawer({
                               </div>
                             </button>
                           ))}
+                        </div>
+                      )}
+
+                      {!isLoadingClients &&
+                        filteredClients.length === 0 &&
+                        clientSearch.trim() && (
+                          <p className="text-xs text-slate-400 px-1">
+                            Nenhum cliente encontrado para "{clientSearch}".
+                          </p>
+                        )}
+
+                      {!showNewClientForm ? (
+                        <button
+                          type="button"
+                          onClick={handleOpenNewClientForm}
+                          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-dashed border-slate-600/60 text-slate-300 hover:text-white hover:border-[#00aacd]/60 hover:bg-[#00aacd]/5 transition-colors text-xs font-bold"
+                        >
+                          <UserPlus className="w-3.5 h-3.5" />
+                          Cadastrar novo cliente
+                        </button>
+                      ) : (
+                        <div className="rounded-xl border border-slate-700/60 bg-slate-800/60 p-3 space-y-2.5">
+                          <div className="flex items-center justify-between">
+                            <p className="text-xs font-black text-slate-300 uppercase tracking-widest">
+                              Novo Cliente
+                            </p>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setShowNewClientForm(false)}
+                              className="text-slate-400 hover:text-white hover:bg-white/10 h-6 w-6 p-0"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </Button>
+                          </div>
+                          <Input
+                            placeholder="Nome / Razão Social *"
+                            value={newClient.name}
+                            onChange={(e) =>
+                              setNewClient((prev) => ({ ...prev, name: e.target.value }))
+                            }
+                            className="bg-slate-900/70 border-slate-600/60 text-white placeholder:text-slate-500 rounded-lg h-9 text-sm"
+                          />
+                          <div className="grid grid-cols-2 gap-2">
+                            <Input
+                              placeholder="CNPJ / CPF"
+                              value={newClient.cnpj}
+                              onChange={(e) =>
+                                setNewClient((prev) => ({ ...prev, cnpj: e.target.value }))
+                              }
+                              className="bg-slate-900/70 border-slate-600/60 text-white placeholder:text-slate-500 rounded-lg h-9 text-sm"
+                            />
+                            <Input
+                              placeholder="Telefone"
+                              value={newClient.phone}
+                              onChange={(e) =>
+                                setNewClient((prev) => ({ ...prev, phone: e.target.value }))
+                              }
+                              className="bg-slate-900/70 border-slate-600/60 text-white placeholder:text-slate-500 rounded-lg h-9 text-sm"
+                            />
+                          </div>
+                          <Input
+                            placeholder="Email"
+                            type="email"
+                            value={newClient.email}
+                            onChange={(e) =>
+                              setNewClient((prev) => ({ ...prev, email: e.target.value }))
+                            }
+                            className="bg-slate-900/70 border-slate-600/60 text-white placeholder:text-slate-500 rounded-lg h-9 text-sm"
+                          />
+                          <Button
+                            type="button"
+                            onClick={handleCreateClient}
+                            disabled={createClientMutation.isPending}
+                            className="w-full bg-[#00aacd] hover:bg-[#00aacd]/90 text-white rounded-lg h-9 font-bold text-xs"
+                          >
+                            {createClientMutation.isPending
+                              ? "Criando..."
+                              : "Criar e selecionar cliente"}
+                          </Button>
                         </div>
                       )}
                     </div>
