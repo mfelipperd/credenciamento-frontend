@@ -10,7 +10,7 @@ export const AppWrapper: React.FC = () => {
   useGlobalErrorHandler();
 
   return (
-    <ThemeProvider defaultTheme="system" storageKey="credenciamento-ui-theme">
+    <ThemeProvider>
       <RouterProvider router={AppRoutes} />
       <ToastProvider />
     </ThemeProvider>
